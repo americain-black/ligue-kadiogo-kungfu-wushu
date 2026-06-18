@@ -37,7 +37,19 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    # Apps du projet de stage(chez TEER TECH) que j'ai creer
+    'apps.accounts',
+    'apps.clubs',
+    'apps.practitioners',
+    'apps.exams',
+    'apps.evaluations',
+    'apps.payments',
+    'apps.results',
+    'apps.communication',
 ]
+
+
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',

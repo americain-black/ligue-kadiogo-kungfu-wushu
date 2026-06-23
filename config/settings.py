@@ -40,6 +40,7 @@ INSTALLED_APPS = [
 
     # Apps du projet de stage(chez TEER TECH) que j'ai creer
     'apps.accounts',
+    'apps.ligues',
     'apps.clubs',
     'apps.practitioners',
     'apps.exams',
@@ -157,3 +158,13 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+
+
+
+
+
+AUTH_USER_MODEL = 'accounts.Utilisateur'
+
+MEDIA_URL  = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'

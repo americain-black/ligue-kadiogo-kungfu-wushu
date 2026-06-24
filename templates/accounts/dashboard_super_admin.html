@@ -1,0 +1,146 @@
+{% extends 'base.html' %}
+
+{% block title %}Super Admin — Ligue du Kadiogo{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_super_admin' %}" class="nav-link active">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Gestion</span>
+<a href="{% url 'ligues:liste' %}" class="nav-link">
+    <i class="bi bi-building me-2"></i>Ligues
+</a>
+<a href="{% url 'accounts:liste_utilisateurs' %}" class="nav-link">
+    <i class="bi bi-people me-2"></i>Utilisateurs
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-0">Tableau de bord</h4>
+        <small class="text-muted">Super Administrateur</small>
+    </div>
+    <span class="badge bg-dark px-3 py-2">Super Admin</span>
+</div>
+
+<!-- Statistiques -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card stat-card p-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-muted small">Ligues actives</div>
+                    <div class="fs-3 fw-bold text-danger">{{ nb_ligues_actives }}</div>
+                    <div class="text-muted small">sur {{ nb_ligues_total }} au total</div>
+                </div>
+                <i class="bi bi-building fs-1 text-danger opacity-25"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card p-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-muted small">Utilisateurs</div>
+                    <div class="fs-3 fw-bold text-primary">{{ nb_utilisateurs }}</div>
+                    <div class="text-muted small">{{ nb_actifs }} comptes actifs</div>
+                </div>
+                <i class="bi bi-people fs-1 text-primary opacity-25"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Actions rapides -->
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card p-3">
+            <h6 class="fw-bold mb-3"><i class="bi bi-building me-2 text-danger"></i>Actions ligues</h6>
+            <a href="{% url 'ligues:creer' %}" class="btn btn-ligue btn-sm me-2">
+                <i class="bi bi-plus me-1"></i>Créer une ligue
+            </a>
+            <a href="{% url 'ligues:liste' %}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-list me-1"></i>Voir toutes les ligues
+            </a>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card p-3">
+            <h6 class="fw-bold mb-3"><i class="bi bi-people me-2 text-primary"></i>Actions utilisateurs</h6>
+            <a href="{% url 'accounts:creer_utilisateur' %}" class="btn btn-ligue btn-sm me-2">
+                <i class="bi bi-person-plus me-1"></i>Créer un compte
+            </a>
+            <a href="{% url 'accounts:liste_utilisateurs' %}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-list me-1"></i>Voir tous les comptes
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Dernières ligues -->
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="card p-3">
+            <h6 class="fw-bold mb-3">Dernières ligues créées</h6>
+            {% if dernieres_ligues %}
+            <table class="table table-sm table-hover mb-0">
+                <thead><tr><th>Ligue</th><th>Région</th><th>Statut</th></tr></thead>
+                <tbody>
+                {% for ligue in dernieres_ligues %}
+                <tr>
+                    <td><strong>{{ ligue.sigle }}</strong> — {{ ligue.nom_ligue }}</td>
+                    <td>{{ ligue.region }}</td>
+                    <td>
+                        {% if ligue.statut == 'ACTIVE' %}
+                            <span class="badge bg-success">Active</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Inactive</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="text-muted small mb-0">Aucune ligue créée.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card p-3">
+            <h6 class="fw-bold mb-3">Derniers comptes créés</h6>
+            {% if derniers_utilisateurs %}
+            <table class="table table-sm table-hover mb-0">
+                <thead><tr><th>Utilisateur</th><th>Rôles</th><th>Statut</th></tr></thead>
+                <tbody>
+                {% for u in derniers_utilisateurs %}
+                <tr>
+                    <td>{{ u.get_full_name|default:u.username }}</td>
+                    <td>
+                        {% for role in u.roles.all %}
+                            <span class="badge bg-dark badge-role">{{ role.get_nom_role_display }}</span>
+                        {% empty %}
+                            <span class="text-muted small">Aucun</span>
+                        {% endfor %}
+                    </td>
+                    <td>
+                        {% if u.statut_compte %}
+                            <span class="badge bg-success">Actif</span>
+                        {% else %}
+                            <span class="badge bg-danger">Désactivé</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="text-muted small mb-0">Aucun utilisateur créé.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

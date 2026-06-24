@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+
+{% block title %}Ligues — Ligue du Kadiogo{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_super_admin' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Gestion</span>
+<a href="{% url 'ligues:liste' %}" class="nav-link active">
+    <i class="bi bi-building me-2"></i>Ligues
+</a>
+<a href="{% url 'accounts:liste_utilisateurs' %}" class="nav-link">
+    <i class="bi bi-people me-2"></i>Utilisateurs
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-0">Gestion des ligues</h4>
+        <small class="text-muted">{{ ligues.count }} ligue(s) au total</small>
+    </div>
+    <a href="{% url 'ligues:creer' %}" class="btn btn-ligue">
+        <i class="bi bi-plus-lg me-1"></i>Créer une ligue
+    </a>
+</div>
+
+<div class="card">
+    <div class="card-body p-0">
+        <table class="table table-hover mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Ligue</th>
+                    <th>Région</th>
+                    <th>Contact</th>
+                    <th>Statut</th>
+                    <th>Date création</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for ligue in ligues %}
+            <tr>
+                <td>
+                    <strong>{{ ligue.sigle }}</strong>
+                    <div class="small text-muted">{{ ligue.nom_ligue }}</div>
+                </td>
+                <td>{{ ligue.region }}</td>
+                <td>
+                    {% if ligue.email_contact %}
+                        <div class="small">{{ ligue.email_contact }}</div>
+                    {% endif %}
+                    {% if ligue.telephone %}
+                        <div class="small text-muted">{{ ligue.telephone }}</div>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if ligue.statut == 'ACTIVE' %}
+                        <span class="badge bg-success">Active</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Inactive</span>
+                    {% endif %}
+                </td>
+                <td class="small text-muted">{{ ligue.date_creation }}</td>
+                <td class="text-end">
+                    <a href="{% url 'ligues:modifier' ligue.pk %}"
+                       class="btn btn-sm btn-outline-secondary me-1">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <a href="{% url 'ligues:toggle_statut' ligue.pk %}"
+                       class="btn btn-sm {% if ligue.statut == 'ACTIVE' %}btn-outline-warning{% else %}btn-outline-success{% endif %}"
+                       onclick="return confirm('Confirmer le changement de statut ?')">
+                        {% if ligue.statut == 'ACTIVE' %}
+                            <i class="bi bi-pause-circle"></i>
+                        {% else %}
+                            <i class="bi bi-play-circle"></i>
+                        {% endif %}
+                    </a>
+                </td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="6" class="text-center text-muted py-4">
+                    Aucune ligue créée.
+                    <a href="{% url 'ligues:creer' %}">Créer la première ligue</a>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

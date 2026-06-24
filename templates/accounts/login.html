@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Connexion — Ligue du Kadiogo</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #c0392b 0%, #2c3e50 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-card {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            width: 100%;
+            max-width: 420px;
+            padding: 2.5rem;
+        }
+        .login-logo {
+            width: 70px;
+            height: 70px;
+            background: linear-gradient(135deg, #c0392b, #96281b);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+        }
+        .login-logo i {
+            font-size: 2rem;
+            color: #fff;
+        }
+        .form-control:focus {
+            border-color: #c0392b;
+            box-shadow: 0 0 0 0.2rem rgba(192, 57, 43, 0.2);
+        }
+        .btn-connexion {
+            background: linear-gradient(135deg, #c0392b, #96281b);
+            border: none;
+            color: #fff;
+            padding: 0.7rem;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: opacity 0.2s;
+        }
+        .btn-connexion:hover {
+            opacity: 0.9;
+            color: #fff;
+        }
+        .input-group-text {
+            background-color: #f8f9fa;
+            border-right: none;
+            color: #c0392b;
+        }
+        .form-control {
+            border-left: none;
+        }
+        .form-control:focus {
+            border-left: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="login-card">
+    <!-- Logo -->
+    <div class="login-logo">
+        <i class="bi bi-trophy-fill"></i>
+    </div>
+
+    <h4 class="text-center fw-bold mb-1">Ligue du Kadiogo</h4>
+    <p class="text-center text-muted small mb-4">Kung-Fu Wushu — Espace de gestion</p>
+
+    <!-- Messages d'erreur -->
+    {% if form.errors %}
+        <div class="alert alert-danger py-2 small">
+            <i class="bi bi-exclamation-triangle me-1"></i>
+            Identifiant ou mot de passe incorrect.
+        </div>
+    {% endif %}
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} py-2 small">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Formulaire -->
+    <form method="post" action="{% url 'accounts:login' %}">
+        {% csrf_token %}
+
+        <div class="mb-3">
+            <label class="form-label fw-semibold small">Identifiant</label>
+            <div class="input-group">
+                <span class="input-group-text">
+                    <i class="bi bi-person"></i>
+                </span>
+                <input
+                    type="text"
+                    name="username"
+                    class="form-control"
+                    placeholder="Votre identifiant"
+                    autofocus
+                    required
+                >
+            </div>
+        </div>
+
+        <div class="mb-4">
+            <label class="form-label fw-semibold small">Mot de passe</label>
+            <div class="input-group">
+                <span class="input-group-text">
+                    <i class="bi bi-lock"></i>
+                </span>
+                <input
+                    type="password"
+                    name="password"
+                    id="password"
+                    class="form-control"
+                    placeholder="Votre mot de passe"
+                    required
+                >
+                <button
+                    type="button"
+                    class="btn btn-outline-secondary"
+                    onclick="togglePassword()"
+                >
+                    <i class="bi bi-eye" id="eye-icon"></i>
+                </button>
+            </div>
+        </div>
+
+        <input type="hidden" name="next" value="{{ next }}">
+
+        <button type="submit" class="btn btn-connexion w-100">
+            <i class="bi bi-box-arrow-in-right me-2"></i>Se connecter
+        </button>
+    </form>
+
+    <hr class="my-3">
+    <p class="text-center text-muted small mb-0">
+        <i class="bi bi-shield-lock me-1"></i>
+        Accès réservé aux membres autorisés
+    </p>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function togglePassword() {
+        const input = document.getElementById('password');
+        const icon  = document.getElementById('eye-icon');
+        if (input.type === 'password') {
+            input.type = 'text';
+            icon.classList.replace('bi-eye', 'bi-eye-slash');
+        } else {
+            input.type = 'password';
+            icon.classList.replace('bi-eye-slash', 'bi-eye');
+        }
+    }
+</script>
+</body>
+</html>

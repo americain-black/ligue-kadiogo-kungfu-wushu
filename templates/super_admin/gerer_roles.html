@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}Rôles — {{ utilisateur.get_full_name }}{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_super_admin' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Gestion</span>
+<a href="{% url 'ligues:liste' %}" class="nav-link">
+    <i class="bi bi-building me-2"></i>Ligues
+</a>
+<a href="{% url 'accounts:liste_utilisateurs' %}" class="nav-link active">
+    <i class="bi bi-people me-2"></i>Utilisateurs
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-0">Gérer les rôles</h4>
+        <small class="text-muted">
+            <a href="{% url 'accounts:liste_utilisateurs' %}" class="text-decoration-none">Utilisateurs</a>
+            → {{ utilisateur.get_full_name|default:utilisateur.username }}
+        </small>
+    </div>
+</div>
+
+<div class="card" style="max-width: 500px;">
+    <div class="card-body p-4">
+        <div class="d-flex align-items-center mb-4 p-3 bg-light rounded">
+            <i class="bi bi-person-circle fs-2 text-muted me-3"></i>
+            <div>
+                <div class="fw-bold">{{ utilisateur.get_full_name|default:utilisateur.username }}</div>
+                <div class="text-muted small">{{ utilisateur.email }}</div>
+                {% if utilisateur.ligue %}
+                    <div class="text-muted small">{{ utilisateur.ligue }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            <h6 class="fw-semibold mb-3">Sélectionner les rôles :</h6>
+            <div class="d-flex flex-column gap-2 mb-4">
+                {% for checkbox in form.roles %}
+                <div class="form-check p-3 border rounded">
+                    {{ checkbox.tag }}
+                    <label class="form-check-label ms-2 fw-semibold" for="{{ checkbox.id_for_label }}">
+                        {{ checkbox.choice_label }}
+                    </label>
+                </div>
+                {% endfor %}
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-ligue">
+                    <i class="bi bi-check-lg me-1"></i>Enregistrer les rôles
+                </button>
+                <a href="{% url 'accounts:liste_utilisateurs' %}" class="btn btn-outline-secondary">
+                    Annuler
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

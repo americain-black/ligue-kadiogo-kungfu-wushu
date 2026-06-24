@@ -1,3 +1,174 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from .models import Utilisateur, Role, UtilisateurRole
+from .forms import UtilisateurCreationForm, UtilisateurModificationForm, RolesForm
 
-# Create your views here.
+
+def super_admin_requis(view_func):
+    @login_required
+    def wrapper(request, *args, **kwargs):
+        if not (request.user.is_superuser or request.user.est_super_admin()):
+            messages.error(request, "Accès réservé au Super Administrateur.")
+            return redirect('accounts:tableau_de_bord')
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+
+def connexion(request):
+    if request.user.is_authenticated:
+        return redirect('accounts:tableau_de_bord')
+
+    if request.method == 'POST':
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user     = authenticate(request, username=username, password=password)
+
+        if user is not None:
+            if not user.statut_compte:
+                messages.error(request, "Votre compte est désactivé. Contactez l'administrateur.")
+                return render(request, 'accounts/login.html')
+
+            login(request, user)
+            return redirect('accounts:tableau_de_bord')
+        else:
+            return render(request, 'accounts/login.html', {'form': {'errors': True}})
+
+    return render(request, 'accounts/login.html')
+
+
+def deconnexion(request):
+    logout(request)
+    return redirect('accounts:login')
+
+
+@login_required
+def tableau_de_bord(request):
+    user = request.user
+
+    # is_superuser (createsuperuser) est traité comme Super Admin
+    if user.is_superuser or user.est_super_admin():
+        return redirect('accounts:dashboard_super_admin')
+    elif user.est_gest_ligue():
+        return redirect('accounts:dashboard_ligue')
+    elif user.est_gest_club():
+        return redirect('accounts:dashboard_club')
+    elif user.est_gest_financier():
+        return redirect('accounts:dashboard_financier')
+    elif user.est_jury():
+        return redirect('accounts:dashboard_jury')
+    else:
+        messages.warning(request, "Aucun rôle attribué à votre compte. Contactez l'administrateur.")
+        logout(request)
+        return redirect('accounts:login')
+
+
+@login_required
+def dashboard_super_admin(request):
+    from apps.ligues.models import Ligue
+    contexte = {
+        'nb_ligues_actives':   Ligue.objects.filter(statut='ACTIVE').count(),
+        'nb_ligues_total':     Ligue.objects.count(),
+        'nb_utilisateurs':     Utilisateur.objects.filter(is_superuser=False).count(),
+        'nb_actifs':           Utilisateur.objects.filter(statut_compte=True, is_superuser=False).count(),
+        'dernieres_ligues':    Ligue.objects.order_by('-date_creation')[:5],
+        'derniers_utilisateurs': Utilisateur.objects.filter(is_superuser=False).order_by('-date_joined')[:5],
+    }
+    return render(request, 'accounts/dashboard_super_admin.html', contexte)
+
+
+@login_required
+def dashboard_ligue(request):
+    return render(request, 'accounts/dashboard_ligue.html')
+
+
+@login_required
+def dashboard_club(request):
+    return render(request, 'accounts/dashboard_club.html')
+
+
+@login_required
+def dashboard_financier(request):
+    return render(request, 'accounts/dashboard_financier.html')
+
+
+@login_required
+def dashboard_jury(request):
+    return render(request, 'accounts/dashboard_jury.html')
+
+
+# ── Gestion des utilisateurs (Super Admin) ────────────────────────────
+
+@super_admin_requis
+def liste_utilisateurs(request):
+    utilisateurs = Utilisateur.objects.filter(
+        is_superuser=False
+    ).prefetch_related('roles').order_by('last_name', 'first_name')
+    return render(request, 'super_admin/utilisateurs_liste.html', {
+        'utilisateurs': utilisateurs
+    })
+
+
+@super_admin_requis
+def creer_utilisateur(request):
+    if request.method == 'POST':
+        form = UtilisateurCreationForm(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Compte utilisateur créé avec succès.")
+            return redirect('accounts:liste_utilisateurs')
+    else:
+        form = UtilisateurCreationForm()
+    return render(request, 'super_admin/utilisateur_form.html', {
+        'form': form, 'titre': 'Créer un utilisateur'
+    })
+
+
+@super_admin_requis
+def modifier_utilisateur(request, pk):
+    utilisateur = get_object_or_404(Utilisateur, pk=pk)
+    if request.method == 'POST':
+        form = UtilisateurModificationForm(request.POST, request.FILES, instance=utilisateur)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Compte modifié avec succès.")
+            return redirect('accounts:liste_utilisateurs')
+    else:
+        form = UtilisateurModificationForm(instance=utilisateur)
+    return render(request, 'super_admin/utilisateur_form.html', {
+        'form': form, 'titre': 'Modifier l\'utilisateur', 'utilisateur': utilisateur
+    })
+
+
+@super_admin_requis
+def gerer_roles(request, pk):
+    utilisateur = get_object_or_404(Utilisateur, pk=pk)
+    if request.method == 'POST':
+        form = RolesForm(request.POST)
+        if form.is_valid():
+            # Supprime tous les rôles et réattribue
+            UtilisateurRole.objects.filter(utilisateur=utilisateur).delete()
+            for role in form.cleaned_data['roles']:
+                UtilisateurRole.objects.create(utilisateur=utilisateur, role=role)
+            messages.success(request, "Rôles mis à jour avec succès.")
+            return redirect('accounts:liste_utilisateurs')
+    else:
+        roles_actuels = utilisateur.roles.all()
+        form = RolesForm(initial={'roles': roles_actuels})
+    return render(request, 'super_admin/gerer_roles.html', {
+        'form': form, 'utilisateur': utilisateur
+    })
+
+
+@super_admin_requis
+def toggle_statut_utilisateur(request, pk):
+    utilisateur = get_object_or_404(Utilisateur, pk=pk)
+    if utilisateur.statut_compte:
+        utilisateur.statut_compte = False
+        messages.warning(request, f"Compte de {utilisateur.get_full_name()} désactivé.")
+    else:
+        utilisateur.statut_compte = True
+        messages.success(request, f"Compte de {utilisateur.get_full_name()} réactivé.")
+    utilisateur.save()
+    return redirect('accounts:liste_utilisateurs')

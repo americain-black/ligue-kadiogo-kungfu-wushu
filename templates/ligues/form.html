@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ titre }} — Ligue du Kadiogo{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_super_admin' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Gestion</span>
+<a href="{% url 'ligues:liste' %}" class="nav-link active">
+    <i class="bi bi-building me-2"></i>Ligues
+</a>
+<a href="{% url 'accounts:liste_utilisateurs' %}" class="nav-link">
+    <i class="bi bi-people me-2"></i>Utilisateurs
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-0">{{ titre }}</h4>
+        <small class="text-muted">
+            <a href="{% url 'ligues:liste' %}" class="text-decoration-none">Ligues</a>
+            → {{ titre }}
+        </small>
+    </div>
+</div>
+
+<div class="card" style="max-width: 750px;">
+    <div class="card-body p-4">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <h6 class="fw-bold text-danger mb-3">
+                <i class="bi bi-info-circle me-2"></i>Informations générales
+            </h6>
+            <div class="row g-3 mb-4">
+                <div class="col-md-8">
+                    <label class="form-label fw-semibold small">Nom de la ligue *</label>
+                    {{ form.nom_ligue }}
+                    {% if form.nom_ligue.errors %}
+                        <div class="text-danger small">{{ form.nom_ligue.errors }}</div>
+                    {% endif %}
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold small">Sigle *</label>
+                    {{ form.sigle }}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold small">Région *</label>
+                    {{ form.region }}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold small">Logo</label>
+                    {{ form.logo }}
+                </div>
+                <div class="col-12">
+                    <label class="form-label fw-semibold small">Adresse du siège</label>
+                    {{ form.adresse_siege }}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold small">Email</label>
+                    {{ form.email_contact }}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold small">Téléphone</label>
+                    {{ form.telephone }}
+                </div>
+            </div>
+
+            <h6 class="fw-bold text-danger mb-3">
+                <i class="bi bi-people me-2"></i>Responsables
+            </h6>
+            <div class="row g-3 mb-4">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold small">Directeur administratif</label>
+                    {{ form.nom_directeur_adm }}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold small">Directeur technique</label>
+                    {{ form.nom_directeur_tech }}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold small">Secrétaire</label>
+                    {{ form.nom_secretaire }}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold small">Contact secrétaire</label>
+                    {{ form.contact_secretaire }}
+                </div>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-ligue">
+                    <i class="bi bi-check-lg me-1"></i>Enregistrer
+                </button>
+                <a href="{% url 'ligues:liste' %}" class="btn btn-outline-secondary">
+                    Annuler
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ titre }} — Ligue du Kadiogo{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_super_admin' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Gestion</span>
+<a href="{% url 'ligues:liste' %}" class="nav-link">
+    <i class="bi bi-building me-2"></i>Ligues
+</a>
+<a href="{% url 'accounts:liste_utilisateurs' %}" class="nav-link active">
+    <i class="bi bi-people me-2"></i>Utilisateurs
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-0">{{ titre }}</h4>
+        <small class="text-muted">
+            <a href="{% url 'accounts:liste_utilisateurs' %}" class="text-decoration-none">Utilisateurs</a>
+            → {{ titre }}
+        </small>
+    </div>
+</div>
+
+<div class="card" style="max-width: 650px;">
+    <div class="card-body p-4">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold small">Prénom *</label>
+                    {{ form.first_name }}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold small">Nom *</label>
+                    {{ form.last_name }}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold small">Identifiant *</label>
+                    {{ form.username }}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold small">Email</label>
+                    {{ form.email }}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold small">Téléphone</label>
+                    {{ form.telephone }}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold small">Ligue rattachée</label>
+                    {{ form.ligue }}
+                </div>
+                <div class="col-12">
+                    <label class="form-label fw-semibold small">Photo</label>
+                    {{ form.photo }}
+                </div>
+                {% if form.password1 %}
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold small">Mot de passe *</label>
+                    {{ form.password1 }}
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold small">Confirmer *</label>
+                    {{ form.password2 }}
+                </div>
+                {% endif %}
+            </div>
+
+            {% if form.errors %}
+            <div class="alert alert-danger mt-3 small">
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <div>{{ field.label }} : {{ error }}</div>
+                    {% endfor %}
+                {% endfor %}
+                {% for error in form.non_field_errors %}
+                    <div>{{ error }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <div class="d-flex gap-2 mt-4">
+                <button type="submit" class="btn btn-ligue">
+                    <i class="bi bi-check-lg me-1"></i>Enregistrer
+                </button>
+                <a href="{% url 'accounts:liste_utilisateurs' %}" class="btn btn-outline-secondary">
+                    Annuler
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

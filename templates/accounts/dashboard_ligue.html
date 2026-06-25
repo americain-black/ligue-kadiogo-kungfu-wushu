@@ -1,5 +1,190 @@
 {% extends 'base.html' %}
+
+{% block title %}Dashboard Ligue — {{ ligue.sigle|default:"Ligue" }}{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link active">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Gestion</span>
+<a href="{% url 'clubs:liste' %}" class="nav-link">
+    <i class="bi bi-building me-2"></i>Clubs
+</a>
+<a href="#" class="nav-link">
+    <i class="bi bi-people me-2"></i>Pratiquants
+</a>
+<a href="#" class="nav-link">
+    <i class="bi bi-journal-check me-2"></i>Examens
+</a>
+<a href="{% url 'clubs:demandes_affiliation' %}" class="nav-link">
+    <i class="bi bi-file-earmark-check me-2"></i>Affiliations
+</a>
+<a href="{% url 'ligues:organigramme' %}" class="nav-link">
+    <i class="bi bi-diagram-3 me-2"></i>Organigramme
+</a>
+{% endblock %}
+
 {% block content %}
-<h4 class="fw-bold">Tableau de bord en construction...</h4>
-<p class="text-muted">Cette section sera développée prochainement.</p>
+
+{% if not ligue %}
+<div class="alert alert-warning">
+    <i class="bi bi-exclamation-triangle me-2"></i>
+    Votre compte n'est rattaché à aucune ligue. Contactez le Super Administrateur.
+</div>
+{% else %}
+
+<!-- En-tête -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-0">Tableau de bord</h4>
+        <small class="text-muted">{{ ligue.nom_ligue }} ({{ ligue.sigle }})</small>
+    </div>
+    <span class="badge bg-danger px-3 py-2">Gestionnaire Ligue</span>
+</div>
+
+<!-- Statistiques -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card stat-card p-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-muted small">Clubs affiliés</div>
+                    <div class="fs-3 fw-bold text-success">{{ nb_clubs_affilies }}</div>
+                    <div class="text-muted small">{{ nb_clubs_en_attente }} en attente</div>
+                </div>
+                <i class="bi bi-building fs-1 text-success opacity-25"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card p-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-muted small">Pratiquants actifs</div>
+                    <div class="fs-3 fw-bold text-primary">{{ nb_pratiquants }}</div>
+                    <div class="text-muted small">dans tous les clubs</div>
+                </div>
+                <i class="bi bi-people fs-1 text-primary opacity-25"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card p-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-muted small">Demandes affiliation</div>
+                    <div class="fs-3 fw-bold text-warning">{{ nb_demandes_attente }}</div>
+                    <div class="text-muted small">à valider</div>
+                </div>
+                <i class="bi bi-file-earmark-check fs-1 text-warning opacity-25"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card p-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-muted small">Ma ligue</div>
+                    <div class="fs-5 fw-bold text-danger">{{ ligue.sigle }}</div>
+                    <div class="text-muted small">
+                        {% if ligue.est_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}
+                    </div>
+                </div>
+                <i class="bi bi-trophy fs-1 text-danger opacity-25"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Actions rapides -->
+<div class="row g-3 mb-4">
+    <div class="col-md-6">
+        <div class="card p-3">
+            <h6 class="fw-bold mb-3"><i class="bi bi-building me-2 text-success"></i>Actions clubs</h6>
+            <a href="{% url 'clubs:creer' %}" class="btn btn-ligue btn-sm me-2">
+                <i class="bi bi-plus me-1"></i>Enregistrer un club
+            </a>
+            <a href="{% url 'clubs:liste' %}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-list me-1"></i>Voir tous les clubs
+            </a>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card p-3">
+            <h6 class="fw-bold mb-3"><i class="bi bi-file-earmark-check me-2 text-warning"></i>Demandes d'affiliation</h6>
+            <a href="{% url 'clubs:demandes_affiliation' %}" class="btn btn-warning btn-sm text-dark me-2">
+                <i class="bi bi-hourglass-split me-1"></i>Voir les demandes en attente
+                {% if nb_demandes_attente > 0 %}
+                <span class="badge bg-dark ms-1">{{ nb_demandes_attente }}</span>
+                {% endif %}
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Tableaux -->
+<div class="row g-3">
+    <!-- Derniers clubs -->
+    <div class="col-md-6">
+        <div class="card p-3">
+            <h6 class="fw-bold mb-3">Derniers clubs enregistrés</h6>
+            {% if derniers_clubs %}
+            <table class="table table-sm table-hover mb-0">
+                <thead>
+                    <tr><th>Club</th><th>Localité</th><th>Statut</th></tr>
+                </thead>
+                <tbody>
+                {% for club in derniers_clubs %}
+                <tr>
+                    <td><strong>{{ club.nom_club }}</strong></td>
+                    <td>{{ club.localite }}</td>
+                    <td>
+                        {% if club.statut_club == 'AFFILIE' %}
+                            <span class="badge bg-success">Affilié</span>
+                        {% elif club.statut_club == 'EN_ATTENTE' %}
+                            <span class="badge bg-warning text-dark">En attente</span>
+                        {% elif club.statut_club == 'SUSPENDU' %}
+                            <span class="badge bg-danger">Suspendu</span>
+                        {% else %}
+                            <span class="badge bg-secondary">{{ club.get_statut_club_display }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="text-muted small mb-0">Aucun club enregistré pour cette ligue.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Demandes d'affiliation en attente -->
+    <div class="col-md-6">
+        <div class="card p-3">
+            <h6 class="fw-bold mb-3">Demandes d'affiliation à valider</h6>
+            {% if demandes_en_attente %}
+            <table class="table table-sm table-hover mb-0">
+                <thead>
+                    <tr><th>Club</th><th>Année sportive</th><th>Date</th></tr>
+                </thead>
+                <tbody>
+                {% for demande in demandes_en_attente %}
+                <tr>
+                    <td><strong>{{ demande.club.nom_club }}</strong></td>
+                    <td>{{ demande.annee_sportive.libelle }}</td>
+                    <td class="text-muted small">{{ demande.date_demande|date:"d/m/Y" }}</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p class="text-muted small mb-0">Aucune demande en attente de validation.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% endif %}
 {% endblock %}

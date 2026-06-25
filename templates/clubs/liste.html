@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block title %}Clubs — Ligue du Kadiogo{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Gestion</span>
+<a href="{% url 'clubs:liste' %}" class="nav-link active">
+    <i class="bi bi-building me-2"></i>Clubs
+</a>
+<a href="#" class="nav-link">
+    <i class="bi bi-people me-2"></i>Pratiquants
+</a>
+<a href="#" class="nav-link">
+    <i class="bi bi-journal-check me-2"></i>Examens
+</a>
+<a href="{% url 'clubs:demandes_affiliation' %}" class="nav-link">
+    <i class="bi bi-file-earmark-check me-2"></i>Affiliations
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-0">Clubs</h4>
+        <small class="text-muted">Liste des clubs de la ligue</small>
+    </div>
+    <a href="{% url 'clubs:creer' %}" class="btn btn-ligue btn-sm">
+        <i class="bi bi-plus me-1"></i>Enregistrer un club
+    </a>
+</div>
+
+<!-- Filtre par statut -->
+<div class="card p-3 mb-4">
+    <form method="get" class="d-flex align-items-center gap-3 flex-wrap">
+        <label class="fw-semibold mb-0 small">Filtrer par statut :</label>
+        <a href="{% url 'clubs:liste' %}" class="btn btn-sm {% if not statut_filtre %}btn-danger{% else %}btn-outline-secondary{% endif %}">Tous</a>
+        {% for code, libelle in statuts %}
+        <a href="?statut={{ code }}" class="btn btn-sm {% if statut_filtre == code %}btn-danger{% else %}btn-outline-secondary{% endif %}">
+            {{ libelle }}
+        </a>
+        {% endfor %}
+    </form>
+</div>
+
+<!-- Tableau -->
+<div class="card p-3">
+    {% if clubs %}
+    <table class="table table-hover table-sm align-middle mb-0">
+        <thead class="table-light">
+            <tr>
+                <th>Club</th>
+                <th>Localité</th>
+                <th>Maître</th>
+                <th>Téléphone</th>
+                <th>Statut</th>
+                <th class="text-end">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for club in clubs %}
+        <tr>
+            <td>
+                <strong>{{ club.nom_club }}</strong>
+                {% if club.sigle_club %}<span class="text-muted small ms-1">({{ club.sigle_club }})</span>{% endif %}
+            </td>
+            <td>{{ club.localite }}</td>
+            <td>{{ club.maitre_club|default:"—" }}</td>
+            <td>{{ club.telephone|default:"—" }}</td>
+            <td>
+                {% if club.statut_club == 'AFFILIE' %}
+                    <span class="badge bg-success">Affilié</span>
+                {% elif club.statut_club == 'EN_ATTENTE' %}
+                    <span class="badge bg-warning text-dark">En attente</span>
+                {% elif club.statut_club == 'SUSPENDU' %}
+                    <span class="badge bg-danger">Suspendu</span>
+                {% else %}
+                    <span class="badge bg-secondary">{{ club.get_statut_club_display }}</span>
+                {% endif %}
+            </td>
+            <td class="text-end">
+                <a href="{% url 'clubs:detail' club.pk %}" class="btn btn-sm btn-outline-secondary me-1" title="Voir la fiche">
+                    <i class="bi bi-eye"></i>
+                </a>
+                <a href="{% url 'clubs:modifier' club.pk %}" class="btn btn-sm btn-outline-primary" title="Modifier">
+                    <i class="bi bi-pencil"></i>
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="text-center py-5 text-muted">
+        <i class="bi bi-building fs-1 opacity-25 d-block mb-2"></i>
+        Aucun club{% if statut_filtre %} avec ce statut{% endif %}.
+        <a href="{% url 'clubs:creer' %}" class="d-block mt-2">Enregistrer le premier club</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,16 +1,28 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Ligue
-from .forms import LigueForm
+from .models import Ligue, VoletOrganigramme, MembreOrganigramme
+from .forms import LigueForm, VoletOrganigrammeForm, MembreOrganigrammeForm
 
 
 def super_admin_requis(view_func):
-    """Décorateur : réserve la vue aux Super Admins."""
     @login_required
     def wrapper(request, *args, **kwargs):
         if not (request.user.is_superuser or request.user.est_super_admin()):
             messages.error(request, "Accès réservé au Super Administrateur.")
+            return redirect('accounts:tableau_de_bord')
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+
+def gest_ligue_requis(view_func):
+    @login_required
+    def wrapper(request, *args, **kwargs):
+        if not (request.user.is_superuser or request.user.est_gest_ligue()):
+            messages.error(request, "Accès réservé au Gestionnaire de Ligue.")
+            return redirect('accounts:tableau_de_bord')
+        if not request.user.ligue and not request.user.is_superuser:
+            messages.error(request, "Votre compte n'est rattaché à aucune ligue.")
             return redirect('accounts:tableau_de_bord')
         return view_func(request, *args, **kwargs)
     return wrapper
@@ -62,3 +74,87 @@ def toggle_statut_ligue(request, pk):
         messages.success(request, f"Ligue « {ligue.nom_ligue} » réactivée.")
     ligue.save()
     return redirect('ligues:liste')
+
+
+# ─── Organigramme ────────────────────────────────────────────────────────────
+
+@gest_ligue_requis
+def organigramme(request):
+    ligue = request.user.ligue
+    volets = ligue.volets.prefetch_related('membres').all()
+    form_volet = VoletOrganigrammeForm()
+    return render(request, 'ligues/organigramme.html', {
+        'ligue':       ligue,
+        'volets':      volets,
+        'form_volet':  form_volet,
+    })
+
+
+@gest_ligue_requis
+def creer_volet(request):
+    if request.method == 'POST':
+        form = VoletOrganigrammeForm(request.POST)
+        if form.is_valid():
+            volet = form.save(commit=False)
+            volet.ligue = request.user.ligue
+            volet.ordre = request.user.ligue.volets.count()
+            volet.save()
+            messages.success(request, f"Volet « {volet.nom_volet} » créé.")
+    return redirect('ligues:organigramme')
+
+
+@gest_ligue_requis
+def modifier_volet(request, pk):
+    volet = get_object_or_404(VoletOrganigramme, pk=pk, ligue=request.user.ligue)
+    if request.method == 'POST':
+        form = VoletOrganigrammeForm(request.POST, instance=volet)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Volet modifié.")
+    return redirect('ligues:organigramme')
+
+
+@gest_ligue_requis
+def supprimer_volet(request, pk):
+    volet = get_object_or_404(VoletOrganigramme, pk=pk, ligue=request.user.ligue)
+    if request.method == 'POST':
+        if volet.membres.exists():
+            messages.error(request, "Impossible de supprimer un volet qui contient des membres.")
+        else:
+            volet.delete()
+            messages.success(request, "Volet supprimé.")
+    return redirect('ligues:organigramme')
+
+
+@gest_ligue_requis
+def ajouter_membre(request, volet_pk):
+    volet = get_object_or_404(VoletOrganigramme, pk=volet_pk, ligue=request.user.ligue)
+    if request.method == 'POST':
+        form = MembreOrganigrammeForm(request.POST)
+        if form.is_valid():
+            membre = form.save(commit=False)
+            membre.volet = volet
+            membre.save()
+            messages.success(request, f"{membre.prenom} {membre.nom} ajouté.")
+    return redirect('ligues:organigramme')
+
+
+@gest_ligue_requis
+def modifier_membre(request, pk):
+    membre = get_object_or_404(MembreOrganigramme, pk=pk, volet__ligue=request.user.ligue)
+    if request.method == 'POST':
+        form = MembreOrganigrammeForm(request.POST, instance=membre)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Membre modifié.")
+    return redirect('ligues:organigramme')
+
+
+@gest_ligue_requis
+def toggle_actif_membre(request, pk):
+    membre = get_object_or_404(MembreOrganigramme, pk=pk, volet__ligue=request.user.ligue)
+    membre.actif = not membre.actif
+    membre.save()
+    etat = "activé" if membre.actif else "désactivé"
+    messages.success(request, f"{membre.prenom} {membre.nom} {etat}.")
+    return redirect('ligues:organigramme')

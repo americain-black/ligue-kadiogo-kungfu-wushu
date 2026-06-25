@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ titre }} — Ligue du Kadiogo{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Gestion</span>
+<a href="{% url 'clubs:liste' %}" class="nav-link active">
+    <i class="bi bi-building me-2"></i>Clubs
+</a>
+<a href="#" class="nav-link">
+    <i class="bi bi-people me-2"></i>Pratiquants
+</a>
+<a href="#" class="nav-link">
+    <i class="bi bi-journal-check me-2"></i>Examens
+</a>
+<a href="{% url 'clubs:demandes_affiliation' %}" class="nav-link">
+    <i class="bi bi-file-earmark-check me-2"></i>Affiliations
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-0">{{ titre }}</h4>
+        <small class="text-muted">
+            {% if club %}Modification du club{% else %}Nouveau club{% endif %}
+        </small>
+    </div>
+    <a href="{% url 'clubs:liste' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Retour à la liste
+    </a>
+</div>
+
+<div class="card p-4">
+    <form method="post" novalidate>
+        {% csrf_token %}
+
+        <!-- Identification -->
+        <h6 class="fw-bold text-danger mb-3 border-bottom pb-2">Identification du club</h6>
+        <div class="row g-3 mb-4">
+            <div class="col-md-8">
+                <label class="form-label fw-semibold">{{ form.nom_club.label }} <span class="text-danger">*</span></label>
+                {{ form.nom_club }}
+                {% if form.nom_club.errors %}<div class="text-danger small mt-1">{{ form.nom_club.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">{{ form.sigle_club.label }}</label>
+                {{ form.sigle_club }}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">{{ form.localite.label }} <span class="text-danger">*</span></label>
+                {{ form.localite }}
+                {% if form.localite.errors %}<div class="text-danger small mt-1">{{ form.localite.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">{{ form.adresse.label }}</label>
+                {{ form.adresse }}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">{{ form.telephone.label }}</label>
+                {{ form.telephone }}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">{{ form.email.label }}</label>
+                {{ form.email }}
+            </div>
+        </div>
+
+        <!-- Responsables -->
+        <h6 class="fw-bold text-danger mb-3 border-bottom pb-2">Responsables</h6>
+        <div class="row g-3 mb-4">
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">{{ form.maitre_club.label }}</label>
+                {{ form.maitre_club }}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">{{ form.contact_maitre.label }}</label>
+                {{ form.contact_maitre }}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">{{ form.responsable_club.label }}</label>
+                {{ form.responsable_club }}
+            </div>
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">{{ form.contact_responsable.label }}</label>
+                {{ form.contact_responsable }}
+            </div>
+        </div>
+
+        <!-- Statut -->
+        <h6 class="fw-bold text-danger mb-3 border-bottom pb-2">Statut</h6>
+        <div class="row g-3 mb-4">
+            <div class="col-md-4">
+                <label class="form-label fw-semibold">{{ form.statut_club.label }}</label>
+                {{ form.statut_club }}
+            </div>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-ligue">
+                <i class="bi bi-check-lg me-1"></i>Enregistrer
+            </button>
+            <a href="{% url 'clubs:liste' %}" class="btn btn-outline-secondary">Annuler</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

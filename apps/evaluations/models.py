@@ -37,6 +37,10 @@ class NoteRubrique(models.Model):
         default=False,
         help_text="Une note validée ne peut plus être modifiée"
     )
+    correction_demandee = models.BooleanField(
+        default=False,
+        help_text="Le jury a demandé une autorisation de correction au Gestionnaire Ligue"
+    )
     date_saisie   = models.DateTimeField(auto_now_add=True)
     date_validation = models.DateTimeField(null=True, blank=True)
 
@@ -63,6 +67,23 @@ class NoteRubrique(models.Model):
 
     def valider(self):
         from django.utils import timezone
-        self.validee        = True
-        self.date_validation = timezone.now()
+        self.validee             = True
+        self.correction_demandee = False
+        self.date_validation     = timezone.now()
+        self.save()
+
+    def demander_correction(self):
+        """Appelée par le jury pour signaler une erreur sur une note déjà validée."""
+        if not self.validee:
+            raise ValidationError("Cette note n'est pas encore validée.")
+        self.correction_demandee = True
+        self.save()
+
+    def deverrouiller(self):
+        """Appelée par le Gestionnaire Ligue pour autoriser la correction d'une note."""
+        if not self.validee:
+            raise ValidationError("Cette note n'est pas validée.")
+        self.validee             = False
+        self.correction_demandee = False
+        self.date_validation     = None
         self.save()

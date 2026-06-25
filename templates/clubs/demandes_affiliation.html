@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+
+{% block title %}Demandes d'affiliation — Ligue du Kadiogo{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Gestion</span>
+<a href="{% url 'clubs:liste' %}" class="nav-link">
+    <i class="bi bi-building me-2"></i>Clubs
+</a>
+<a href="#" class="nav-link">
+    <i class="bi bi-people me-2"></i>Pratiquants
+</a>
+<a href="#" class="nav-link">
+    <i class="bi bi-journal-check me-2"></i>Examens
+</a>
+<a href="{% url 'clubs:demandes_affiliation' %}" class="nav-link active">
+    <i class="bi bi-file-earmark-check me-2"></i>Affiliations
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-0">Demandes d'affiliation</h4>
+        <small class="text-muted">En attente de votre validation</small>
+    </div>
+</div>
+
+<div class="card p-3">
+    {% if demandes %}
+    <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+            <tr>
+                <th>Club</th>
+                <th>Localité</th>
+                <th>Année sportive</th>
+                <th>Date de demande</th>
+                <th>Soumissions</th>
+                <th class="text-end">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for demande in demandes %}
+        <tr>
+            <td>
+                <strong>{{ demande.club.nom_club }}</strong>
+                {% if demande.club.sigle_club %}<span class="text-muted small">({{ demande.club.sigle_club }})</span>{% endif %}
+            </td>
+            <td>{{ demande.club.localite }}</td>
+            <td>{{ demande.annee_sportive.libelle }}</td>
+            <td>{{ demande.date_demande|date:"d/m/Y" }}</td>
+            <td class="text-center">
+                <span class="badge bg-secondary">{{ demande.nombre_soumissions }}</span>
+            </td>
+            <td class="text-end">
+                <a href="{% url 'clubs:valider_demande' demande.pk %}" class="btn btn-sm btn-success me-1" title="Approuver">
+                    <i class="bi bi-check-lg me-1"></i>Approuver
+                </a>
+                <a href="{% url 'clubs:rejeter_demande' demande.pk %}" class="btn btn-sm btn-outline-danger" title="Rejeter">
+                    <i class="bi bi-x-lg me-1"></i>Rejeter
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="text-center py-5 text-muted">
+        <i class="bi bi-check-circle fs-1 opacity-25 d-block mb-2 text-success"></i>
+        Aucune demande en attente de validation.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -80,7 +80,31 @@ def dashboard_super_admin(request):
 
 @login_required
 def dashboard_ligue(request):
-    return render(request, 'accounts/dashboard_ligue.html')
+    from apps.clubs.models import Club, DemandeAffiliation
+    from apps.practitioners.models import Pratiquant
+
+    ligue = request.user.ligue
+
+    if not ligue:
+        messages.warning(request, "Votre compte n'est rattaché à aucune ligue.")
+        return render(request, 'accounts/dashboard_ligue.html', {'ligue': None})
+
+    clubs_qs = Club.objects.filter(ligue=ligue)
+    demandes_qs = DemandeAffiliation.objects.filter(
+        club__ligue=ligue,
+        statut_affiliation='EN_ATTENTE_VALID_LIGUE'
+    )
+
+    contexte = {
+        'ligue':               ligue,
+        'nb_clubs_affilies':   clubs_qs.filter(statut_club='AFFILIE').count(),
+        'nb_clubs_en_attente': clubs_qs.filter(statut_club='EN_ATTENTE').count(),
+        'nb_pratiquants':      Pratiquant.objects.filter(club__ligue=ligue, actif=True).count(),
+        'nb_demandes_attente': demandes_qs.count(),
+        'demandes_en_attente': demandes_qs.select_related('club', 'annee_sportive').order_by('-date_demande')[:5],
+        'derniers_clubs':      clubs_qs.order_by('-date_creation')[:5],
+    }
+    return render(request, 'accounts/dashboard_ligue.html', contexte)
 
 
 @login_required

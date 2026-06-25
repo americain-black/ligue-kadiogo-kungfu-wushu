@@ -1,0 +1,338 @@
+{% extends 'base.html' %}
+
+{% block title %}Organigramme — {{ club.nom_club }}{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Gestion</span>
+<a href="{% url 'clubs:liste' %}" class="nav-link active">
+    <i class="bi bi-building me-2"></i>Clubs
+</a>
+<a href="{% url 'clubs:demandes_affiliation' %}" class="nav-link">
+    <i class="bi bi-file-earmark-check me-2"></i>Affiliations
+</a>
+<a href="{% url 'ligues:organigramme' %}" class="nav-link">
+    <i class="bi bi-diagram-3 me-2"></i>Organigramme Ligue
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <a href="{% url 'clubs:detail' club.pk %}" class="text-muted text-decoration-none small">
+            <i class="bi bi-arrow-left me-1"></i>Retour au club
+        </a>
+        <h4 class="fw-bold mb-0 mt-1">Organigramme</h4>
+        <small class="text-muted">{{ club.nom_club }}{% if club.sigle_club %} ({{ club.sigle_club }}){% endif %}</small>
+    </div>
+    <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalAjouterVolet">
+        <i class="bi bi-plus-circle me-1"></i>Ajouter un volet
+    </button>
+</div>
+
+{% if messages %}
+    {% for msg in messages %}
+    <div class="alert alert-{{ msg.tags }} alert-dismissible fade show" role="alert">
+        {{ msg }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+    {% endfor %}
+{% endif %}
+
+{% if not volets %}
+<div class="text-center py-5 text-muted">
+    <i class="bi bi-diagram-3 fs-1"></i>
+    <p class="mt-2">Aucun volet créé. Commencez par ajouter un volet (ex: Bureau Exécutif).</p>
+</div>
+{% endif %}
+
+{% for volet in volets %}
+<div class="card mb-4 shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center bg-success text-white">
+        <h6 class="mb-0 fw-bold">
+            <i class="bi bi-folder2-open me-2"></i>{{ volet.nom_volet }}
+            <span class="badge bg-light text-success ms-2">{{ volet.membres.count }} membre(s)</span>
+        </h6>
+        <div class="d-flex gap-2">
+            <button class="btn btn-sm btn-light"
+                    data-bs-toggle="modal"
+                    data-bs-target="#modalAjouterMembre{{ volet.pk }}">
+                <i class="bi bi-person-plus me-1"></i>Ajouter un membre
+            </button>
+            <button class="btn btn-sm btn-warning"
+                    data-bs-toggle="modal"
+                    data-bs-target="#modalModifierVolet{{ volet.pk }}"
+                    title="Renommer ce volet">
+                <i class="bi bi-pencil"></i>
+            </button>
+            <button class="btn btn-sm btn-danger"
+                    data-bs-toggle="modal"
+                    data-bs-target="#modalSupprimerVolet{{ volet.pk }}"
+                    title="Supprimer ce volet">
+                <i class="bi bi-trash"></i>
+            </button>
+        </div>
+    </div>
+
+    <div class="card-body p-0">
+        {% if volet.membres.all %}
+        <div class="table-responsive">
+            <table class="table table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Nom & Prénom</th>
+                        <th>Fonction</th>
+                        <th>Contact</th>
+                        <th>Statut</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for membre in volet.membres.all %}
+                    <tr class="{% if not membre.actif %}table-secondary text-muted{% endif %}">
+                        <td class="fw-semibold">
+                            {{ membre.prenom }} {{ membre.nom }}
+                            {% if not membre.actif %}
+                            <span class="badge bg-secondary ms-1">Inactif</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ membre.fonction }}</td>
+                        <td>{{ membre.contact|default:"—" }}</td>
+                        <td>
+                            {% if membre.actif %}
+                            <span class="badge bg-success">Actif</span>
+                            {% else %}
+                            <span class="badge bg-secondary">Inactif</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end">
+                            <button class="btn btn-sm btn-outline-secondary"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#modalModifierMembre{{ membre.pk }}"
+                                    title="Modifier">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <form method="post" action="{% url 'clubs:toggle_actif_membre_club' membre.pk %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit"
+                                        class="btn btn-sm {% if membre.actif %}btn-outline-warning{% else %}btn-outline-success{% endif %}"
+                                        title="{% if membre.actif %}Désactiver{% else %}Activer{% endif %}">
+                                    <i class="bi {% if membre.actif %}bi-toggle-on{% else %}bi-toggle-off{% endif %}"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted text-center py-3 mb-0">Aucun membre dans ce volet.</p>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal : Ajouter membre -->
+<div class="modal fade" id="modalAjouterMembre{{ volet.pk }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url 'clubs:ajouter_membre_club' volet.pk %}">
+                {% csrf_token %}
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-person-plus me-2"></i>Ajouter un membre — {{ volet.nom_volet }}
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Nom</label>
+                            <input type="text" name="nom" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Prénom</label>
+                            <input type="text" name="prenom" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Fonction</label>
+                            <input type="text" name="fonction" class="form-control"
+                                   placeholder="Ex: Président, DT du club..." required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Contact</label>
+                            <input type="text" name="contact" class="form-control"
+                                   placeholder="Téléphone ou email">
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input type="checkbox" name="actif" id="actif_v{{ volet.pk }}"
+                                       class="form-check-input" checked>
+                                <label class="form-check-label" for="actif_v{{ volet.pk }}">
+                                    Membre actif
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-circle me-1"></i>Ajouter
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal : Renommer volet -->
+<div class="modal fade" id="modalModifierVolet{{ volet.pk }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url 'clubs:modifier_volet_club' volet.pk %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title">Renommer le volet</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <label class="form-label fw-semibold">Nom du volet</label>
+                    <input type="text" name="nom_volet" class="form-control"
+                           value="{{ volet.nom_volet }}" required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-warning">
+                        <i class="bi bi-check-circle me-1"></i>Enregistrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal : Supprimer volet -->
+<div class="modal fade" id="modalSupprimerVolet{{ volet.pk }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url 'clubs:supprimer_volet_club' volet.pk %}">
+                {% csrf_token %}
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">Supprimer le volet</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Voulez-vous supprimer le volet <strong>{{ volet.nom_volet }}</strong> ?</p>
+                    {% if volet.membres.exists %}
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-1"></i>
+                        Ce volet contient {{ volet.membres.count }} membre(s). Supprimez-les d'abord.
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    {% if not volet.membres.exists %}
+                    <button type="submit" class="btn btn-danger">
+                        <i class="bi bi-trash me-1"></i>Supprimer
+                    </button>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modals : Modifier chaque membre -->
+{% for membre in volet.membres.all %}
+<div class="modal fade" id="modalModifierMembre{{ membre.pk }}" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url 'clubs:modifier_membre_club' membre.pk %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title">Modifier le membre</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Nom</label>
+                            <input type="text" name="nom" class="form-control"
+                                   value="{{ membre.nom }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Prénom</label>
+                            <input type="text" name="prenom" class="form-control"
+                                   value="{{ membre.prenom }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Fonction</label>
+                            <input type="text" name="fonction" class="form-control"
+                                   value="{{ membre.fonction }}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Contact</label>
+                            <input type="text" name="contact" class="form-control"
+                                   value="{{ membre.contact }}">
+                        </div>
+                        <div class="col-12">
+                            <div class="form-check">
+                                <input type="checkbox" name="actif"
+                                       id="actif_m{{ membre.pk }}"
+                                       class="form-check-input"
+                                       {% if membre.actif %}checked{% endif %}>
+                                <label class="form-check-label" for="actif_m{{ membre.pk }}">
+                                    Membre actif
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle me-1"></i>Enregistrer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endfor %}
+
+{% endfor %}
+
+<!-- Modal : Ajouter un volet -->
+<div class="modal fade" id="modalAjouterVolet" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url 'clubs:creer_volet_club' club.pk %}">
+                {% csrf_token %}
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title">
+                        <i class="bi bi-folder-plus me-2"></i>Nouveau volet
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <label class="form-label fw-semibold">Nom du volet</label>
+                    <input type="text" name="nom_volet" class="form-control"
+                           placeholder="Ex: Bureau Exécutif, Encadrement Technique..."
+                           required>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-circle me-1"></i>Créer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

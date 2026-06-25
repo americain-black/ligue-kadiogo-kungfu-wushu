@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ club.nom_club }} — Ligue du Kadiogo{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Gestion</span>
+<a href="{% url 'clubs:liste' %}" class="nav-link active">
+    <i class="bi bi-building me-2"></i>Clubs
+</a>
+<a href="#" class="nav-link">
+    <i class="bi bi-people me-2"></i>Pratiquants
+</a>
+<a href="#" class="nav-link">
+    <i class="bi bi-journal-check me-2"></i>Examens
+</a>
+<a href="{% url 'clubs:demandes_affiliation' %}" class="nav-link">
+    <i class="bi bi-file-earmark-check me-2"></i>Affiliations
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-0">{{ club.nom_club }}
+            {% if club.sigle_club %}<span class="text-muted fw-normal fs-6 ms-2">({{ club.sigle_club }})</span>{% endif %}
+        </h4>
+        <small class="text-muted">Fiche du club</small>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'clubs:organigramme' club.pk %}" class="btn btn-success btn-sm">
+            <i class="bi bi-diagram-3 me-1"></i>Organigramme
+        </a>
+        <a href="{% url 'clubs:modifier' club.pk %}" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-pencil me-1"></i>Modifier
+        </a>
+        <a href="{% url 'clubs:liste' %}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>Retour
+        </a>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <!-- Informations club -->
+    <div class="col-md-6">
+        <div class="card p-3 h-100">
+            <h6 class="fw-bold mb-3 text-danger border-bottom pb-2">
+                <i class="bi bi-building me-2"></i>Informations
+            </h6>
+            <table class="table table-sm table-borderless mb-0">
+                <tr><th class="text-muted" style="width:40%">Localité</th><td>{{ club.localite }}</td></tr>
+                <tr><th class="text-muted">Adresse</th><td>{{ club.adresse|default:"—" }}</td></tr>
+                <tr><th class="text-muted">Téléphone</th><td>{{ club.telephone|default:"—" }}</td></tr>
+                <tr><th class="text-muted">Email</th><td>{{ club.email|default:"—" }}</td></tr>
+                <tr><th class="text-muted">Statut</th>
+                    <td>
+                        {% if club.statut_club == 'AFFILIE' %}
+                            <span class="badge bg-success">Affilié</span>
+                        {% elif club.statut_club == 'EN_ATTENTE' %}
+                            <span class="badge bg-warning text-dark">En attente</span>
+                        {% elif club.statut_club == 'SUSPENDU' %}
+                            <span class="badge bg-danger">Suspendu</span>
+                        {% else %}
+                            <span class="badge bg-secondary">{{ club.get_statut_club_display }}</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr><th class="text-muted">Enregistré le</th><td>{{ club.date_creation|date:"d/m/Y" }}</td></tr>
+            </table>
+        </div>
+    </div>
+
+    <!-- Responsables -->
+    <div class="col-md-6">
+        <div class="card p-3 h-100">
+            <h6 class="fw-bold mb-3 text-danger border-bottom pb-2">
+                <i class="bi bi-person-badge me-2"></i>Responsables
+            </h6>
+            <table class="table table-sm table-borderless mb-0">
+                <tr><th class="text-muted" style="width:40%">Maître du club</th><td>{{ club.maitre_club|default:"—" }}</td></tr>
+                <tr><th class="text-muted">Contact maître</th><td>{{ club.contact_maitre|default:"—" }}</td></tr>
+                <tr><th class="text-muted">Responsable</th><td>{{ club.responsable_club|default:"—" }}</td></tr>
+                <tr><th class="text-muted">Contact resp.</th><td>{{ club.contact_responsable|default:"—" }}</td></tr>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Pratiquants -->
+<div class="card p-3 mb-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold mb-0">
+            <i class="bi bi-people me-2 text-primary"></i>Pratiquants
+            <span class="badge bg-primary ms-1">{{ pratiquants.count }}</span>
+        </h6>
+        <a href="#" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-plus me-1"></i>Ajouter un pratiquant
+        </a>
+    </div>
+    {% if pratiquants %}
+    <table class="table table-sm table-hover mb-0">
+        <thead class="table-light">
+            <tr><th>Nom & Prénom</th><th>Sexe</th><th>Date de naissance</th><th>Grade actuel</th><th>Statut</th></tr>
+        </thead>
+        <tbody>
+        {% for p in pratiquants %}
+        <tr>
+            <td><strong>{{ p.nom }} {{ p.prenom }}</strong></td>
+            <td>{{ p.get_sexe_display }}</td>
+            <td>{{ p.date_naissance|date:"d/m/Y" }}</td>
+            <td>{{ p.get_grade_display }}</td>
+            <td>
+                {% if p.actif %}
+                    <span class="badge bg-success">Actif</span>
+                {% else %}
+                    <span class="badge bg-secondary">Inactif</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="text-muted small mb-0">Aucun pratiquant enregistré pour ce club.</p>
+    {% endif %}
+</div>
+
+<!-- Historique affiliations -->
+<div class="card p-3">
+    <h6 class="fw-bold mb-3">
+        <i class="bi bi-file-earmark-check me-2 text-warning"></i>Historique des affiliations
+    </h6>
+    {% if demandes %}
+    <table class="table table-sm table-hover mb-0">
+        <thead class="table-light">
+            <tr><th>Année sportive</th><th>Date</th><th>Statut</th></tr>
+        </thead>
+        <tbody>
+        {% for d in demandes %}
+        <tr>
+            <td>{{ d.annee_sportive.libelle }}</td>
+            <td>{{ d.date_demande|date:"d/m/Y" }}</td>
+            <td>
+                {% if d.statut_affiliation == 'APPROUVEE' %}
+                    <span class="badge bg-success">Approuvée</span>
+                {% elif d.statut_affiliation == 'EN_ATTENTE_VALID_LIGUE' %}
+                    <span class="badge bg-warning text-dark">En attente validation ligue</span>
+                {% elif d.statut_affiliation == 'EN_ATTENTE_VALID_FINANCIER' %}
+                    <span class="badge bg-info text-dark">En attente financier</span>
+                {% elif d.statut_affiliation == 'EN_ATTENTE_PAIEMENT' %}
+                    <span class="badge bg-secondary">En attente paiement</span>
+                {% elif d.statut_affiliation == 'REJETEE' %}
+                    <span class="badge bg-danger">Rejetée</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p class="text-muted small mb-0">Aucune demande d'affiliation pour ce club.</p>
+    {% endif %}
+</div>
+{% endblock %}

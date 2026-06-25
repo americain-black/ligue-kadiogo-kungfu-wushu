@@ -23,17 +23,13 @@ class Club(models.Model):
         null=True, blank=True
     )
 
-    nom_club            = models.CharField(max_length=200)
-    sigle_club          = models.CharField(max_length=20,  blank=True)
-    localite            = models.CharField(max_length=100)
-    adresse             = models.CharField(max_length=200, blank=True)
-    telephone           = models.CharField(max_length=20,  blank=True)
-    email               = models.EmailField(blank=True)
-    maitre_club         = models.CharField(max_length=100, blank=True)
-    contact_maitre      = models.CharField(max_length=20,  blank=True)
-    responsable_club    = models.CharField(max_length=100, blank=True)
-    contact_responsable = models.CharField(max_length=20,  blank=True)
-    statut_club         = models.CharField(
+    nom_club   = models.CharField(max_length=200)
+    sigle_club = models.CharField(max_length=20,  blank=True)
+    localite   = models.CharField(max_length=100)
+    adresse    = models.CharField(max_length=200, blank=True)
+    telephone  = models.CharField(max_length=20,  blank=True)
+    email      = models.EmailField(blank=True)
+    statut_club = models.CharField(
         max_length=20,
         choices=STATUT_CHOICES,
         default='EN_ATTENTE'
@@ -227,3 +223,36 @@ class PieceJustificativeAffiliation(models.Model):
         if self.fichier and not self.nom_fichier:
             self.nom_fichier = self.fichier.name
         super().save(*args, **kwargs)
+
+
+class VoletOrganigrammeClub(models.Model):
+    club        = models.ForeignKey(Club, on_delete=models.CASCADE, related_name='volets')
+    nom_volet   = models.CharField(max_length=200)
+    ordre       = models.PositiveIntegerField(default=0)
+    date_creation = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name        = 'Volet organigramme club'
+        verbose_name_plural = 'Volets organigramme club'
+        ordering            = ['ordre', 'date_creation']
+
+    def __str__(self):
+        return f"{self.club.nom_club} — {self.nom_volet}"
+
+
+class MembreOrganigrammeClub(models.Model):
+    volet      = models.ForeignKey(VoletOrganigrammeClub, on_delete=models.CASCADE, related_name='membres')
+    nom        = models.CharField(max_length=100)
+    prenom     = models.CharField(max_length=100)
+    contact    = models.CharField(max_length=50, blank=True)
+    fonction   = models.CharField(max_length=200)
+    actif      = models.BooleanField(default=True)
+    date_ajout = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name        = 'Membre organigramme club'
+        verbose_name_plural = 'Membres organigramme club'
+        ordering            = ['-actif', 'nom', 'prenom']
+
+    def __str__(self):
+        return f"{self.prenom} {self.nom} — {self.fonction}"

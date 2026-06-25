@@ -109,7 +109,31 @@ def dashboard_ligue(request):
 
 @login_required
 def dashboard_club(request):
-    return render(request, 'accounts/dashboard_club.html')
+    from apps.practitioners.models import Pratiquant
+    from apps.exams.models import SessionExamen, Inscription
+    from django.db.models import Count, Q
+
+    club = getattr(request.user, 'club', None)
+    if not club:
+        messages.warning(request, "Votre compte n'est rattaché à aucun club.")
+        return render(request, 'accounts/dashboard_club.html', {'club': None})
+
+    # Sessions avec le nombre de pratiquants du club inscrits
+    sessions_avec_inscrits = (
+        SessionExamen.objects
+        .filter(inscriptions__pratiquant__club=club)
+        .annotate(nb_inscrits=Count('inscriptions', filter=Q(inscriptions__pratiquant__club=club)))
+        .order_by('-date_examen')
+    )
+
+    contexte = {
+        'club':                 club,
+        'nb_pratiquants':       Pratiquant.objects.filter(club=club, actif=True).count(),
+        'nb_inactifs':          Pratiquant.objects.filter(club=club, actif=False).count(),
+        'derniers_pratiquants': Pratiquant.objects.filter(club=club).select_related('grade_actuel').order_by('-date_inscription')[:5],
+        'sessions_avec_inscrits': sessions_avec_inscrits,
+    }
+    return render(request, 'accounts/dashboard_club.html', contexte)
 
 
 @login_required

@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+{% block title %}Sessions d'examen — {{ club.nom_club }}{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_club' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Mon club</span>
+<a href="{% url 'practitioners:liste' %}" class="nav-link">
+    <i class="bi bi-people me-2"></i>Pratiquants
+</a>
+<a href="{% url 'exams:club_sessions' %}" class="nav-link active">
+    <i class="bi bi-journal-check me-2"></i>Sessions d'examen
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h4 class="fw-bold mb-0">Sessions d'examen ouvertes</h4>
+    <small class="text-muted">{{ club.nom_club }} — inscrivez vos pratiquants aux sessions disponibles</small>
+</div>
+
+<div class="card p-3">
+    {% if sessions %}
+    <div class="row g-3">
+        {% for session in sessions %}
+        <div class="col-12 col-md-6">
+            <div class="card border h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h6 class="fw-bold mb-0">{{ session.titre }}</h6>
+                        <span class="badge bg-success">Inscriptions ouvertes</span>
+                    </div>
+                    <p class="text-muted small mb-1">
+                        <i class="bi bi-calendar3 me-1"></i>{{ session.date_examen|date:"d/m/Y" }}
+                    </p>
+                    <p class="text-muted small mb-1">
+                        <i class="bi bi-geo-alt me-1"></i>{{ session.lieu }}
+                    </p>
+                    <p class="text-muted small mb-3">
+                        <i class="bi bi-trophy me-1"></i>{{ session.annee_sportive.libelle }}
+                    </p>
+                    <p class="text-muted small mb-3">
+                        <i class="bi bi-clock me-1"></i>
+                        Clôture : {{ session.date_cloture_inscriptions|date:"d/m/Y" }}
+                    </p>
+                    <a href="{% url 'exams:club_inscriptions' session.pk %}"
+                       class="btn btn-ligue btn-sm w-100">
+                        <i class="bi bi-person-plus me-1"></i>Gérer mes inscriptions
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5 text-muted">
+        <i class="bi bi-journal-x fs-1 opacity-25 d-block mb-2"></i>
+        Aucune session d'examen n'est ouverte aux inscriptions pour le moment.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

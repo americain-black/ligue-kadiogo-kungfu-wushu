@@ -4,11 +4,26 @@
 
 {% block sidebar %}
 <span class="sidebar-title">Navigation</span>
+{% if user.est_gest_club %}
+<a href="{% url 'accounts:dashboard_club' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Gestion</span>
+<a href="{% url 'practitioners:liste' %}" class="nav-link">
+    <i class="bi bi-people me-2"></i>Pratiquants
+</a>
+<a href="{% url 'exams:club_sessions' %}" class="nav-link">
+    <i class="bi bi-journal-check me-2"></i>Sessions d'examen
+</a>
+<a href="{% url 'clubs:organigramme' club.pk %}" class="nav-link active">
+    <i class="bi bi-diagram-3 me-2"></i>Organigramme
+</a>
+{% else %}
 <a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
     <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
 </a>
 <span class="sidebar-title mt-2">Gestion</span>
-<a href="{% url 'clubs:liste' %}" class="nav-link active">
+<a href="{% url 'clubs:liste' %}" class="nav-link">
     <i class="bi bi-building me-2"></i>Clubs
 </a>
 <a href="{% url 'clubs:demandes_affiliation' %}" class="nav-link">
@@ -17,20 +32,29 @@
 <a href="{% url 'ligues:organigramme' %}" class="nav-link">
     <i class="bi bi-diagram-3 me-2"></i>Organigramme Ligue
 </a>
+{% endif %}
 {% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
+        {% if user.est_gest_club %}
+        <a href="{% url 'accounts:dashboard_club' %}" class="text-muted text-decoration-none small">
+            <i class="bi bi-arrow-left me-1"></i>Tableau de bord
+        </a>
+        {% else %}
         <a href="{% url 'clubs:detail' club.pk %}" class="text-muted text-decoration-none small">
             <i class="bi bi-arrow-left me-1"></i>Retour au club
         </a>
+        {% endif %}
         <h4 class="fw-bold mb-0 mt-1">Organigramme</h4>
         <small class="text-muted">{{ club.nom_club }}{% if club.sigle_club %} ({{ club.sigle_club }}){% endif %}</small>
     </div>
+    {% if peut_modifier %}
     <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#modalAjouterVolet">
         <i class="bi bi-plus-circle me-1"></i>Ajouter un volet
     </button>
+    {% endif %}
 </div>
 
 {% if messages %}
@@ -45,7 +69,7 @@
 {% if not volets %}
 <div class="text-center py-5 text-muted">
     <i class="bi bi-diagram-3 fs-1"></i>
-    <p class="mt-2">Aucun volet créé. Commencez par ajouter un volet (ex: Bureau Exécutif).</p>
+    <p class="mt-2">Aucun volet créé.{% if peut_modifier %} Commencez par ajouter un volet (ex: Bureau Exécutif).{% endif %}</p>
 </div>
 {% endif %}
 
@@ -56,6 +80,7 @@
             <i class="bi bi-folder2-open me-2"></i>{{ volet.nom_volet }}
             <span class="badge bg-light text-success ms-2">{{ volet.membres.count }} membre(s)</span>
         </h6>
+        {% if peut_modifier %}
         <div class="d-flex gap-2">
             <button class="btn btn-sm btn-light"
                     data-bs-toggle="modal"
@@ -75,6 +100,7 @@
                 <i class="bi bi-trash"></i>
             </button>
         </div>
+        {% endif %}
     </div>
 
     <div class="card-body p-0">
@@ -85,9 +111,10 @@
                     <tr>
                         <th>Nom & Prénom</th>
                         <th>Fonction</th>
+                        <th>Depuis</th>
                         <th>Contact</th>
                         <th>Statut</th>
-                        <th class="text-end">Actions</th>
+                        {% if peut_modifier %}<th class="text-end">Actions</th>{% endif %}
                     </tr>
                 </thead>
                 <tbody>
@@ -100,6 +127,7 @@
                             {% endif %}
                         </td>
                         <td>{{ membre.fonction }}</td>
+                        <td class="small text-muted">{{ membre.date_debut_fonction|date:"d/m/Y"|default:"—" }}</td>
                         <td>{{ membre.contact|default:"—" }}</td>
                         <td>
                             {% if membre.actif %}
@@ -108,6 +136,7 @@
                             <span class="badge bg-secondary">Inactif</span>
                             {% endif %}
                         </td>
+                        {% if peut_modifier %}
                         <td class="text-end">
                             <button class="btn btn-sm btn-outline-secondary"
                                     data-bs-toggle="modal"
@@ -123,7 +152,15 @@
                                     <i class="bi {% if membre.actif %}bi-toggle-on{% else %}bi-toggle-off{% endif %}"></i>
                                 </button>
                             </form>
+                            <form method="post" action="{% url 'clubs:supprimer_membre_club' membre.pk %}" class="d-inline"
+                                  onsubmit="return confirm('Supprimer {{ membre.prenom }} {{ membre.nom }} ?')">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Supprimer">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
                         </td>
+                        {% endif %}
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -135,6 +172,7 @@
     </div>
 </div>
 
+{% if peut_modifier %}
 <!-- Modal : Ajouter membre -->
 <div class="modal fade" id="modalAjouterMembre{{ volet.pk }}" tabindex="-1">
     <div class="modal-dialog">
@@ -163,11 +201,15 @@
                                    placeholder="Ex: Président, DT du club..." required>
                         </div>
                         <div class="col-md-6">
+                            <label class="form-label fw-semibold">Date de début de fonction</label>
+                            <input type="date" name="date_debut_fonction" class="form-control">
+                        </div>
+                        <div class="col-md-6">
                             <label class="form-label fw-semibold">Contact</label>
                             <input type="text" name="contact" class="form-control"
                                    placeholder="Téléphone ou email">
                         </div>
-                        <div class="col-12">
+                        <div class="col-md-6 d-flex align-items-end">
                             <div class="form-check">
                                 <input type="checkbox" name="actif" id="actif_v{{ volet.pk }}"
                                        class="form-check-input" checked>
@@ -276,11 +318,16 @@
                                    value="{{ membre.fonction }}" required>
                         </div>
                         <div class="col-md-6">
+                            <label class="form-label fw-semibold">Date de début de fonction</label>
+                            <input type="date" name="date_debut_fonction" class="form-control"
+                                   value="{{ membre.date_debut_fonction|date:'Y-m-d'|default:'' }}">
+                        </div>
+                        <div class="col-md-6">
                             <label class="form-label fw-semibold">Contact</label>
                             <input type="text" name="contact" class="form-control"
                                    value="{{ membre.contact }}">
                         </div>
-                        <div class="col-12">
+                        <div class="col-md-6 d-flex align-items-end">
                             <div class="form-check">
                                 <input type="checkbox" name="actif"
                                        id="actif_m{{ membre.pk }}"
@@ -304,9 +351,11 @@
     </div>
 </div>
 {% endfor %}
+{% endif %}{# fin peut_modifier #}
 
 {% endfor %}
 
+{% if peut_modifier %}
 <!-- Modal : Ajouter un volet -->
 <div class="modal fade" id="modalAjouterVolet" tabindex="-1">
     <div class="modal-dialog">
@@ -335,4 +384,5 @@
         </div>
     </div>
 </div>
+{% endif %}{# fin peut_modifier (modal ajouter volet) #}
 {% endblock %}

@@ -72,3 +72,33 @@ class RolesForm(forms.Form):
         required=False,
         label='Rôles'
     )
+
+    def clean_roles(self):
+        roles = self.cleaned_data.get('roles', [])
+        noms  = {r.nom_role for r in roles}
+        if not noms:
+            return roles
+
+        # SUPER_ADMIN est toujours exclusif
+        if Role.SUPER_ADMIN in noms and len(noms) > 1:
+            raise forms.ValidationError(
+                "Le Super Administrateur ne peut pas avoir d'autres rôles."
+            )
+
+        # Multi-rôles uniquement si GEST_LIGUE est le rôle principal
+        if len(noms) > 1 and Role.GEST_LIGUE not in noms:
+            raise forms.ValidationError(
+                "Seul un Gestionnaire de Ligue peut avoir des rôles supplémentaires."
+            )
+
+        # Les rôles supplémentaires autorisés pour GEST_LIGUE
+        if Role.GEST_LIGUE in noms:
+            autorises = {Role.GEST_LIGUE, Role.GEST_CLUB, Role.GEST_FINANCIER, Role.JURY}
+            interdits = noms - autorises
+            if interdits:
+                raise forms.ValidationError(
+                    "Un Gestionnaire de Ligue peut cumuler uniquement : "
+                    "Gestionnaire Club, Gestionnaire Financier, Jury."
+                )
+
+        return roles

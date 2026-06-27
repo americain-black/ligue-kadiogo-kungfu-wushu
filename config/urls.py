@@ -9,6 +9,8 @@ urlpatterns = [
     path('ligues/',  include('apps.ligues.urls',   namespace='ligues')),
     path('clubs/',       include('apps.clubs.urls',        namespace='clubs')),
     path('pratiquants/', include('apps.practitioners.urls', namespace='practitioners')),
+    path('examens/',     include('apps.exams.urls',         namespace='exams')),
+    path('paiements/',   include('apps.payments.urls',      namespace='payments')),
 ]
 
 if settings.DEBUG:

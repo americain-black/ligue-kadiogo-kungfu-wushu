@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+{% block title %}Supprimer {{ club.nom_club }} — Ligue du Kadiogo{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Gestion</span>
+<a href="{% url 'clubs:liste' %}" class="nav-link active">
+    <i class="bi bi-building me-2"></i>Clubs
+</a>
+<a href="{% url 'exams:liste' %}" class="nav-link">
+    <i class="bi bi-journal-check me-2"></i>Sessions d'examen
+</a>
+<a href="{% url 'exams:rubriques' %}" class="nav-link">
+    <i class="bi bi-list-task me-2"></i>Rubriques / Épreuves
+</a>
+<a href="{% url 'exams:options' %}" class="nav-link">
+    <i class="bi bi-tags me-2"></i>Options / Styles
+</a>
+<a href="{% url 'exams:modele_matricule' %}" class="nav-link">
+    <i class="bi bi-123 me-2"></i>Modèle de matricule
+</a>
+
+
+<a href="{% url 'clubs:demandes_affiliation' %}" class="nav-link">
+    <i class="bi bi-file-earmark-check me-2"></i>Affiliations
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <small class="text-muted">
+        <a href="{% url 'clubs:liste' %}">Clubs</a> ›
+        <a href="{% url 'clubs:detail' club.pk %}">{{ club.nom_club }}</a> ›
+        Supprimer
+    </small>
+    <h4 class="fw-bold mt-1 text-danger">Supprimer le club</h4>
+</div>
+
+<div class="card p-4" style="max-width: 540px;">
+    <div class="d-flex align-items-center gap-3 mb-3">
+        <i class="bi bi-building fs-2 text-muted"></i>
+        <div>
+            <strong class="fs-5">{{ club.nom_club }}</strong>
+            {% if club.sigle_club %}<span class="text-muted ms-2">({{ club.sigle_club }})</span>{% endif %}
+            <p class="text-muted small mb-0">{{ club.localite }}</p>
+        </div>
+    </div>
+
+    <div class="alert alert-danger mb-4">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <strong>Cette action est irréversible.</strong>
+        Toutes les données associées à ce club (demandes d'affiliation, organigramme) seront supprimées.
+        <br><small class="mt-1 d-block">Note : la suppression est bloquée si le club contient des pratiquants.</small>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-danger">
+                <i class="bi bi-trash me-1"></i>Oui, supprimer ce club
+            </button>
+            <a href="{% url 'clubs:detail' club.pk %}" class="btn btn-outline-secondary">
+                Annuler
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

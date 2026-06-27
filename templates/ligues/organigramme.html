@@ -82,6 +82,7 @@
                     <tr>
                         <th>Nom & Prénom</th>
                         <th>Fonction</th>
+                        <th>Depuis</th>
                         <th>Contact</th>
                         <th>Statut</th>
                         <th class="text-end">Actions</th>
@@ -97,6 +98,7 @@
                             {% endif %}
                         </td>
                         <td>{{ membre.fonction }}</td>
+                        <td class="small text-muted">{{ membre.date_debut_fonction|date:"d/m/Y"|default:"—" }}</td>
                         <td>{{ membre.contact|default:"—" }}</td>
                         <td>
                             {% if membre.actif %}
@@ -118,6 +120,13 @@
                                         class="btn btn-sm {% if membre.actif %}btn-outline-warning{% else %}btn-outline-success{% endif %}"
                                         title="{% if membre.actif %}Désactiver{% else %}Activer{% endif %}">
                                     <i class="bi {% if membre.actif %}bi-toggle-on{% else %}bi-toggle-off{% endif %}"></i>
+                                </button>
+                            </form>
+                            <form method="post" action="{% url 'ligues:supprimer_membre' membre.pk %}" class="d-inline"
+                                  onsubmit="return confirm('Supprimer {{ membre.prenom }} {{ membre.nom }} ?')">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Supprimer">
+                                    <i class="bi bi-trash"></i>
                                 </button>
                             </form>
                         </td>
@@ -160,11 +169,15 @@
                                    placeholder="Ex: Président, Trésorier..." required>
                         </div>
                         <div class="col-md-6">
+                            <label class="form-label fw-semibold">Date de début de fonction</label>
+                            <input type="date" name="date_debut_fonction" class="form-control">
+                        </div>
+                        <div class="col-md-6">
                             <label class="form-label fw-semibold">Contact</label>
                             <input type="text" name="contact" class="form-control"
                                    placeholder="Téléphone ou email">
                         </div>
-                        <div class="col-12">
+                        <div class="col-md-6 d-flex align-items-end">
                             <div class="form-check">
                                 <input type="checkbox" name="actif" id="actif_{{ volet.pk }}"
                                        class="form-check-input" checked>
@@ -273,11 +286,16 @@
                                    value="{{ membre.fonction }}" required>
                         </div>
                         <div class="col-md-6">
+                            <label class="form-label fw-semibold">Date de début de fonction</label>
+                            <input type="date" name="date_debut_fonction" class="form-control"
+                                   value="{{ membre.date_debut_fonction|date:'Y-m-d'|default:'' }}">
+                        </div>
+                        <div class="col-md-6">
                             <label class="form-label fw-semibold">Contact</label>
                             <input type="text" name="contact" class="form-control"
                                    value="{{ membre.contact }}">
                         </div>
-                        <div class="col-12">
+                        <div class="col-md-6 d-flex align-items-end">
                             <div class="form-check">
                                 <input type="checkbox" name="actif"
                                        id="actif_m{{ membre.pk }}"

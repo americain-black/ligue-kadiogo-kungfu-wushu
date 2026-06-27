@@ -11,12 +11,20 @@
 <a href="{% url 'clubs:liste' %}" class="nav-link active">
     <i class="bi bi-building me-2"></i>Clubs
 </a>
-<a href="#" class="nav-link">
-    <i class="bi bi-people me-2"></i>Pratiquants
+<a href="{% url 'exams:liste' %}" class="nav-link">
+    <i class="bi bi-journal-check me-2"></i>Sessions d'examen
 </a>
-<a href="#" class="nav-link">
-    <i class="bi bi-journal-check me-2"></i>Examens
+<a href="{% url 'exams:rubriques' %}" class="nav-link">
+    <i class="bi bi-list-task me-2"></i>Rubriques / Épreuves
 </a>
+<a href="{% url 'exams:options' %}" class="nav-link">
+    <i class="bi bi-tags me-2"></i>Options / Styles
+</a>
+<a href="{% url 'exams:modele_matricule' %}" class="nav-link">
+    <i class="bi bi-123 me-2"></i>Modèle de matricule
+</a>
+
+
 <a href="{% url 'clubs:demandes_affiliation' %}" class="nav-link">
     <i class="bi bi-file-earmark-check me-2"></i>Affiliations
 </a>
@@ -76,6 +84,27 @@
             <div class="col-md-4">
                 <label class="form-label fw-semibold">{{ form.statut_club.label }}</label>
                 {{ form.statut_club }}
+            </div>
+        </div>
+
+        <!-- Gestionnaire -->
+        <h6 class="fw-bold text-danger mb-3 border-bottom pb-2">
+            <i class="bi bi-person-gear me-2"></i>Gestionnaire du club
+        </h6>
+        <div class="row g-3 mb-4">
+            <div class="col-md-8">
+                <label class="form-label fw-semibold">{{ form.utilisateur.label }}</label>
+                {{ form.utilisateur }}
+                <div class="form-text">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Seuls les comptes avec le rôle <strong>Gestionnaire Club</strong> de votre ligue
+                    et non encore assignés à un autre club sont listés ici.
+                    Si la liste est vide, créez d'abord un compte utilisateur depuis le
+                    <a href="{% url 'accounts:tableau_de_bord' %}">tableau de bord Super Admin</a>.
+                </div>
+                {% if form.utilisateur.errors %}
+                <div class="text-danger small mt-1">{{ form.utilisateur.errors.0 }}</div>
+                {% endif %}
             </div>
         </div>
 

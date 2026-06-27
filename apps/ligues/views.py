@@ -76,6 +76,46 @@ def toggle_statut_ligue(request, pk):
     return redirect('ligues:liste')
 
 
+@super_admin_requis
+def supprimer_ligue(request, pk):
+    from django.db import transaction
+    ligue  = get_object_or_404(Ligue, pk=pk)
+    clubs  = list(ligue.clubs.all().order_by('nom_club'))
+    nb_utilisateurs = ligue.utilisateurs.count()
+
+    if request.method == 'POST':
+        from apps.practitioners.models import Pratiquant
+        from apps.exams.models import (
+            Inscription, SessionExamen, AnneeSportive,
+            TarifExamen, AffectationJury
+        )
+        from apps.payments.models import PaiementExamen
+
+        with transaction.atomic():
+            # Cascade manuelle (FKs PROTECT empêchent la suppression automatique)
+            Inscription.objects.filter(session__annee_sportive__ligue=ligue).delete()
+            PaiementExamen.objects.filter(session__annee_sportive__ligue=ligue).delete()
+            AffectationJury.objects.filter(session__annee_sportive__ligue=ligue).delete()
+            TarifExamen.objects.filter(annee_sportive__ligue=ligue).delete()
+            SessionExamen.objects.filter(annee_sportive__ligue=ligue).delete()
+            AnneeSportive.objects.filter(ligue=ligue).delete()
+            Pratiquant.objects.filter(club__ligue=ligue).delete()
+            # Détacher les gestionnaires de club pour éviter ProtectedError
+            ligue.clubs.update(utilisateur=None)
+            ligue.clubs.all().delete()
+            nom = ligue.nom_ligue
+            ligue.delete()
+
+        messages.success(request, f"Ligue « {nom} » et toutes ses données supprimées.")
+        return redirect('ligues:liste')
+
+    return render(request, 'ligues/confirmer_suppression.html', {
+        'ligue':          ligue,
+        'clubs':          clubs,
+        'nb_utilisateurs': nb_utilisateurs,
+    })
+
+
 # ─── Organigramme ────────────────────────────────────────────────────────────
 
 @gest_ligue_requis
@@ -157,4 +197,14 @@ def toggle_actif_membre(request, pk):
     membre.save()
     etat = "activé" if membre.actif else "désactivé"
     messages.success(request, f"{membre.prenom} {membre.nom} {etat}.")
+    return redirect('ligues:organigramme')
+
+
+@gest_ligue_requis
+def supprimer_membre(request, pk):
+    membre = get_object_or_404(MembreOrganigramme, pk=pk, volet__ligue=request.user.ligue)
+    if request.method == 'POST':
+        nom = f"{membre.prenom} {membre.nom}"
+        membre.delete()
+        messages.success(request, f"{nom} supprimé de l'organigramme.")
     return redirect('ligues:organigramme')

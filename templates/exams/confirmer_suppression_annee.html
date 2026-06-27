@@ -1,0 +1,70 @@
+{% extends 'base.html' %}
+{% block title %}Supprimer {{ annee.libelle }} — Ligue du Kadiogo{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Examens</span>
+<a href="{% url 'exams:annees_sportives' %}" class="nav-link active">
+    <i class="bi bi-calendar2-range me-2"></i>Années sportives
+</a>
+<a href="{% url 'exams:liste' %}" class="nav-link">
+    <i class="bi bi-journal-check me-2"></i>Sessions d'examen
+</a>
+<a href="{% url 'exams:rubriques' %}" class="nav-link">
+    <i class="bi bi-list-task me-2"></i>Rubriques / Épreuves
+</a>
+<a href="{% url 'exams:options' %}" class="nav-link">
+    <i class="bi bi-tags me-2"></i>Options / Styles
+</a>
+<a href="{% url 'exams:modele_matricule' %}" class="nav-link">
+    <i class="bi bi-123 me-2"></i>Modèle de matricule
+</a>
+
+
+{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <small class="text-muted">
+        <a href="{% url 'exams:annees_sportives' %}">Années sportives</a> › Supprimer
+    </small>
+    <h4 class="fw-bold mt-1 text-danger">Supprimer une année sportive</h4>
+</div>
+
+<div class="card p-4" style="max-width: 580px;">
+    <div class="d-flex align-items-center gap-3 mb-3">
+        <i class="bi bi-calendar2-range fs-2 text-muted"></i>
+        <div>
+            <strong class="fs-5">{{ annee.libelle }}</strong>
+            <p class="text-muted small mb-0">
+                {{ annee.date_debut|date:"d/m/Y" }} → {{ annee.date_fin|date:"d/m/Y" }}
+            </p>
+        </div>
+    </div>
+
+    <div class="alert alert-danger mb-3">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <strong>Cette action est irréversible.</strong>
+        Toutes les données suivantes seront supprimées définitivement :
+        <ul class="mt-2 mb-0">
+            <li><strong>{{ nb_sessions }}</strong> session(s) d'examen et leurs inscriptions</li>
+            <li><strong>{{ nb_demandes }}</strong> demande(s) d'affiliation liée(s) à cette année</li>
+        </ul>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-danger">
+                <i class="bi bi-trash me-1"></i>Oui, supprimer définitivement
+            </button>
+            <a href="{% url 'exams:annees_sportives' %}" class="btn btn-outline-secondary">
+                Annuler
+            </a>
+        </div>
+    </form>
+</div>
+{% endblock %}

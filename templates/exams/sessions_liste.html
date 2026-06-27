@@ -1,0 +1,127 @@
+{% extends 'base.html' %}
+{% block title %}Sessions d'examen — Ligue du Kadiogo{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Examens</span>
+<a href="{% url 'exams:annees_sportives' %}" class="nav-link">
+    <i class="bi bi-calendar2-range me-2"></i>Années sportives
+</a>
+<a href="{% url 'exams:liste' %}" class="nav-link active">
+    <i class="bi bi-journal-check me-2"></i>Sessions d'examen
+</a>
+<a href="{% url 'exams:rubriques' %}" class="nav-link">
+    <i class="bi bi-list-task me-2"></i>Rubriques / Épreuves
+</a>
+<a href="{% url 'exams:options' %}" class="nav-link">
+    <i class="bi bi-tags me-2"></i>Options / Styles
+</a>
+<a href="{% url 'exams:modele_matricule' %}" class="nav-link">
+    <i class="bi bi-123 me-2"></i>Modèle de matricule
+</a>
+
+
+<span class="sidebar-title mt-2">Clubs</span>
+<a href="{% url 'clubs:liste' %}" class="nav-link">
+    <i class="bi bi-building me-2"></i>Clubs
+</a>
+<a href="{% url 'clubs:demandes_affiliation' %}" class="nav-link">
+    <i class="bi bi-file-earmark-check me-2"></i>Affiliations
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-0">Sessions d'examen</h4>
+        <small class="text-muted">Gérer les sessions d'examen de la ligue</small>
+    </div>
+    <a href="{% url 'exams:creer' %}" class="btn btn-ligue btn-sm">
+        <i class="bi bi-plus me-1"></i>Créer une session
+    </a>
+</div>
+
+<!-- Filtres -->
+<div class="card p-3 mb-4">
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+        <span class="fw-semibold small">Filtrer :</span>
+        <a href="{% url 'exams:liste' %}"
+           class="btn btn-sm {% if not statut_filtre %}btn-danger{% else %}btn-outline-secondary{% endif %}">
+            Toutes
+        </a>
+        {% for code, libelle in statuts %}
+        <a href="?statut={{ code }}"
+           class="btn btn-sm {% if statut_filtre == code %}btn-danger{% else %}btn-outline-secondary{% endif %}">
+            {{ libelle }}
+        </a>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="card p-3">
+    {% if sessions %}
+    <table class="table table-hover table-sm align-middle mb-0">
+        <thead class="table-light">
+            <tr>
+                <th>Session</th>
+                <th>Date examen</th>
+                <th>Lieu</th>
+                <th>Année sportive</th>
+                <th>Inscrits</th>
+                <th>Statut</th>
+                <th class="text-end">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for session in sessions %}
+        <tr>
+            <td><strong>{{ session.titre }}</strong></td>
+            <td>{{ session.date_examen|date:"d/m/Y" }}</td>
+            <td>{{ session.lieu }}</td>
+            <td>{{ session.annee_sportive.libelle }}</td>
+            <td>
+                <span class="badge bg-secondary">{{ session.inscriptions.count }}</span>
+            </td>
+            <td>
+                {% if session.statut == 'EN_PREPARATION' %}
+                    <span class="badge bg-secondary">En préparation</span>
+                {% elif session.statut == 'INSCRIPTIONS_OUVERTES' %}
+                    <span class="badge bg-success">Inscriptions ouvertes</span>
+                {% elif session.statut == 'INSCRIPTIONS_CLOSES' %}
+                    <span class="badge bg-warning text-dark">Inscriptions closes</span>
+                {% elif session.statut == 'EN_COURS' %}
+                    <span class="badge bg-primary">En cours</span>
+                {% elif session.statut == 'CLOTUREE' %}
+                    <span class="badge bg-danger">Clôturée</span>
+                {% elif session.statut == 'RESULTATS_PUBLIES' %}
+                    <span class="badge bg-info">Résultats publiés</span>
+                {% endif %}
+            </td>
+            <td class="text-end">
+                <a href="{% url 'exams:detail' session.pk %}"
+                   class="btn btn-sm btn-outline-secondary" title="Voir">
+                    <i class="bi bi-eye"></i>
+                </a>
+                {% if session.statut == 'EN_PREPARATION' %}
+                <a href="{% url 'exams:modifier' session.pk %}"
+                   class="btn btn-sm btn-outline-primary ms-1" title="Modifier">
+                    <i class="bi bi-pencil"></i>
+                </a>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="text-center py-5 text-muted">
+        <i class="bi bi-journal-x fs-1 opacity-25 d-block mb-2"></i>
+        Aucune session d'examen{% if statut_filtre %} avec ce statut{% endif %}.
+        <a href="{% url 'exams:creer' %}" class="d-block mt-2">Créer la première session</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

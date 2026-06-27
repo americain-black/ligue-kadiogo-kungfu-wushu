@@ -1,0 +1,168 @@
+{% extends 'base.html' %}
+{% block title %}Modèle de matricule — Ligue du Kadiogo{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Examens</span>
+<a href="{% url 'exams:annees_sportives' %}" class="nav-link">
+    <i class="bi bi-calendar2-range me-2"></i>Années sportives
+</a>
+<a href="{% url 'exams:liste' %}" class="nav-link">
+    <i class="bi bi-journal-check me-2"></i>Sessions d'examen
+</a>
+<a href="{% url 'exams:rubriques' %}" class="nav-link">
+    <i class="bi bi-list-task me-2"></i>Rubriques / Épreuves
+</a>
+<a href="{% url 'exams:options' %}" class="nav-link">
+    <i class="bi bi-tags me-2"></i>Options / Styles
+</a>
+<a href="{% url 'exams:modele_matricule' %}" class="nav-link active">
+    <i class="bi bi-123 me-2"></i>Modèle de matricule
+</a>
+<span class="sidebar-title mt-2">Clubs</span>
+<a href="{% url 'clubs:liste' %}" class="nav-link">
+    <i class="bi bi-building me-2"></i>Clubs
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h4 class="fw-bold mb-0">
+        <i class="bi bi-123 me-2 text-primary"></i>Modèle de matricule
+    </h4>
+    <small class="text-muted">Définissez le format des matricules attribués automatiquement aux licenciés</small>
+</div>
+
+{% if messages %}
+{% for msg in messages %}
+<div class="alert alert-{{ msg.tags }} alert-dismissible fade show">
+    {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endfor %}
+{% endif %}
+
+<div class="row g-4">
+    <!-- Formulaire -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header py-2 bg-primary text-white">
+                <h6 class="mb-0 fw-bold">
+                    <i class="bi bi-{% if modele %}pencil{% else %}plus-circle{% endif %} me-2"></i>
+                    {% if modele %}Modifier le modèle{% else %}Créer le modèle de matricule{% endif %}
+                </h6>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% url 'exams:modele_matricule' %}">
+                    {% csrf_token %}
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">{% for e in form.non_field_errors %}{{ e }}{% endfor %}</div>
+                    {% endif %}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">{{ form.prefixe.label }}</label>
+                        {{ form.prefixe }}
+                        {% if form.prefixe.errors %}
+                        <div class="text-danger small">{{ form.prefixe.errors.as_text }}</div>
+                        {% endif %}
+                        <div class="form-text">Généralement le sigle de votre ligue (ex : LK, LB…)</div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle me-1"></i>
+                        {% if modele %}Enregistrer{% else %}Créer le modèle{% endif %}
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        {% if modele %}
+        <div class="card mt-3 border-danger">
+            <div class="card-body p-3">
+                <h6 class="text-danger fw-bold mb-2">
+                    <i class="bi bi-exclamation-triangle me-1"></i>Zone de danger
+                </h6>
+                <p class="small text-muted mb-3">
+                    Supprimer le modèle <strong>n'efface pas</strong> les matricules déjà attribués.
+                    Seulement la génération automatique sera désactivée.
+                </p>
+                <form method="post" action="{% url 'exams:supprimer_modele_matricule' %}"
+                      onsubmit="return confirm('Supprimer le modèle de matricule ? Les matricules attribués sont conservés.')">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-danger btn-sm">
+                        <i class="bi bi-trash me-1"></i>Supprimer le modèle
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Info et aperçu -->
+    <div class="col-md-6">
+        {% if modele %}
+        <div class="card border-success mb-3">
+            <div class="card-header py-2 bg-success text-white">
+                <h6 class="mb-0 fw-bold"><i class="bi bi-card-checklist me-2"></i>Modèle actuel</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <div class="text-center p-3 bg-light rounded border">
+                        <div class="fs-2 fw-bold text-primary font-monospace">{{ prochain }}</div>
+                        <div class="small text-muted">Prochain matricule généré</div>
+                    </div>
+                </div>
+                <table class="table table-sm mb-0">
+                    <tbody>
+                        <tr>
+                            <td class="text-muted">Préfixe</td>
+                            <td><strong class="font-monospace">{{ modele.prefixe }}</strong></td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Format</td>
+                            <td><span class="font-monospace">{{ modele.prefixe }}<span class="text-primary">AA</span><span class="text-success">NNNN</span></span></td>
+                        </tr>
+                        <tr>
+                            <td class="text-muted">Dernière séquence</td>
+                            <td><strong>{{ modele.derniere_sequence }}</strong></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="card p-3 bg-light">
+            <h6 class="fw-semibold mb-2"><i class="bi bi-info-circle me-2 text-muted"></i>Comment fonctionne le matricule ?</h6>
+            <p class="small text-muted mb-2">
+                Le matricule est généré automatiquement quand GEST_LIGUE autorise la liste d'un club.
+                Le format est : <strong class="font-monospace">{Préfixe}{2 chiffres année}{4 chiffres séquence}</strong>
+            </p>
+            <div class="d-flex gap-2 flex-wrap mb-2">
+                <div class="border rounded p-2 text-center small">
+                    <div class="fw-bold font-monospace text-danger">LK</div>
+                    <div class="text-muted">Préfixe</div>
+                </div>
+                <div class="border rounded p-2 text-center small">
+                    <div class="fw-bold font-monospace text-primary">26</div>
+                    <div class="text-muted">Année</div>
+                </div>
+                <div class="border rounded p-2 text-center small">
+                    <div class="fw-bold font-monospace text-success">0026</div>
+                    <div class="text-muted">Séquence</div>
+                </div>
+                <div class="d-flex align-items-center">
+                    <span class="text-muted">→</span>
+                    <div class="border rounded p-2 ms-2 text-center small bg-white">
+                        <div class="fw-bold font-monospace fs-5">LK260026</div>
+                    </div>
+                </div>
+            </div>
+            <p class="small text-muted mb-0">
+                Le matricule est <strong>permanent</strong> et attribué une seule fois au licencié.
+                La séquence ne se réinitialise pas.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

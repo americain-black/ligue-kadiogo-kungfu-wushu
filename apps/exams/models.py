@@ -96,6 +96,64 @@ class RubriqueGrade(models.Model):
         )
 
 
+class OptionExamen(models.Model):
+    """
+    Option/style de pratique proposé lors des examens.
+    Ex : Shaolin, Wu Dang, Sanda…
+    Géré dynamiquement par la ligue.
+    """
+
+    ligue = models.ForeignKey(
+        'ligues.Ligue',
+        on_delete=models.CASCADE,
+        related_name='options_examen'
+    )
+    nom   = models.CharField(max_length=100)
+    actif = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name        = "Option d'examen"
+        verbose_name_plural = "Options d'examen"
+        unique_together     = ('ligue', 'nom')
+        ordering            = ['nom']
+
+    def __str__(self):
+        return self.nom
+
+
+class ModeleMatricule(models.Model):
+    """
+    Modèle de génération des matricules pour une ligue.
+    Format : {prefixe}{2 derniers chiffres de l'année}{séquence 4 chiffres}
+    Ex : LK260026  →  préfixe=LK, année=2026, séquence=26
+    Un seul modèle par ligue.
+    """
+
+    ligue             = models.OneToOneField(
+        'ligues.Ligue',
+        on_delete=models.CASCADE,
+        related_name='modele_matricule'
+    )
+    prefixe           = models.CharField(
+        max_length=10,
+        help_text="Sigle de la ligue, ex : LK"
+    )
+    derniere_sequence = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        verbose_name        = 'Modèle de matricule'
+        verbose_name_plural = 'Modèles de matricule'
+
+    def __str__(self):
+        return f"Modèle {self.prefixe} — ligue {self.ligue.sigle}"
+
+    def generer(self, annee):
+        """Incrémente la séquence et retourne le matricule généré."""
+        self.derniere_sequence += 1
+        self.save(update_fields=['derniere_sequence'])
+        return f"{self.prefixe}{str(annee)[-2:]}{self.derniere_sequence:04d}"
+
+
 class TarifExamen(models.Model):
     """
     Tarif des droits d'examen par grade et par année sportive.
@@ -253,6 +311,12 @@ class Inscription(models.Model):
     grade_vise  = models.ForeignKey(
         'practitioners.Grade',
         on_delete=models.PROTECT,
+        related_name='inscriptions'
+    )
+    option      = models.ForeignKey(
+        OptionExamen,
+        on_delete=models.PROTECT,
+        null=True, blank=True,
         related_name='inscriptions'
     )
     montant     = models.DecimalField(

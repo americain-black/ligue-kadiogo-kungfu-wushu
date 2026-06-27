@@ -11,8 +11,8 @@
 <a href="{% url 'practitioners:liste' %}" class="nav-link active">
     <i class="bi bi-people me-2"></i>Pratiquants
 </a>
-<a href="#" class="nav-link">
-    <i class="bi bi-journal-check me-2"></i>Examens
+<a href="{% url 'exams:club_sessions' %}" class="nav-link">
+    <i class="bi bi-journal-check me-2"></i>Sessions d'examen
 </a>
 {% endblock %}
 
@@ -68,10 +68,22 @@
             <h6 class="fw-bold text-success mb-3 border-bottom pb-2">
                 <i class="bi bi-award me-2"></i>Grade & Statut
             </h6>
+
+            {# Datalist pour l'autocomplétion des grades #}
+            <datalist id="grades-datalist">
+                {% for grade in grades %}
+                <option value="{{ grade.nom }}">
+                {% endfor %}
+            </datalist>
+
             <div class="row g-3 mb-4">
                 <div class="col-md-6">
-                    <label class="form-label fw-semibold">{{ form.grade_actuel.label }}</label>
-                    {{ form.grade_actuel }}
+                    <label class="form-label fw-semibold">{{ form.grade_actuel_nom.label }}</label>
+                    {{ form.grade_actuel_nom }}
+                    {% if form.grade_actuel_nom.errors %}
+                        <div class="text-danger small mt-1">{{ form.grade_actuel_nom.errors.0 }}</div>
+                    {% endif %}
+                    <div class="form-text text-muted">Tapez le nom du grade (Blanc, Jaune, Vert, Bleu, Marron, Noir)</div>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-semibold">{{ form.photo.label }}</label>

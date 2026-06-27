@@ -1,0 +1,190 @@
+{% extends 'base.html' %}
+{% block title %}Rubriques / Épreuves — Ligue du Kadiogo{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Examens</span>
+<a href="{% url 'exams:annees_sportives' %}" class="nav-link">
+    <i class="bi bi-calendar2-range me-2"></i>Années sportives
+</a>
+<a href="{% url 'exams:liste' %}" class="nav-link">
+    <i class="bi bi-journal-check me-2"></i>Sessions d'examen
+</a>
+<a href="{% url 'exams:rubriques' %}" class="nav-link active">
+    <i class="bi bi-list-task me-2"></i>Rubriques / Épreuves
+</a>
+<a href="{% url 'exams:options' %}" class="nav-link">
+    <i class="bi bi-tags me-2"></i>Options / Styles
+</a>
+<a href="{% url 'exams:modele_matricule' %}" class="nav-link">
+    <i class="bi bi-123 me-2"></i>Modèle de matricule
+</a>
+
+<span class="sidebar-title mt-2">Clubs</span>
+<a href="{% url 'clubs:liste' %}" class="nav-link">
+    <i class="bi bi-building me-2"></i>Clubs
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-0">
+            <i class="bi bi-list-task me-2 text-primary"></i>Rubriques / Épreuves d'examen
+        </h4>
+        <small class="text-muted">Catalogue des épreuves et leur configuration par grade</small>
+    </div>
+</div>
+
+{% if messages %}
+{% for msg in messages %}
+<div class="alert alert-{{ msg.tags }} alert-dismissible fade show">
+    {{ msg }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endfor %}
+{% endif %}
+
+<div class="row g-4">
+    <!-- Liste des rubriques -->
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-header py-2">
+                <h6 class="mb-0 fw-bold">
+                    <i class="bi bi-list-check me-2"></i>Rubriques définies
+                    <span class="badge bg-secondary ms-2">{{ rubriques.count }}</span>
+                </h6>
+            </div>
+            <div class="card-body p-0">
+                {% if rubriques %}
+                <table class="table table-hover table-sm align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-3">Nom</th>
+                            <th class="text-center">Grades config.</th>
+                            <th class="text-center">Statut</th>
+                            <th class="text-end pe-3">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for r in rubriques %}
+                    <tr {% if rubrique_en_edition and rubrique_en_edition.pk == r.pk %}class="table-warning"{% endif %}>
+                        <td class="ps-3">
+                            <strong>{{ r.nom }}</strong>
+                            {% if r.description %}
+                            <div class="text-muted small">{{ r.description|truncatechars:60 }}</div>
+                            {% endif %}
+                        </td>
+                        <td class="text-center">
+                            <a href="{% url 'exams:config_rubrique_grades' r.pk %}"
+                               class="badge bg-primary text-decoration-none"
+                               title="Configurer les grades">
+                                {{ r.rubrique_grades.count }}
+                                <i class="bi bi-gear-fill ms-1"></i>
+                            </a>
+                        </td>
+                        <td class="text-center">
+                            {% if r.actif %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end pe-3">
+                            <a href="{% url 'exams:config_rubrique_grades' r.pk %}"
+                               class="btn btn-sm btn-outline-primary me-1" title="Configurer grades">
+                                <i class="bi bi-gear"></i>
+                            </a>
+                            <a href="{% url 'exams:modifier_rubrique' r.pk %}"
+                               class="btn btn-sm btn-outline-warning me-1" title="Modifier">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form method="post" action="{% url 'exams:toggle_actif_rubrique' r.pk %}"
+                                  class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-secondary me-1"
+                                        title="{% if r.actif %}Désactiver{% else %}Activer{% endif %}">
+                                    <i class="bi bi-{% if r.actif %}eye-slash{% else %}eye{% endif %}"></i>
+                                </button>
+                            </form>
+                            <form method="post" action="{% url 'exams:supprimer_rubrique' r.pk %}"
+                                  class="d-inline"
+                                  onsubmit="return confirm('Supprimer la rubrique « {{ r.nom }} » ?')">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Supprimer"
+                                        {% if r.rubrique_grades.count > 0 %}disabled title="Déconfigurez tous les grades d'abord"{% endif %}>
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-list-task fs-1 opacity-25 d-block mb-2"></i>
+                    Aucune rubrique définie.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulaire ajout / modification -->
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-header bg-{% if rubrique_en_edition %}warning{% else %}ligue{% endif %} text-white"
+                 style="{% if not rubrique_en_edition %}background-color: var(--ligue-color, #dc3545) !important;{% endif %}">
+                <h6 class="mb-0 fw-bold">
+                    <i class="bi bi-{% if rubrique_en_edition %}pencil{% else %}plus-circle{% endif %} me-2"></i>
+                    {% if rubrique_en_edition %}Modifier — {{ rubrique_en_edition.nom }}{% else %}Nouvelle rubrique{% endif %}
+                </h6>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% if rubrique_en_edition %}{% url 'exams:modifier_rubrique' rubrique_en_edition.pk %}{% else %}{% url 'exams:rubriques' %}{% endif %}">
+                    {% csrf_token %}
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for err in form.non_field_errors %}{{ err }}{% endfor %}
+                    </div>
+                    {% endif %}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">{{ form.nom.label }}</label>
+                        {{ form.nom }}
+                        {% if form.nom.errors %}
+                        <div class="text-danger small">{{ form.nom.errors.as_text }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">{{ form.description.label }}</label>
+                        {{ form.description }}
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-{% if rubrique_en_edition %}warning{% else %}ligue{% endif %}">
+                            <i class="bi bi-check-circle me-1"></i>
+                            {% if rubrique_en_edition %}Enregistrer{% else %}Ajouter{% endif %}
+                        </button>
+                        {% if rubrique_en_edition %}
+                        <a href="{% url 'exams:rubriques' %}" class="btn btn-outline-secondary">Annuler</a>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card mt-3 p-3 bg-light">
+            <h6 class="fw-semibold mb-2"><i class="bi bi-info-circle me-2 text-muted"></i>Comment ça marche ?</h6>
+            <p class="small text-muted mb-0">
+                Une <strong>rubrique</strong> est une épreuve d'examen (Kata, Combat Sanda, Théorie…).
+                Créez ici le catalogue, puis cliquez sur <i class="bi bi-gear"></i> pour définir
+                pour quels grades elle s'applique, avec son <strong>coefficient</strong>
+                et sa <strong>note minimale</strong> requise.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

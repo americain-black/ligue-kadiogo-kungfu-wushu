@@ -1,5 +1,85 @@
 {% extends 'base.html' %}
+{% block title %}Tableau de bord — Jury{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_jury' %}" class="nav-link active">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Mes sessions</span>
+<a href="{% url 'accounts:dashboard_jury' %}" class="nav-link">
+    <i class="bi bi-journal-check me-2"></i>Sessions affectées
+</a>
+{% endblock %}
+
 {% block content %}
-<h4 class="fw-bold">Tableau de bord en construction...</h4>
-<p class="text-muted">Cette section sera développée prochainement.</p>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-0">Tableau de bord</h4>
+        <small class="text-muted">Bonjour, {{ user.get_full_name|default:user.username }}</small>
+    </div>
+    <span class="badge bg-secondary px-3 py-2 fs-6">Jury</span>
+</div>
+
+{% if sessions_en_cours %}
+<div class="alert alert-primary d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <i class="bi bi-play-circle-fill me-2"></i>
+        <strong>{{ sessions_en_cours|length }} session(s) en cours</strong> — la saisie des notes est ouverte.
+    </div>
+</div>
+{% endif %}
+
+<!-- Mes sessions affectées -->
+<div class="card p-3">
+    <h6 class="fw-bold mb-3">
+        <i class="bi bi-person-badge me-2 text-muted"></i>
+        Mes sessions d'examen
+        <span class="badge bg-secondary ms-1">{{ affectations|length }}</span>
+    </h6>
+
+    {% if affectations %}
+    <table class="table table-hover table-sm align-middle mb-0">
+        <thead class="table-light">
+            <tr>
+                <th>Session</th>
+                <th>Année sportive</th>
+                <th>Date examen</th>
+                <th>Lieu</th>
+                <th>Statut</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for aff in affectations %}
+        <tr>
+            <td><strong>{{ aff.session.titre }}</strong></td>
+            <td class="small text-muted">{{ aff.session.annee_sportive.libelle }}</td>
+            <td>{{ aff.session.date_examen|date:"d/m/Y" }}</td>
+            <td class="small text-muted">{{ aff.session.lieu }}</td>
+            <td>
+                {% if aff.session.statut == 'EN_PREPARATION' %}
+                    <span class="badge bg-secondary">En préparation</span>
+                {% elif aff.session.statut == 'INSCRIPTIONS_OUVERTES' %}
+                    <span class="badge bg-success">Inscriptions ouvertes</span>
+                {% elif aff.session.statut == 'INSCRIPTIONS_CLOSES' %}
+                    <span class="badge bg-warning text-dark">Inscriptions closes</span>
+                {% elif aff.session.statut == 'EN_COURS' %}
+                    <span class="badge bg-primary">En cours — noter</span>
+                {% elif aff.session.statut == 'CLOTUREE' %}
+                    <span class="badge bg-danger">Clôturée</span>
+                {% elif aff.session.statut == 'RESULTATS_PUBLIES' %}
+                    <span class="badge bg-info">Résultats publiés</span>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="text-center py-5 text-muted">
+        <i class="bi bi-journal-x fs-1 opacity-25 d-block mb-2"></i>
+        Vous n'êtes affecté à aucune session d'examen pour le moment.
+    </div>
+    {% endif %}
+</div>
 {% endblock %}

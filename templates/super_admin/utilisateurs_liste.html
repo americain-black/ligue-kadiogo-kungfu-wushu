@@ -79,7 +79,7 @@
                         <i class="bi bi-pencil"></i>
                     </a>
                     <a href="{% url 'accounts:toggle_statut_utilisateur' u.pk %}"
-                       class="btn btn-sm {% if u.statut_compte %}btn-outline-warning{% else %}btn-outline-success{% endif %}"
+                       class="btn btn-sm {% if u.statut_compte %}btn-outline-warning{% else %}btn-outline-success{% endif %} me-1"
                        onclick="return confirm('Confirmer le changement de statut ?')"
                        title="{% if u.statut_compte %}Désactiver{% else %}Réactiver{% endif %}">
                         {% if u.statut_compte %}
@@ -87,6 +87,11 @@
                         {% else %}
                             <i class="bi bi-person-check"></i>
                         {% endif %}
+                    </a>
+                    <a href="{% url 'accounts:supprimer_utilisateur' u.pk %}"
+                       class="btn btn-sm btn-outline-danger"
+                       title="Supprimer">
+                        <i class="bi bi-trash"></i>
                     </a>
                 </td>
             </tr>

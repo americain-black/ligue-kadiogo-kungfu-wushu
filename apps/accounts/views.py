@@ -81,7 +81,9 @@ def dashboard_super_admin(request):
 @login_required
 def dashboard_ligue(request):
     from apps.clubs.models import Club, DemandeAffiliation
-    from apps.practitioners.models import Pratiquant
+    from apps.practitioners.models import Pratiquant, Grade
+    from apps.exams.models import SessionExamen, Inscription, AnneeSportive, TarifExamen
+    from django.db.models import Count, Q
 
     ligue = request.user.ligue
 
@@ -89,20 +91,64 @@ def dashboard_ligue(request):
         messages.warning(request, "Votre compte n'est rattaché à aucune ligue.")
         return render(request, 'accounts/dashboard_ligue.html', {'ligue': None})
 
-    clubs_qs = Club.objects.filter(ligue=ligue)
+    clubs_qs   = Club.objects.filter(ligue=ligue)
     demandes_qs = DemandeAffiliation.objects.filter(
         club__ligue=ligue,
         statut_affiliation='EN_ATTENTE_VALID_LIGUE'
     )
 
+    # Dernière session active
+    derniere_session = (
+        SessionExamen.objects
+        .filter(annee_sportive__ligue=ligue)
+        .exclude(statut='RESULTATS_PUBLIES')
+        .order_by('-date_examen')
+        .first()
+    )
+
+    # Licenciés = pratiquants inscrits à la dernière session
+    nb_licencies = 0
+    clubs_resume = []
+    if derniere_session:
+        nb_licencies = Inscription.objects.filter(session=derniere_session).count()
+
+        # Résumé par club pour la session
+        from apps.clubs.models import Club
+        for club in Club.objects.filter(ligue=ligue).order_by('nom_club'):
+            qs_club = Inscription.objects.filter(session=derniere_session, pratiquant__club=club)
+            total      = qs_club.count()
+            if total == 0:
+                continue
+            nb_autorises = qs_club.filter(statut='AUTORISE').count()
+            nb_attente   = qs_club.filter(statut='EN_ATTENTE_PAIEMENT').count()
+            clubs_resume.append({
+                'nom':          club.nom_club,
+                'nb_inscrits':  total,
+                'nb_autorises': nb_autorises,
+                'nb_attente':   nb_attente,
+            })
+
+    # Année sportive active + tarifs
+    annee_active = AnneeSportive.objects.filter(ligue=ligue, statut='ACTIVE').first()
+    tarifs_actifs = []
+    nb_tarifs = 0
+    if annee_active:
+        tarifs_actifs = annee_active.tarifs.select_related('grade').order_by('grade__ordre')
+        nb_tarifs = tarifs_actifs.count()
+
     contexte = {
         'ligue':               ligue,
         'nb_clubs_affilies':   clubs_qs.filter(statut_club='AFFILIE').count(),
         'nb_clubs_en_attente': clubs_qs.filter(statut_club='EN_ATTENTE').count(),
-        'nb_pratiquants':      Pratiquant.objects.filter(club__ligue=ligue, actif=True).count(),
+        'nb_licencies':        nb_licencies,
         'nb_demandes_attente': demandes_qs.count(),
         'demandes_en_attente': demandes_qs.select_related('club', 'annee_sportive').order_by('-date_demande')[:5],
-        'derniers_clubs':      clubs_qs.order_by('-date_creation')[:5],
+        'derniere_session':    derniere_session,
+        'clubs_resume':        clubs_resume,
+        'nb_grades':           Grade.objects.filter(ligue=ligue).count(),
+        'annee_active':        annee_active,
+        'tarifs_actifs':       tarifs_actifs,
+        'nb_tarifs':           nb_tarifs,
     }
     return render(request, 'accounts/dashboard_ligue.html', contexte)
 
@@ -138,12 +184,32 @@ def dashboard_club(request):
 
 @login_required
 def dashboard_financier(request):
-    return render(request, 'accounts/dashboard_financier.html')
+    from apps.payments.models import PaiementExamen
+    ligue = request.user.ligue
+    qs = PaiementExamen.objects.filter(session__annee_sportive__ligue=ligue) if ligue else PaiementExamen.objects.none()
+    contexte = {
+        'nb_en_attente': qs.filter(statut='EN_ATTENTE').count(),
+        'nb_valides':    qs.filter(statut='VALIDE').count(),
+        'nb_rejetes':    qs.filter(statut='REJETE').count(),
+        'derniers_en_attente': qs.filter(statut='EN_ATTENTE').select_related('club', 'session').order_by('-date_soumission')[:5],
+    }
+    return render(request, 'accounts/dashboard_financier.html', contexte)
 
 
 @login_required
 def dashboard_jury(request):
-    return render(request, 'accounts/dashboard_jury.html')
+    from apps.exams.models import AffectationJury, SessionExamen
+    affectations = (
+        AffectationJury.objects
+        .filter(jury=request.user)
+        .select_related('session', 'session__annee_sportive')
+        .order_by('-session__date_examen')
+    )
+    sessions_en_cours = [a.session for a in affectations if a.session.statut == 'EN_COURS']
+    return render(request, 'accounts/dashboard_jury.html', {
+        'affectations':    affectations,
+        'sessions_en_cours': sessions_en_cours,
+    })
 
 
 # ── Gestion des utilisateurs (Super Admin) ────────────────────────────
@@ -220,3 +286,32 @@ def toggle_statut_utilisateur(request, pk):
         messages.success(request, f"Compte de {utilisateur.get_full_name()} réactivé.")
     utilisateur.save()
     return redirect('accounts:liste_utilisateurs')
+
+
+@super_admin_requis
+def supprimer_utilisateur(request, pk):
+    utilisateur = get_object_or_404(Utilisateur, pk=pk)
+    if utilisateur.is_superuser:
+        messages.error(request, "Impossible de supprimer un super administrateur système.")
+        return redirect('accounts:liste_utilisateurs')
+
+    # Club dont cet utilisateur est gestionnaire (OneToOne inverse)
+    club_gere = None
+    try:
+        club_gere = utilisateur.club
+    except Exception:
+        pass
+
+    if request.method == 'POST':
+        nom = utilisateur.get_full_name() or utilisateur.username
+        # Détacher du club avant suppression pour éviter ProtectedError
+        if club_gere:
+            club_gere.utilisateur = None
+            club_gere.save()
+        utilisateur.delete()
+        messages.success(request, f"Utilisateur « {nom} » supprimé.")
+        return redirect('accounts:liste_utilisateurs')
+    return render(request, 'super_admin/confirmer_suppression_utilisateur.html', {
+        'utilisateur': utilisateur,
+        'club_gere':   club_gere,
+    })

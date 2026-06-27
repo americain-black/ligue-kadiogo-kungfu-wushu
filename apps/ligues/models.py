@@ -45,12 +45,13 @@ class VoletOrganigramme(models.Model):
 
 class MembreOrganigramme(models.Model):
     volet      = models.ForeignKey(VoletOrganigramme, on_delete=models.CASCADE, related_name='membres')
-    nom        = models.CharField(max_length=100)
-    prenom     = models.CharField(max_length=100)
-    contact    = models.CharField(max_length=50, blank=True)
-    fonction   = models.CharField(max_length=200)
-    actif      = models.BooleanField(default=True)
-    date_ajout = models.DateTimeField(auto_now_add=True)
+    nom                = models.CharField(max_length=100)
+    prenom             = models.CharField(max_length=100)
+    contact            = models.CharField(max_length=50, blank=True)
+    fonction           = models.CharField(max_length=200)
+    date_debut_fonction = models.DateField(null=True, blank=True)
+    actif              = models.BooleanField(default=True)
+    date_ajout         = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         verbose_name        = 'Membre organigramme'

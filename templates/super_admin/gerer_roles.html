@@ -42,6 +42,21 @@
 
         <form method="post">
             {% csrf_token %}
+
+            {% if form.errors %}
+            <div class="alert alert-danger">
+                {% for err in form.non_field_errors %}{{ err }}<br>{% endfor %}
+                {% if form.roles.errors %}{{ form.roles.errors.as_text }}{% endif %}
+            </div>
+            {% endif %}
+
+            <div class="alert alert-info small mb-3 p-2">
+                <i class="bi bi-info-circle me-1"></i>
+                <strong>Règle de cumul :</strong> seul le <strong>Gestionnaire de Ligue</strong>
+                peut avoir des rôles supplémentaires (Club, Financier, Jury).
+                Tous les autres rôles sont exclusifs.
+            </div>
+
             <h6 class="fw-semibold mb-3">Sélectionner les rôles :</h6>
             <div class="d-flex flex-column gap-2 mb-4">
                 {% for checkbox in form.roles %}

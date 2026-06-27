@@ -3,14 +3,20 @@ from django.db import models
 
 class Grade(models.Model):
     """
-    Grade configurable dans le système.
+    Grade configurable par ligue.
     Ex : Blanc, Jaune, Verte, Bleue, Marron, Noir.
     L'ordre permet de savoir quel grade est supérieur à un autre.
+    Chaque ligue gère sa propre liste de grades.
     """
 
-    nom   = models.CharField(max_length=50, unique=True)
+    ligue = models.ForeignKey(
+        'ligues.Ligue',
+        on_delete=models.CASCADE,
+        related_name='grades',
+        null=True, blank=True
+    )
+    nom   = models.CharField(max_length=50)
     ordre = models.PositiveSmallIntegerField(
-        unique=True,
         help_text="Ordre croissant : 1 = plus bas, 6 = plus haut"
     )
     actif = models.BooleanField(default=True)
@@ -59,6 +65,10 @@ class Pratiquant(models.Model):
     )
     actif             = models.BooleanField(default=True)
     date_inscription  = models.DateField(auto_now_add=True)
+    matricule         = models.CharField(
+        max_length=20, unique=True, null=True, blank=True,
+        help_text="Attribué automatiquement lors de l'autorisation"
+    )
 
     class Meta:
         verbose_name        = 'Pratiquant'

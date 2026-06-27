@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+{% block title %}Détail paiement — {{ paiement.club.nom_club }}{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_financier' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Paiements</span>
+<a href="{% url 'payments:liste_paiements_examen' %}" class="nav-link active">
+    <i class="bi bi-cash-coin me-2"></i>Droits d'examen
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <small class="text-muted">
+        <a href="{% url 'payments:liste_paiements_examen' %}">Paiements examens</a> › {{ paiement.club.nom_club }}
+    </small>
+    <h4 class="fw-bold mt-1">Vérification preuve — {{ paiement.club.nom_club }}</h4>
+</div>
+
+<div class="row g-3">
+    <!-- Détail paiement -->
+    <div class="col-12 col-md-5">
+        <div class="card p-3 mb-3">
+            <h6 class="fw-bold mb-3"><i class="bi bi-receipt me-2 text-muted"></i>Détail du paiement</h6>
+            <table class="table table-sm table-borderless mb-0">
+                <tr>
+                    <td class="text-muted small">Club</td>
+                    <td class="small fw-semibold">{{ paiement.club.nom_club }}</td>
+                </tr>
+                <tr>
+                    <td class="text-muted small">Session</td>
+                    <td class="small">{{ paiement.session.titre }}</td>
+                </tr>
+                <tr>
+                    <td class="text-muted small">Date examen</td>
+                    <td class="small">{{ paiement.session.date_examen|date:"d/m/Y" }}</td>
+                </tr>
+                <tr class="border-top">
+                    <td class="text-muted small pt-2">Montant attendu</td>
+                    <td class="small fw-semibold pt-2">{{ paiement.montant_attendu|floatformat:"0" }} FCFA</td>
+                </tr>
+                <tr>
+                    <td class="text-muted small">Montant déclaré</td>
+                    <td class="small {% if paiement.montant_paye < paiement.montant_attendu %}text-danger fw-bold{% else %}text-success fw-bold{% endif %}">
+                        {{ paiement.montant_paye|floatformat:"0" }} FCFA
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-muted small">Référence</td>
+                    <td class="small">{{ paiement.reference|default:"—" }}</td>
+                </tr>
+                <tr>
+                    <td class="text-muted small">Soumis le</td>
+                    <td class="small">{{ paiement.date_soumission|date:"d/m/Y H:i" }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Fichier preuve -->
+        <div class="card p-3 mb-3">
+            <h6 class="fw-bold mb-3"><i class="bi bi-file-earmark-image me-2 text-muted"></i>Preuve jointe</h6>
+            {% if paiement.fichier_preuve %}
+            <a href="{{ paiement.fichier_preuve.url }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-eye me-1"></i>Voir le fichier
+            </a>
+            {% else %}
+            <span class="text-muted small">Aucun fichier joint.</span>
+            {% endif %}
+        </div>
+
+        <!-- Actions -->
+        {% if paiement.statut == 'EN_ATTENTE' %}
+        <div class="card p-3">
+            <h6 class="fw-bold mb-3"><i class="bi bi-check2-square me-2 text-muted"></i>Décision</h6>
+            {% if paiement.montant_paye < paiement.montant_attendu %}
+            <div class="alert alert-warning small py-2 mb-3">
+                <i class="bi bi-exclamation-triangle me-1"></i>
+                Le montant déclaré ({{ paiement.montant_paye|floatformat:"0" }} FCFA) est inférieur
+                au montant attendu ({{ paiement.montant_attendu|floatformat:"0" }} FCFA).
+            </div>
+            {% endif %}
+            <div class="d-flex gap-2">
+                <a href="{% url 'payments:valider_paiement_examen' paiement.pk %}"
+                   class="btn btn-success btn-sm">
+                    <i class="bi bi-check-lg me-1"></i>Valider
+                </a>
+                <a href="{% url 'payments:rejeter_paiement_examen' paiement.pk %}"
+                   class="btn btn-danger btn-sm">
+                    <i class="bi bi-x-lg me-1"></i>Rejeter
+                </a>
+            </div>
+        </div>
+        {% elif paiement.statut == 'VALIDE' %}
+        <div class="alert alert-success">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            <strong>Validé</strong> le {{ paiement.date_validation|date:"d/m/Y H:i" }}
+            par {{ paiement.valide_par.get_full_name|default:paiement.valide_par.username }}
+        </div>
+        {% elif paiement.statut == 'REJETE' %}
+        <div class="alert alert-danger">
+            <i class="bi bi-x-circle-fill me-2"></i>
+            <strong>Rejeté</strong>{% if paiement.motif_rejet %} — {{ paiement.motif_rejet }}{% endif %}
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Liste des inscrits -->
+    <div class="col-12 col-md-7">
+        <div class="card p-3">
+            <h6 class="fw-bold mb-3">
+                <i class="bi bi-people me-2 text-muted"></i>
+                Pratiquants inscrits — {{ paiement.club.nom_club }}
+                <span class="badge bg-secondary ms-1">{{ inscriptions.count }}</span>
+            </h6>
+            {% if inscriptions %}
+            <table class="table table-sm align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Pratiquant</th>
+                        <th>Grade actuel</th>
+                        <th>Grade visé</th>
+                        <th>Montant</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for insc in inscriptions %}
+                <tr>
+                    <td><strong>{{ insc.pratiquant.nom }} {{ insc.pratiquant.prenom }}</strong></td>
+                    <td class="small text-muted">{{ insc.pratiquant.get_grade_display }}</td>
+                    <td><span class="badge bg-primary">{{ insc.grade_vise }}</span></td>
+                    <td class="small">{{ insc.montant|floatformat:"0" }} FCFA</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+                <tfoot class="table-light">
+                    <tr>
+                        <td colspan="3" class="fw-bold small text-end pe-3">Total</td>
+                        <td class="fw-bold small">{{ paiement.montant_attendu|floatformat:"0" }} FCFA</td>
+                    </tr>
+                </tfoot>
+            </table>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

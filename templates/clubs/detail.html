@@ -11,12 +11,20 @@
 <a href="{% url 'clubs:liste' %}" class="nav-link active">
     <i class="bi bi-building me-2"></i>Clubs
 </a>
-<a href="#" class="nav-link">
-    <i class="bi bi-people me-2"></i>Pratiquants
+<a href="{% url 'exams:liste' %}" class="nav-link">
+    <i class="bi bi-journal-check me-2"></i>Sessions d'examen
 </a>
-<a href="#" class="nav-link">
-    <i class="bi bi-journal-check me-2"></i>Examens
+<a href="{% url 'exams:rubriques' %}" class="nav-link">
+    <i class="bi bi-list-task me-2"></i>Rubriques / Épreuves
 </a>
+<a href="{% url 'exams:options' %}" class="nav-link">
+    <i class="bi bi-tags me-2"></i>Options / Styles
+</a>
+<a href="{% url 'exams:modele_matricule' %}" class="nav-link">
+    <i class="bi bi-123 me-2"></i>Modèle de matricule
+</a>
+
+
 <a href="{% url 'clubs:demandes_affiliation' %}" class="nav-link">
     <i class="bi bi-file-earmark-check me-2"></i>Affiliations
 </a>
@@ -34,57 +42,47 @@
         <a href="{% url 'clubs:organigramme' club.pk %}" class="btn btn-success btn-sm">
             <i class="bi bi-diagram-3 me-1"></i>Organigramme
         </a>
-        <a href="{% url 'clubs:modifier' club.pk %}" class="btn btn-outline-primary btn-sm">
-            <i class="bi bi-pencil me-1"></i>Modifier
-        </a>
         <a href="{% url 'clubs:liste' %}" class="btn btn-outline-secondary btn-sm">
-            <i class="bi bi-arrow-left me-1"></i>Retour
+            <i class="bi bi-arrow-left me-1"></i>Retour à la liste
         </a>
     </div>
 </div>
 
 <div class="row g-3 mb-4">
     <!-- Informations club -->
-    <div class="col-md-6">
-        <div class="card p-3 h-100">
+    <div class="col-12">
+        <div class="card p-3">
             <h6 class="fw-bold mb-3 text-danger border-bottom pb-2">
                 <i class="bi bi-building me-2"></i>Informations
             </h6>
-            <table class="table table-sm table-borderless mb-0">
-                <tr><th class="text-muted" style="width:40%">Localité</th><td>{{ club.localite }}</td></tr>
-                <tr><th class="text-muted">Adresse</th><td>{{ club.adresse|default:"—" }}</td></tr>
-                <tr><th class="text-muted">Téléphone</th><td>{{ club.telephone|default:"—" }}</td></tr>
-                <tr><th class="text-muted">Email</th><td>{{ club.email|default:"—" }}</td></tr>
-                <tr><th class="text-muted">Statut</th>
-                    <td>
-                        {% if club.statut_club == 'AFFILIE' %}
-                            <span class="badge bg-success">Affilié</span>
-                        {% elif club.statut_club == 'EN_ATTENTE' %}
-                            <span class="badge bg-warning text-dark">En attente</span>
-                        {% elif club.statut_club == 'SUSPENDU' %}
-                            <span class="badge bg-danger">Suspendu</span>
-                        {% else %}
-                            <span class="badge bg-secondary">{{ club.get_statut_club_display }}</span>
-                        {% endif %}
-                    </td>
-                </tr>
-                <tr><th class="text-muted">Enregistré le</th><td>{{ club.date_creation|date:"d/m/Y" }}</td></tr>
-            </table>
-        </div>
-    </div>
-
-    <!-- Responsables -->
-    <div class="col-md-6">
-        <div class="card p-3 h-100">
-            <h6 class="fw-bold mb-3 text-danger border-bottom pb-2">
-                <i class="bi bi-person-badge me-2"></i>Responsables
-            </h6>
-            <table class="table table-sm table-borderless mb-0">
-                <tr><th class="text-muted" style="width:40%">Maître du club</th><td>{{ club.maitre_club|default:"—" }}</td></tr>
-                <tr><th class="text-muted">Contact maître</th><td>{{ club.contact_maitre|default:"—" }}</td></tr>
-                <tr><th class="text-muted">Responsable</th><td>{{ club.responsable_club|default:"—" }}</td></tr>
-                <tr><th class="text-muted">Contact resp.</th><td>{{ club.contact_responsable|default:"—" }}</td></tr>
-            </table>
+            <div class="row">
+                <div class="col-md-6">
+                    <table class="table table-sm table-borderless mb-0">
+                        <tr><th class="text-muted" style="width:40%">Localité</th><td>{{ club.localite }}</td></tr>
+                        <tr><th class="text-muted">Adresse</th><td>{{ club.adresse|default:"—" }}</td></tr>
+                        <tr><th class="text-muted">Téléphone</th><td>{{ club.telephone|default:"—" }}</td></tr>
+                    </table>
+                </div>
+                <div class="col-md-6">
+                    <table class="table table-sm table-borderless mb-0">
+                        <tr><th class="text-muted" style="width:40%">Email</th><td>{{ club.email|default:"—" }}</td></tr>
+                        <tr><th class="text-muted">Statut</th>
+                            <td>
+                                {% if club.statut_club == 'AFFILIE' %}
+                                    <span class="badge bg-success">Affilié</span>
+                                {% elif club.statut_club == 'EN_ATTENTE' %}
+                                    <span class="badge bg-warning text-dark">En attente</span>
+                                {% elif club.statut_club == 'SUSPENDU' %}
+                                    <span class="badge bg-danger">Suspendu</span>
+                                {% else %}
+                                    <span class="badge bg-secondary">{{ club.get_statut_club_display }}</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr><th class="text-muted">Enregistré le</th><td>{{ club.date_creation|date:"d/m/Y" }}</td></tr>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -96,9 +94,6 @@
             <i class="bi bi-people me-2 text-primary"></i>Pratiquants
             <span class="badge bg-primary ms-1">{{ pratiquants.count }}</span>
         </h6>
-        <a href="#" class="btn btn-sm btn-outline-primary">
-            <i class="bi bi-plus me-1"></i>Ajouter un pratiquant
-        </a>
     </div>
     {% if pratiquants %}
     <table class="table table-sm table-hover mb-0">

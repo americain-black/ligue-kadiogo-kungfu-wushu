@@ -36,18 +36,20 @@ class VoletOrganigrammeForm(forms.ModelForm):
 class MembreOrganigrammeForm(forms.ModelForm):
     class Meta:
         model  = MembreOrganigramme
-        fields = ['nom', 'prenom', 'contact', 'fonction', 'actif']
+        fields = ['nom', 'prenom', 'contact', 'fonction', 'date_debut_fonction', 'actif']
         widgets = {
-            'nom':      forms.TextInput(attrs={'class': 'form-control'}),
-            'prenom':   forms.TextInput(attrs={'class': 'form-control'}),
-            'contact':  forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Téléphone ou email'}),
-            'fonction': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Président, Trésorier...'}),
-            'actif':    forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'nom':                 forms.TextInput(attrs={'class': 'form-control'}),
+            'prenom':              forms.TextInput(attrs={'class': 'form-control'}),
+            'contact':             forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Téléphone ou email'}),
+            'fonction':            forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Président, Trésorier...'}),
+            'date_debut_fonction': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'actif':               forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
         labels = {
-            'nom':      'Nom',
-            'prenom':   'Prénom',
-            'contact':  'Contact',
-            'fonction': 'Fonction',
-            'actif':    'Membre actif',
+            'nom':                 'Nom',
+            'prenom':              'Prénom',
+            'contact':             'Contact',
+            'fonction':            'Fonction',
+            'date_debut_fonction': 'Date de début de fonction',
+            'actif':               'Membre actif',
         }

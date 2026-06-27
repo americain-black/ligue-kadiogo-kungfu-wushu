@@ -1,5 +1,4 @@
 {% extends 'base.html' %}
-
 {% block title %}Clubs — Ligue du Kadiogo{% endblock %}
 
 {% block sidebar %}
@@ -11,14 +10,31 @@
 <a href="{% url 'clubs:liste' %}" class="nav-link active">
     <i class="bi bi-building me-2"></i>Clubs
 </a>
-<a href="#" class="nav-link">
-    <i class="bi bi-people me-2"></i>Pratiquants
+<a href="{% url 'practitioners:grades' %}" class="nav-link">
+    <i class="bi bi-award me-2"></i>Grades
 </a>
-<a href="#" class="nav-link">
-    <i class="bi bi-journal-check me-2"></i>Examens
+<a href="{% url 'exams:annees_sportives' %}" class="nav-link">
+    <i class="bi bi-calendar2-range me-2"></i>Années sportives
 </a>
+<a href="{% url 'exams:liste' %}" class="nav-link">
+    <i class="bi bi-journal-check me-2"></i>Sessions d'examen
+</a>
+<a href="{% url 'exams:rubriques' %}" class="nav-link">
+    <i class="bi bi-list-task me-2"></i>Rubriques / Épreuves
+</a>
+<a href="{% url 'exams:options' %}" class="nav-link">
+    <i class="bi bi-tags me-2"></i>Options / Styles
+</a>
+<a href="{% url 'exams:modele_matricule' %}" class="nav-link">
+    <i class="bi bi-123 me-2"></i>Modèle de matricule
+</a>
+
+
 <a href="{% url 'clubs:demandes_affiliation' %}" class="nav-link">
     <i class="bi bi-file-earmark-check me-2"></i>Affiliations
+</a>
+<a href="{% url 'ligues:organigramme' %}" class="nav-link">
+    <i class="bi bi-diagram-3 me-2"></i>Organigramme ligue
 </a>
 {% endblock %}
 
@@ -35,41 +51,48 @@
 
 <!-- Filtre par statut -->
 <div class="card p-3 mb-4">
-    <form method="get" class="d-flex align-items-center gap-3 flex-wrap">
-        <label class="fw-semibold mb-0 small">Filtrer par statut :</label>
-        <a href="{% url 'clubs:liste' %}" class="btn btn-sm {% if not statut_filtre %}btn-danger{% else %}btn-outline-secondary{% endif %}">Tous</a>
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+        <span class="fw-semibold small">Filtrer :</span>
+        <a href="{% url 'clubs:liste' %}"
+           class="btn btn-sm {% if not statut_filtre %}btn-danger{% else %}btn-outline-secondary{% endif %}">Tous</a>
         {% for code, libelle in statuts %}
-        <a href="?statut={{ code }}" class="btn btn-sm {% if statut_filtre == code %}btn-danger{% else %}btn-outline-secondary{% endif %}">
+        <a href="?statut={{ code }}"
+           class="btn btn-sm {% if statut_filtre == code %}btn-danger{% else %}btn-outline-secondary{% endif %}">
             {{ libelle }}
         </a>
         {% endfor %}
-    </form>
+    </div>
 </div>
 
 <!-- Tableau -->
-<div class="card p-3">
+<div class="card">
+    <div class="card-body p-0">
     {% if clubs %}
     <table class="table table-hover table-sm align-middle mb-0">
         <thead class="table-light">
             <tr>
-                <th>Club</th>
+                <th class="ps-3">Club</th>
                 <th>Localité</th>
-                <th>Maître</th>
-                <th>Téléphone</th>
+                <th>Gestionnaire</th>
                 <th>Statut</th>
-                <th class="text-end">Actions</th>
+                <th class="text-end pe-3">Actions</th>
             </tr>
         </thead>
         <tbody>
         {% for club in clubs %}
         <tr>
-            <td>
+            <td class="ps-3">
                 <strong>{{ club.nom_club }}</strong>
                 {% if club.sigle_club %}<span class="text-muted small ms-1">({{ club.sigle_club }})</span>{% endif %}
             </td>
-            <td>{{ club.localite }}</td>
-            <td>{{ club.maitre_club|default:"—" }}</td>
-            <td>{{ club.telephone|default:"—" }}</td>
+            <td class="small">{{ club.localite }}</td>
+            <td class="small">
+                {% if club.utilisateur %}
+                    {{ club.utilisateur.get_full_name|default:club.utilisateur.username }}
+                {% else %}
+                    <span class="text-muted">—</span>
+                {% endif %}
+            </td>
             <td>
                 {% if club.statut_club == 'AFFILIE' %}
                     <span class="badge bg-success">Affilié</span>
@@ -81,12 +104,37 @@
                     <span class="badge bg-secondary">{{ club.get_statut_club_display }}</span>
                 {% endif %}
             </td>
-            <td class="text-end">
-                <a href="{% url 'clubs:detail' club.pk %}" class="btn btn-sm btn-outline-secondary me-1" title="Voir la fiche">
+            <td class="text-end pe-3">
+                <a href="{% url 'clubs:detail' club.pk %}"
+                   class="btn btn-sm btn-outline-secondary me-1" title="Voir la fiche">
                     <i class="bi bi-eye"></i>
                 </a>
-                <a href="{% url 'clubs:modifier' club.pk %}" class="btn btn-sm btn-outline-primary" title="Modifier">
+                <a href="{% url 'clubs:organigramme' club.pk %}"
+                   class="btn btn-sm btn-outline-success me-1" title="Organigramme">
+                    <i class="bi bi-diagram-3"></i>
+                </a>
+                <a href="{% url 'clubs:modifier' club.pk %}"
+                   class="btn btn-sm btn-outline-primary me-1" title="Modifier">
                     <i class="bi bi-pencil"></i>
+                </a>
+                {% if club.statut_club in 'AFFILIE,SUSPENDU' %}
+                <form method="post" action="{% url 'clubs:toggle_statut' club.pk %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit"
+                            class="btn btn-sm {% if club.statut_club == 'AFFILIE' %}btn-outline-warning{% else %}btn-outline-success{% endif %} me-1"
+                            onclick="return confirm('{% if club.statut_club == 'AFFILIE' %}Suspendre{% else %}Réactiver{% endif %} le club {{ club.nom_club }} ?')"
+                            title="{% if club.statut_club == 'AFFILIE' %}Suspendre{% else %}Réactiver{% endif %}">
+                        {% if club.statut_club == 'AFFILIE' %}
+                            <i class="bi bi-pause-circle"></i>
+                        {% else %}
+                            <i class="bi bi-play-circle"></i>
+                        {% endif %}
+                    </button>
+                </form>
+                {% endif %}
+                <a href="{% url 'clubs:supprimer' club.pk %}"
+                   class="btn btn-sm btn-outline-danger" title="Supprimer">
+                    <i class="bi bi-trash"></i>
                 </a>
             </td>
         </tr>
@@ -100,5 +148,6 @@
         <a href="{% url 'clubs:creer' %}" class="d-block mt-2">Enregistrer le premier club</a>
     </div>
     {% endif %}
+    </div>
 </div>
 {% endblock %}

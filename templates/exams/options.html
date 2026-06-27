@@ -1,0 +1,161 @@
+{% extends 'base.html' %}
+{% block title %}Options d'examen — Ligue du Kadiogo{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Examens</span>
+<a href="{% url 'exams:annees_sportives' %}" class="nav-link">
+    <i class="bi bi-calendar2-range me-2"></i>Années sportives
+</a>
+<a href="{% url 'exams:liste' %}" class="nav-link">
+    <i class="bi bi-journal-check me-2"></i>Sessions d'examen
+</a>
+<a href="{% url 'exams:rubriques' %}" class="nav-link">
+    <i class="bi bi-list-task me-2"></i>Rubriques / Épreuves
+</a>
+<a href="{% url 'exams:options' %}" class="nav-link active">
+    <i class="bi bi-tags me-2"></i>Options / Styles
+</a>
+<a href="{% url 'exams:modele_matricule' %}" class="nav-link">
+    <i class="bi bi-123 me-2"></i>Modèle de matricule
+</a>
+<span class="sidebar-title mt-2">Clubs</span>
+<a href="{% url 'clubs:liste' %}" class="nav-link">
+    <i class="bi bi-building me-2"></i>Clubs
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-0">
+            <i class="bi bi-tags me-2 text-primary"></i>Options / Styles d'examen
+        </h4>
+        <small class="text-muted">Styles de pratique proposés lors des sessions (ex : Shaolin, Sanda…)</small>
+    </div>
+</div>
+
+{% if messages %}
+{% for msg in messages %}
+<div class="alert alert-{{ msg.tags }} alert-dismissible fade show">
+    {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endfor %}
+{% endif %}
+
+<div class="row g-4">
+    <!-- Liste -->
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-header py-2">
+                <h6 class="mb-0 fw-bold">
+                    <i class="bi bi-list-check me-2"></i>Options définies
+                    <span class="badge bg-secondary ms-2">{{ options.count }}</span>
+                </h6>
+            </div>
+            <div class="card-body p-0">
+                {% if options %}
+                <table class="table table-hover table-sm align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-3">Nom</th>
+                            <th class="text-center">Inscriptions</th>
+                            <th class="text-center">Statut</th>
+                            <th class="text-end pe-3">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for opt in options %}
+                    <tr {% if option_en_edition and option_en_edition.pk == opt.pk %}class="table-warning"{% endif %}>
+                        <td class="ps-3"><strong>{{ opt.nom }}</strong></td>
+                        <td class="text-center">
+                            <span class="badge bg-secondary">{{ opt.inscriptions.count }}</span>
+                        </td>
+                        <td class="text-center">
+                            {% if opt.actif %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end pe-3">
+                            <a href="{% url 'exams:modifier_option' opt.pk %}"
+                               class="btn btn-sm btn-outline-warning me-1" title="Modifier">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form method="post" action="{% url 'exams:toggle_actif_option' opt.pk %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-secondary me-1"
+                                        title="{% if opt.actif %}Désactiver{% else %}Activer{% endif %}">
+                                    <i class="bi bi-{% if opt.actif %}eye-slash{% else %}eye{% endif %}"></i>
+                                </button>
+                            </form>
+                            <form method="post" action="{% url 'exams:supprimer_option' opt.pk %}" class="d-inline"
+                                  onsubmit="return confirm('Supprimer l\'option « {{ opt.nom }} » ?')">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Supprimer"
+                                        {% if opt.inscriptions.count > 0 %}disabled{% endif %}>
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-tags fs-1 opacity-25 d-block mb-2"></i>
+                    Aucune option définie. Commencez par en créer une.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulaire -->
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-header bg-{% if option_en_edition %}warning{% else %}primary{% endif %} text-white">
+                <h6 class="mb-0 fw-bold">
+                    <i class="bi bi-{% if option_en_edition %}pencil{% else %}plus-circle{% endif %} me-2"></i>
+                    {% if option_en_edition %}Modifier — {{ option_en_edition.nom }}{% else %}Nouvelle option{% endif %}
+                </h6>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% if option_en_edition %}{% url 'exams:modifier_option' option_en_edition.pk %}{% else %}{% url 'exams:options' %}{% endif %}">
+                    {% csrf_token %}
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">{% for e in form.non_field_errors %}{{ e }}{% endfor %}</div>
+                    {% endif %}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">{{ form.nom.label }}</label>
+                        {{ form.nom }}
+                        {% if form.nom.errors %}<div class="text-danger small">{{ form.nom.errors.as_text }}</div>{% endif %}
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-{% if option_en_edition %}warning{% else %}primary{% endif %}">
+                            <i class="bi bi-check-circle me-1"></i>
+                            {% if option_en_edition %}Enregistrer{% else %}Ajouter{% endif %}
+                        </button>
+                        {% if option_en_edition %}
+                        <a href="{% url 'exams:options' %}" class="btn btn-outline-secondary">Annuler</a>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+        <div class="card mt-3 p-3 bg-light">
+            <p class="small text-muted mb-0">
+                <i class="bi bi-info-circle me-1"></i>
+                Les options définissent les styles de pratique disponibles lors des examens.
+                Le gestionnaire du club choisit l'option pour chaque inscription.
+                Une option utilisée dans des inscriptions ne peut pas être supprimée.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

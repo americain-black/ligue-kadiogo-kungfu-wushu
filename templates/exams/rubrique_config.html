@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+{% block title %}{{ rubrique.nom }} — Configuration grades{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Examens</span>
+<a href="{% url 'exams:annees_sportives' %}" class="nav-link">
+    <i class="bi bi-calendar2-range me-2"></i>Années sportives
+</a>
+<a href="{% url 'exams:liste' %}" class="nav-link">
+    <i class="bi bi-journal-check me-2"></i>Sessions d'examen
+</a>
+<a href="{% url 'exams:rubriques' %}" class="nav-link active">
+    <i class="bi bi-list-task me-2"></i>Rubriques / Épreuves
+</a>
+<a href="{% url 'exams:options' %}" class="nav-link">
+    <i class="bi bi-tags me-2"></i>Options / Styles
+</a>
+<a href="{% url 'exams:modele_matricule' %}" class="nav-link">
+    <i class="bi bi-123 me-2"></i>Modèle de matricule
+</a>
+
+<span class="sidebar-title mt-2">Clubs</span>
+<a href="{% url 'clubs:liste' %}" class="nav-link">
+    <i class="bi bi-building me-2"></i>Clubs
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <small class="text-muted">
+            <a href="{% url 'exams:rubriques' %}">Rubriques</a> › {{ rubrique.nom }}
+        </small>
+        <h4 class="fw-bold mb-0 mt-1">
+            <i class="bi bi-gear me-2 text-primary"></i>{{ rubrique.nom }}
+            {% if not rubrique.actif %}
+            <span class="badge bg-secondary ms-2 fs-6">Inactive</span>
+            {% endif %}
+        </h4>
+        {% if rubrique.description %}
+        <small class="text-muted">{{ rubrique.description }}</small>
+        {% endif %}
+    </div>
+    <a href="{% url 'exams:rubriques' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Retour
+    </a>
+</div>
+
+{% if messages %}
+{% for msg in messages %}
+<div class="alert alert-{{ msg.tags }} alert-dismissible fade show">
+    {{ msg }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endfor %}
+{% endif %}
+
+<div class="row g-4">
+    <!-- Liste des associations grade -->
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-header py-2">
+                <h6 class="mb-0 fw-bold">
+                    <i class="bi bi-award me-2"></i>Grades configurés
+                    <span class="badge bg-secondary ms-2">{{ assocs.count }}</span>
+                </h6>
+            </div>
+            <div class="card-body p-0">
+                {% if assocs %}
+                <table class="table table-hover table-sm align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-3">Grade</th>
+                            <th class="text-center">Coefficient</th>
+                            <th class="text-center">Note min. /20</th>
+                            <th class="text-center">Statut</th>
+                            <th class="text-end pe-3">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for a in assocs %}
+                    <tr {% if rg_en_edition and rg_en_edition.pk == a.pk %}class="table-warning"{% endif %}>
+                        <td class="ps-3">
+                            <strong>{{ a.grade.nom }}</strong>
+                            <span class="text-muted small ms-1">ordre {{ a.grade.ordre }}</span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge bg-primary">{{ a.coefficient }}</span>
+                        </td>
+                        <td class="text-center">
+                            <span class="fw-semibold">{{ a.note_minimale|floatformat:"1" }}</span>
+                        </td>
+                        <td class="text-center">
+                            {% if a.actif %}
+                                <span class="badge bg-success">Active</span>
+                            {% else %}
+                                <span class="badge bg-secondary">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end pe-3">
+                            <a href="{% url 'exams:modifier_rubrique_grade' a.pk %}"
+                               class="btn btn-sm btn-outline-warning me-1" title="Modifier">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form method="post" action="{% url 'exams:toggle_actif_rubrique_grade' a.pk %}"
+                                  class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-secondary me-1"
+                                        title="{% if a.actif %}Désactiver{% else %}Activer{% endif %}">
+                                    <i class="bi bi-{% if a.actif %}eye-slash{% else %}eye{% endif %}"></i>
+                                </button>
+                            </form>
+                            <form method="post" action="{% url 'exams:supprimer_rubrique_grade' a.pk %}"
+                                  class="d-inline"
+                                  onsubmit="return confirm('Retirer {{ rubrique.nom }} du grade {{ a.grade.nom }} ?')">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Supprimer">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-award fs-1 opacity-25 d-block mb-2"></i>
+                    Aucun grade configuré pour cette rubrique.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulaire ajout / modification -->
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-header bg-{% if rg_en_edition %}warning{% else %}primary{% endif %} text-white">
+                <h6 class="mb-0 fw-bold">
+                    <i class="bi bi-{% if rg_en_edition %}pencil{% else %}plus-circle{% endif %} me-2"></i>
+                    {% if rg_en_edition %}Modifier — {{ rg_en_edition.grade.nom }}{% else %}Associer un grade{% endif %}
+                </h6>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% if rg_en_edition %}{% url 'exams:modifier_rubrique_grade' rg_en_edition.pk %}{% else %}{% url 'exams:config_rubrique_grades' rubrique.pk %}{% endif %}">
+                    {% csrf_token %}
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for err in form.non_field_errors %}{{ err }}{% endfor %}
+                    </div>
+                    {% endif %}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">{{ form.grade.label }}</label>
+                        {{ form.grade }}
+                        {% if form.grade.errors %}
+                        <div class="text-danger small">{{ form.grade.errors.as_text }}</div>
+                        {% endif %}
+                        {% if not rg_en_edition %}
+                        <div class="form-text">Seuls les grades non encore configurés sont affichés.</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">{{ form.coefficient.label }}</label>
+                        {{ form.coefficient }}
+                        {% if form.coefficient.errors %}
+                        <div class="text-danger small">{{ form.coefficient.errors.as_text }}</div>
+                        {% endif %}
+                        <div class="form-text">Entre 1 et 10</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">{{ form.note_minimale.label }}</label>
+                        {{ form.note_minimale }}
+                        {% if form.note_minimale.errors %}
+                        <div class="text-danger small">{{ form.note_minimale.errors.as_text }}</div>
+                        {% endif %}
+                        <div class="form-text">Note sur 20 pour valider cette épreuve</div>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-{% if rg_en_edition %}warning{% else %}primary{% endif %}">
+                            <i class="bi bi-check-circle me-1"></i>
+                            {% if rg_en_edition %}Enregistrer{% else %}Associer{% endif %}
+                        </button>
+                        {% if rg_en_edition %}
+                        <a href="{% url 'exams:config_rubrique_grades' rubrique.pk %}" class="btn btn-outline-secondary">Annuler</a>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card mt-3 p-3 bg-light">
+            <h6 class="fw-semibold mb-2"><i class="bi bi-info-circle me-2 text-muted"></i>Rappel</h6>
+            <p class="small text-muted mb-0">
+                Le <strong>coefficient</strong> pondère la note de cette épreuve dans la moyenne finale.
+                La <strong>note minimale</strong> est le seuil en-dessous duquel le candidat est
+                éliminatoire sur cette épreuve, même si sa moyenne globale est suffisante.
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

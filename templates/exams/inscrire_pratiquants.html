@@ -1,0 +1,241 @@
+{% extends 'base.html' %}
+{% block title %}Inscrire des pratiquants — {{ session.titre }}{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_club' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Mon club</span>
+<a href="{% url 'practitioners:liste' %}" class="nav-link">
+    <i class="bi bi-people me-2"></i>Pratiquants
+</a>
+<a href="{% url 'exams:club_sessions' %}" class="nav-link active">
+    <i class="bi bi-journal-check me-2"></i>Sessions d'examen
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+    <div>
+        <small class="text-muted">
+            <a href="{% url 'exams:club_sessions' %}">Sessions</a>
+            › <a href="{% url 'exams:club_inscriptions' session.pk %}">{{ session.titre }}</a>
+            › Inscrire
+        </small>
+        <h4 class="fw-bold mt-1 mb-0">Inscrire des pratiquants</h4>
+        <small class="text-muted">{{ session.titre }} — {{ session.date_examen|date:"d/m/Y" }}</small>
+    </div>
+    <a href="{% url 'exams:club_inscriptions' session.pk %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Retour aux inscriptions
+    </a>
+</div>
+
+{% if messages %}
+{% for msg in messages %}
+<div class="alert alert-{{ msg.tags }} alert-dismissible fade show">
+    {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endfor %}
+{% endif %}
+
+{% if nb_dispo == 0 %}
+<div class="alert alert-info">
+    <i class="bi bi-info-circle me-2"></i>
+    Tous vos pratiquants actifs sont déjà inscrits à cette session.
+    <a href="{% url 'exams:club_inscriptions' session.pk %}" class="alert-link ms-2">Voir les inscriptions →</a>
+</div>
+{% else %}
+
+<form method="post" id="form-inscription">
+    {% csrf_token %}
+
+    <!-- Étape 1 : Grade visé + Option -->
+    <div class="card mb-3">
+        <div class="card-header py-2 bg-primary text-white">
+            <h6 class="mb-0 fw-bold"><i class="bi bi-award me-2"></i>Étape 1 — Choisir le grade visé et l'option</h6>
+        </div>
+        <div class="card-body">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Grade visé <span class="text-danger">*</span></label>
+                    <select name="grade_vise" id="id_grade_vise" class="form-select form-select-lg" required>
+                        <option value="">— Sélectionner un grade visé —</option>
+                        {% for grade in grades %}
+                        <option value="{{ grade.pk }}" data-ordre="{{ grade.ordre }}">
+                            {{ grade.nom }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                    <div class="form-text">Seuls les pratiquants de grade inférieur s'afficheront.</div>
+                </div>
+                {% if options %}
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Option / Style <span class="text-danger">*</span></label>
+                    <select name="option" class="form-select form-select-lg" required>
+                        <option value="">— Choisir une option —</option>
+                        {% for opt in options %}
+                        <option value="{{ opt.pk }}">{{ opt.nom }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Étape 2 : Sélectionner les pratiquants -->
+    <div class="card mb-3">
+        <div class="card-header py-2 bg-success text-white d-flex justify-content-between align-items-center">
+            <h6 class="mb-0 fw-bold"><i class="bi bi-people me-2"></i>Étape 2 — Sélectionner les pratiquants</h6>
+            <div id="compteur-selection" class="badge bg-white text-success fs-6" style="display:none;">
+                <span id="nb-coches">0</span> sélectionné(s)
+            </div>
+        </div>
+        <div class="card-body p-0">
+            <!-- Message avant sélection grade -->
+            <div id="msg-choisir-grade" class="text-center py-5 text-muted">
+                <i class="bi bi-arrow-up-circle fs-1 opacity-25 d-block mb-2"></i>
+                Choisissez d'abord un grade visé ci-dessus.
+            </div>
+
+            <!-- Message aucun pratiquant -->
+            <div id="msg-aucun" class="text-center py-5 text-muted" style="display:none;">
+                <i class="bi bi-people fs-1 opacity-25 d-block mb-2"></i>
+                Aucun pratiquant éligible pour ce grade.
+            </div>
+
+            <!-- Liste des pratiquants filtrés -->
+            <div id="liste-pratiquants" style="display:none;">
+                <div class="p-2 bg-light border-bottom d-flex align-items-center gap-2">
+                    <button type="button" id="btn-tout-cocher" class="btn btn-sm btn-outline-success">
+                        <i class="bi bi-check-all me-1"></i>Tout cocher
+                    </button>
+                    <button type="button" id="btn-decocher" class="btn btn-sm btn-outline-secondary">
+                        <i class="bi bi-x-square me-1"></i>Tout décocher
+                    </button>
+                    <span id="label-nb-dispo" class="text-muted small ms-2"></span>
+                </div>
+                <div class="p-2">
+                    {% for p in pratiquants_dispo %}
+                    <div class="pratiquant-row form-check p-3 border-bottom d-flex align-items-center gap-3"
+                         data-pk="{{ p.pk }}"
+                         data-grade-ordre="{{ p.grade_actuel.ordre|default:-1 }}"
+                         style="display:none;">
+                        <input class="form-check-input mt-0 pratiquant-check" type="checkbox"
+                               name="pratiquants" value="{{ p.pk }}" id="p{{ p.pk }}">
+                        <label class="form-check-label d-flex align-items-center gap-3 flex-grow-1 cursor-pointer"
+                               for="p{{ p.pk }}">
+                            <div>
+                                <div class="fw-semibold">{{ p.nom }} {{ p.prenom }}</div>
+                                <div class="small text-muted">
+                                    Grade actuel :
+                                    {% if p.grade_actuel %}
+                                        <span class="badge bg-secondary">{{ p.grade_actuel.nom }}</span>
+                                    {% else %}
+                                        <span class="badge bg-light text-muted border">Sans grade</span>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bouton soumettre -->
+    <div class="d-flex gap-2 justify-content-end">
+        <a href="{% url 'exams:club_inscriptions' session.pk %}" class="btn btn-outline-secondary">Annuler</a>
+        <button type="submit" id="btn-inscrire" class="btn btn-ligue btn-lg" disabled>
+            <i class="bi bi-plus-circle me-2"></i>Inscrire les pratiquants sélectionnés
+        </button>
+    </div>
+</form>
+
+{% endif %}
+
+<script>
+(function() {
+    const gradeSelect   = document.getElementById('id_grade_vise');
+    const rows          = document.querySelectorAll('.pratiquant-row');
+    const checks        = document.querySelectorAll('.pratiquant-check');
+    const btnInscrire   = document.getElementById('btn-inscrire');
+    const compteur      = document.getElementById('compteur-selection');
+    const nbCoches      = document.getElementById('nb-coches');
+    const msgGrade      = document.getElementById('msg-choisir-grade');
+    const msgAucun      = document.getElementById('msg-aucun');
+    const listePrat     = document.getElementById('liste-pratiquants');
+    const btnTout       = document.getElementById('btn-tout-cocher');
+    const btnDecocher   = document.getElementById('btn-decocher');
+    const labelDispo    = document.getElementById('label-nb-dispo');
+
+    function mettreAJourCompteur() {
+        const n = document.querySelectorAll('.pratiquant-check:checked').length;
+        nbCoches.textContent = n;
+        compteur.style.display = n > 0 ? '' : 'none';
+        btnInscrire.disabled = n === 0 || !gradeSelect.value;
+    }
+
+    function filtrerPratiquants() {
+        const opt = gradeSelect.options[gradeSelect.selectedIndex];
+        if (!gradeSelect.value) {
+            msgGrade.style.display = '';
+            msgAucun.style.display = 'none';
+            listePrat.style.display = 'none';
+            rows.forEach(r => { r.style.display = 'none'; r.querySelector('input').checked = false; });
+            mettreAJourCompteur();
+            return;
+        }
+        const ordreVise = parseInt(opt.dataset.ordre);
+        let nb = 0;
+        rows.forEach(r => {
+            const ordreActuel = parseInt(r.dataset.gradeOrdre);
+            if (ordreActuel < ordreVise) {
+                r.style.display = '';
+                nb++;
+            } else {
+                r.style.display = 'none';
+                r.querySelector('input').checked = false;
+            }
+        });
+        msgGrade.style.display = 'none';
+        if (nb === 0) {
+            msgAucun.style.display = '';
+            listePrat.style.display = 'none';
+        } else {
+            msgAucun.style.display = 'none';
+            listePrat.style.display = '';
+            labelDispo.textContent = nb + ' pratiquant(s) éligible(s)';
+        }
+        mettreAJourCompteur();
+    }
+
+    gradeSelect.addEventListener('change', filtrerPratiquants);
+    checks.forEach(c => c.addEventListener('change', mettreAJourCompteur));
+
+    btnTout.addEventListener('click', function() {
+        rows.forEach(r => {
+            if (r.style.display !== 'none') r.querySelector('input').checked = true;
+        });
+        mettreAJourCompteur();
+    });
+
+    btnDecocher.addEventListener('click', function() {
+        checks.forEach(c => c.checked = false);
+        mettreAJourCompteur();
+    });
+
+    // Confirmer avant soumission
+    document.getElementById('form-inscription').addEventListener('submit', function(e) {
+        const n = document.querySelectorAll('.pratiquant-check:checked').length;
+        if (n === 0) { e.preventDefault(); return; }
+        const grade = gradeSelect.options[gradeSelect.selectedIndex].text;
+        if (!confirm(n + ' pratiquant(s) seront inscrits pour le grade « ' + grade + ' ». Confirmer ?')) {
+            e.preventDefault();
+        }
+    });
+})();
+</script>
+{% endblock %}

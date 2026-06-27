@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% block title %}Paiements examens — Ligue du Kadiogo{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_financier' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Paiements</span>
+<a href="{% url 'payments:liste_paiements_examen' %}" class="nav-link active">
+    <i class="bi bi-cash-coin me-2"></i>Droits d'examen
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <h4 class="fw-bold mb-0">Paiements — Droits d'examen</h4>
+    <small class="text-muted">Vérifier et valider les preuves soumises par les clubs</small>
+</div>
+
+<!-- Filtres -->
+<div class="card p-3 mb-4">
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+        <span class="fw-semibold small">Filtrer :</span>
+        <a href="{% url 'payments:liste_paiements_examen' %}"
+           class="btn btn-sm {% if not statut_filtre %}btn-danger{% else %}btn-outline-secondary{% endif %}">
+            Tous
+        </a>
+        {% for code, libelle in statuts %}
+        <a href="?statut={{ code }}"
+           class="btn btn-sm {% if statut_filtre == code %}btn-danger{% else %}btn-outline-secondary{% endif %}">
+            {{ libelle }}
+        </a>
+        {% endfor %}
+    </div>
+</div>
+
+<div class="card p-3">
+    {% if paiements %}
+    <table class="table table-hover table-sm align-middle mb-0">
+        <thead class="table-light">
+            <tr>
+                <th>Club</th>
+                <th>Session</th>
+                <th>Montant attendu</th>
+                <th>Montant déclaré</th>
+                <th>Référence</th>
+                <th>Soumis le</th>
+                <th>Statut</th>
+                <th class="text-end">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for p in paiements %}
+        <tr>
+            <td><strong>{{ p.club.nom_club }}</strong></td>
+            <td class="small">{{ p.session.titre }}</td>
+            <td class="small">{{ p.montant_attendu|floatformat:"0" }} FCFA</td>
+            <td class="small {% if p.montant_paye < p.montant_attendu %}text-danger fw-bold{% endif %}">
+                {{ p.montant_paye|floatformat:"0" }} FCFA
+                {% if p.montant_paye < p.montant_attendu %}
+                <i class="bi bi-exclamation-triangle-fill ms-1" title="Montant insuffisant"></i>
+                {% endif %}
+            </td>
+            <td class="small text-muted">{{ p.reference|default:"—" }}</td>
+            <td class="small text-muted">{{ p.date_soumission|date:"d/m/Y H:i" }}</td>
+            <td>
+                {% if p.statut == 'EN_ATTENTE' %}
+                    <span class="badge bg-warning text-dark">En attente</span>
+                {% elif p.statut == 'VALIDE' %}
+                    <span class="badge bg-success">Validé</span>
+                {% elif p.statut == 'REJETE' %}
+                    <span class="badge bg-danger">Rejeté</span>
+                {% endif %}
+            </td>
+            <td class="text-end">
+                <a href="{% url 'payments:detail_paiement_examen' p.pk %}"
+                   class="btn btn-sm btn-outline-secondary" title="Voir le détail">
+                    <i class="bi bi-eye"></i>
+                </a>
+                {% if p.statut == 'EN_ATTENTE' %}
+                <a href="{% url 'payments:valider_paiement_examen' p.pk %}"
+                   class="btn btn-sm btn-outline-success ms-1" title="Valider">
+                    <i class="bi bi-check-lg"></i>
+                </a>
+                <a href="{% url 'payments:rejeter_paiement_examen' p.pk %}"
+                   class="btn btn-sm btn-outline-danger ms-1" title="Rejeter">
+                    <i class="bi bi-x-lg"></i>
+                </a>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="text-center py-5 text-muted">
+        <i class="bi bi-cash-stack fs-1 opacity-25 d-block mb-2"></i>
+        Aucun paiement{% if statut_filtre %} avec ce statut{% endif %}.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

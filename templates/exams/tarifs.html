@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+{% block title %}Tarifs {{ annee.libelle }} — Ligue du Kadiogo{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Examens</span>
+<a href="{% url 'exams:annees_sportives' %}" class="nav-link active">
+    <i class="bi bi-calendar2-range me-2"></i>Années sportives
+</a>
+<a href="{% url 'exams:liste' %}" class="nav-link">
+    <i class="bi bi-journal-check me-2"></i>Sessions d'examen
+</a>
+<a href="{% url 'exams:rubriques' %}" class="nav-link">
+    <i class="bi bi-list-task me-2"></i>Rubriques / Épreuves
+</a>
+<a href="{% url 'exams:options' %}" class="nav-link">
+    <i class="bi bi-tags me-2"></i>Options / Styles
+</a>
+<a href="{% url 'exams:modele_matricule' %}" class="nav-link">
+    <i class="bi bi-123 me-2"></i>Modèle de matricule
+</a>
+
+
+<span class="sidebar-title mt-2">Clubs</span>
+<a href="{% url 'clubs:liste' %}" class="nav-link">
+    <i class="bi bi-building me-2"></i>Clubs
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <small class="text-muted">
+            <a href="{% url 'exams:annees_sportives' %}">Années sportives</a>
+            › {{ annee.libelle }} › Tarifs
+        </small>
+        <h4 class="fw-bold mb-0 mt-1">
+            <i class="bi bi-cash-coin me-2 text-success"></i>Tarifs d'examen — {{ annee.libelle }}
+        </h4>
+        <small class="text-muted">
+            {{ annee.date_debut|date:"d/m/Y" }} → {{ annee.date_fin|date:"d/m/Y" }}
+            {% if annee.statut == 'ACTIVE' %}
+            <span class="badge bg-success ms-2">Active</span>
+            {% else %}
+            <span class="badge bg-secondary ms-2">Clôturée</span>
+            {% endif %}
+        </small>
+    </div>
+    <a href="{% url 'exams:annees_sportives' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Retour
+    </a>
+</div>
+
+{% if messages %}
+{% for msg in messages %}
+<div class="alert alert-{{ msg.tags }} alert-dismissible fade show">
+    {{ msg }}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endfor %}
+{% endif %}
+
+<div class="row g-4">
+    <!-- Liste des tarifs -->
+    <div class="col-md-7">
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0 fw-bold"><i class="bi bi-list-check me-2"></i>Tarifs définis</h6>
+            </div>
+            <div class="card-body p-0">
+                {% if tarifs %}
+                <table class="table table-hover table-sm align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-3">Grade visé</th>
+                            <th>Montant (FCFA)</th>
+                            <th class="text-end pe-3">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for t in tarifs %}
+                    <tr {% if tarif_en_edition and tarif_en_edition.pk == t.pk %}class="table-warning"{% endif %}>
+                        <td class="ps-3"><strong>{{ t.grade.nom }}</strong>
+                            <span class="text-muted small ms-1">ordre {{ t.grade.ordre }}</span>
+                        </td>
+                        <td class="fw-semibold text-success">{{ t.montant|floatformat:"0" }} FCFA</td>
+                        <td class="text-end pe-3">
+                            <a href="{% url 'exams:modifier_tarif' t.pk %}"
+                               class="btn btn-sm btn-outline-primary me-1" title="Modifier">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <form method="post" action="{% url 'exams:supprimer_tarif' t.pk %}"
+                                  class="d-inline"
+                                  onsubmit="return confirm('Supprimer le tarif pour {{ t.grade.nom }} ?')">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Supprimer">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-cash-coin fs-1 opacity-25 d-block mb-2"></i>
+                    Aucun tarif défini pour cette année sportive.
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulaire ajout/modification -->
+    <div class="col-md-5">
+        <div class="card">
+            <div class="card-header bg-{% if tarif_en_edition %}warning{% else %}success{% endif %} text-white">
+                <h6 class="mb-0 fw-bold">
+                    <i class="bi bi-{% if tarif_en_edition %}pencil{% else %}plus-circle{% endif %} me-2"></i>
+                    {% if tarif_en_edition %}Modifier le tarif{% else %}Ajouter un tarif{% endif %}
+                </h6>
+            </div>
+            <div class="card-body">
+                <form method="post" action="{% if tarif_en_edition %}{% url 'exams:modifier_tarif' tarif_en_edition.pk %}{% else %}{% url 'exams:tarifs' annee.pk %}{% endif %}">
+                    {% csrf_token %}
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">
+                        {% for err in form.non_field_errors %}{{ err }}{% endfor %}
+                    </div>
+                    {% endif %}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Grade visé</label>
+                        {{ form.grade }}
+                        {% if form.grade.errors %}
+                        <div class="text-danger small">{{ form.grade.errors.as_text }}</div>
+                        {% endif %}
+                        {% if not tarif_en_edition %}
+                        <div class="form-text">Seuls les grades actifs de votre ligue sont affichés.</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Montant (FCFA)</label>
+                        {{ form.montant }}
+                        {% if form.montant.errors %}
+                        <div class="text-danger small">{{ form.montant.errors.as_text }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-{% if tarif_en_edition %}warning{% else %}success{% endif %}">
+                            <i class="bi bi-check-circle me-1"></i>
+                            {% if tarif_en_edition %}Enregistrer{% else %}Ajouter{% endif %}
+                        </button>
+                        {% if tarif_en_edition %}
+                        <a href="{% url 'exams:tarifs' annee.pk %}" class="btn btn-outline-secondary">Annuler</a>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="card mt-3 p-3 bg-light">
+            <h6 class="fw-semibold mb-2"><i class="bi bi-info-circle me-2 text-muted"></i>Comment ça marche ?</h6>
+            <p class="small text-muted mb-0">
+                Définissez ici le prix (en FCFA) que coûte la présentation de chaque grade.
+                Quand un club inscrit un pratiquant, le système calcule automatiquement
+                le montant à partir de ce tarif.
+                <strong>Un tarif par grade par année sportive.</strong>
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}

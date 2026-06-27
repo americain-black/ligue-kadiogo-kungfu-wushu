@@ -24,4 +24,5 @@ urlpatterns = [
     path('utilisateurs/<int:pk>/modifier/',        views.modifier_utilisateur,     name='modifier_utilisateur'),
     path('utilisateurs/<int:pk>/roles/',           views.gerer_roles,              name='gerer_roles'),
     path('utilisateurs/<int:pk>/toggle-statut/',   views.toggle_statut_utilisateur,name='toggle_statut_utilisateur'),
+    path('utilisateurs/<int:pk>/supprimer/',       views.supprimer_utilisateur,    name='supprimer_utilisateur'),
 ]

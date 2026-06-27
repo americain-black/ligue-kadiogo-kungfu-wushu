@@ -1,5 +1,4 @@
 {% extends 'base.html' %}
-
 {% block title %}Dashboard Ligue — {{ ligue.sigle|default:"Ligue" }}{% endblock %}
 
 {% block sidebar %}
@@ -11,17 +10,30 @@
 <a href="{% url 'clubs:liste' %}" class="nav-link">
     <i class="bi bi-building me-2"></i>Clubs
 </a>
-<a href="#" class="nav-link">
-    <i class="bi bi-people me-2"></i>Pratiquants
+<a href="{% url 'practitioners:grades' %}" class="nav-link">
+    <i class="bi bi-award me-2"></i>Grades
 </a>
-<a href="#" class="nav-link">
-    <i class="bi bi-journal-check me-2"></i>Examens
+<a href="{% url 'exams:annees_sportives' %}" class="nav-link">
+    <i class="bi bi-calendar2-range me-2"></i>Années sportives
 </a>
+<a href="{% url 'exams:liste' %}" class="nav-link">
+    <i class="bi bi-journal-check me-2"></i>Sessions d'examen
+</a>
+<a href="{% url 'exams:rubriques' %}" class="nav-link">
+    <i class="bi bi-list-task me-2"></i>Rubriques / Épreuves
+</a>
+<a href="{% url 'exams:options' %}" class="nav-link">
+    <i class="bi bi-tags me-2"></i>Options / Styles
+</a>
+<a href="{% url 'exams:modele_matricule' %}" class="nav-link">
+    <i class="bi bi-123 me-2"></i>Modèle de matricule
+</a>
+
 <a href="{% url 'clubs:demandes_affiliation' %}" class="nav-link">
     <i class="bi bi-file-earmark-check me-2"></i>Affiliations
 </a>
 <a href="{% url 'ligues:organigramme' %}" class="nav-link">
-    <i class="bi bi-diagram-3 me-2"></i>Organigramme
+    <i class="bi bi-diagram-3 me-2"></i>Organigramme ligue
 </a>
 {% endblock %}
 
@@ -45,7 +57,7 @@
 
 <!-- Statistiques -->
 <div class="row g-3 mb-4">
-    <div class="col-md-3">
+    <div class="col-6 col-md-3">
         <div class="card stat-card p-3">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
@@ -57,23 +69,29 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-6 col-md-3">
         <div class="card stat-card p-3">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <div class="text-muted small">Pratiquants actifs</div>
-                    <div class="fs-3 fw-bold text-primary">{{ nb_pratiquants }}</div>
-                    <div class="text-muted small">dans tous les clubs</div>
+                    <div class="text-muted small">Licenciés inscrits</div>
+                    <div class="fs-3 fw-bold text-primary">{{ nb_licencies }}</div>
+                    <div class="text-muted small">
+                        {% if derniere_session %}
+                            session : {{ derniere_session.titre|truncatechars:20 }}
+                        {% else %}
+                            aucune session active
+                        {% endif %}
+                    </div>
                 </div>
                 <i class="bi bi-people fs-1 text-primary opacity-25"></i>
             </div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-6 col-md-3">
         <div class="card stat-card p-3">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <div class="text-muted small">Demandes affiliation</div>
+                    <div class="text-muted small">Affiliations en attente</div>
                     <div class="fs-3 fw-bold text-warning">{{ nb_demandes_attente }}</div>
                     <div class="text-muted small">à valider</div>
                 </div>
@@ -81,110 +99,144 @@
             </div>
         </div>
     </div>
-    <div class="col-md-3">
+    <div class="col-6 col-md-3">
         <div class="card stat-card p-3">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <div class="text-muted small">Ma ligue</div>
-                    <div class="fs-5 fw-bold text-danger">{{ ligue.sigle }}</div>
+                    <div class="text-muted small">Grades définis</div>
+                    <div class="fs-3 fw-bold text-danger">{{ nb_grades }}</div>
                     <div class="text-muted small">
-                        {% if ligue.est_active %}<span class="badge bg-success">Active</span>{% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}
+                        {% if ligue.est_active %}
+                            <span class="badge bg-success">Ligue active</span>
+                        {% else %}
+                            <span class="badge bg-secondary">Inactive</span>
+                        {% endif %}
                     </div>
                 </div>
-                <i class="bi bi-trophy fs-1 text-danger opacity-25"></i>
+                <i class="bi bi-award fs-1 text-danger opacity-25"></i>
             </div>
         </div>
     </div>
 </div>
 
-<!-- Actions rapides -->
-<div class="row g-3 mb-4">
-    <div class="col-md-6">
-        <div class="card p-3">
-            <h6 class="fw-bold mb-3"><i class="bi bi-building me-2 text-success"></i>Actions clubs</h6>
-            <a href="{% url 'clubs:creer' %}" class="btn btn-ligue btn-sm me-2">
-                <i class="bi bi-plus me-1"></i>Enregistrer un club
-            </a>
-            <a href="{% url 'clubs:liste' %}" class="btn btn-outline-secondary btn-sm">
-                <i class="bi bi-list me-1"></i>Voir tous les clubs
-            </a>
-        </div>
+<!-- Tarifs de l'année active -->
+{% if annee_active %}
+<div class="card mb-4">
+    <div class="card-header py-2 d-flex justify-content-between align-items-center">
+        <h6 class="fw-bold mb-0">
+            <i class="bi bi-cash-coin me-2 text-success"></i>
+            Tarifs d'examen — {{ annee_active.libelle }}
+            <span class="badge bg-success ms-2">{{ nb_tarifs }} grade{{ nb_tarifs|pluralize:"s" }}</span>
+        </h6>
+        <a href="{% url 'exams:tarifs' annee_active.pk %}" class="btn btn-outline-success btn-sm">
+            <i class="bi bi-pencil me-1"></i>Gérer
+        </a>
     </div>
-    <div class="col-md-6">
-        <div class="card p-3">
-            <h6 class="fw-bold mb-3"><i class="bi bi-file-earmark-check me-2 text-warning"></i>Demandes d'affiliation</h6>
-            <a href="{% url 'clubs:demandes_affiliation' %}" class="btn btn-warning btn-sm text-dark me-2">
-                <i class="bi bi-hourglass-split me-1"></i>Voir les demandes en attente
-                {% if nb_demandes_attente > 0 %}
-                <span class="badge bg-dark ms-1">{{ nb_demandes_attente }}</span>
-                {% endif %}
-            </a>
-        </div>
+    {% if tarifs_actifs %}
+    <div class="card-body p-0">
+        <table class="table table-sm align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th class="ps-3">Grade visé</th>
+                    <th class="text-end pe-3">Montant (FCFA)</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for t in tarifs_actifs %}
+            <tr>
+                <td class="ps-3">{{ t.grade.nom }}</td>
+                <td class="text-end pe-3 fw-semibold text-success">{{ t.montant|floatformat:"0" }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="card-body text-muted small">
+        <i class="bi bi-exclamation-circle me-1 text-warning"></i>
+        Aucun tarif défini pour <strong>{{ annee_active.libelle }}</strong>.
+        <a href="{% url 'exams:tarifs' annee_active.pk %}">Définir les tarifs →</a>
+    </div>
+    {% endif %}
+</div>
+{% endif %}
+
+<!-- Alerte demandes en attente -->
+{% if nb_demandes_attente > 0 %}
+<div class="alert alert-warning d-flex align-items-center gap-2 mb-4">
+    <i class="bi bi-hourglass-split fs-5"></i>
+    <span>
+        <strong>{{ nb_demandes_attente }} demande(s) d'affiliation</strong> en attente de validation.
+        <a href="{% url 'clubs:demandes_affiliation' %}" class="alert-link ms-2">Traiter les demandes →</a>
+    </span>
+</div>
+{% endif %}
+
+<!-- Résumé par club (dernière session) -->
+{% if derniere_session and clubs_resume %}
+<div class="card mb-4">
+    <div class="card-header py-2">
+        <h6 class="fw-bold mb-0">
+            <i class="bi bi-journal-check me-2 text-primary"></i>
+            Licenciés par club — session « {{ derniere_session.titre }} »
+            <span class="badge bg-secondary ms-2">{{ derniere_session.get_statut_display }}</span>
+        </h6>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-sm table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th class="ps-3">Club</th>
+                    <th class="text-center">Inscrits</th>
+                    <th class="text-center">Autorisés</th>
+                    <th class="text-center">En attente paiement</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for r in clubs_resume %}
+            <tr>
+                <td class="ps-3"><strong>{{ r.nom }}</strong></td>
+                <td class="text-center"><span class="badge bg-primary">{{ r.nb_inscrits }}</span></td>
+                <td class="text-center"><span class="badge bg-success">{{ r.nb_autorises }}</span></td>
+                <td class="text-center"><span class="badge bg-warning text-dark">{{ r.nb_attente }}</span></td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
+{% endif %}
 
-<!-- Tableaux -->
-<div class="row g-3">
-    <!-- Derniers clubs -->
-    <div class="col-md-6">
-        <div class="card p-3">
-            <h6 class="fw-bold mb-3">Derniers clubs enregistrés</h6>
-            {% if derniers_clubs %}
-            <table class="table table-sm table-hover mb-0">
-                <thead>
-                    <tr><th>Club</th><th>Localité</th><th>Statut</th></tr>
-                </thead>
-                <tbody>
-                {% for club in derniers_clubs %}
-                <tr>
-                    <td><strong>{{ club.nom_club }}</strong></td>
-                    <td>{{ club.localite }}</td>
-                    <td>
-                        {% if club.statut_club == 'AFFILIE' %}
-                            <span class="badge bg-success">Affilié</span>
-                        {% elif club.statut_club == 'EN_ATTENTE' %}
-                            <span class="badge bg-warning text-dark">En attente</span>
-                        {% elif club.statut_club == 'SUSPENDU' %}
-                            <span class="badge bg-danger">Suspendu</span>
-                        {% else %}
-                            <span class="badge bg-secondary">{{ club.get_statut_club_display }}</span>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-            {% else %}
-            <p class="text-muted small mb-0">Aucun club enregistré pour cette ligue.</p>
-            {% endif %}
-        </div>
+<!-- Demandes d'affiliation récentes -->
+{% if demandes_en_attente %}
+<div class="card">
+    <div class="card-header py-2">
+        <h6 class="fw-bold mb-0">
+            <i class="bi bi-file-earmark-check me-2 text-warning"></i>Demandes d'affiliation à valider
+        </h6>
     </div>
-
-    <!-- Demandes d'affiliation en attente -->
-    <div class="col-md-6">
-        <div class="card p-3">
-            <h6 class="fw-bold mb-3">Demandes d'affiliation à valider</h6>
-            {% if demandes_en_attente %}
-            <table class="table table-sm table-hover mb-0">
-                <thead>
-                    <tr><th>Club</th><th>Année sportive</th><th>Date</th></tr>
-                </thead>
-                <tbody>
-                {% for demande in demandes_en_attente %}
+    <div class="card-body p-0">
+        <table class="table table-sm table-hover mb-0">
+            <thead class="table-light">
                 <tr>
-                    <td><strong>{{ demande.club.nom_club }}</strong></td>
-                    <td>{{ demande.annee_sportive.libelle }}</td>
-                    <td class="text-muted small">{{ demande.date_demande|date:"d/m/Y" }}</td>
+                    <th class="ps-3">Club</th>
+                    <th>Année sportive</th>
+                    <th>Date</th>
                 </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-            {% else %}
-            <p class="text-muted small mb-0">Aucune demande en attente de validation.</p>
-            {% endif %}
-        </div>
+            </thead>
+            <tbody>
+            {% for demande in demandes_en_attente %}
+            <tr>
+                <td class="ps-3"><strong>{{ demande.club.nom_club }}</strong></td>
+                <td>{{ demande.annee_sportive.libelle }}</td>
+                <td class="text-muted small">{{ demande.date_demande|date:"d/m/Y" }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
     </div>
 </div>
+{% endif %}
 
 {% endif %}
 {% endblock %}

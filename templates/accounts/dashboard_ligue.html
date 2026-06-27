@@ -122,43 +122,6 @@
     </div>
 </div>
 
-<!-- Tarifs de l'année active -->
-{% if annee_active %}
-<div class="card mb-4">
-    <div class="card-header py-2">
-        <h6 class="fw-bold mb-0">
-            <i class="bi bi-cash-coin me-2 text-success"></i>
-            Tarifs d'examen — {{ annee_active.libelle }}
-            <span class="badge bg-success ms-2">{{ nb_tarifs }} grade{{ nb_tarifs|pluralize:"s" }}</span>
-        </h6>
-    </div>
-    {% if tarifs_actifs %}
-    <div class="card-body p-0">
-        <table class="table table-sm align-middle mb-0">
-            <thead class="table-light">
-                <tr>
-                    <th class="ps-3">Grade visé</th>
-                    <th class="text-end pe-3">Montant (FCFA)</th>
-                </tr>
-            </thead>
-            <tbody>
-            {% for t in tarifs_actifs %}
-            <tr>
-                <td class="ps-3">{{ t.grade.nom }}</td>
-                <td class="text-end pe-3 fw-semibold text-success">{{ t.montant|floatformat:"0" }}</td>
-            </tr>
-            {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    {% else %}
-    <div class="card-body text-muted small">
-        <i class="bi bi-exclamation-circle me-1 text-warning"></i>
-        Aucun tarif défini pour <strong>{{ annee_active.libelle }}</strong>.
-    </div>
-    {% endif %}
-</div>
-{% endif %}
 
 <!-- Alerte demandes en attente -->
 {% if nb_demandes_attente > 0 %}

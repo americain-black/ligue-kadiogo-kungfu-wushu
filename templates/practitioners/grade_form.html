@@ -41,6 +41,15 @@
 </div>
 
 <div class="card p-4" style="max-width: 480px;">
+    <!-- Affichage ID Grade (non éditable, géré par le serveur) -->
+    <div class="mb-3">
+        <label class="form-label fw-semibold small text-muted">ID Grade (auto)</label>
+        <div class="form-control bg-light text-muted">
+            {% if grade %}{{ grade.id_grade }}{% else %}{{ prochain_id }}{% endif %}
+        </div>
+        <div class="form-text">Attribué automatiquement, non modifiable.</div>
+    </div>
+
     <form method="post">
         {% csrf_token %}
         {% for field in form %}

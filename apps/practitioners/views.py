@@ -149,16 +149,14 @@ class GradeForm(django_forms.ModelForm):
 
     class Meta:
         model  = Grade
-        fields = ['id_grade', 'nom', 'ordre', 'actif']
+        fields = ['nom', 'ordre', 'actif']  # id_grade géré côté serveur uniquement
         widgets = {
-            'id_grade': django_forms.NumberInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
-            'nom':      django_forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex : Blanc, Jaune, Vert…'}),
-            'actif':    django_forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'nom':   django_forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex : Blanc, Jaune, Vert…'}),
+            'actif': django_forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
         labels = {
-            'id_grade': 'ID Grade (auto)',
-            'nom':      'Nom du grade',
-            'actif':    'Grade actif',
+            'nom':   'Nom du grade',
+            'actif': 'Grade actif',
         }
 
     def __init__(self, *args, **kwargs):
@@ -173,7 +171,6 @@ class GradeForm(django_forms.ModelForm):
         val = str(self.cleaned_data.get('ordre', '')).strip().upper()
         if not val:
             raise django_forms.ValidationError("L'ordre est requis.")
-        # Accepter aussi les chiffres arabes directs (1, 2, 3…)
         n = int(val) if val.isdigit() else _from_romain(val)
         if n <= 0:
             raise django_forms.ValidationError(

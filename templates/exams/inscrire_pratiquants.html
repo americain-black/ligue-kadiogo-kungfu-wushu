@@ -62,7 +62,7 @@
                     <select name="grade_vise" id="id_grade_vise" class="form-select form-select-lg" required>
                         <option value="">— Sélectionner un grade visé —</option>
                         {% for grade in grades %}
-                        <option value="{{ grade.pk }}" data-ordre="{{ grade.ordre }}">
+                        <option value="{{ grade.pk }}" data-id-grade="{{ grade.id_grade }}">
                             {{ grade.nom }}
                         </option>
                         {% endfor %}
@@ -120,7 +120,7 @@
                     {% for p in pratiquants_dispo %}
                     <div class="pratiquant-row form-check p-3 border-bottom d-flex align-items-center gap-3"
                          data-pk="{{ p.pk }}"
-                         data-grade-ordre="{{ p.grade_actuel.ordre|default:-1 }}"
+                         data-id-grade-actuel="{{ p.grade_actuel.id_grade|default:0 }}"
                          style="display:none;">
                         <input class="form-check-input mt-0 pratiquant-check" type="checkbox"
                                name="pratiquants" value="{{ p.pk }}" id="p{{ p.pk }}">
@@ -188,11 +188,12 @@
             mettreAJourCompteur();
             return;
         }
-        const ordreVise = parseInt(opt.dataset.ordre);
+        const idGradeVise = parseInt(opt.dataset.idGrade);
         let nb = 0;
         rows.forEach(r => {
-            const ordreActuel = parseInt(r.dataset.gradeOrdre);
-            if (ordreActuel < ordreVise) {
+            const idGradeActuel = parseInt(r.dataset.idGradeActuel);
+            // Éligible uniquement si grade actuel = grade visé - 1
+            if (idGradeActuel === idGradeVise - 1) {
                 r.style.display = '';
                 nb++;
             } else {

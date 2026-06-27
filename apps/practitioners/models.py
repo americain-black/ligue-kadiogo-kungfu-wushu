@@ -1,6 +1,19 @@
 from django.db import models
 
 
+_ROMAIN_VALS  = [1000,900,500,400,100,90,50,40,10,9,5,4,1]
+_ROMAIN_SYMS  = ['M','CM','D','CD','C','XC','L','XL','X','IX','V','IV','I']
+
+
+def _to_romain(n):
+    result = ''
+    for v, s in zip(_ROMAIN_VALS, _ROMAIN_SYMS):
+        while n >= v:
+            result += s
+            n -= v
+    return result or str(n)
+
+
 class Grade(models.Model):
     """
     Grade configurable par ligue.
@@ -9,17 +22,21 @@ class Grade(models.Model):
     Chaque ligue gère sa propre liste de grades.
     """
 
-    ligue = models.ForeignKey(
+    ligue    = models.ForeignKey(
         'ligues.Ligue',
         on_delete=models.CASCADE,
         related_name='grades',
         null=True, blank=True
     )
-    nom   = models.CharField(max_length=50)
-    ordre = models.PositiveSmallIntegerField(
+    nom      = models.CharField(max_length=50)
+    ordre    = models.PositiveSmallIntegerField(
         help_text="Ordre croissant : 1 = plus bas, 6 = plus haut"
     )
-    actif = models.BooleanField(default=True)
+    id_grade = models.PositiveSmallIntegerField(
+        default=0,
+        help_text="Identifiant séquentiel du grade (auto-incrémenté à la création)"
+    )
+    actif    = models.BooleanField(default=True)
 
     class Meta:
         verbose_name        = 'Grade'
@@ -28,6 +45,17 @@ class Grade(models.Model):
 
     def __str__(self):
         return self.nom
+
+    @property
+    def ordre_romain(self):
+        return _to_romain(self.ordre) if self.ordre else ''
+
+    def save(self, *args, **kwargs):
+        if not self.pk and self.id_grade == 0:
+            from django.db.models import Max
+            max_id = Grade.objects.filter(ligue=self.ligue).aggregate(m=Max('id_grade'))['m'] or 0
+            self.id_grade = max_id + 1
+        super().save(*args, **kwargs)
 
 
 class Pratiquant(models.Model):

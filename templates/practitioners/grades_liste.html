@@ -16,6 +16,9 @@
 <a href="{% url 'exams:liste' %}" class="nav-link">
     <i class="bi bi-journal-check me-2"></i>Sessions d'examen
 </a>
+<a href="{% url 'exams:tarifs_accueil' %}" class="nav-link ps-4">
+    <i class="bi bi-cash-coin me-2"></i>Tarifs d'examen
+</a>
 <a href="{% url 'exams:rubriques' %}" class="nav-link">
     <i class="bi bi-list-task me-2"></i>Rubriques / Épreuves
 </a>
@@ -46,7 +49,8 @@
         <table class="table table-hover align-middle mb-0">
             <thead class="table-light">
                 <tr>
-                    <th class="ps-3">Ordre</th>
+                    <th class="ps-3">ID</th>
+                    <th>Ordre</th>
                     <th>Nom</th>
                     <th>Statut</th>
                     <th class="text-end pe-3">Actions</th>
@@ -56,7 +60,10 @@
             {% for grade in grades %}
             <tr>
                 <td class="ps-3">
-                    <span class="badge bg-secondary">{{ grade.ordre }}</span>
+                    <span class="badge bg-primary">{{ grade.id_grade }}</span>
+                </td>
+                <td>
+                    <span class="badge bg-secondary">{{ grade.ordre_romain }}</span>
                 </td>
                 <td><strong>{{ grade.nom }}</strong></td>
                 <td>

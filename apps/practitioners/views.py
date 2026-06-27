@@ -140,16 +140,18 @@ def gest_ligue_requis(view_func):
 class GradeForm(django_forms.ModelForm):
     class Meta:
         model  = Grade
-        fields = ['nom', 'ordre', 'actif']
+        fields = ['id_grade', 'nom', 'ordre', 'actif']
         widgets = {
-            'nom':   django_forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex : Blanc, Jaune, Vert…'}),
-            'ordre': django_forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
-            'actif': django_forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'id_grade': django_forms.NumberInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
+            'nom':      django_forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex : Blanc, Jaune, Vert…'}),
+            'ordre':    django_forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
+            'actif':    django_forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
         labels = {
-            'nom':   'Nom du grade',
-            'ordre': 'Ordre (1 = plus bas)',
-            'actif': 'Grade actif',
+            'id_grade': 'ID Grade (auto)',
+            'nom':      'Nom du grade',
+            'ordre':    'Ordre (1 = plus bas)',
+            'actif':    'Grade actif',
         }
 
 
@@ -165,20 +167,25 @@ def liste_grades(request):
 
 @gest_ligue_requis
 def creer_grade(request):
-    ligue = request.user.ligue
+    from django.db.models import Max
+    ligue  = request.user.ligue
+    max_id = Grade.objects.filter(ligue=ligue).aggregate(m=Max('id_grade'))['m'] or 0
+    prochain_id = max_id + 1
     if request.method == 'POST':
         form = GradeForm(request.POST)
         if form.is_valid():
             grade = form.save(commit=False)
-            grade.ligue = ligue
+            grade.ligue    = ligue
+            grade.id_grade = prochain_id  # toujours forcé côté serveur
             grade.save()
-            messages.success(request, f"Grade « {grade.nom} » créé.")
+            messages.success(request, f"Grade « {grade.nom} » créé (ID {grade.id_grade}).")
             return redirect('practitioners:grades')
     else:
-        form = GradeForm()
+        form = GradeForm(initial={'id_grade': prochain_id})
     return render(request, 'practitioners/grade_form.html', {
-        'form':  form,
-        'titre': 'Créer un grade',
+        'form':        form,
+        'titre':       'Créer un grade',
+        'prochain_id': prochain_id,
     })
 
 
@@ -189,7 +196,9 @@ def modifier_grade(request, pk):
     if request.method == 'POST':
         form = GradeForm(request.POST, instance=grade)
         if form.is_valid():
-            form.save()
+            g = form.save(commit=False)
+            g.id_grade = grade.id_grade  # id_grade immuable
+            g.save()
             messages.success(request, f"Grade « {grade.nom} » modifié.")
             return redirect('practitioners:grades')
     else:

@@ -105,6 +105,18 @@ class MultiInscriptionForm(forms.Form):
             raise forms.ValidationError("Veuillez choisir un grade visé.")
         if not pratiquants:
             raise forms.ValidationError("Cochez au moins un pratiquant à inscrire.")
+        # Validation : chaque pratiquant doit avoir exactement le grade précédent
+        id_requis = grade_vise.id_grade - 1
+        invalides = []
+        for p in pratiquants:
+            id_actuel = p.grade_actuel.id_grade if p.grade_actuel else 0
+            if id_actuel != id_requis:
+                invalides.append(f"{p.nom} {p.prenom}")
+        if invalides:
+            raise forms.ValidationError(
+                f"Ces pratiquants n'ont pas le grade requis pour viser « {grade_vise} » : "
+                + ", ".join(invalides)
+            )
         return cleaned_data
 
 

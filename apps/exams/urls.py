@@ -11,6 +11,7 @@ urlpatterns = [
     path('annees-sportives/<int:pk>/cloturer/', views.cloturer_annee_sportive,  name='cloturer_annee_sportive'),
     path('annees-sportives/<int:pk>/supprimer/', views.supprimer_annee_sportive, name='supprimer_annee_sportive'),
     path('annees-sportives/<int:annee_pk>/tarifs/', views.liste_tarifs,   name='tarifs'),
+    path('tarifs/',                                 views.tarifs_accueil,  name='tarifs_accueil'),
     path('tarifs/<int:pk>/modifier/',              views.modifier_tarif,  name='modifier_tarif'),
     path('tarifs/<int:pk>/supprimer/',             views.supprimer_tarif, name='supprimer_tarif'),
 

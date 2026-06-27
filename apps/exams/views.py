@@ -127,6 +127,20 @@ def supprimer_annee_sportive(request, pk):
 # ── Vues GEST_LIGUE — Tarifs d'examen ────────────────────────────────────────
 
 @gest_ligue_requis
+def tarifs_accueil(request):
+    """Redirige vers les tarifs de l'année sportive active (ou la plus récente)."""
+    ligue = request.user.ligue
+    annee = (
+        AnneeSportive.objects.filter(ligue=ligue, statut='ACTIVE').first()
+        or AnneeSportive.objects.filter(ligue=ligue).first()
+    )
+    if annee:
+        return redirect('exams:tarifs', annee_pk=annee.pk)
+    messages.info(request, "Créez d'abord une année sportive pour définir des tarifs.")
+    return redirect('exams:annees_sportives')
+
+
+@gest_ligue_requis
 def liste_tarifs(request, annee_pk):
     annee = get_object_or_404(AnneeSportive, pk=annee_pk, ligue=request.user.ligue)
     ligue = request.user.ligue
@@ -817,10 +831,10 @@ def inscrire_pratiquant(request, session_pk):
     # Sérialiser pour le filtre JS
     pratiquants_json = json.dumps([
         {
-            'pk':          p.pk,
-            'nom':         f"{p.nom} {p.prenom}",
-            'grade_nom':   p.grade_actuel.nom if p.grade_actuel else "Sans grade",
-            'grade_ordre': p.grade_actuel.ordre if p.grade_actuel else -1,
+            'pk':             p.pk,
+            'nom':            f"{p.nom} {p.prenom}",
+            'grade_nom':      p.grade_actuel.nom if p.grade_actuel else "Sans grade",
+            'id_grade_actuel': p.grade_actuel.id_grade if p.grade_actuel else 0,
         }
         for p in pratiquants_dispo
     ])

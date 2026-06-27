@@ -138,19 +138,26 @@ def gest_ligue_requis(view_func):
 
 
 class GradeForm(django_forms.ModelForm):
+    # Déclaré comme CharField pour éviter la validation entier automatique de Django
+    ordre = django_forms.CharField(
+        label='Ordre (chiffre romain)',
+        widget=django_forms.TextInput(attrs={
+            'class': 'form-control text-uppercase',
+            'placeholder': 'Ex : I, II, III, IV…',
+        }),
+    )
+
     class Meta:
         model  = Grade
         fields = ['id_grade', 'nom', 'ordre', 'actif']
         widgets = {
             'id_grade': django_forms.NumberInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
             'nom':      django_forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex : Blanc, Jaune, Vert…'}),
-            'ordre':    django_forms.TextInput(attrs={'class': 'form-control text-uppercase', 'placeholder': 'Ex : I, II, III, IV…'}),
             'actif':    django_forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
         labels = {
             'id_grade': 'ID Grade (auto)',
             'nom':      'Nom du grade',
-            'ordre':    'Ordre (chiffre romain)',
             'actif':    'Grade actif',
         }
 
@@ -162,15 +169,12 @@ class GradeForm(django_forms.ModelForm):
             self.initial['ordre'] = _to_romain(self.instance.ordre)
 
     def clean_ordre(self):
-        from .models import _from_romain, _to_romain
+        from .models import _from_romain
         val = str(self.cleaned_data.get('ordre', '')).strip().upper()
         if not val:
             raise django_forms.ValidationError("L'ordre est requis.")
         # Accepter aussi les chiffres arabes directs (1, 2, 3…)
-        if val.isdigit():
-            n = int(val)
-        else:
-            n = _from_romain(val)
+        n = int(val) if val.isdigit() else _from_romain(val)
         if n <= 0:
             raise django_forms.ValidationError(
                 f"« {val} » n'est pas un chiffre romain valide (ex : I, II, III, IV…)."

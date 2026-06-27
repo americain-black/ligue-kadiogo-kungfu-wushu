@@ -14,6 +14,22 @@ def _to_romain(n):
     return result or str(n)
 
 
+_ROMAIN_LETTRES = {'I': 1, 'V': 5, 'X': 10, 'L': 50, 'C': 100, 'D': 500, 'M': 1000}
+
+
+def _from_romain(s):
+    """Convertit un chiffre romain (str) en entier. Retourne 0 si invalide."""
+    s = s.strip().upper()
+    result, prev = 0, 0
+    for c in reversed(s):
+        v = _ROMAIN_LETTRES.get(c)
+        if v is None:
+            return 0
+        result = result - v if v < prev else result + v
+        prev = v
+    return result
+
+
 class Grade(models.Model):
     """
     Grade configurable par ligue.

@@ -144,15 +144,38 @@ class GradeForm(django_forms.ModelForm):
         widgets = {
             'id_grade': django_forms.NumberInput(attrs={'class': 'form-control', 'readonly': 'readonly'}),
             'nom':      django_forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex : Blanc, Jaune, Vert…'}),
-            'ordre':    django_forms.NumberInput(attrs={'class': 'form-control', 'min': 1}),
+            'ordre':    django_forms.TextInput(attrs={'class': 'form-control text-uppercase', 'placeholder': 'Ex : I, II, III, IV…'}),
             'actif':    django_forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
         labels = {
             'id_grade': 'ID Grade (auto)',
             'nom':      'Nom du grade',
-            'ordre':    'Ordre (1 = plus bas)',
+            'ordre':    'Ordre (chiffre romain)',
             'actif':    'Grade actif',
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Afficher la valeur actuelle en chiffre romain lors de la modification
+        if self.instance and self.instance.pk and self.instance.ordre:
+            from .models import _to_romain
+            self.initial['ordre'] = _to_romain(self.instance.ordre)
+
+    def clean_ordre(self):
+        from .models import _from_romain, _to_romain
+        val = str(self.cleaned_data.get('ordre', '')).strip().upper()
+        if not val:
+            raise django_forms.ValidationError("L'ordre est requis.")
+        # Accepter aussi les chiffres arabes directs (1, 2, 3…)
+        if val.isdigit():
+            n = int(val)
+        else:
+            n = _from_romain(val)
+        if n <= 0:
+            raise django_forms.ValidationError(
+                f"« {val} » n'est pas un chiffre romain valide (ex : I, II, III, IV…)."
+            )
+        return n
 
 
 @gest_ligue_requis

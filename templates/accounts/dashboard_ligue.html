@@ -125,15 +125,12 @@
 <!-- Tarifs de l'année active -->
 {% if annee_active %}
 <div class="card mb-4">
-    <div class="card-header py-2 d-flex justify-content-between align-items-center">
+    <div class="card-header py-2">
         <h6 class="fw-bold mb-0">
             <i class="bi bi-cash-coin me-2 text-success"></i>
             Tarifs d'examen — {{ annee_active.libelle }}
             <span class="badge bg-success ms-2">{{ nb_tarifs }} grade{{ nb_tarifs|pluralize:"s" }}</span>
         </h6>
-        <a href="{% url 'exams:tarifs' annee_active.pk %}" class="btn btn-outline-success btn-sm">
-            <i class="bi bi-pencil me-1"></i>Gérer
-        </a>
     </div>
     {% if tarifs_actifs %}
     <div class="card-body p-0">
@@ -158,7 +155,6 @@
     <div class="card-body text-muted small">
         <i class="bi bi-exclamation-circle me-1 text-warning"></i>
         Aucun tarif défini pour <strong>{{ annee_active.libelle }}</strong>.
-        <a href="{% url 'exams:tarifs' annee_active.pk %}">Définir les tarifs →</a>
     </div>
     {% endif %}
 </div>

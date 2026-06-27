@@ -141,9 +141,10 @@ class GradeForm(django_forms.ModelForm):
     # Déclaré comme CharField pour éviter la validation entier automatique de Django
     ordre = django_forms.CharField(
         label='Ordre (chiffre romain)',
+        required=False,
         widget=django_forms.TextInput(attrs={
             'class': 'form-control text-uppercase',
-            'placeholder': 'Ex : I, II, III, IV…',
+            'placeholder': 'Ex : I, II, III, IV… (optionnel)',
         }),
     )
 
@@ -168,9 +169,9 @@ class GradeForm(django_forms.ModelForm):
 
     def clean_ordre(self):
         from .models import _from_romain
-        val = str(self.cleaned_data.get('ordre', '')).strip().upper()
+        val = str(self.cleaned_data.get('ordre', '') or '').strip().upper()
         if not val:
-            raise django_forms.ValidationError("L'ordre est requis.")
+            return None  # ordre optionnel
         n = int(val) if val.isdigit() else _from_romain(val)
         if n <= 0:
             raise django_forms.ValidationError(

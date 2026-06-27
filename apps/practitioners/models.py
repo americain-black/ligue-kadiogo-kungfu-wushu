@@ -46,7 +46,8 @@ class Grade(models.Model):
     )
     nom      = models.CharField(max_length=50)
     ordre    = models.PositiveSmallIntegerField(
-        help_text="Ordre croissant : 1 = plus bas, 6 = plus haut"
+        null=True, blank=True,
+        help_text="Ordre croissant en chiffre romain (optionnel)"
     )
     id_grade = models.PositiveSmallIntegerField(
         default=0,
@@ -64,7 +65,7 @@ class Grade(models.Model):
 
     @property
     def ordre_romain(self):
-        return _to_romain(self.ordre) if self.ordre else ''
+        return _to_romain(self.ordre) if self.ordre is not None else '—'
 
     def save(self, *args, **kwargs):
         if not self.pk and self.id_grade == 0:

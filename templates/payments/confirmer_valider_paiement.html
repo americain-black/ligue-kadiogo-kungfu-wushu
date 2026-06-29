@@ -20,56 +20,135 @@
     <h4 class="fw-bold mt-1">Valider la preuve de paiement</h4>
 </div>
 
-<div class="card p-4" style="max-width: 540px;">
-    <table class="table table-sm table-borderless mb-3">
-        <tr>
-            <td class="text-muted small">Club</td>
-            <td class="fw-semibold">{{ paiement.club.nom_club }}</td>
-        </tr>
-        <tr>
-            <td class="text-muted small">Session</td>
-            <td>{{ paiement.session.titre }}</td>
-        </tr>
-        <tr>
-            <td class="text-muted small">Référence</td>
-            <td>{{ paiement.reference|default:"—" }}</td>
-        </tr>
-        <tr>
-            <td class="text-muted small">Montant attendu</td>
-            <td class="fw-bold">{{ paiement.montant_attendu|floatformat:"0" }} FCFA</td>
-        </tr>
-        <tr>
-            <td class="text-muted small">Montant déclaré</td>
-            <td class="fw-bold {% if paiement.montant_paye < paiement.montant_attendu %}text-danger{% else %}text-success{% endif %}">
-                {{ paiement.montant_paye|floatformat:"0" }} FCFA
-            </td>
-        </tr>
-    </table>
+<div class="row g-3" style="max-width: 860px;">
+    <!-- Récapitulatif -->
+    <div class="col-12 col-md-5">
+        <div class="card p-3 mb-3">
+            <h6 class="fw-bold mb-3"><i class="bi bi-receipt me-2 text-muted"></i>Récapitulatif</h6>
+            <table class="table table-sm table-borderless mb-0">
+                <tr>
+                    <td class="text-muted small">Club</td>
+                    <td class="fw-semibold small">{{ paiement.club.nom_club }}</td>
+                </tr>
+                <tr>
+                    <td class="text-muted small">Session</td>
+                    <td class="small">{{ paiement.session.titre }}</td>
+                </tr>
+                <tr>
+                    <td class="text-muted small">Mode</td>
+                    <td class="small">{{ paiement.get_mode_paiement_display }}</td>
+                </tr>
+                <tr class="border-top">
+                    <td class="text-muted small pt-2">Montant attendu</td>
+                    <td class="fw-bold pt-2">{{ paiement.montant_attendu|floatformat:"0" }} FCFA</td>
+                </tr>
+                <tr>
+                    <td class="text-muted small">Montant déclaré</td>
+                    <td class="fw-bold {% if paiement.montant_paye < paiement.montant_attendu %}text-danger{% else %}text-success{% endif %}">
+                        {{ paiement.montant_paye|floatformat:"0" }} FCFA
+                    </td>
+                </tr>
+                {% if manque > 0 %}
+                <tr>
+                    <td class="text-muted small">Manque</td>
+                    <td class="fw-bold text-danger">{{ manque|floatformat:"0" }} FCFA</td>
+                </tr>
+                {% endif %}
+            </table>
+        </div>
 
-    {% if paiement.montant_paye < paiement.montant_attendu %}
-    <div class="alert alert-warning mb-3">
-        <i class="bi bi-exclamation-triangle-fill me-2"></i>
-        Le montant déclaré est inférieur au montant attendu. Vérifiez la preuve avant de valider.
+        <!-- Inscrits concernés -->
+        <div class="card p-3">
+            <h6 class="fw-bold mb-2">
+                <i class="bi bi-people me-2 text-muted"></i>Inscrits à valider
+                <span class="badge bg-secondary ms-1">{{ inscriptions.count }}</span>
+            </h6>
+            <ul class="list-unstyled mb-0">
+                {% for insc in inscriptions %}
+                <li class="py-1 border-bottom small">
+                    <strong>{{ insc.pratiquant.nom }} {{ insc.pratiquant.prenom }}</strong>
+                    <span class="badge bg-primary ms-1">{{ insc.grade_vise }}</span>
+                    <span class="float-end text-muted">{{ insc.montant|floatformat:"0" }} FCFA</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
     </div>
-    {% endif %}
 
-    <div class="alert alert-info mb-4">
-        <i class="bi bi-info-circle me-2"></i>
-        En validant, toutes les inscriptions de ce club pour cette session passeront
-        en statut <strong>« Paiement validé »</strong>.
-        Le gestionnaire de ligue pourra ensuite valider leur liste de licenciés.
-    </div>
+    <!-- Actions -->
+    <div class="col-12 col-md-7">
+        {% if manque > 0 %}
+        <div class="alert alert-warning mb-3">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <strong>Montant insuffisant de {{ manque|floatformat:"0" }} FCFA.</strong>
+            Vous pouvez :
+            <ul class="mb-0 mt-1">
+                <li>Valider quand même si vous avez reçu le reste autrement</li>
+                <li>Ou signaler l'insuffisance pour que le club complète ou retire des inscrits</li>
+            </ul>
+        </div>
 
-    <form method="post">
-        {% csrf_token %}
-        <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-success">
-                <i class="bi bi-check-lg me-1"></i>Confirmer la validation
-            </button>
-            <a href="{% url 'payments:detail_paiement_examen' paiement.pk %}" class="btn btn-outline-secondary">
-                Annuler
+        <!-- Option A : Valider quand même -->
+        <div class="card border-success p-3 mb-3">
+            <h6 class="fw-bold text-success mb-2"><i class="bi bi-check-circle me-2"></i>Valider le paiement</h6>
+            <p class="small text-muted mb-3">
+                Toutes les inscriptions EN_ATTENTE_PAIEMENT de ce club passeront en
+                <strong>« Paiement validé »</strong>.
+            </p>
+            <form method="post" action="{% url 'payments:valider_paiement_examen' paiement.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success btn-sm">
+                    <i class="bi bi-check-lg me-1"></i>Valider quand même
+                </button>
+            </form>
+        </div>
+
+        <!-- Option B : Signaler insuffisance -->
+        <div class="card border-warning p-3 mb-3">
+            <h6 class="fw-bold text-warning mb-2"><i class="bi bi-exclamation-triangle me-2"></i>Signaler l'insuffisance</h6>
+            <p class="small text-muted mb-3">
+                Le club sera notifié et devra <strong>compléter le paiement</strong> ou
+                <strong>retirer les pratiquants non couverts</strong>
+                {% if paiement.session.date_limite_paiement %}
+                avant le <strong>{{ paiement.session.date_limite_paiement|date:"d/m/Y" }}</strong>
+                {% endif %}.
+            </p>
+            <a href="{% url 'payments:insuffisant_paiement_examen' paiement.pk %}"
+               class="btn btn-warning btn-sm text-dark fw-semibold">
+                <i class="bi bi-send me-1"></i>Notifier le club — Montant insuffisant
             </a>
         </div>
-    </form>
+
+        {% else %}
+        <!-- Montant correct : validation directe -->
+        <div class="alert alert-success mb-3">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            Le montant déclaré correspond au montant attendu.
+        </div>
+        <div class="card p-4">
+            <p class="mb-3">
+                En validant, <strong>{{ inscriptions.count }} inscription(s)</strong>
+                de « {{ paiement.club.nom_club }} » passeront en <strong>« Paiement validé »</strong>.
+            </p>
+            <form method="post" action="{% url 'payments:valider_paiement_examen' paiement.pk %}">
+                {% csrf_token %}
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-lg me-1"></i>Valider le paiement
+                    </button>
+                    <a href="{% url 'payments:detail_paiement_examen' paiement.pk %}"
+                       class="btn btn-outline-secondary">Annuler</a>
+                </div>
+            </form>
+        </div>
+        {% endif %}
+
+        {% if manque > 0 %}
+        <div class="text-center">
+            <a href="{% url 'payments:detail_paiement_examen' paiement.pk %}"
+               class="btn btn-outline-secondary btn-sm mt-2">Annuler</a>
+        </div>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% block title %}Supprimer le grade {{ grade.nom }}{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Gestion</span>
+<a href="{% url 'practitioners:grades' %}" class="nav-link active">
+    <i class="bi bi-award me-2"></i>Grades
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <small class="text-muted">
+        <a href="{% url 'practitioners:grades' %}">Grades</a> › Supprimer
+    </small>
+    <h4 class="fw-bold mt-1 mb-0">
+        <i class="bi bi-trash me-2 text-danger"></i>Supprimer le grade « {{ grade.nom }} »
+    </h4>
+</div>
+
+{% if messages %}
+{% for msg in messages %}
+<div class="alert alert-{{ msg.tags }} alert-dismissible fade show">
+    {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endfor %}
+{% endif %}
+
+<!-- Bloc inscriptions → BLOQUANT -->
+{% if nb_inscriptions > 0 %}
+<div class="alert alert-danger d-flex gap-3 align-items-start">
+    <i class="bi bi-x-octagon-fill fs-4 flex-shrink-0 mt-1"></i>
+    <div>
+        <strong>Suppression impossible.</strong>
+        Ce grade est utilisé comme grade visé dans
+        <strong>{{ nb_inscriptions }} inscription(s) d'examen</strong>.
+        Supprimez ces inscriptions ou attendez la clôture de la session.
+        <ul class="mt-2 mb-0 small">
+            {% for i in inscriptions %}
+            <li>{{ i.pratiquant.prenom }} {{ i.pratiquant.nom }} — {{ i.session.titre }}</li>
+            {% endfor %}
+            {% if nb_inscriptions > 10 %}
+            <li class="text-muted">… et {{ nb_inscriptions|add:"-10" }} autre(s)</li>
+            {% endif %}
+        </ul>
+    </div>
+</div>
+<a href="{% url 'practitioners:grades' %}" class="btn btn-secondary">
+    <i class="bi bi-arrow-left me-1"></i>Retour
+</a>
+
+{% else %}
+
+<!-- Résumé des effets -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="card border-{{ nb_pratiquants|yesno:'warning,success,success' }} h-100">
+            <div class="card-body text-center">
+                <div class="fs-1 fw-bold text-{{ nb_pratiquants|yesno:'warning,success,success' }}">
+                    {{ nb_pratiquants }}
+                </div>
+                <div class="small text-muted">pratiquant(s) perdront leur grade</div>
+                <div class="small mt-1">
+                    {% if nb_pratiquants %}
+                        <span class="badge bg-warning text-dark">→ deviendront « Sans grade »</span>
+                    {% else %}
+                        <span class="badge bg-success">Aucun impact</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-{{ nb_tarifs|yesno:'danger,success,success' }} h-100">
+            <div class="card-body text-center">
+                <div class="fs-1 fw-bold text-{{ nb_tarifs|yesno:'danger,success,success' }}">
+                    {{ nb_tarifs }}
+                </div>
+                <div class="small text-muted">tarif(s) supprimé(s)</div>
+                <div class="small mt-1">
+                    {% if nb_tarifs %}
+                        {% for t in tarifs %}
+                        <span class="badge bg-danger">{{ t.annee_sportive }} : {{ t.montant }} FCFA</span>
+                        {% endfor %}
+                    {% else %}
+                        <span class="badge bg-success">Aucun tarif</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card border-{{ nb_rubriques|yesno:'danger,success,success' }} h-100">
+            <div class="card-body text-center">
+                <div class="fs-1 fw-bold text-{{ nb_rubriques|yesno:'danger,success,success' }}">
+                    {{ nb_rubriques }}
+                </div>
+                <div class="small text-muted">épreuve(s) / rubrique(s) supprimée(s)</div>
+                <div class="small mt-1">
+                    {% if nb_rubriques %}
+                        {% for r in rubriques %}
+                        <span class="badge bg-danger">{{ r.rubrique.nom }}</span>
+                        {% endfor %}
+                    {% else %}
+                        <span class="badge bg-success">Aucune rubrique</span>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Détail pratiquants -->
+{% if nb_pratiquants > 0 %}
+<div class="card mb-3">
+    <div class="card-header py-2 bg-warning text-dark">
+        <h6 class="mb-0 fw-bold">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            {{ nb_pratiquants }} pratiquant(s) concerné(s)
+        </h6>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-sm align-middle mb-0">
+            <thead class="table-light"><tr><th class="ps-3">Nom</th><th>Club</th></tr></thead>
+            <tbody>
+            {% for p in pratiquants %}
+            <tr>
+                <td class="ps-3">{{ p.prenom }} {{ p.nom }}</td>
+                <td class="text-muted">{{ p.club.nom_club }}</td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+
+<!-- Bouton confirmer -->
+<div class="card border-danger">
+    <div class="card-body">
+        <p class="mb-3">
+            Confirmez-vous la suppression définitive du grade
+            <strong class="text-danger">{{ grade.nom }}</strong> ?
+            Cette action est <strong>irréversible</strong>.
+        </p>
+        <div class="d-flex gap-2">
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">
+                    <i class="bi bi-trash me-1"></i>Oui, supprimer définitivement
+                </button>
+            </form>
+            <a href="{% url 'practitioners:grades' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left me-1"></i>Annuler
+            </a>
+        </div>
+    </div>
+</div>
+
+{% endif %}
+{% endblock %}

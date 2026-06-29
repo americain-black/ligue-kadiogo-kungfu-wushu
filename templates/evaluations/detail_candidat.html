@@ -1,0 +1,403 @@
+{% extends 'base.html' %}
+{% block title %}{{ inscription.pratiquant }} — Notation{% endblock %}
+
+{% block extra_css %}
+<style>
+    .note-input { width: 90px; font-size: 1.1rem; font-weight: bold; text-align: center; }
+    .note-ligne { transition: background-color 0.4s; }
+    .note-validee { background-color: #f0fff4; }
+    .note-en-saisie { background-color: #fffbf0; }
+    .flash-ok { animation: flashOk 1s ease; }
+    @keyframes flashOk {
+        0%   { background-color: #d4edda; }
+        100% { background-color: #f0fff4; }
+    }
+    .badge-note {
+        font-size: 1rem;
+        padding: 6px 14px;
+        border-radius: 8px;
+    }
+</style>
+{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+{% if est_gl %}
+<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+{% else %}
+<a href="{% url 'accounts:dashboard_jury' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+{% endif %}
+<a href="{% url 'evaluations:interface_notation' session.pk %}" class="nav-link">
+    <i class="bi bi-arrow-left me-2"></i>Liste des candidats
+</a>
+{% if est_gl %}
+<a href="{% url 'evaluations:tableau_resultats' session.pk %}" class="nav-link">
+    <i class="bi bi-graph-up me-2"></i>Résultats temps réel
+</a>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<!-- En-tête candidat -->
+<div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+    <div>
+        <small class="text-muted">
+            <a href="{% url 'evaluations:interface_notation' session.pk %}">Notation</a>
+            › {{ inscription.pratiquant.nom }} {{ inscription.pratiquant.prenom }}
+        </small>
+        <h4 class="fw-bold mb-1 mt-1">
+            {{ inscription.pratiquant.nom }} {{ inscription.pratiquant.prenom }}
+        </h4>
+        <div class="d-flex gap-3 flex-wrap">
+            <span class="text-muted small">
+                <i class="bi bi-building me-1"></i>{{ inscription.pratiquant.club.nom_club }}
+            </span>
+            <span class="text-muted small">
+                <i class="bi bi-award me-1"></i>Grade actuel : {{ inscription.pratiquant.get_grade_display }}
+            </span>
+            <span class="badge bg-primary">Vise : {{ inscription.grade_vise }}</span>
+        </div>
+    </div>
+    <span id="ws-status" class="badge bg-secondary">
+        <i class="bi bi-wifi-off me-1"></i>Connexion...
+    </span>
+</div>
+
+<!-- Toast -->
+<div class="position-fixed top-0 end-0 p-3" style="z-index:1100">
+    <div id="toast-ws" class="toast align-items-center border-0" role="alert">
+        <div class="d-flex">
+            <div class="toast-body" id="toast-message"></div>
+            <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+</div>
+
+<!-- Résultat calculé (affiché si disponible en temps réel) -->
+<div id="bandeau-resultat" class="alert d-none mb-4" role="alert"></div>
+
+<!-- Grille de notation -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="fw-bold mb-0">
+            <i class="bi bi-list-check me-2"></i>Grille de notation — {{ inscription.grade_vise }}
+        </h6>
+        {% if est_jury %}
+        <button id="btn-valider-tout" class="btn btn-success btn-sm" onclick="validerToutesNotes()">
+            <i class="bi bi-check2-all me-1"></i>Valider toutes les notes
+        </button>
+        {% endif %}
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th class="ps-3">Rubrique / Épreuve</th>
+                    <th class="text-center">Coefficient</th>
+                    <th class="text-center">Note min.</th>
+                    <th class="text-center">Note /20</th>
+                    <th class="text-center">État</th>
+                    {% if est_jury %}
+                    <th class="text-center">Actions</th>
+                    {% endif %}
+                    {% if est_gl %}
+                    <th class="text-center">Correction</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody id="tableau-notes">
+                {% for rg in rubriques %}
+                {% with note=notes_existantes|default_if_none:None %}
+                {% with note_obj=notes_existantes|dict_lookup:rg.pk %}
+                <tr class="note-ligne {% if note_obj %}{% if note_obj.validee %}note-validee{% else %}note-en-saisie{% endif %}{% endif %}"
+                    id="ligne-{{ rg.pk }}">
+                    <td class="ps-3 fw-semibold">{{ rg.rubrique.nom }}</td>
+                    <td class="text-center">
+                        <span class="badge bg-secondary">×{{ rg.coefficient }}</span>
+                    </td>
+                    <td class="text-center text-muted small">{{ rg.note_minimale }}/20</td>
+                    <td class="text-center">
+                        {% if note_obj and note_obj.validee %}
+                            <span class="badge badge-note
+                                {% if note_obj.note >= rg.note_minimale %}bg-success{% else %}bg-danger{% endif %}"
+                                  id="note-affichee-{{ rg.pk }}">
+                                {{ note_obj.note }}/20
+                            </span>
+                        {% else %}
+                            {% if est_jury %}
+                            <input type="number" class="form-control note-input"
+                                   id="input-{{ rg.pk }}"
+                                   value="{% if note_obj %}{{ note_obj.note }}{% endif %}"
+                                   min="0" max="20" step="0.5"
+                                   placeholder="—"
+                                   {% if note_obj and note_obj.validee %}disabled{% endif %}>
+                            {% else %}
+                                <span class="text-muted small" id="note-affichee-{{ rg.pk }}">
+                                    {% if note_obj %}{{ note_obj.note }}/20{% else %}—{% endif %}
+                                </span>
+                            {% endif %}
+                        {% endif %}
+                    </td>
+                    <td class="text-center" id="etat-{{ rg.pk }}">
+                        {% if note_obj %}
+                            {% if note_obj.validee %}
+                                <span class="badge bg-success">
+                                    <i class="bi bi-lock-fill me-1"></i>Validée
+                                </span>
+                            {% elif note_obj.correction_demandee %}
+                                <span class="badge bg-warning text-dark">
+                                    <i class="bi bi-exclamation-triangle me-1"></i>Correction demandée
+                                </span>
+                            {% else %}
+                                <span class="badge bg-secondary">En saisie</span>
+                            {% endif %}
+                        {% else %}
+                            <span class="badge bg-light text-dark border">Non saisie</span>
+                        {% endif %}
+                    </td>
+                    {% if est_jury %}
+                    <td class="text-center">
+                        <div class="d-flex gap-1 justify-content-center">
+                            {% if not note_obj or not note_obj.validee %}
+                            <button class="btn btn-sm btn-outline-primary"
+                                    onclick="sauvegarderNote({{ rg.pk }})"
+                                    id="btn-sauv-{{ rg.pk }}"
+                                    title="Sauvegarder">
+                                <i class="bi bi-floppy"></i>
+                            </button>
+                            <button class="btn btn-sm btn-success"
+                                    onclick="validerNote({{ rg.pk }})"
+                                    id="btn-val-{{ rg.pk }}"
+                                    title="Valider définitivement">
+                                <i class="bi bi-check-lg"></i>
+                            </button>
+                            {% else %}
+                                {% if note_obj and not note_obj.correction_demandee %}
+                                <button class="btn btn-sm btn-outline-warning"
+                                        onclick="demanderCorrection({{ note_obj.pk }}, {{ rg.pk }})"
+                                        title="Demander correction">
+                                    <i class="bi bi-pencil-square"></i>
+                                </button>
+                                {% else %}
+                                <span class="text-muted small">—</span>
+                                {% endif %}
+                            {% endif %}
+                        </div>
+                    </td>
+                    {% endif %}
+                    {% if est_gl %}
+                    <td class="text-center" id="gl-action-{{ rg.pk }}">
+                        {% if note_obj and note_obj.validee %}
+                        <button class="btn btn-sm btn-outline-secondary"
+                                onclick="deverrouillerNote({{ note_obj.pk }}, {{ rg.pk }})"
+                                title="Déverrouiller pour correction">
+                            <i class="bi bi-unlock me-1"></i>Déverrouiller
+                        </button>
+                        {% else %}
+                        <span class="text-muted small">—</span>
+                        {% endif %}
+                    </td>
+                    {% endif %}
+                </tr>
+                {% endwith %}
+                {% endwith %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const SESSION_ID     = {{ session.pk }};
+const INSCRIPTION_ID = {{ inscription.pk }};
+const WS_URL         = `ws://${window.location.host}/ws/evaluations/session/${SESSION_ID}/notation/`;
+const CSRF_TOKEN     = '{{ csrf_token }}';
+
+// ── Toast ────────────────────────────────────────────────────────────────────
+const toastEl  = document.getElementById('toast-ws');
+const toastMsg = document.getElementById('toast-message');
+const bsToast  = new bootstrap.Toast(toastEl, { delay: 4000 });
+
+function afficherToast(message, couleur = 'bg-success text-white') {
+    toastEl.className = `toast align-items-center border-0 ${couleur}`;
+    toastMsg.textContent = message;
+    bsToast.show();
+}
+
+// ── AJAX helpers ─────────────────────────────────────────────────────────────
+async function postJSON(url, body = {}) {
+    const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': CSRF_TOKEN,
+        },
+        body: JSON.stringify(body),
+    });
+    return res.json();
+}
+
+// ── Sauvegarder une note (sans validation) ───────────────────────────────────
+async function sauvegarderNote(rubriqueGradeId) {
+    const input = document.getElementById(`input-${rubriqueGradeId}`);
+    const valeur = parseFloat(input.value);
+    if (isNaN(valeur) || valeur < 0 || valeur > 20) {
+        afficherToast('La note doit être entre 0 et 20.', 'bg-danger text-white');
+        return;
+    }
+    const url = `/evaluations/session/${SESSION_ID}/candidat/${INSCRIPTION_ID}/rubrique/${rubriqueGradeId}/saisir/`;
+    const data = await postJSON(url, { note: valeur });
+    if (data.statut === 'ok') {
+        afficherToast('Note sauvegardée.', 'bg-info text-white');
+        document.getElementById(`etat-${rubriqueGradeId}`).innerHTML =
+            `<span class="badge bg-secondary">En saisie</span>`;
+        // stocker l'id de la note pour validation ultérieure
+        document.getElementById(`btn-val-${rubriqueGradeId}`)
+            .setAttribute('data-note-id', data.note_id);
+    } else {
+        afficherToast(data.erreur || 'Erreur.', 'bg-danger text-white');
+    }
+}
+
+// ── Valider une note ─────────────────────────────────────────────────────────
+async function validerNote(rubriqueGradeId) {
+    // Sauvegarder d'abord si la note n'a pas encore d'id
+    const btnVal  = document.getElementById(`btn-val-${rubriqueGradeId}`);
+    const noteId  = btnVal.getAttribute('data-note-id');
+
+    if (!noteId) {
+        await sauvegarderNote(rubriqueGradeId);
+        // Récupérer l'id après sauvegarde
+        const noteIdMaj = document.getElementById(`btn-val-${rubriqueGradeId}`)
+                              .getAttribute('data-note-id');
+        if (!noteIdMaj) return;
+    }
+
+    const noteIdFinal = document.getElementById(`btn-val-${rubriqueGradeId}`)
+                            .getAttribute('data-note-id');
+    const data = await postJSON(`/evaluations/note/${noteIdFinal}/valider/`);
+
+    if (data.statut === 'ok') {
+        afficherToast('Note validée et verrouillée.', 'bg-success text-white');
+        // La mise à jour visuelle arrive via WebSocket
+    } else {
+        afficherToast(data.erreur || 'Erreur lors de la validation.', 'bg-danger text-white');
+    }
+}
+
+// ── Valider toutes les notes ─────────────────────────────────────────────────
+async function validerToutesNotes() {
+    if (!confirm('Valider définitivement toutes les notes saisies ?')) return;
+    const inputs = document.querySelectorAll('input.note-input:not([disabled])');
+    for (const input of inputs) {
+        const rgId = input.id.replace('input-', '');
+        if (input.value !== '') {
+            await validerNote(parseInt(rgId));
+        }
+    }
+}
+
+// ── Demander correction ───────────────────────────────────────────────────────
+async function demanderCorrection(noteId, rubriqueGradeId) {
+    if (!confirm('Demander l\'autorisation de corriger cette note au Gestionnaire Ligue ?')) return;
+    const data = await postJSON(`/evaluations/note/${noteId}/demander-correction/`);
+    if (data.statut === 'ok') {
+        document.getElementById(`etat-${rubriqueGradeId}`).innerHTML =
+            `<span class="badge bg-warning text-dark">
+                <i class="bi bi-exclamation-triangle me-1"></i>Correction demandée
+             </span>`;
+        afficherToast('Demande de correction envoyée au Gestionnaire Ligue.', 'bg-warning text-dark');
+    } else {
+        afficherToast(data.erreur || 'Erreur.', 'bg-danger text-white');
+    }
+}
+
+// ── Déverrouiller (GL uniquement) ─────────────────────────────────────────────
+async function deverrouillerNote(noteId, rubriqueGradeId) {
+    if (!confirm('Déverrouiller cette note pour permettre la correction ?')) return;
+    const data = await postJSON(`/evaluations/note/${noteId}/deverrouiller/`);
+    if (data.statut === 'ok') {
+        afficherToast('Note déverrouillée. Le jury peut corriger.', 'bg-warning text-dark');
+        // Mise à jour visuelle via WebSocket
+    } else {
+        afficherToast(data.erreur || 'Erreur.', 'bg-danger text-white');
+    }
+}
+
+// ── WebSocket ─────────────────────────────────────────────────────────────────
+const wsStatus = document.getElementById('ws-status');
+const ws = new WebSocket(WS_URL);
+
+ws.onopen = function() {
+    wsStatus.className = 'badge bg-success';
+    wsStatus.innerHTML = '<i class="bi bi-wifi me-1"></i>Connecté';
+};
+
+ws.onclose = function() {
+    wsStatus.className = 'badge bg-danger';
+    wsStatus.innerHTML = '<i class="bi bi-wifi-off me-1"></i>Déconnecté';
+};
+
+ws.onmessage = function(event) {
+    const msg = JSON.parse(event.data);
+
+    // Ne traiter que les messages concernant CE candidat
+    if (msg.type === 'note_saisie' && msg.data.inscription_id === INSCRIPTION_ID) {
+        const d    = msg.data;
+        const lgn  = document.getElementById(`ligne-${d.rubrique_grade_id || '?'}`);
+
+        if (d.validee) {
+            // Verrouiller visuellement la ligne
+            const allLignes = document.querySelectorAll('.note-ligne');
+            allLignes.forEach(l => {
+                if (l.querySelector(`[id*="${d.rubrique}"]`)) {
+                    l.classList.add('note-validee', 'flash-ok');
+                }
+            });
+            afficherToast(
+                `✓ ${d.rubrique} validée par ${d.jury}`,
+                'bg-success text-white'
+            );
+        }
+    }
+
+    else if (msg.type === 'note_deverrouillee' && msg.data.inscription_id === INSCRIPTION_ID) {
+        afficherToast(
+            `🔓 ${msg.data.rubrique} déverrouillée — vous pouvez corriger.`,
+            'bg-warning text-dark'
+        );
+        // Recharger la page pour mettre à jour le formulaire
+        setTimeout(() => location.reload(), 1500);
+    }
+
+    else if (msg.type === 'resultat_calcule' && msg.data.inscription_id === INSCRIPTION_ID) {
+        const d       = msg.data;
+        const bandeau = document.getElementById('bandeau-resultat');
+        const couleur = d.decision === 'ADMIS' ? 'alert-success' : 'alert-warning';
+        bandeau.className = `alert ${couleur} mb-4`;
+        bandeau.innerHTML = `
+            <strong><i class="bi bi-trophy me-2"></i>Résultat calculé :</strong>
+            ${d.decision} — Moyenne ${d.moyenne}/20`;
+        bandeau.classList.remove('d-none');
+        afficherToast(
+            `Résultat : ${d.decision} (${d.moyenne}/20)`,
+            d.decision === 'ADMIS' ? 'bg-success text-white' : 'bg-warning text-dark'
+        );
+    }
+
+    else if (msg.type === 'notes_manquantes' && msg.data.inscription_id === INSCRIPTION_ID) {
+        afficherToast(
+            `⚠ Rubriques manquantes : ${msg.data.rubriques_manquantes.join(', ')}`,
+            'bg-warning text-dark'
+        );
+    }
+};
+</script>
+{% endblock %}

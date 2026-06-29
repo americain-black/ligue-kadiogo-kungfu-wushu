@@ -1,41 +1,11 @@
 from django.db import models
 
 
-_ROMAIN_VALS  = [1000,900,500,400,100,90,50,40,10,9,5,4,1]
-_ROMAIN_SYMS  = ['M','CM','D','CD','C','XC','L','XL','X','IX','V','IV','I']
-
-
-def _to_romain(n):
-    result = ''
-    for v, s in zip(_ROMAIN_VALS, _ROMAIN_SYMS):
-        while n >= v:
-            result += s
-            n -= v
-    return result or str(n)
-
-
-_ROMAIN_LETTRES = {'I': 1, 'V': 5, 'X': 10, 'L': 50, 'C': 100, 'D': 500, 'M': 1000}
-
-
-def _from_romain(s):
-    """Convertit un chiffre romain (str) en entier. Retourne 0 si invalide."""
-    s = s.strip().upper()
-    result, prev = 0, 0
-    for c in reversed(s):
-        v = _ROMAIN_LETTRES.get(c)
-        if v is None:
-            return 0
-        result = result - v if v < prev else result + v
-        prev = v
-    return result
-
-
 class Grade(models.Model):
     """
     Grade configurable par ligue.
-    Ex : Blanc, Jaune, Verte, Bleue, Marron, Noir.
-    L'ordre permet de savoir quel grade est supérieur à un autre.
-    Chaque ligue gère sa propre liste de grades.
+    Ex : BLANC, ROUGE, ROUGE I, ROUGE II, ROUGE III…
+    L'ordre hiérarchique est déterminé par id_grade (auto-incrémenté).
     """
 
     ligue    = models.ForeignKey(
@@ -45,10 +15,6 @@ class Grade(models.Model):
         null=True, blank=True
     )
     nom      = models.CharField(max_length=50)
-    ordre    = models.PositiveSmallIntegerField(
-        null=True, blank=True,
-        help_text="Ordre croissant en chiffre romain (optionnel)"
-    )
     id_grade = models.PositiveSmallIntegerField(
         default=0,
         help_text="Identifiant séquentiel du grade (auto-incrémenté à la création)"
@@ -58,14 +24,10 @@ class Grade(models.Model):
     class Meta:
         verbose_name        = 'Grade'
         verbose_name_plural = 'Grades'
-        ordering            = ['ordre']
+        ordering            = ['id_grade']
 
     def __str__(self):
         return self.nom
-
-    @property
-    def ordre_romain(self):
-        return _to_romain(self.ordre) if self.ordre is not None else '—'
 
     def save(self, *args, **kwargs):
         if not self.pk and self.id_grade == 0:
@@ -93,7 +55,7 @@ class Pratiquant(models.Model):
     )
     grade_actuel      = models.ForeignKey(
         Grade,
-        on_delete=models.PROTECT,
+        on_delete=models.SET_NULL,
         related_name='pratiquants',
         null=True, blank=True
     )

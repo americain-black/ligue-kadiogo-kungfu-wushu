@@ -100,8 +100,14 @@ class PaiementExamen(models.Model):
 
     STATUT_CHOICES = [
         ('EN_ATTENTE',  'En attente de vérification'),
+        ('INSUFFISANT', 'Insuffisant — complément demandé'),
         ('VALIDE',      'Validé'),
         ('REJETE',      'Rejeté'),
+    ]
+
+    MODE_CHOICES = [
+        ('DEPOT_MOBILE', 'Dépôt mobile (Orange Money, Moov Money…)'),
+        ('ESPECES',      'Espèces'),
     ]
 
     club           = models.ForeignKey(
@@ -113,6 +119,24 @@ class PaiementExamen(models.Model):
         'exams.SessionExamen',
         on_delete=models.PROTECT,
         related_name='paiements'
+    )
+    mode_paiement       = models.CharField(
+        max_length=15,
+        choices=MODE_CHOICES,
+        default='DEPOT_MOBILE',
+        help_text="Mode de règlement utilisé"
+    )
+    numero_expediteur   = models.CharField(
+        max_length=50, blank=True,
+        help_text="Numéro de l'expéditeur (dépôt mobile — optionnel)"
+    )
+    numero_beneficiaire = models.CharField(
+        max_length=50, blank=True,
+        help_text="Numéro du bénéficiaire (dépôt mobile)"
+    )
+    nom_payeur     = models.CharField(
+        max_length=100, blank=True,
+        help_text="Nom de la personne qui a effectué le paiement en espèces"
     )
     montant_paye   = models.DecimalField(
         max_digits=10, decimal_places=2,
@@ -148,7 +172,6 @@ class PaiementExamen(models.Model):
     class Meta:
         verbose_name        = "Paiement d'examen"
         verbose_name_plural = "Paiements d'examen"
-        unique_together     = ('club', 'session')
         ordering            = ['-date_soumission']
 
     def __str__(self):
@@ -164,11 +187,20 @@ class PaiementExamen(models.Model):
         self.valide_par      = gestionnaire
         self.date_validation = timezone.now()
         self.save()
-        # Met à jour le statut de toutes les inscriptions du club
+        # Uniquement les inscriptions EN_ATTENTE_PAIEMENT (pas celles déjà AUTORISE ou PAIEMENT_VALIDE)
         Inscription.objects.filter(
             session=self.session,
-            pratiquant__club=self.club
+            pratiquant__club=self.club,
+            statut='EN_ATTENTE_PAIEMENT'
         ).update(statut='PAIEMENT_VALIDE')
+
+    def valider_insuffisant(self, gestionnaire, motif):
+        from django.utils import timezone
+        self.statut          = 'INSUFFISANT'
+        self.valide_par      = gestionnaire
+        self.date_validation = timezone.now()
+        self.motif_rejet     = motif
+        self.save()
 
     def rejeter(self, gestionnaire, motif=''):
         self.statut      = 'REJETE'

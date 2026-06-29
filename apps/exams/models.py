@@ -1,4 +1,5 @@
 from django.db import models
+from django.db.models import F
 from django.core.exceptions import ValidationError
 
 
@@ -73,7 +74,7 @@ class RubriqueGrade(models.Model):
     )
     grade         = models.ForeignKey(
         'practitioners.Grade',
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name='rubrique_grades'
     )
     coefficient   = models.PositiveSmallIntegerField(default=1)
@@ -87,7 +88,7 @@ class RubriqueGrade(models.Model):
         verbose_name        = 'Rubrique par grade'
         verbose_name_plural = 'Rubriques par grade'
         unique_together     = ('rubrique', 'grade')
-        ordering            = ['grade__ordre', 'rubrique__nom']
+        ordering            = ['grade__id_grade', 'rubrique__nom']
 
     def __str__(self):
         return (
@@ -119,6 +120,35 @@ class OptionExamen(models.Model):
 
     def __str__(self):
         return self.nom
+
+
+class ParametresExamen(models.Model):
+    """
+    Paramètres financiers d'examen pour une ligue.
+    Le GC collecte les droits auprès de ses pratiquants puis reverse
+    un pourcentage défini ici à la ligue.
+    """
+
+    ligue = models.OneToOneField(
+        'ligues.Ligue',
+        on_delete=models.CASCADE,
+        related_name='parametres_examen'
+    )
+    pourcentage_ligue = models.DecimalField(
+        max_digits=5, decimal_places=2, default=25,
+        help_text="Pourcentage des droits d'examen reversé à la ligue (ex : 25 → le GC paie 25 % du total)"
+    )
+
+    class Meta:
+        verbose_name        = "Paramètres d'examen"
+        verbose_name_plural = "Paramètres d'examen"
+
+    def __str__(self):
+        return f"Paramètres examen — {self.ligue.sigle} ({self.pourcentage_ligue} % à la ligue)"
+
+    @property
+    def pourcentage_club(self):
+        return 100 - self.pourcentage_ligue
 
 
 class ModeleMatricule(models.Model):
@@ -168,7 +198,7 @@ class TarifExamen(models.Model):
     )
     grade          = models.ForeignKey(
         'practitioners.Grade',
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name='tarifs'
     )
     montant        = models.DecimalField(
@@ -180,7 +210,7 @@ class TarifExamen(models.Model):
         verbose_name        = "Tarif d'examen"
         verbose_name_plural = "Tarifs d'examen"
         unique_together     = ('annee_sportive', 'grade')
-        ordering            = ['annee_sportive', 'grade__ordre']
+        ordering            = ['annee_sportive', 'grade__id_grade']
 
     def __str__(self):
         return (
@@ -217,6 +247,10 @@ class SessionExamen(models.Model):
     lieu                        = models.CharField(max_length=200)
     date_ouverture_inscriptions = models.DateField()
     date_cloture_inscriptions   = models.DateField()
+    date_limite_paiement        = models.DateField(
+        null=True, blank=True,
+        help_text="Date limite pour compléter ou régulariser le paiement des droits d'examen"
+    )
     statut                      = models.CharField(
         max_length=30,
         choices=STATUT_CHOICES,
@@ -305,7 +339,7 @@ class Inscription(models.Model):
     )
     pratiquant  = models.ForeignKey(
         'practitioners.Pratiquant',
-        on_delete=models.PROTECT,
+        on_delete=models.CASCADE,
         related_name='inscriptions'
     )
     grade_vise  = models.ForeignKey(

@@ -1,5 +1,4 @@
 {% extends 'base.html' %}
-
 {% block title %}Pratiquants — {{ club.nom_club }}{% endblock %}
 
 {% block sidebar %}
@@ -35,50 +34,105 @@
     {% endfor %}
 {% endif %}
 
-<!-- Filtre actif/inactif -->
-<div class="mb-3">
-    <a href="?statut=actif" class="btn btn-sm {% if filtre != 'inactif' %}btn-success{% else %}btn-outline-success{% endif %}">
-        Actifs
-    </a>
-    <a href="?statut=inactif" class="btn btn-sm {% if filtre == 'inactif' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">
-        Inactifs
-    </a>
+<!-- Filtres -->
+<div class="card p-3 mb-3">
+    <div class="row g-2 align-items-center">
+
+        <!-- Statut -->
+        <div class="col-auto">
+            <span class="text-muted small fw-semibold me-1">Statut :</span>
+            <a href="?statut=actif&grade={{ filtre_grade }}&sexe={{ filtre_sexe }}"
+               class="btn btn-sm {% if filtre != 'inactif' %}btn-success{% else %}btn-outline-success{% endif %}">
+                Actifs
+            </a>
+            <a href="?statut=inactif&grade={{ filtre_grade }}&sexe={{ filtre_sexe }}"
+               class="btn btn-sm {% if filtre == 'inactif' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">
+                Inactifs
+            </a>
+        </div>
+
+        <div class="col-auto"><div class="vr" style="height:28px;"></div></div>
+
+        <!-- Sexe -->
+        <div class="col-auto">
+            <span class="text-muted small fw-semibold me-1">Sexe :</span>
+            <a href="?statut={{ filtre }}&grade={{ filtre_grade }}&sexe="
+               class="btn btn-sm {% if not filtre_sexe %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                Tous
+            </a>
+            <a href="?statut={{ filtre }}&grade={{ filtre_grade }}&sexe=M"
+               class="btn btn-sm {% if filtre_sexe == 'M' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                <i class="bi bi-gender-male me-1"></i>Masculin
+            </a>
+            <a href="?statut={{ filtre }}&grade={{ filtre_grade }}&sexe=F"
+               class="btn btn-sm {% if filtre_sexe == 'F' %}btn-primary{% else %}btn-outline-primary{% endif %}">
+                <i class="bi bi-gender-female me-1"></i>Féminin
+            </a>
+        </div>
+
+        <div class="col-auto"><div class="vr" style="height:28px;"></div></div>
+
+        <!-- Grade -->
+        <div class="col-auto flex-wrap d-flex align-items-center gap-1">
+            <span class="text-muted small fw-semibold me-1">Grade :</span>
+            <a href="?statut={{ filtre }}&grade=&sexe={{ filtre_sexe }}"
+               class="btn btn-sm {% if not filtre_grade %}btn-warning{% else %}btn-outline-warning{% endif %} text-dark">
+                Tous
+            </a>
+            {% for g in grades %}
+            <a href="?statut={{ filtre }}&grade={{ g.pk }}&sexe={{ filtre_sexe }}"
+               class="btn btn-sm {% if filtre_grade == g.pk|stringformat:'s' %}btn-warning{% else %}btn-outline-warning{% endif %} text-dark">
+                {{ g.nom }}
+            </a>
+            {% endfor %}
+            <a href="?statut={{ filtre }}&grade=sans&sexe={{ filtre_sexe }}"
+               class="btn btn-sm {% if filtre_grade == 'sans' %}btn-warning{% else %}btn-outline-warning{% endif %} text-dark">
+                Sans grade
+            </a>
+        </div>
+
+    </div>
 </div>
 
 <div class="card">
     <div class="card-body p-0">
         {% if pratiquants %}
         <div class="table-responsive">
-            <table class="table table-hover mb-0">
+            <table class="table table-hover mb-0 align-middle">
                 <thead class="table-light">
                     <tr>
-                        <th>Nom & Prénom</th>
-                        <th>Date de naissance</th>
+                        <th class="ps-3">Pratiquant</th>
                         <th>Sexe</th>
                         <th>Grade</th>
+                        <th>Matricule</th>
                         <th>Téléphone</th>
                         <th>Statut</th>
-                        <th class="text-end">Actions</th>
+                        <th class="text-end pe-3">Actions</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for p in pratiquants %}
                     <tr>
-                        <td>
-                            <a href="{% url 'practitioners:detail' p.pk %}" class="text-decoration-none fw-semibold">
-                                {{ p.prenom }} {{ p.nom }}
-                            </a>
+                        <td class="ps-3">
+                            <div class="fw-semibold">{{ p.prenom }} {{ p.nom }}</div>
+                            <div class="text-muted small">{{ p.date_naissance|date:"d/m/Y" }}</div>
                         </td>
-                        <td>{{ p.date_naissance|date:"d/m/Y" }}</td>
-                        <td>{{ p.get_sexe_display }}</td>
+                        <td class="small">{{ p.get_sexe_display }}</td>
                         <td>
                             {% if p.grade_actuel %}
-                            <span class="badge bg-primary">{{ p.grade_actuel }}</span>
+                            <span class="badge bg-warning text-dark">{{ p.grade_actuel }}</span>
                             {% else %}
-                            <span class="text-muted">Pas de grade</span>
+                            <span class="text-muted small">Sans grade</span>
                             {% endif %}
                         </td>
-                        <td>{{ p.telephone|default:"—" }}</td>
+                        <td>
+                            {% if p.matricule %}
+                            <code class="small">{{ p.matricule }}</code>
+                            {% else %}
+                            <span class="text-muted small">—</span>
+                            {% endif %}
+                        </td>
+                        <td class="small text-muted">{{ p.telephone|default:"—" }}</td>
                         <td>
                             {% if p.actif %}
                             <span class="badge bg-success">Actif</span>
@@ -86,12 +140,16 @@
                             <span class="badge bg-secondary">Inactif</span>
                             {% endif %}
                         </td>
-                        <td class="text-end">
+                        <td class="text-end pe-3">
+                            <a href="{% url 'practitioners:detail' p.pk %}"
+                               class="btn btn-sm btn-outline-info" title="Voir la fiche">
+                                <i class="bi bi-person-lines-fill"></i>
+                            </a>
                             <a href="{% url 'practitioners:modifier' p.pk %}"
-                               class="btn btn-sm btn-outline-secondary" title="Modifier">
+                               class="btn btn-sm btn-outline-secondary ms-1" title="Modifier">
                                 <i class="bi bi-pencil"></i>
                             </a>
-                            <form method="post" action="{% url 'practitioners:toggle_actif' p.pk %}" class="d-inline">
+                            <form method="post" action="{% url 'practitioners:toggle_actif' p.pk %}" class="d-inline ms-1">
                                 {% csrf_token %}
                                 <button type="submit"
                                         class="btn btn-sm {% if p.actif %}btn-outline-warning{% else %}btn-outline-success{% endif %}"
@@ -99,59 +157,36 @@
                                     <i class="bi {% if p.actif %}bi-toggle-on{% else %}bi-toggle-off{% endif %}"></i>
                                 </button>
                             </form>
-                            <button class="btn btn-sm btn-outline-danger"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#modalSupprimer{{ p.pk }}"
-                                    title="Supprimer">
+                            <a href="{% url 'practitioners:supprimer' p.pk %}"
+                               class="btn btn-sm btn-outline-danger ms-1" title="Supprimer">
                                 <i class="bi bi-trash"></i>
-                            </button>
+                            </a>
                         </td>
                     </tr>
                     {% endfor %}
                 </tbody>
             </table>
         </div>
+
+        <div class="p-2 border-top text-muted small text-end pe-3">
+            {{ pratiquants|length }} pratiquant(s) affiché(s)
+        </div>
+
         {% else %}
         <div class="text-center py-5 text-muted">
-            <i class="bi bi-people fs-1"></i>
-            <p class="mt-2">Aucun pratiquant {% if filtre == 'inactif' %}inactif{% else %}actif{% endif %} trouvé.</p>
-            {% if filtre != 'inactif' %}
-            <a href="{% url 'practitioners:ajouter' %}" class="btn btn-success btn-sm">
+            <i class="bi bi-people fs-1 opacity-25 d-block mb-2"></i>
+            Aucun pratiquant trouvé avec ces filtres.
+            {% if not filtre_grade and not filtre_sexe and filtre != 'inactif' %}
+            <a href="{% url 'practitioners:ajouter' %}" class="d-block mt-2 btn btn-success btn-sm">
                 <i class="bi bi-person-plus me-1"></i>Inscrire le premier pratiquant
+            </a>
+            {% else %}
+            <a href="{% url 'practitioners:liste' %}" class="d-block mt-2 small">
+                Effacer les filtres
             </a>
             {% endif %}
         </div>
         {% endif %}
     </div>
 </div>
-
-{% for p in pratiquants %}
-<div class="modal fade" id="modalSupprimer{{ p.pk }}" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <form method="post" action="{% url 'practitioners:supprimer' p.pk %}">
-                {% csrf_token %}
-                <div class="modal-header bg-danger text-white">
-                    <h5 class="modal-title"><i class="bi bi-exclamation-triangle me-2"></i>Supprimer le pratiquant</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body">
-                    <p>Voulez-vous supprimer <strong>{{ p.prenom }} {{ p.nom }}</strong> ?</p>
-                    <p class="text-muted small">
-                        <i class="bi bi-info-circle me-1"></i>
-                        Si ce pratiquant est inscrit à une session d'examen, la suppression sera impossible.
-                    </p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    <button type="submit" class="btn btn-danger">
-                        <i class="bi bi-trash me-1"></i>Supprimer
-                    </button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-{% endfor %}
-
 {% endblock %}

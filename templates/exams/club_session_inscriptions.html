@@ -119,19 +119,41 @@
 </div>
 
 <!-- ── Section Paiement ─────────────────────────────────────────────────────── -->
-{% if inscriptions.count > 0 and peut_payer %}
+{% if peut_payer %}
+
+{% if nb_en_attente > 0 %}
 <div class="card mt-3">
-    <div class="card-header py-2">
+    <div class="card-header py-2 d-flex justify-content-between align-items-center">
         <h6 class="fw-bold mb-0"><i class="bi bi-cash-coin me-2 text-muted"></i>Paiement des droits d'examen</h6>
+        <span class="badge bg-warning text-dark">{{ nb_en_attente }} inscription(s) à régler</span>
     </div>
     <div class="card-body">
+
         <!-- Récapitulatif montant -->
-        <div class="alert alert-light border d-flex justify-content-between align-items-center mb-3">
-            <div>
-                <span class="text-muted small">{{ inscriptions.count }} pratiquant(s) inscrit(s)</span><br>
-                <strong class="fs-5">Montant total à payer : {{ montant_total|floatformat:"0" }} FCFA</strong>
+        <div class="alert alert-light border mb-3">
+            <div class="d-flex justify-content-between align-items-start">
+                <div>
+                    <span class="text-muted small">Droits d'examen pour {{ nb_en_attente }} pratiquant(s) non encore réglé(s)</span><br>
+                    <span class="text-muted small">Montant total des droits :</span>
+                    <strong class="ms-1">{{ montant_brut|floatformat:"0" }} FCFA</strong>
+                </div>
+                <i class="bi bi-calculator fs-3 text-muted opacity-50"></i>
             </div>
-            <i class="bi bi-calculator fs-3 text-muted opacity-50"></i>
+            {% if params %}
+            <hr class="my-2">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-muted small">Part à reverser à la ligue ({{ pourcentage|floatformat:"0" }} %) :</span>
+                    <strong class="ms-1 text-primary fs-5">{{ montant_ligue|floatformat:"0" }} FCFA</strong>
+                </div>
+                <span class="badge bg-primary">Montant à payer</span>
+            </div>
+            {% else %}
+            <div class="mt-2 small text-warning">
+                <i class="bi bi-exclamation-triangle me-1"></i>
+                Aucun taux de reversement configuré — la ligue doit définir ses paramètres de paiement.
+            </div>
+            {% endif %}
         </div>
 
         <div class="text-muted small mb-3">
@@ -140,40 +162,62 @@
             ou en <strong>espèces</strong> auprès de la ligue. Joignez votre reçu ou capture du dépôt.
         </div>
 
-        {% if paiement %}
-            {% if paiement.statut == 'EN_ATTENTE' %}
-            <div class="alert alert-warning">
-                <i class="bi bi-hourglass-split me-2"></i>
-                <strong>Preuve soumise — en cours de vérification</strong><br>
-                <small>Référence : {{ paiement.reference|default:"—" }} | Montant déclaré : {{ paiement.montant_paye|floatformat:"0" }} FCFA</small><br>
-                <small>Soumise le {{ paiement.date_soumission|date:"d/m/Y H:i" }}</small>
-            </div>
-            {% elif paiement.statut == 'VALIDE' %}
-            <div class="alert alert-success">
-                <i class="bi bi-check-circle-fill me-2"></i>
-                <strong>Paiement validé</strong><br>
-                <small>Référence : {{ paiement.reference|default:"—" }} | {{ paiement.montant_paye|floatformat:"0" }} FCFA</small><br>
-                <small>Validé le {{ paiement.date_validation|date:"d/m/Y H:i" }}</small>
-            </div>
-            {% elif paiement.statut == 'REJETE' %}
-            <div class="alert alert-danger mb-3">
-                <i class="bi bi-x-circle-fill me-2"></i>
-                <strong>Preuve rejetée</strong><br>
-                {% if paiement.motif_rejet %}
-                <small>Motif : {{ paiement.motif_rejet }}</small><br>
-                {% endif %}
-                <small>Vous pouvez resoumettre une nouvelle preuve.</small>
-            </div>
+        {% if paiement and paiement.statut == 'EN_ATTENTE' %}
+        <div class="alert alert-warning">
+            <i class="bi bi-hourglass-split me-2"></i>
+            <strong>Preuve en cours de vérification</strong><br>
+            <small>Déclaré : {{ paiement.montant_paye|floatformat:"0" }} FCFA</small><br>
+            <small>Soumise le {{ paiement.date_soumission|date:"d/m/Y H:i" }}</small>
+        </div>
+
+        {% elif paiement and paiement.statut == 'INSUFFISANT' %}
+        <div class="alert alert-warning border-warning">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <strong>Montant insuffisant</strong>
+            {% if session.date_limite_paiement %}
+            — à régulariser avant le <strong>{{ session.date_limite_paiement|date:"d/m/Y" }}</strong>
+            {% endif %}<br>
+            <div class="mt-2 p-2 bg-white rounded border small">{{ paiement.motif_rejet }}</div>
+        </div>
+        <div class="d-flex gap-2 flex-wrap mt-2">
             <a href="{% url 'payments:soumettre_paiement_examen' session.pk %}" class="btn btn-ligue btn-sm">
-                <i class="bi bi-arrow-repeat me-1"></i>Resoumettre une preuve
+                <i class="bi bi-upload me-1"></i>Compléter le paiement
             </a>
-            {% endif %}
+            <span class="text-muted small align-self-center">
+                <i class="bi bi-info-circle me-1"></i>
+                Ou retirez les pratiquants non couverts dans la liste ci-dessus.
+            </span>
+        </div>
+
+        {% elif paiement and paiement.statut == 'REJETE' %}
+        <div class="alert alert-danger mb-3">
+            <i class="bi bi-x-circle-fill me-2"></i>
+            <strong>Preuve rejetée</strong>{% if paiement.motif_rejet %} — {{ paiement.motif_rejet }}{% endif %}<br>
+            <small>Soumettez une nouvelle preuve corrigée.</small>
+        </div>
+        <a href="{% url 'payments:soumettre_paiement_examen' session.pk %}" class="btn btn-ligue btn-sm">
+            <i class="bi bi-arrow-repeat me-1"></i>Resoumettre une preuve
+        </a>
+
         {% else %}
-            <a href="{% url 'payments:soumettre_paiement_examen' session.pk %}" class="btn btn-ligue">
-                <i class="bi bi-upload me-1"></i>Soumettre la preuve de paiement
-            </a>
+        <a href="{% url 'payments:soumettre_paiement_examen' session.pk %}" class="btn btn-ligue">
+            <i class="bi bi-upload me-1"></i>Soumettre la preuve de paiement
+        </a>
         {% endif %}
     </div>
 </div>
+{% else %}
+<!-- Tous les inscrits ont déjà un paiement soumis/validé -->
+<div class="card mt-3 p-3">
+    <div class="d-flex align-items-center gap-3 text-success">
+        <i class="bi bi-check-circle-fill fs-3"></i>
+        <div>
+            <div class="fw-semibold">Tous les pratiquants sont couverts par un paiement</div>
+            <small class="text-muted">Aucun nouveau paiement à soumettre pour cette session.</small>
+        </div>
+    </div>
+</div>
+{% endif %}
+
 {% endif %}
 {% endblock %}

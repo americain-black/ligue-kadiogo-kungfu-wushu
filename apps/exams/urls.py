@@ -35,6 +35,9 @@ urlpatterns = [
     path('matricule/',                             views.gerer_modele_matricule,  name='modele_matricule'),
     path('matricule/supprimer/',                   views.supprimer_modele_matricule, name='supprimer_modele_matricule'),
 
+    # ── Paramètres d'examen (pourcentage paiement) ───────────────────────────
+    path('parametres/',                            views.gerer_parametres_examen, name='parametres_examen'),
+
     # ── GEST_LIGUE ────────────────────────────────────────────────────────────
     path('',                                  views.liste_sessions,        name='liste'),
     path('creer/',                            views.creer_session,         name='creer'),

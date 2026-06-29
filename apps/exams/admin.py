@@ -23,14 +23,14 @@ class RubriqueAdmin(admin.ModelAdmin):
 class RubriqueGradeAdmin(admin.ModelAdmin):
     list_display  = ('rubrique', 'grade', 'coefficient', 'note_minimale', 'actif')
     list_filter   = ('actif', 'grade')
-    ordering      = ('grade__ordre', 'rubrique__nom')
+    ordering      = ('grade__id_grade', 'rubrique__nom')
 
 
 @admin.register(TarifExamen)
 class TarifExamenAdmin(admin.ModelAdmin):
     list_display  = ('grade', 'annee_sportive', 'montant')
     list_filter   = ('annee_sportive', 'grade')
-    ordering      = ('annee_sportive', 'grade__ordre')
+    ordering      = ('annee_sportive', 'grade__id_grade')
 
 
 class AffectationJuryInline(admin.TabularInline):

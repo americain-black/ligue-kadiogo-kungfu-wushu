@@ -1,0 +1,133 @@
+{% extends 'base.html' %}
+{% block title %}Paramètres paiement — Ligue du Kadiogo{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Examens</span>
+<a href="{% url 'exams:annees_sportives' %}" class="nav-link">
+    <i class="bi bi-calendar2-range me-2"></i>Années sportives
+</a>
+<a href="{% url 'exams:liste' %}" class="nav-link">
+    <i class="bi bi-journal-check me-2"></i>Sessions d'examen
+</a>
+<a href="{% url 'exams:tarifs_accueil' %}" class="nav-link ps-4">
+    <i class="bi bi-cash-coin me-2"></i>Tarifs d'examen
+</a>
+<a href="{% url 'exams:rubriques' %}" class="nav-link">
+    <i class="bi bi-list-task me-2"></i>Rubriques / Épreuves
+</a>
+<a href="{% url 'exams:options' %}" class="nav-link">
+    <i class="bi bi-tags me-2"></i>Options / Styles
+</a>
+<a href="{% url 'exams:modele_matricule' %}" class="nav-link">
+    <i class="bi bi-123 me-2"></i>Modèle de matricule
+</a>
+<a href="{% url 'exams:parametres_examen' %}" class="nav-link active">
+    <i class="bi bi-percent me-2"></i>Paramètres paiement
+</a>
+<span class="sidebar-title mt-2">Clubs</span>
+<a href="{% url 'clubs:liste' %}" class="nav-link">
+    <i class="bi bi-building me-2"></i>Clubs
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-0">
+            <i class="bi bi-percent me-2 text-primary"></i>Paramètres de paiement des examens
+        </h4>
+        <small class="text-muted">Définissez le pourcentage des droits d'examen que le GC reverse à la ligue.</small>
+    </div>
+</div>
+
+{% if messages %}
+{% for msg in messages %}
+<div class="alert alert-{{ msg.tags }} alert-dismissible fade show">
+    {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endfor %}
+{% endif %}
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h6 class="mb-0 fw-bold"><i class="bi bi-sliders me-2"></i>Taux de reversement</h6>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                    {% endif %}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                            {{ form.pourcentage_ligue.label }}
+                        </label>
+                        <div class="input-group">
+                            {{ form.pourcentage_ligue }}
+                            <span class="input-group-text fw-bold">%</span>
+                        </div>
+                        {% if form.pourcentage_ligue.errors %}
+                        <div class="text-danger small">{{ form.pourcentage_ligue.errors.as_text }}</div>
+                        {% endif %}
+                        <div class="form-text">
+                            Le GC collecte les droits auprès de ses pratiquants, puis reverse ce pourcentage à la ligue.
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle me-1"></i>Enregistrer
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        {% if params %}
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0 fw-bold"><i class="bi bi-pie-chart me-2"></i>Répartition actuelle</h6>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="text-center flex-fill">
+                        <div class="display-6 fw-bold text-primary">{{ params.pourcentage_ligue }} %</div>
+                        <div class="small text-muted">Part de la ligue</div>
+                    </div>
+                    <div class="text-center px-3 text-muted">+</div>
+                    <div class="text-center flex-fill">
+                        <div class="display-6 fw-bold text-success">{{ params.pourcentage_club }} %</div>
+                        <div class="small text-muted">Part du club</div>
+                    </div>
+                </div>
+                <div class="progress" style="height:20px;">
+                    <div class="progress-bar bg-primary" style="width:{{ params.pourcentage_ligue }}%;">
+                        {{ params.pourcentage_ligue }}%
+                    </div>
+                    <div class="progress-bar bg-success" style="width:{{ params.pourcentage_club }}%;">
+                        {{ params.pourcentage_club }}%
+                    </div>
+                </div>
+                <p class="small text-muted mt-3 mb-0">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Exemple : pour un total de 10 000 FCFA de droits d'examen,
+                    le GC paie <strong>{{ params.pourcentage_ligue }}% = {% widthratio params.pourcentage_ligue 1 100 %} FCFA</strong> à la ligue
+                    et conserve le reste.
+                </p>
+            </div>
+        </div>
+        {% else %}
+        <div class="card p-4 bg-light text-muted text-center">
+            <i class="bi bi-exclamation-circle fs-2 mb-2"></i>
+            <p class="mb-0">Aucun paramètre défini. Configurez le taux ci-contre.</p>
+            <small>Sans paramètre, le GC devra payer 100 % des droits à la ligue.</small>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

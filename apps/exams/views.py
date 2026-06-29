@@ -6,9 +6,10 @@ from django.urls import reverse
 from django.db.models import Sum
 
 from django.db import transaction
-from .models import SessionExamen, AffectationJury, Inscription, AnneeSportive, TarifExamen, Rubrique, RubriqueGrade, OptionExamen, ModeleMatricule
-from .forms import SessionExamenForm, MultiInscriptionForm, AffectationJuryForm, AnneeSportiveForm, TarifExamenForm, RubriqueForm, RubriqueGradeForm, OptionExamenForm, ModeleMatriculeForm
+from .models import SessionExamen, AffectationJury, Inscription, AnneeSportive, TarifExamen, Rubrique, RubriqueGrade, OptionExamen, ModeleMatricule, ParametresExamen
+from .forms import SessionExamenForm, MultiInscriptionForm, AffectationJuryForm, AnneeSportiveForm, TarifExamenForm, RubriqueForm, RubriqueGradeForm, OptionExamenForm, ModeleMatriculeForm, ParametresExamenForm
 from apps.payments.models import PaiementExamen
+from apps.practitioners.models import Grade
 
 
 # ── Décorateurs ───────────────────────────────────────────────────────────────
@@ -144,7 +145,7 @@ def tarifs_accueil(request):
 def liste_tarifs(request, annee_pk):
     annee = get_object_or_404(AnneeSportive, pk=annee_pk, ligue=request.user.ligue)
     ligue = request.user.ligue
-    tarifs = annee.tarifs.select_related('grade').order_by('grade__ordre')
+    tarifs = annee.tarifs.select_related('grade').order_by('grade__id_grade')
 
     if request.method == 'POST':
         form = TarifExamenForm(request.POST, ligue=ligue, annee=annee)
@@ -179,7 +180,7 @@ def modifier_tarif(request, pk):
         form = TarifExamenForm(instance=tarif, ligue=ligue, annee=annee)
     return render(request, 'exams/tarifs.html', {
         'annee':        annee,
-        'tarifs':       annee.tarifs.select_related('grade').order_by('grade__ordre'),
+        'tarifs':       annee.tarifs.select_related('grade').order_by('grade__id_grade'),
         'form':         form,
         'tarif_en_edition': tarif,
     })
@@ -273,7 +274,7 @@ def supprimer_rubrique(request, pk):
 def config_rubrique_grades(request, pk):
     rubrique = get_object_or_404(Rubrique, pk=pk)
     ligue    = request.user.ligue
-    assocs   = rubrique.rubrique_grades.select_related('grade').order_by('grade__ordre')
+    assocs   = rubrique.rubrique_grades.select_related('grade').order_by('grade__id_grade')
 
     if request.method == 'POST':
         form = RubriqueGradeForm(request.POST, ligue=ligue, rubrique=rubrique)
@@ -311,7 +312,7 @@ def modifier_rubrique_grade(request, pk):
     else:
         form = RubriqueGradeForm(instance=rg, ligue=ligue, rubrique=rubrique)
 
-    assocs = rubrique.rubrique_grades.select_related('grade').order_by('grade__ordre')
+    assocs = rubrique.rubrique_grades.select_related('grade').order_by('grade__id_grade')
     return render(request, 'exams/rubrique_config.html', {
         'rubrique':   rubrique,
         'assocs':     assocs,
@@ -447,6 +448,32 @@ def gerer_modele_matricule(request):
 
 
 @gest_ligue_requis
+def gerer_parametres_examen(request):
+    ligue   = request.user.ligue
+    params  = ParametresExamen.objects.filter(ligue=ligue).first()
+
+    if request.method == 'POST':
+        form = ParametresExamenForm(request.POST, instance=params)
+        if form.is_valid():
+            p = form.save(commit=False)
+            p.ligue = ligue
+            p.save()
+            messages.success(
+                request,
+                f"Paramètres enregistrés : le GC reverse {p.pourcentage_ligue} % "
+                f"des droits d'examen à la ligue (garde {p.pourcentage_club} %)."
+            )
+            return redirect('exams:parametres_examen')
+    else:
+        form = ParametresExamenForm(instance=params)
+
+    return render(request, 'exams/parametres_examen.html', {
+        'params': params,
+        'form':   form,
+    })
+
+
+@gest_ligue_requis
 def supprimer_modele_matricule(request):
     ligue  = request.user.ligue
     modele = get_object_or_404(ModeleMatricule, ligue=ligue)
@@ -546,8 +573,23 @@ def detail_session(request, pk):
         clubs_dict[club.pk]['inscriptions'].append(insc)
         clubs_dict[club.pk]['montant_total'] += insc.montant or 0
 
-    paiements = PaiementExamen.objects.filter(session=session).select_related('club')
-    paiements_par_club = {p.club_id: p for p in paiements}
+    # Paiement affiché par club : le EN_ATTENTE ou REJETE le plus récent (qui nécessite action)
+    # Si aucun, on prend le VALIDE le plus récent
+    from django.db.models import Max
+    paiements = (
+        PaiementExamen.objects
+        .filter(session=session)
+        .select_related('club')
+        .order_by('club_id', '-date_soumission')
+    )
+    paiements_par_club = {}
+    for p in paiements:
+        # On garde le premier rencontré par club (le plus récent grâce au tri)
+        # Priorité : EN_ATTENTE ou REJETE > VALIDE
+        if p.club_id not in paiements_par_club:
+            paiements_par_club[p.club_id] = p
+        elif paiements_par_club[p.club_id].statut == 'VALIDE' and p.statut in ('EN_ATTENTE', 'INSUFFISANT', 'REJETE'):
+            paiements_par_club[p.club_id] = p
     for club_pk, data in clubs_dict.items():
         data['paiement'] = paiements_par_club.get(club_pk)
         # Flag Python : évite {% break %} non supporté dans les templates Django
@@ -716,7 +758,7 @@ def valider_liste_club(request, session_pk, club_pk):
         ).update(statut='AUTORISE')
 
         if nb:
-            # Générer les matricules pour les nouveaux autorisés sans matricule
+            nb_matricules = 0
             try:
                 modele = request.user.ligue.modele_matricule
                 annee  = session.annee_sportive.date_debut.year
@@ -732,13 +774,19 @@ def valider_liste_club(request, session_pk, club_pk):
                         if not insc.pratiquant.matricule:
                             insc.pratiquant.matricule = locked.generer(annee)
                             insc.pratiquant.save(update_fields=['matricule'])
-            except ModeleMatricule.DoesNotExist:
-                pass
+                            nb_matricules += 1
+            except (ModeleMatricule.DoesNotExist, AttributeError):
+                messages.warning(
+                    request,
+                    "Aucun modèle de matricule configuré pour cette ligue. "
+                    "Les pratiquants autorisés n'ont pas encore reçu de matricule. "
+                    "Configurez-le dans « Modèle de matricule » puis revalidez."
+                )
 
-            messages.success(
-                request,
-                f"Liste de « {club.nom_club} » validée : {nb} pratiquant(s) autorisé(s)."
-            )
+            msg = f"Liste de « {club.nom_club} » validée : {nb} pratiquant(s) autorisé(s)."
+            if nb_matricules:
+                msg += f" {nb_matricules} matricule(s) attribué(s) automatiquement."
+            messages.success(request, msg)
         else:
             messages.warning(request, "Aucune inscription en attente de validation pour ce club.")
     return redirect('exams:detail', pk=session_pk)
@@ -762,6 +810,7 @@ def sessions_ouvertes(request):
 @gest_club_requis
 def session_inscriptions_club(request, session_pk):
     from apps.payments.models import PaiementExamen
+    from decimal import Decimal
     club    = request.user.club
     session = get_object_or_404(
         SessionExamen, pk=session_pk,
@@ -773,16 +822,37 @@ def session_inscriptions_club(request, session_pk):
         .select_related('pratiquant', 'grade_vise', 'option')
         .order_by('pratiquant__nom', 'pratiquant__prenom')
     )
-    montant_total = inscriptions.aggregate(total=Sum('montant'))['total'] or 0
-    paiement = PaiementExamen.objects.filter(club=club, session=session).first()
+    # Montant uniquement pour les inscriptions EN_ATTENTE_PAIEMENT (nouvelles, non encore couvertes)
+    inscriptions_en_attente = inscriptions.filter(statut='EN_ATTENTE_PAIEMENT')
+    nb_en_attente  = inscriptions_en_attente.count()
+    montant_brut   = inscriptions_en_attente.aggregate(total=Sum('montant'))['total'] or Decimal('0')
+
+    # Appliquer le pourcentage de la ligue
+    params = ParametresExamen.objects.filter(ligue=club.ligue).first()
+    pourcentage    = params.pourcentage_ligue if params else Decimal('100')
+    montant_ligue  = (montant_brut * pourcentage / 100).quantize(Decimal('1'))
+
+    # Paiement actif : EN_ATTENTE, INSUFFISANT ou REJETE le plus récent (pas VALIDE)
+    paiement = (
+        PaiementExamen.objects
+        .filter(club=club, session=session)
+        .exclude(statut='VALIDE')
+        .order_by('-date_soumission')
+        .first()
+    )
+    peut_payer = session.statut in ['INSCRIPTIONS_OUVERTES', 'INSCRIPTIONS_CLOSES', 'EN_COURS']
     return render(request, 'exams/club_session_inscriptions.html', {
-        'session':       session,
-        'club':          club,
-        'inscriptions':  inscriptions,
-        'montant_total': montant_total,
-        'paiement':      paiement,
-        'peut_inscrire': session.statut == 'INSCRIPTIONS_OUVERTES',
-        'peut_payer':    session.statut in ['INSCRIPTIONS_OUVERTES', 'INSCRIPTIONS_CLOSES', 'EN_COURS'],
+        'session':        session,
+        'club':           club,
+        'inscriptions':   inscriptions,
+        'nb_en_attente':  nb_en_attente,
+        'montant_brut':   montant_brut,
+        'montant_ligue':  montant_ligue,
+        'pourcentage':    pourcentage,
+        'params':         params,
+        'paiement':       paiement,
+        'peut_inscrire':  session.statut == 'INSCRIPTIONS_OUVERTES',
+        'peut_payer':     peut_payer,
     })
 
 
@@ -828,36 +898,57 @@ def inscrire_pratiquant(request, session_pk):
         .select_related('grade_actuel')
         .order_by('nom', 'prenom')
     )
-    # Sérialiser pour le filtre JS
+    grades = list(Grade.objects.filter(ligue=ligue, actif=True).order_by('id_grade'))
+    # Positions 1-basées dans la liste ordonnée (indépendant de id_grade)
+    grade_pos_map = {g.pk: (i + 1) for i, g in enumerate(grades)}
+    pratiquants_avec_pos = [
+        (p, grade_pos_map.get(p.grade_actuel.pk, 0) if p.grade_actuel else 0)
+        for p in pratiquants_dispo
+    ]
     pratiquants_json = json.dumps([
         {
-            'pk':             p.pk,
-            'nom':            f"{p.nom} {p.prenom}",
-            'grade_nom':      p.grade_actuel.nom if p.grade_actuel else "Sans grade",
-            'id_grade_actuel': p.grade_actuel.id_grade if p.grade_actuel else 0,
+            'pk':          p.pk,
+            'nom':         f"{p.nom} {p.prenom}",
+            'grade_nom':   p.grade_actuel.nom if p.grade_actuel else "Sans grade",
+            'pos_actuelle': pos,
         }
-        for p in pratiquants_dispo
+        for p, pos in pratiquants_avec_pos
     ])
-    grades = Grade.objects.filter(ligue=ligue, actif=True).order_by('ordre')
     options = OptionExamen.objects.filter(ligue=ligue, actif=True)
 
+    # Tarifs par grade (pour le calcul JS du montant en temps réel)
+    tarifs_qs = TarifExamen.objects.filter(
+        annee_sportive=session.annee_sportive,
+        grade__ligue=ligue
+    ).values('grade_id', 'montant')
+    tarifs_json = json.dumps({str(t['grade_id']): float(t['montant']) for t in tarifs_qs})
+
+    params = ParametresExamen.objects.filter(ligue=ligue).first()
+    pourcentage_ligue = float(params.pourcentage_ligue) if params else 100.0
+
     return render(request, 'exams/inscrire_pratiquants.html', {
-        'session':          session,
-        'club':             club,
-        'form':             form,
-        'pratiquants_dispo': pratiquants_dispo,
-        'pratiquants_json': pratiquants_json,
-        'grades':           grades,
-        'options':          options,
-        'nb_dispo':         pratiquants_dispo.count(),
+        'session':              session,
+        'club':                 club,
+        'form':                 form,
+        'pratiquants_avec_pos': pratiquants_avec_pos,
+        'pratiquants_json':     pratiquants_json,
+        'grades':               grades,
+        'options':              options,
+        'nb_dispo':             len(pratiquants_avec_pos),
+        'tarifs_json':          tarifs_json,
+        'pourcentage_ligue':    pourcentage_ligue,
+        'params':               params,
     })
 
 
 @gest_club_requis
 def supprimer_inscription(request, pk):
+    from decimal import Decimal
+    from apps.payments.models import PaiementExamen
     club        = request.user.club
     inscription = get_object_or_404(Inscription, pk=pk, pratiquant__club=club)
     session_pk  = inscription.session.pk
+    session     = inscription.session
     if request.method == 'POST':
         if inscription.statut != 'EN_ATTENTE_PAIEMENT':
             messages.error(request, "Impossible de supprimer une inscription dont le paiement est déjà validé.")
@@ -865,4 +956,28 @@ def supprimer_inscription(request, pk):
             nom = f"{inscription.pratiquant.prenom} {inscription.pratiquant.nom}"
             inscription.delete()
             messages.success(request, f"Inscription de {nom} supprimée.")
+            # Recalcul automatique si un paiement INSUFFISANT existe
+            paiement_insuffisant = (
+                PaiementExamen.objects
+                .filter(club=club, session=session, statut='INSUFFISANT')
+                .order_by('-date_soumission')
+                .first()
+            )
+            if paiement_insuffisant:
+                params = ParametresExamen.objects.filter(ligue=club.ligue).first()
+                pourcentage = params.pourcentage_ligue if params else Decimal('100')
+                reste = Inscription.objects.filter(
+                    session=session, pratiquant__club=club, statut='EN_ATTENTE_PAIEMENT'
+                ).aggregate(total=Sum('montant'))['total'] or Decimal('0')
+                nouveau_attendu = (reste * pourcentage / 100).quantize(Decimal('1'))
+                if paiement_insuffisant.montant_paye >= nouveau_attendu and nouveau_attendu > 0:
+                    paiement_insuffisant.montant_attendu = nouveau_attendu
+                    paiement_insuffisant.statut          = 'EN_ATTENTE'
+                    paiement_insuffisant.motif_rejet     = ''
+                    paiement_insuffisant.save()
+                    messages.info(
+                        request,
+                        "Montant maintenant suffisant pour les inscrits restants. "
+                        "Le gestionnaire financier va revalider votre dossier."
+                    )
     return redirect('exams:club_inscriptions', session_pk=session_pk)

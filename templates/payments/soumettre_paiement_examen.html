@@ -41,7 +41,7 @@
                 </tr>
                 <tr>
                     <td class="text-muted small">Pratiquants inscrits</td>
-                    <td class="small"><span class="badge bg-secondary">{{ nb_inscrits }}</span></td>
+                    <td class="small"><span class="badge bg-secondary">{{ nb_en_attente }}</span></td>
                 </tr>
                 <tr class="border-top">
                     <td class="text-muted small fw-semibold pt-2">Montant à payer</td>
@@ -67,24 +67,83 @@
             </h6>
             <form method="post" enctype="multipart/form-data">
                 {% csrf_token %}
-                {% for field in form %}
+
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger py-2 small">
+                    {% for err in form.non_field_errors %}{{ err }}{% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Mode de paiement -->
                 <div class="mb-3">
-                    <label class="form-label fw-semibold small">{{ field.label }}</label>
-                    {{ field }}
-                    {% if field.name == 'montant_paye' %}
-                    <div class="form-text">Montant attendu : {{ montant_attendu|floatformat:"0" }} FCFA</div>
-                    {% endif %}
-                    {% if field.name == 'reference' %}
-                    <div class="form-text">Numéro du reçu de dépôt, ou référence de paiement</div>
-                    {% endif %}
-                    {% if field.name == 'fichier_preuve' %}
-                    <div class="form-text">Photo du reçu ou bordereau de dépôt (PDF, JPG, PNG)</div>
-                    {% endif %}
-                    {% for error in field.errors %}
+                    <label class="form-label fw-semibold small">{{ form.mode_paiement.label }}</label>
+                    {{ form.mode_paiement }}
+                    {% for error in form.mode_paiement.errors %}
                     <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
                     {% endfor %}
                 </div>
-                {% endfor %}
+
+                <!-- Champs dépôt mobile -->
+                <div id="section-depot-mobile">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">{{ form.numero_expediteur.label }}</label>
+                        {{ form.numero_expediteur }}
+                        <div class="form-text">Numéro du téléphone qui a effectué le dépôt (optionnel)</div>
+                        {% for error in form.numero_expediteur.errors %}
+                        <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">{{ form.numero_beneficiaire.label }}</label>
+                        {{ form.numero_beneficiaire }}
+                        <div class="form-text">Numéro de la ligue qui a reçu le dépôt</div>
+                        {% for error in form.numero_beneficiaire.errors %}
+                        <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Champ espèces : nom du payeur -->
+                <div id="section-especes" style="display:none;">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">{{ form.nom_payeur.label }}</label>
+                        {{ form.nom_payeur }}
+                        <div class="form-text">Nom de la personne qui a apporté le paiement à la ligue</div>
+                        {% for error in form.nom_payeur.errors %}
+                        <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Montant -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold small">{{ form.montant_paye.label }}</label>
+                    {{ form.montant_paye }}
+                    <div class="form-text">Montant attendu : <strong>{{ montant_attendu|floatformat:"0" }} FCFA</strong></div>
+                    {% for error in form.montant_paye.errors %}
+                    <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- Référence (dépôt mobile seulement) -->
+                <div id="section-reference" class="mb-3">
+                    <label class="form-label fw-semibold small">{{ form.reference.label }}</label>
+                    {{ form.reference }}
+                    <div class="form-text">Numéro de transaction (Orange Money, Moov Money…)</div>
+                    {% for error in form.reference.errors %}
+                    <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- Fichier preuve -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold small">{{ form.fichier_preuve.label }}</label>
+                    {{ form.fichier_preuve }}
+                    <div class="form-text">Photo du reçu ou bordereau de dépôt (PDF, JPG, PNG)</div>
+                    {% for error in form.fichier_preuve.errors %}
+                    <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
+                    {% endfor %}
+                </div>
 
                 <div class="d-flex gap-2 mt-4 pt-2 border-top">
                     <button type="submit" class="btn btn-ligue">
@@ -98,4 +157,23 @@
         </div>
     </div>
 </div>
+
+<script>
+(function () {
+    const modeSelect    = document.getElementById('id_mode_paiement');
+    const sectionMobile = document.getElementById('section-depot-mobile');
+    const sectionEsp    = document.getElementById('section-especes');
+    const sectionRef    = document.getElementById('section-reference');
+
+    function toggleMode() {
+        const isDepot = modeSelect.value === 'DEPOT_MOBILE';
+        sectionMobile.style.display = isDepot ? '' : 'none';
+        sectionEsp.style.display    = isDepot ? 'none' : '';
+        sectionRef.style.display    = isDepot ? '' : 'none';
+    }
+
+    modeSelect.addEventListener('change', toggleMode);
+    toggleMode();
+})();
+</script>
 {% endblock %}

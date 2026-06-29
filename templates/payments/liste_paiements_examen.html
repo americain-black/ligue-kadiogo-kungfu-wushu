@@ -67,6 +67,8 @@
             <td>
                 {% if p.statut == 'EN_ATTENTE' %}
                     <span class="badge bg-warning text-dark">En attente</span>
+                {% elif p.statut == 'INSUFFISANT' %}
+                    <span class="badge bg-warning text-dark"><i class="bi bi-exclamation-triangle me-1"></i>Insuffisant</span>
                 {% elif p.statut == 'VALIDE' %}
                     <span class="badge bg-success">Validé</span>
                 {% elif p.statut == 'REJETE' %}

@@ -25,7 +25,9 @@
 <a href="{% url 'exams:modele_matricule' %}" class="nav-link">
     <i class="bi bi-123 me-2"></i>Modèle de matricule
 </a>
-
+<a href="{% url 'exams:parametres_examen' %}" class="nav-link">
+    <i class="bi bi-percent me-2"></i>Paramètres paiement
+</a>
 
 <span class="sidebar-title mt-2">Clubs</span>
 <a href="{% url 'clubs:liste' %}" class="nav-link">
@@ -86,9 +88,7 @@
                     <tbody>
                     {% for t in tarifs %}
                     <tr {% if tarif_en_edition and tarif_en_edition.pk == t.pk %}class="table-warning"{% endif %}>
-                        <td class="ps-3"><strong>{{ t.grade.nom }}</strong>
-                            <span class="text-muted small ms-1">ordre {{ t.grade.ordre }}</span>
-                        </td>
+                        <td class="ps-3"><strong>{{ t.grade }}</strong></td>
                         <td class="fw-semibold text-success">{{ t.montant|floatformat:"0" }} FCFA</td>
                         <td class="text-end pe-3">
                             <a href="{% url 'exams:modifier_tarif' t.pk %}"

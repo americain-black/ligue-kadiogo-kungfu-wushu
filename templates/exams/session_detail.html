@@ -25,7 +25,9 @@
 <a href="{% url 'exams:modele_matricule' %}" class="nav-link">
     <i class="bi bi-123 me-2"></i>Modèle de matricule
 </a>
-
+<a href="{% url 'exams:parametres_examen' %}" class="nav-link">
+    <i class="bi bi-percent me-2"></i>Paramètres paiement
+</a>
 
 <span class="sidebar-title mt-2">Clubs</span>
 <a href="{% url 'clubs:liste' %}" class="nav-link">
@@ -106,6 +108,12 @@
                     <td class="text-muted small">Total inscrits</td>
                     <td class="small"><span class="badge bg-secondary">{{ nb_inscrits }}</span></td>
                 </tr>
+                {% if session.date_limite_paiement %}
+                <tr>
+                    <td class="text-muted small">Limite paiement</td>
+                    <td class="small fw-semibold text-warning">{{ session.date_limite_paiement|date:"d/m/Y" }}</td>
+                </tr>
+                {% endif %}
             </table>
         </div>
 
@@ -159,6 +167,10 @@
                         {% if data.paiement %}
                             {% if data.paiement.statut == 'EN_ATTENTE' %}
                                 <span class="badge bg-warning text-dark">Preuve en vérification</span>
+                            {% elif data.paiement.statut == 'INSUFFISANT' %}
+                                <span class="badge bg-warning text-dark">
+                                    <i class="bi bi-exclamation-triangle me-1"></i>Insuffisant — en attente
+                                </span>
                             {% elif data.paiement.statut == 'VALIDE' %}
                                 <span class="badge bg-success">Paiement validé</span>
                                 {% if data.a_paiement_valide_en_attente %}

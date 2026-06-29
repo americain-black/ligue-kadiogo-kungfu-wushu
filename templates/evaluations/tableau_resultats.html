@@ -1,0 +1,313 @@
+{% extends 'base.html' %}
+{% block title %}Résultats temps réel — {{ session.titre }}{% endblock %}
+
+{% block extra_css %}
+<style>
+    .flash-row { animation: flashLigne 1.2s ease; }
+    @keyframes flashLigne {
+        0%   { background-color: #d4edda; }
+        100% { background-color: transparent; }
+    }
+    .admis    { color: #27ae60; font-weight: bold; }
+    .ajourne  { color: #e67e22; font-weight: bold; }
+    .en-cours { color: #2980b9; }
+    #ws-pulse {
+        display: inline-block;
+        width: 10px; height: 10px;
+        border-radius: 50%;
+        background: #27ae60;
+        animation: pulse 1.5s infinite;
+    }
+    @keyframes pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50%       { opacity: 0.4; transform: scale(0.8); }
+    }
+</style>
+{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<a href="{% url 'exams:detail' session.pk %}" class="nav-link">
+    <i class="bi bi-arrow-left me-2"></i>Détail session
+</a>
+<span class="sidebar-title mt-2">Évaluation</span>
+<a href="{% url 'evaluations:interface_notation' session.pk %}" class="nav-link">
+    <i class="bi bi-pencil-square me-2"></i>Interface notation
+</a>
+<a href="#" class="nav-link active">
+    <i class="bi bi-graph-up me-2"></i>Résultats temps réel
+</a>
+{% endblock %}
+
+{% block content %}
+<!-- En-tête -->
+<div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+    <div>
+        <small class="text-muted"><a href="{% url 'exams:liste' %}">Sessions</a> › {{ session.titre }}</small>
+        <h4 class="fw-bold mb-1 mt-1">
+            <i class="bi bi-graph-up me-2 text-primary"></i>Résultats en temps réel
+        </h4>
+        <span class="text-muted small">{{ session.date_examen|date:"d/m/Y" }} — {{ session.lieu }}</span>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <span id="ws-status" class="badge bg-secondary">
+            <i class="bi bi-wifi-off me-1"></i>Connexion...
+        </span>
+        <span id="ws-pulse" class="d-none"></span>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="position-fixed top-0 end-0 p-3" style="z-index:1100">
+    <div id="toast-ws" class="toast align-items-center border-0" role="alert">
+        <div class="d-flex">
+            <div class="toast-body" id="toast-message"></div>
+            <button type="button" class="btn-close me-2 m-auto" data-bs-dismiss="toast"></button>
+        </div>
+    </div>
+</div>
+
+<!-- Compteurs -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card p-3 stat-card">
+            <div class="text-muted small">Total candidats</div>
+            <div class="fw-bold fs-4">{{ inscriptions|length }}</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card p-3" style="border-left:4px solid #27ae60;">
+            <div class="text-muted small">Admis</div>
+            <div class="fw-bold fs-4 text-success" id="cpt-admis">0</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card p-3" style="border-left:4px solid #e67e22;">
+            <div class="text-muted small">Ajournés</div>
+            <div class="fw-bold fs-4 text-warning" id="cpt-ajournes">0</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card p-3" style="border-left:4px solid #95a5a6;">
+            <div class="text-muted small">En cours</div>
+            <div class="fw-bold fs-4 text-secondary" id="cpt-en-cours">{{ inscriptions|length }}</div>
+        </div>
+    </div>
+</div>
+
+<!-- Tableau des résultats -->
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="fw-bold mb-0">
+            <i class="bi bi-table me-2"></i>Tableau des résultats
+        </h6>
+        <span class="badge bg-primary" id="derniere-maj">En attente des données…</span>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th class="ps-3">Candidat</th>
+                    <th>Club</th>
+                    <th class="text-center">Grade visé</th>
+                    <th class="text-center">Notes validées</th>
+                    <th class="text-center">Moyenne</th>
+                    <th class="text-center">Décision</th>
+                    <th class="text-center">Fiche</th>
+                </tr>
+            </thead>
+            <tbody id="corps-tableau">
+                {% for insc in inscriptions %}
+                <tr id="ligne-{{ insc.pk }}">
+                    <td class="ps-3 fw-semibold">
+                        {{ insc.pratiquant.nom }} {{ insc.pratiquant.prenom }}
+                    </td>
+                    <td class="text-muted small">{{ insc.pratiquant.club.nom_club }}</td>
+                    <td class="text-center">
+                        <span class="badge bg-primary">{{ insc.grade_vise }}</span>
+                    </td>
+                    <td class="text-center" id="notes-{{ insc.pk }}">
+                        <span class="badge bg-light text-dark border">0</span>
+                    </td>
+                    <td class="text-center fw-bold" id="moy-{{ insc.pk }}">
+                        <span class="text-muted">—</span>
+                    </td>
+                    <td class="text-center" id="dec-{{ insc.pk }}">
+                        <span class="badge bg-light text-dark border en-cours">En cours</span>
+                    </td>
+                    <td class="text-center">
+                        <a href="{% url 'evaluations:detail_candidat' session.pk insc.pk %}"
+                           class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Journal des événements -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h6 class="fw-bold mb-0">
+            <i class="bi bi-activity me-2"></i>Journal des événements temps réel
+        </h6>
+    </div>
+    <div class="card-body p-2" id="journal" style="max-height:250px; overflow-y:auto; font-size:0.85rem;">
+        <p class="text-muted small text-center mb-0">En attente des événements…</p>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const SESSION_ID = {{ session.pk }};
+const WS_URL     = `ws://${window.location.host}/{{ ws_url }}`;
+
+let nbAdmis    = 0;
+let nbAjournes = 0;
+let nbTotal    = {{ inscriptions|length }};
+
+// ── Compteurs ────────────────────────────────────────────────────────────────
+function mettreAJourCompteurs() {
+    document.getElementById('cpt-admis').textContent    = nbAdmis;
+    document.getElementById('cpt-ajournes').textContent = nbAjournes;
+    document.getElementById('cpt-en-cours').textContent = nbTotal - nbAdmis - nbAjournes;
+}
+
+// ── Toast ────────────────────────────────────────────────────────────────────
+const toastEl  = document.getElementById('toast-ws');
+const toastMsg = document.getElementById('toast-message');
+const bsToast  = new bootstrap.Toast(toastEl, { delay: 4000 });
+
+function afficherToast(message, couleur = 'bg-success text-white') {
+    toastEl.className = `toast align-items-center border-0 ${couleur}`;
+    toastMsg.textContent = message;
+    bsToast.show();
+}
+
+// ── Journal ──────────────────────────────────────────────────────────────────
+const journal = document.getElementById('journal');
+
+function ajouterJournal(texte, couleur = 'text-dark') {
+    const heure = new Date().toLocaleTimeString('fr-FR');
+    const ligne = document.createElement('div');
+    ligne.className = `border-bottom py-1 ${couleur}`;
+    ligne.innerHTML = `<span class="text-muted me-2">${heure}</span>${texte}`;
+    if (journal.querySelector('p')) journal.innerHTML = '';
+    journal.prepend(ligne);
+}
+
+// ── Suivi des notes validées par inscription ─────────────────────────────────
+const notesValidees = {};  // inscription_id → Set de rubriques
+
+function traiterNoteSaisie(d) {
+    if (!notesValidees[d.inscription_id]) {
+        notesValidees[d.inscription_id] = new Set();
+    }
+    if (d.validee) {
+        notesValidees[d.inscription_id].add(d.rubrique);
+    }
+    const nb = notesValidees[d.inscription_id].size;
+    const cellNotes = document.getElementById(`notes-${d.inscription_id}`);
+    if (cellNotes) {
+        cellNotes.innerHTML = `<span class="badge bg-primary">${nb}</span>`;
+    }
+    const ligne = document.getElementById(`ligne-${d.inscription_id}`);
+    if (ligne) ligne.classList.add('flash-row');
+
+    ajouterJournal(
+        `<strong>${d.pratiquant}</strong> — ${d.rubrique} : <strong>${d.note}/20</strong>` +
+        (d.validee ? ' ✓ validée' : ''),
+        d.validee ? 'text-success' : 'text-secondary'
+    );
+}
+
+// ── Résultat ─────────────────────────────────────────────────────────────────
+function afficherResultat(d) {
+    const cellMoy = document.getElementById(`moy-${d.inscription_id}`);
+    const cellDec = document.getElementById(`dec-${d.inscription_id}`);
+    const ligne   = document.getElementById(`ligne-${d.inscription_id}`);
+
+    if (cellMoy) cellMoy.innerHTML = `<span class="${d.decision === 'ADMIS' ? 'admis' : 'ajourne'}">${d.moyenne}/20</span>`;
+    if (cellDec) {
+        const couleur = d.decision === 'ADMIS' ? 'bg-success' : 'bg-warning text-dark';
+        cellDec.innerHTML = `<span class="badge ${couleur}">${d.decision}</span>`;
+    }
+    if (ligne) {
+        ligne.classList.remove('flash-row');
+        void ligne.offsetWidth;
+        ligne.classList.add('flash-row');
+    }
+
+    if (d.decision === 'ADMIS') nbAdmis++;
+    else nbAjournes++;
+    mettreAJourCompteurs();
+
+    document.getElementById('derniere-maj').textContent =
+        `Dernière mise à jour : ${new Date().toLocaleTimeString('fr-FR')}`;
+
+    ajouterJournal(
+        `🏆 <strong>${d.pratiquant}</strong> → <strong>${d.decision}</strong> (moy. ${d.moyenne}/20)`,
+        d.decision === 'ADMIS' ? 'text-success' : 'text-warning'
+    );
+
+    afficherToast(
+        `${d.pratiquant} : ${d.decision} — ${d.moyenne}/20`,
+        d.decision === 'ADMIS' ? 'bg-success text-white' : 'bg-warning text-dark'
+    );
+}
+
+// ── WebSocket ─────────────────────────────────────────────────────────────────
+const wsStatus = document.getElementById('ws-status');
+const wsPulse  = document.getElementById('ws-pulse');
+const ws = new WebSocket(WS_URL);
+
+ws.onopen = function() {
+    wsStatus.className = 'badge bg-success';
+    wsStatus.innerHTML = '<i class="bi bi-wifi me-1"></i>Connecté';
+    wsPulse.classList.remove('d-none');
+};
+
+ws.onclose = function() {
+    wsStatus.className = 'badge bg-danger';
+    wsStatus.innerHTML = '<i class="bi bi-wifi-off me-1"></i>Déconnecté';
+    wsPulse.classList.add('d-none');
+    afficherToast('Connexion WebSocket perdue. Rechargez la page.', 'bg-danger text-white');
+};
+
+ws.onmessage = function(event) {
+    const msg = JSON.parse(event.data);
+
+    if (msg.type === 'connexion_etablie') {
+        ajouterJournal('<i class="bi bi-wifi me-1"></i>Connecté — synchronisation en temps réel active.', 'text-primary');
+    }
+    else if (msg.type === 'note_saisie') {
+        traiterNoteSaisie(msg.data);
+    }
+    else if (msg.type === 'resultat_calcule') {
+        afficherResultat(msg.data);
+    }
+    else if (msg.type === 'notes_manquantes') {
+        const d = msg.data;
+        ajouterJournal(
+            `⚠ <strong>${d.pratiquant}</strong> — rubriques manquantes : ${d.rubriques_manquantes.join(', ')}`,
+            'text-warning'
+        );
+    }
+    else if (msg.type === 'note_deverrouillee') {
+        const d = msg.data;
+        ajouterJournal(
+            `🔓 Note déverrouillée — <strong>${d.pratiquant}</strong> — ${d.rubrique}`,
+            'text-secondary'
+        );
+    }
+};
+</script>
+{% endblock %}

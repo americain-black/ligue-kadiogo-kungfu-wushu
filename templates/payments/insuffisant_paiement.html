@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% block title %}Paiement insuffisant — {{ paiement.club.nom_club }}{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_financier' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Paiements</span>
+<a href="{% url 'payments:liste_paiements_examen' %}" class="nav-link active">
+    <i class="bi bi-cash-coin me-2"></i>Droits d'examen
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <small class="text-muted">
+        <a href="{% url 'payments:liste_paiements_examen' %}">Paiements</a> ›
+        <a href="{% url 'payments:detail_paiement_examen' paiement.pk %}">{{ paiement.club.nom_club }}</a> ›
+        Montant insuffisant
+    </small>
+    <h4 class="fw-bold mt-1 text-warning">
+        <i class="bi bi-exclamation-triangle me-2"></i>Valider comme insuffisant
+    </h4>
+</div>
+
+<div class="row g-3" style="max-width: 900px;">
+    <!-- Récap paiement -->
+    <div class="col-12 col-md-5">
+        <div class="card p-3 mb-3">
+            <h6 class="fw-bold mb-3"><i class="bi bi-receipt me-2 text-muted"></i>Récapitulatif</h6>
+            <table class="table table-sm table-borderless mb-0">
+                <tr>
+                    <td class="text-muted small">Club</td>
+                    <td class="small fw-semibold">{{ paiement.club.nom_club }}</td>
+                </tr>
+                <tr>
+                    <td class="text-muted small">Session</td>
+                    <td class="small">{{ paiement.session.titre }}</td>
+                </tr>
+                <tr class="border-top">
+                    <td class="text-muted small pt-2">Montant attendu</td>
+                    <td class="small fw-semibold pt-2">{{ paiement.montant_attendu|floatformat:"0" }} FCFA</td>
+                </tr>
+                <tr>
+                    <td class="text-muted small">Montant reçu</td>
+                    <td class="small text-danger fw-bold">{{ paiement.montant_paye|floatformat:"0" }} FCFA</td>
+                </tr>
+                <tr>
+                    <td class="text-muted small">Manque</td>
+                    <td class="small text-danger fw-bold">{{ manque|floatformat:"0" }} FCFA</td>
+                </tr>
+                {% if session.date_limite_paiement %}
+                <tr class="border-top">
+                    <td class="text-muted small pt-2">Date limite</td>
+                    <td class="small pt-2 fw-semibold text-warning">{{ session.date_limite_paiement|date:"d/m/Y" }}</td>
+                </tr>
+                {% endif %}
+            </table>
+        </div>
+
+        <!-- Liste inscrits -->
+        <div class="card p-3">
+            <h6 class="fw-bold mb-2">
+                <i class="bi bi-people me-2 text-muted"></i>Inscrits concernés
+                <span class="badge bg-secondary ms-1">{{ inscriptions.count }}</span>
+            </h6>
+            <ul class="list-unstyled mb-0">
+                {% for insc in inscriptions %}
+                <li class="py-1 border-bottom small">
+                    <strong>{{ insc.pratiquant.nom }} {{ insc.pratiquant.prenom }}</strong>
+                    <span class="text-muted ms-1">→ {{ insc.grade_vise }}</span>
+                    <span class="float-end text-muted">{{ insc.montant|floatformat:"0" }} FCFA</span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <!-- Formulaire -->
+    <div class="col-12 col-md-7">
+        <div class="card p-4">
+            <h6 class="fw-bold mb-1">Message au gestionnaire de club</h6>
+            <p class="text-muted small mb-3">
+                Ce message sera affiché au GC dans son tableau de bord.
+                Il peut alors <strong>compléter le paiement</strong> ou
+                <strong>retirer les pratiquants non couverts</strong>
+                {% if session.date_limite_paiement %}
+                avant le <strong>{{ session.date_limite_paiement|date:"d/m/Y" }}</strong>
+                {% endif %}.
+            </p>
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    {{ form.motif }}
+                    {% if form.motif.errors %}
+                    <div class="text-danger small mt-1">{{ form.motif.errors.as_text }}</div>
+                    {% endif %}
+                </div>
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-warning text-dark fw-semibold">
+                        <i class="bi bi-send me-1"></i>Confirmer et notifier le club
+                    </button>
+                    <a href="{% url 'payments:detail_paiement_examen' paiement.pk %}"
+                       class="btn btn-outline-secondary">Annuler</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

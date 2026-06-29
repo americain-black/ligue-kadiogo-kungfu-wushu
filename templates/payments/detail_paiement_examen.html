@@ -49,9 +49,28 @@
                     </td>
                 </tr>
                 <tr>
-                    <td class="text-muted small">Référence</td>
+                    <td class="text-muted small">Mode de paiement</td>
+                    <td class="small fw-semibold">{{ paiement.get_mode_paiement_display }}</td>
+                </tr>
+                {% if paiement.mode_paiement == 'DEPOT_MOBILE' %}
+                <tr>
+                    <td class="text-muted small">N° expéditeur</td>
+                    <td class="small">{{ paiement.numero_expediteur|default:"—" }}</td>
+                </tr>
+                <tr>
+                    <td class="text-muted small">N° bénéficiaire</td>
+                    <td class="small">{{ paiement.numero_beneficiaire|default:"—" }}</td>
+                </tr>
+                <tr>
+                    <td class="text-muted small">Référence transaction</td>
                     <td class="small">{{ paiement.reference|default:"—" }}</td>
                 </tr>
+                {% else %}
+                <tr>
+                    <td class="text-muted small">Nom du payeur</td>
+                    <td class="small fw-semibold">{{ paiement.nom_payeur|default:"—" }}</td>
+                </tr>
+                {% endif %}
                 <tr>
                     <td class="text-muted small">Soumis le</td>
                     <td class="small">{{ paiement.date_soumission|date:"d/m/Y H:i" }}</td>
@@ -78,20 +97,31 @@
             {% if paiement.montant_paye < paiement.montant_attendu %}
             <div class="alert alert-warning small py-2 mb-3">
                 <i class="bi bi-exclamation-triangle me-1"></i>
-                Le montant déclaré ({{ paiement.montant_paye|floatformat:"0" }} FCFA) est inférieur
-                au montant attendu ({{ paiement.montant_attendu|floatformat:"0" }} FCFA).
+                Manque : <strong>{{ paiement.montant_attendu|floatformat:"0" }} − {{ paiement.montant_paye|floatformat:"0" }} FCFA</strong>.
             </div>
             {% endif %}
-            <div class="d-flex gap-2">
+            <div class="d-flex gap-2 flex-wrap">
                 <a href="{% url 'payments:valider_paiement_examen' paiement.pk %}"
                    class="btn btn-success btn-sm">
                     <i class="bi bi-check-lg me-1"></i>Valider
                 </a>
+                {% if paiement.montant_paye < paiement.montant_attendu %}
+                <a href="{% url 'payments:insuffisant_paiement_examen' paiement.pk %}"
+                   class="btn btn-warning btn-sm text-dark">
+                    <i class="bi bi-exclamation-triangle me-1"></i>Insuffisant
+                </a>
+                {% endif %}
                 <a href="{% url 'payments:rejeter_paiement_examen' paiement.pk %}"
                    class="btn btn-danger btn-sm">
                     <i class="bi bi-x-lg me-1"></i>Rejeter
                 </a>
             </div>
+        </div>
+        {% elif paiement.statut == 'INSUFFISANT' %}
+        <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            <strong>Insuffisant</strong> — signalé le {{ paiement.date_validation|date:"d/m/Y H:i" }}<br>
+            <small class="d-block mt-1">{{ paiement.motif_rejet }}</small>
         </div>
         {% elif paiement.statut == 'VALIDE' %}
         <div class="alert alert-success">

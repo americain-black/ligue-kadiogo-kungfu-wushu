@@ -4,9 +4,9 @@ from .models import Grade, Pratiquant
 
 @admin.register(Grade)
 class GradeAdmin(admin.ModelAdmin):
-    list_display  = ('ordre', 'nom', 'actif')
+    list_display  = ('id_grade', 'nom', 'actif')
     list_filter   = ('actif',)
-    ordering      = ('ordre',)
+    ordering      = ('id_grade',)
 
 
 @admin.register(Pratiquant)

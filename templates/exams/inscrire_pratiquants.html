@@ -59,11 +59,12 @@
             <div class="row g-3">
                 <div class="col-md-6">
                     <label class="form-label fw-semibold">Grade visé <span class="text-danger">*</span></label>
-                    <select name="grade_vise" id="id_grade_vise" class="form-select form-select-lg" required>
+                    <select name="grade_vise" id="id_grade_vise" class="form-select form-select-lg" required
+                            onchange="filtrerPratiquants()">
                         <option value="">— Sélectionner un grade visé —</option>
                         {% for grade in grades %}
-                        <option value="{{ grade.pk }}" data-id-grade="{{ grade.id_grade }}">
-                            {{ grade.nom }}
+                        <option value="{{ grade.pk }}" data-pos="{{ forloop.counter }}">
+                            {{ grade }}
                         </option>
                         {% endfor %}
                     </select>
@@ -117,30 +118,48 @@
                     <span id="label-nb-dispo" class="text-muted small ms-2"></span>
                 </div>
                 <div class="p-2">
-                    {% for p in pratiquants_dispo %}
-                    <div class="pratiquant-row form-check p-3 border-bottom d-flex align-items-center gap-3"
+                    {% for p, pos_actuelle in pratiquants_avec_pos %}
+                    <div class="pratiquant-row border-bottom"
                          data-pk="{{ p.pk }}"
-                         data-id-grade-actuel="{{ p.grade_actuel.id_grade|default:0 }}"
+                         data-pos-actuelle="{{ pos_actuelle }}"
                          style="display:none;">
-                        <input class="form-check-input mt-0 pratiquant-check" type="checkbox"
-                               name="pratiquants" value="{{ p.pk }}" id="p{{ p.pk }}">
-                        <label class="form-check-label d-flex align-items-center gap-3 flex-grow-1 cursor-pointer"
-                               for="p{{ p.pk }}">
-                            <div>
+                        <div class="form-check d-flex align-items-center gap-3 p-3">
+                            <input class="form-check-input mt-0 pratiquant-check" type="checkbox"
+                                   name="pratiquants" value="{{ p.pk }}" id="p{{ p.pk }}">
+                            <label class="form-check-label flex-grow-1" style="cursor:pointer;"
+                                   for="p{{ p.pk }}">
                                 <div class="fw-semibold">{{ p.nom }} {{ p.prenom }}</div>
                                 <div class="small text-muted">
                                     Grade actuel :
                                     {% if p.grade_actuel %}
-                                        <span class="badge bg-secondary">{{ p.grade_actuel.nom }}</span>
+                                        <span class="badge bg-secondary">{{ p.grade_actuel }}</span>
                                     {% else %}
                                         <span class="badge bg-light text-muted border">Sans grade</span>
                                     {% endif %}
                                 </div>
-                            </div>
-                        </label>
+                            </label>
+                        </div>
                     </div>
                     {% endfor %}
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Récapitulatif montant en temps réel -->
+    <div id="recap-montant" class="card mb-3" style="display:none;">
+        <div class="card-body py-2">
+            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <div>
+                    <span class="text-muted small">Total droits d'examen :</span>
+                    <strong id="recap-brut" class="ms-1">0 FCFA</strong>
+                </div>
+                {% if params %}
+                <div>
+                    <span class="text-muted small">Part à reverser à la ligue ({{ pourcentage_ligue }}%) :</span>
+                    <strong id="recap-ligue" class="ms-1 text-primary">0 FCFA</strong>
+                </div>
+                {% endif %}
             </div>
         </div>
     </div>
@@ -156,87 +175,129 @@
 
 {% endif %}
 
+
 <script>
-(function() {
-    const gradeSelect   = document.getElementById('id_grade_vise');
-    const rows          = document.querySelectorAll('.pratiquant-row');
-    const checks        = document.querySelectorAll('.pratiquant-check');
-    const btnInscrire   = document.getElementById('btn-inscrire');
-    const compteur      = document.getElementById('compteur-selection');
-    const nbCoches      = document.getElementById('nb-coches');
-    const msgGrade      = document.getElementById('msg-choisir-grade');
-    const msgAucun      = document.getElementById('msg-aucun');
-    const listePrat     = document.getElementById('liste-pratiquants');
-    const btnTout       = document.getElementById('btn-tout-cocher');
-    const btnDecocher   = document.getElementById('btn-decocher');
-    const labelDispo    = document.getElementById('label-nb-dispo');
+// Variables globales pour accès depuis onchange HTML
+var _gs, _rows, _checks, _btnInscrire, _compteur, _nbCoches,
+    _msgGrade, _msgAucun, _listePrat, _labelDispo,
+    _recapDiv, _recapBrut, _recapLigue, _TARIFS, _POURCENTAGE;
 
-    function mettreAJourCompteur() {
-        const n = document.querySelectorAll('.pratiquant-check:checked').length;
-        nbCoches.textContent = n;
-        compteur.style.display = n > 0 ? '' : 'none';
-        btnInscrire.disabled = n === 0 || !gradeSelect.value;
+function filtrerPratiquants() {
+    var gradeSelect = _gs || document.getElementById('id_grade_vise');
+    var rows = _rows || document.querySelectorAll('.pratiquant-row');
+    var msgGrade = _msgGrade || document.getElementById('msg-choisir-grade');
+    var msgAucun = _msgAucun || document.getElementById('msg-aucun');
+    var listePrat = _listePrat || document.getElementById('liste-pratiquants');
+    var labelDispo = _labelDispo || document.getElementById('label-nb-dispo');
+
+    if (!gradeSelect.value) {
+        msgGrade.style.display = '';
+        msgAucun.style.display = 'none';
+        listePrat.style.display = 'none';
+        rows.forEach(function(r) { r.style.display = 'none'; var inp = r.querySelector('input'); if(inp) inp.checked = false; });
+        mettreAJourCompteur();
+        return;
     }
-
-    function filtrerPratiquants() {
-        const opt = gradeSelect.options[gradeSelect.selectedIndex];
-        if (!gradeSelect.value) {
-            msgGrade.style.display = '';
-            msgAucun.style.display = 'none';
-            listePrat.style.display = 'none';
-            rows.forEach(r => { r.style.display = 'none'; r.querySelector('input').checked = false; });
-            mettreAJourCompteur();
-            return;
-        }
-        const idGradeVise = parseInt(opt.dataset.idGrade);
-        let nb = 0;
-        rows.forEach(r => {
-            const idGradeActuel = parseInt(r.dataset.idGradeActuel);
-            // Éligible uniquement si grade actuel = grade visé - 1
-            if (idGradeActuel === idGradeVise - 1) {
-                r.style.display = '';
-                nb++;
-            } else {
-                r.style.display = 'none';
-                r.querySelector('input').checked = false;
-            }
-        });
-        msgGrade.style.display = 'none';
-        if (nb === 0) {
-            msgAucun.style.display = '';
-            listePrat.style.display = 'none';
+    var opt = gradeSelect.options[gradeSelect.selectedIndex];
+    var posVise = parseInt(opt.getAttribute('data-pos'));
+    var nb = 0;
+    rows.forEach(function(r) {
+        var posActuelle = parseInt(r.getAttribute('data-pos-actuelle'));
+        if (posActuelle === posVise - 1) {
+            r.style.display = '';
+            nb++;
         } else {
-            msgAucun.style.display = 'none';
-            listePrat.style.display = '';
-            labelDispo.textContent = nb + ' pratiquant(s) éligible(s)';
+            r.style.display = 'none';
+            var inp = r.querySelector('input'); if(inp) inp.checked = false;
         }
-        mettreAJourCompteur();
+    });
+    msgGrade.style.display = 'none';
+    if (nb === 0) {
+        msgAucun.style.display = '';
+        listePrat.style.display = 'none';
+    } else {
+        msgAucun.style.display = 'none';
+        listePrat.style.display = '';
+        if (labelDispo) labelDispo.textContent = nb + ' pratiquant(s) éligible(s)';
     }
+    mettreAJourCompteur();
+    mettreAJourMontant();
+}
 
-    gradeSelect.addEventListener('change', filtrerPratiquants);
-    checks.forEach(c => c.addEventListener('change', mettreAJourCompteur));
+function mettreAJourCompteur() {
+    var n = document.querySelectorAll('.pratiquant-check:checked').length;
+    var nbCoches = _nbCoches || document.getElementById('nb-coches');
+    var compteur = _compteur || document.getElementById('compteur-selection');
+    var btnInscrire = _btnInscrire || document.getElementById('btn-inscrire');
+    var gradeSelect = _gs || document.getElementById('id_grade_vise');
+    if (nbCoches) nbCoches.textContent = n;
+    if (compteur) compteur.style.display = n > 0 ? '' : 'none';
+    if (btnInscrire) btnInscrire.disabled = n === 0 || !gradeSelect.value;
+    mettreAJourMontant();
+}
 
-    btnTout.addEventListener('click', function() {
-        rows.forEach(r => {
-            if (r.style.display !== 'none') r.querySelector('input').checked = true;
+function mettreAJourMontant() {
+    var gradeSelect = _gs || document.getElementById('id_grade_vise');
+    var recapDiv = _recapDiv || document.getElementById('recap-montant');
+    var recapBrut = _recapBrut || document.getElementById('recap-brut');
+    var recapLigue = _recapLigue || document.getElementById('recap-ligue');
+    var TARIFS = _TARIFS || {};
+    var POURCENTAGE = _POURCENTAGE || 100;
+    if (!gradeSelect.value) { if (recapDiv) recapDiv.style.display = 'none'; return; }
+    var gradePk = gradeSelect.value;
+    var tarif = TARIFS[gradePk] || 0;
+    var n = document.querySelectorAll('.pratiquant-check:checked').length;
+    var brut = tarif * n;
+    var ligue = brut * POURCENTAGE / 100;
+    if (recapDiv) {
+        recapDiv.style.display = n > 0 && tarif > 0 ? '' : 'none';
+        if (recapBrut) recapBrut.textContent = Math.round(brut).toLocaleString('fr-FR') + ' FCFA';
+        if (recapLigue) recapLigue.textContent = Math.round(ligue).toLocaleString('fr-FR') + ' FCFA';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    _gs         = document.getElementById('id_grade_vise');
+    _rows       = document.querySelectorAll('.pratiquant-row');
+    _checks     = document.querySelectorAll('.pratiquant-check');
+    _btnInscrire = document.getElementById('btn-inscrire');
+    _compteur   = document.getElementById('compteur-selection');
+    _nbCoches   = document.getElementById('nb-coches');
+    _msgGrade   = document.getElementById('msg-choisir-grade');
+    _msgAucun   = document.getElementById('msg-aucun');
+    _listePrat  = document.getElementById('liste-pratiquants');
+    _labelDispo = document.getElementById('label-nb-dispo');
+    _recapDiv   = document.getElementById('recap-montant');
+    _recapBrut  = document.getElementById('recap-brut');
+    _recapLigue = document.getElementById('recap-ligue');
+    _TARIFS     = {{ tarifs_json|safe }};
+    _POURCENTAGE = {{ pourcentage_ligue }};
+
+    if (_checks) _checks.forEach(function(c) { c.addEventListener('change', mettreAJourCompteur); });
+
+    var btnTout = document.getElementById('btn-tout-cocher');
+    if (btnTout) btnTout.addEventListener('click', function() {
+        _rows.forEach(function(r) {
+            if (r.style.display !== 'none') { var inp = r.querySelector('input'); if(inp) inp.checked = true; }
         });
         mettreAJourCompteur();
     });
 
-    btnDecocher.addEventListener('click', function() {
-        checks.forEach(c => c.checked = false);
+    var btnDec = document.getElementById('btn-decocher');
+    if (btnDec) btnDec.addEventListener('click', function() {
+        if (_checks) _checks.forEach(function(c) { c.checked = false; });
         mettreAJourCompteur();
     });
 
-    // Confirmer avant soumission
-    document.getElementById('form-inscription').addEventListener('submit', function(e) {
-        const n = document.querySelectorAll('.pratiquant-check:checked').length;
+    var formInscr = document.getElementById('form-inscription');
+    if (formInscr) formInscr.addEventListener('submit', function(e) {
+        var n = document.querySelectorAll('.pratiquant-check:checked').length;
         if (n === 0) { e.preventDefault(); return; }
-        const grade = gradeSelect.options[gradeSelect.selectedIndex].text;
+        var grade = _gs.options[_gs.selectedIndex].text;
         if (!confirm(n + ' pratiquant(s) seront inscrits pour le grade « ' + grade + ' ». Confirmer ?')) {
             e.preventDefault();
         }
     });
-})();
+});
 </script>
 {% endblock %}

@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% block title %}Supprimer {{ pratiquant.prenom }} {{ pratiquant.nom }}{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_club' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Mon club</span>
+<a href="{% url 'practitioners:liste' %}" class="nav-link active">
+    <i class="bi bi-people me-2"></i>Pratiquants
+</a>
+<a href="{% url 'exams:club_sessions' %}" class="nav-link">
+    <i class="bi bi-journal-check me-2"></i>Sessions d'examen
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <small class="text-muted">
+        <a href="{% url 'practitioners:liste' %}">Pratiquants</a> › Supprimer
+    </small>
+    <h4 class="fw-bold mt-1 text-danger">
+        <i class="bi bi-person-x me-2"></i>Supprimer un pratiquant
+    </h4>
+</div>
+
+<div style="max-width: 700px;">
+
+    {% if has_valide %}
+    <div class="alert alert-danger border-danger">
+        <h6 class="fw-bold"><i class="bi bi-exclamation-triangle-fill me-2"></i>Attention — Données importantes</h6>
+        <p class="mb-0">
+            <strong>{{ pratiquant.prenom }} {{ pratiquant.nom }}</strong> a des inscriptions
+            dont le paiement est validé ou dont il est autorisé à participer.
+            <strong>Supprimer ce pratiquant effacera définitivement ces données d'examen.</strong>
+        </p>
+    </div>
+    {% elif inscriptions %}
+    <div class="alert alert-warning">
+        <h6 class="fw-bold"><i class="bi bi-exclamation-triangle me-2"></i>Avertissement</h6>
+        <p class="mb-0">
+            <strong>{{ pratiquant.prenom }} {{ pratiquant.nom }}</strong> est inscrit à
+            {{ inscriptions.count }} session(s) d'examen. Ces inscriptions seront également supprimées.
+        </p>
+    </div>
+    {% endif %}
+
+    <!-- Fiche pratiquant -->
+    <div class="card mb-3">
+        <div class="card-body">
+            <div class="d-flex align-items-center gap-3">
+                {% if pratiquant.photo %}
+                <img src="{{ pratiquant.photo.url }}" alt="Photo" class="rounded-circle"
+                     style="width:56px;height:56px;object-fit:cover;">
+                {% else %}
+                <div class="rounded-circle bg-secondary d-flex align-items-center justify-content-center text-white fw-bold"
+                     style="width:56px;height:56px;font-size:1.4rem;">
+                    {{ pratiquant.prenom.0 }}{{ pratiquant.nom.0 }}
+                </div>
+                {% endif %}
+                <div>
+                    <div class="fw-bold fs-5">{{ pratiquant.prenom }} {{ pratiquant.nom }}</div>
+                    <div class="text-muted small">
+                        {{ pratiquant.get_sexe_display }} —
+                        Grade : {{ pratiquant.get_grade_display }}
+                        {% if pratiquant.matricule %}
+                        — Matricule : <code>{{ pratiquant.matricule }}</code>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Inscriptions actives -->
+    {% if inscriptions %}
+    <div class="card mb-3">
+        <div class="card-header py-2">
+            <h6 class="mb-0 fw-bold"><i class="bi bi-journal-check me-2 text-muted"></i>Sessions concernées</h6>
+        </div>
+        <div class="card-body p-0">
+            <table class="table table-sm align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-3">Session</th>
+                        <th>Grade visé</th>
+                        <th>Statut inscription</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for insc in inscriptions %}
+                <tr>
+                    <td class="ps-3 small">{{ insc.session.titre }} ({{ insc.session.date_examen|date:"d/m/Y" }})</td>
+                    <td><span class="badge bg-primary">{{ insc.grade_vise }}</span></td>
+                    <td>
+                        {% if insc.statut == 'EN_ATTENTE_PAIEMENT' %}
+                            <span class="badge bg-warning text-dark">Paiement attendu</span>
+                        {% elif insc.statut == 'PAIEMENT_VALIDE' %}
+                            <span class="badge bg-info">Paiement validé</span>
+                        {% elif insc.statut == 'AUTORISE' %}
+                            <span class="badge bg-success">Autorisé</span>
+                        {% elif insc.statut == 'EXCLU' %}
+                            <span class="badge bg-danger">Exclu</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="card mb-3 p-3 bg-light">
+        <span class="text-muted small"><i class="bi bi-info-circle me-1"></i>Aucune inscription en session d'examen.</span>
+    </div>
+    {% endif %}
+
+    <!-- Confirmation -->
+    <div class="card border-danger p-4">
+        <p class="mb-3">
+            Voulez-vous vraiment supprimer <strong>{{ pratiquant.prenom }} {{ pratiquant.nom }}</strong>
+            de votre club ?
+            {% if inscriptions %}Cette action supprimera également {{ inscriptions.count }} inscription(s).{% endif %}
+            <strong class="text-danger">Cette action est irréversible.</strong>
+        </p>
+        <div class="d-flex gap-2">
+            <form method="post" action="{% url 'practitioners:supprimer' pratiquant.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-danger">
+                    <i class="bi bi-trash me-1"></i>Oui, supprimer définitivement
+                </button>
+            </form>
+            <a href="{% url 'practitioners:liste' %}" class="btn btn-outline-secondary">
+                Annuler
+            </a>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

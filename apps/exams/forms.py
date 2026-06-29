@@ -1,5 +1,6 @@
 from django import forms
-from .models import SessionExamen, Inscription, AffectationJury, AnneeSportive, TarifExamen, Rubrique, RubriqueGrade, OptionExamen, ModeleMatricule
+
+from .models import SessionExamen, Inscription, AffectationJury, AnneeSportive, TarifExamen, Rubrique, RubriqueGrade, OptionExamen, ModeleMatricule, ParametresExamen
 from apps.practitioners.models import Grade
 
 
@@ -27,6 +28,7 @@ class SessionExamenForm(forms.ModelForm):
         fields = [
             'annee_sportive', 'titre', 'date_examen', 'lieu',
             'date_ouverture_inscriptions', 'date_cloture_inscriptions',
+            'date_limite_paiement',
         ]
         widgets = {
             'annee_sportive':              forms.Select(attrs={'class': 'form-select'}),
@@ -35,6 +37,7 @@ class SessionExamenForm(forms.ModelForm):
             'date_examen':                 forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'date_ouverture_inscriptions': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'date_cloture_inscriptions':   forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'date_limite_paiement':        forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
         }
         labels = {
             'annee_sportive':              "Année sportive",
@@ -43,6 +46,7 @@ class SessionExamenForm(forms.ModelForm):
             'date_examen':                 "Date de l'examen",
             'date_ouverture_inscriptions': "Ouverture des inscriptions",
             'date_cloture_inscriptions':   "Clôture des inscriptions",
+            'date_limite_paiement':        "Date limite de paiement des droits d'examen",
         }
 
     def __init__(self, *args, ligue=None, **kwargs):
@@ -91,10 +95,10 @@ class MultiInscriptionForm(forms.Form):
             self.fields['pratiquants'].queryset = Pratiquant.objects.none()
 
         if ligue:
-            self.fields['grade_vise'].queryset = Grade.objects.filter(ligue=ligue, actif=True).order_by('ordre')
+            self.fields['grade_vise'].queryset = Grade.objects.filter(ligue=ligue, actif=True).order_by('id_grade')
             self.fields['option'].queryset = OptionExamen.objects.filter(ligue=ligue, actif=True)
         elif club:
-            self.fields['grade_vise'].queryset = Grade.objects.filter(ligue=club.ligue, actif=True).order_by('ordre')
+            self.fields['grade_vise'].queryset = Grade.objects.filter(ligue=club.ligue, actif=True).order_by('id_grade')
             self.fields['option'].queryset = OptionExamen.objects.filter(ligue=club.ligue, actif=True)
 
     def clean(self):
@@ -137,7 +141,7 @@ class TarifExamenForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self._annee = annee
         if ligue:
-            self.fields['grade'].queryset = Grade.objects.filter(ligue=ligue, actif=True).order_by('ordre')
+            self.fields['grade'].queryset = Grade.objects.filter(ligue=ligue, actif=True).order_by('id_grade')
         else:
             self.fields['grade'].queryset = Grade.objects.none()
 
@@ -163,6 +167,26 @@ class OptionExamenForm(forms.ModelForm):
             'nom': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex : Shaolin, Wu Dang…'}),
         }
         labels = {'nom': "Nom de l'option"}
+
+
+class ParametresExamenForm(forms.ModelForm):
+    class Meta:
+        model  = ParametresExamen
+        fields = ['pourcentage_ligue']
+        widgets = {
+            'pourcentage_ligue': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '0', 'max': '100', 'step': '0.5',
+                'placeholder': 'Ex : 25',
+            }),
+        }
+        labels = {'pourcentage_ligue': 'Pourcentage reversé à la ligue (%)'}
+
+    def clean_pourcentage_ligue(self):
+        val = self.cleaned_data['pourcentage_ligue']
+        if val < 0 or val > 100:
+            raise forms.ValidationError("Le pourcentage doit être entre 0 et 100.")
+        return val
 
 
 class ModeleMatriculeForm(forms.ModelForm):
@@ -222,7 +246,7 @@ class RubriqueGradeForm(forms.ModelForm):
             self.fields['grade'].queryset = (
                 Grade.objects.filter(ligue=ligue, actif=True)
                 .exclude(pk__in=deja)
-                .order_by('ordre')
+                .order_by('id_grade')
             )
         else:
             self.fields['grade'].queryset = Grade.objects.none()

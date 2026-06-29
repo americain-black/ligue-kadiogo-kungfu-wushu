@@ -3,16 +3,12 @@ from .models import Pratiquant, Grade
 
 
 class PratiquantForm(forms.ModelForm):
-    # Champ texte pour le grade : l'utilisateur tape le nom, on résout vers l'objet Grade
-    grade_actuel_nom = forms.CharField(
+    grade_actuel_nom = forms.ModelChoiceField(
         required=False,
         label='Grade actuel',
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'list':  'grades-datalist',
-            'autocomplete': 'off',
-            'placeholder': 'Ex : Blanc, Jaune, Vert, Bleu, Marron, Noir...',
-        }),
+        queryset=Grade.objects.none(),
+        empty_label='— Aucun grade —',
+        widget=forms.Select(attrs={'class': 'form-select'}),
     )
 
     class Meta:
@@ -43,24 +39,13 @@ class PratiquantForm(forms.ModelForm):
     def __init__(self, *args, ligue=None, **kwargs):
         super().__init__(*args, **kwargs)
         self._ligue = ligue
-        # Pré-remplir avec le grade actuel de l'instance si elle existe
+        if ligue:
+            qs = Grade.objects.filter(ligue=ligue, actif=True).order_by('id_grade')
+        else:
+            qs = Grade.objects.filter(actif=True).order_by('id_grade')
+        self.fields['grade_actuel_nom'].queryset = qs
         if self.instance and self.instance.pk and self.instance.grade_actuel:
-            self.initial['grade_actuel_nom'] = self.instance.grade_actuel.nom
-
-    def clean_grade_actuel_nom(self):
-        nom = self.cleaned_data.get('grade_actuel_nom', '').strip()
-        if not nom:
-            return None
-        qs = Grade.objects.filter(actif=True)
-        if self._ligue:
-            qs = qs.filter(ligue=self._ligue)
-        grade = qs.filter(nom__iexact=nom).order_by('ordre').first()
-        if grade:
-            return grade
-        noms_valides = ', '.join(qs.order_by('ordre').values_list('nom', flat=True))
-        raise forms.ValidationError(
-            f"Grade « {nom} » introuvable. Grades disponibles : {noms_valides or 'aucun grade créé pour cette ligue'}"
-        )
+            self.initial['grade_actuel_nom'] = self.instance.grade_actuel
 
     def save(self, commit=True):
         pratiquant = super().save(commit=False)

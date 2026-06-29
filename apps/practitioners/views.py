@@ -1,6 +1,5 @@
 from django import forms as django_forms
 from django.shortcuts import render, redirect, get_object_or_404
-from django.db.models import Count
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models.deletion import ProtectedError
@@ -23,19 +22,37 @@ def gest_club_requis(view_func):
 
 @gest_club_requis
 def liste_pratiquants(request):
-    club = request.user.club
+    club  = request.user.club
+    ligue = club.ligue
+
+    filtre_statut = request.GET.get('statut', 'actif')
+    filtre_grade  = request.GET.get('grade', '')
+    filtre_sexe   = request.GET.get('sexe', '')
+
     pratiquants = Pratiquant.objects.filter(club=club).select_related('grade_actuel')
 
-    filtre = request.GET.get('statut', 'actif')
-    if filtre == 'inactif':
+    if filtre_statut == 'inactif':
         pratiquants = pratiquants.filter(actif=False)
     else:
         pratiquants = pratiquants.filter(actif=True)
 
+    if filtre_grade == 'sans':
+        pratiquants = pratiquants.filter(grade_actuel__isnull=True)
+    elif filtre_grade:
+        pratiquants = pratiquants.filter(grade_actuel__pk=filtre_grade)
+
+    if filtre_sexe:
+        pratiquants = pratiquants.filter(sexe=filtre_sexe)
+
+    grades = Grade.objects.filter(ligue=ligue).order_by('id_grade')
+
     return render(request, 'practitioners/liste.html', {
-        'pratiquants': pratiquants,
-        'club':        club,
-        'filtre':      filtre,
+        'pratiquants':  pratiquants,
+        'club':         club,
+        'filtre':       filtre_statut,
+        'filtre_grade': filtre_grade,
+        'filtre_sexe':  filtre_sexe,
+        'grades':       grades,
     })
 
 
@@ -57,7 +74,7 @@ def ajouter_pratiquant(request):
         'form':   form,
         'titre':  'Inscrire un pratiquant',
         'club':   club,
-        'grades': Grade.objects.filter(ligue=ligue, actif=True).order_by('ordre'),
+        'grades': Grade.objects.filter(ligue=ligue, actif=True).order_by('id_grade'),
     })
 
 
@@ -79,7 +96,7 @@ def modifier_pratiquant(request, pk):
         'titre':      f'Modifier — {pratiquant.prenom} {pratiquant.nom}',
         'pratiquant': pratiquant,
         'club':       club,
-        'grades':     Grade.objects.filter(ligue=ligue, actif=True).order_by('ordre'),
+        'grades':     Grade.objects.filter(ligue=ligue, actif=True).order_by('id_grade'),
     })
 
 
@@ -109,17 +126,21 @@ def toggle_actif_pratiquant(request, pk):
 def supprimer_pratiquant(request, pk):
     club       = request.user.club
     pratiquant = get_object_or_404(Pratiquant, pk=pk, club=club)
+    inscriptions = pratiquant.inscriptions.select_related('session', 'grade_vise').order_by('-session__date_examen')
+    has_valide   = inscriptions.filter(statut__in=['PAIEMENT_VALIDE', 'AUTORISE']).exists()
+
     if request.method == 'POST':
         nom_complet = f"{pratiquant.prenom} {pratiquant.nom}"
-        try:
-            pratiquant.delete()
-            messages.success(request, f"{nom_complet} supprimé.")
-        except ProtectedError:
-            messages.error(
-                request,
-                f"Impossible de supprimer {nom_complet} : il est inscrit à une ou plusieurs sessions d'examen."
-            )
-    return redirect('practitioners:liste')
+        pratiquant.delete()   # CASCADE supprime aussi les inscriptions
+        messages.success(request, f"{nom_complet} supprimé définitivement du club.")
+        return redirect('practitioners:liste')
+
+    return render(request, 'practitioners/confirmer_supprimer.html', {
+        'pratiquant':   pratiquant,
+        'inscriptions': inscriptions,
+        'has_valide':   has_valide,
+        'club':         club,
+    })
 
 
 # ── Vues GEST_LIGUE — Gestion des grades ──────────────────────────────────────
@@ -138,21 +159,14 @@ def gest_ligue_requis(view_func):
 
 
 class GradeForm(django_forms.ModelForm):
-    # Déclaré comme CharField pour éviter la validation entier automatique de Django
-    ordre = django_forms.CharField(
-        label='Ordre (chiffre romain)',
-        required=False,
-        widget=django_forms.TextInput(attrs={
-            'class': 'form-control text-uppercase',
-            'placeholder': 'Ex : I, II, III, IV… (optionnel)',
-        }),
-    )
-
     class Meta:
         model  = Grade
-        fields = ['nom', 'ordre', 'actif']  # id_grade géré côté serveur uniquement
+        fields = ['nom', 'actif']
         widgets = {
-            'nom':   django_forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex : Blanc, Jaune, Vert…'}),
+            'nom':   django_forms.TextInput(attrs={
+                'class': 'form-control text-uppercase',
+                'placeholder': 'Ex : BLANC, ROUGE, ROUGE I, ROUGE II…',
+            }),
             'actif': django_forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
         labels = {
@@ -160,30 +174,11 @@ class GradeForm(django_forms.ModelForm):
             'actif': 'Grade actif',
         }
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        # Afficher la valeur actuelle en chiffre romain lors de la modification
-        if self.instance and self.instance.pk and self.instance.ordre:
-            from .models import _to_romain
-            self.initial['ordre'] = _to_romain(self.instance.ordre)
-
-    def clean_ordre(self):
-        from .models import _from_romain
-        val = str(self.cleaned_data.get('ordre', '') or '').strip().upper()
-        if not val:
-            return None  # ordre optionnel
-        n = int(val) if val.isdigit() else _from_romain(val)
-        if n <= 0:
-            raise django_forms.ValidationError(
-                f"« {val} » n'est pas un chiffre romain valide (ex : I, II, III, IV…)."
-            )
-        return n
-
 
 @gest_ligue_requis
 def liste_grades(request):
     ligue  = request.user.ligue
-    grades = Grade.objects.filter(ligue=ligue).order_by('ordre')
+    grades = Grade.objects.filter(ligue=ligue).order_by('id_grade')
     return render(request, 'practitioners/grades_liste.html', {
         'grades': grades,
         'ligue':  ligue,
@@ -239,17 +234,48 @@ def modifier_grade(request, pk):
 def supprimer_grade(request, pk):
     ligue = request.user.ligue
     grade = get_object_or_404(Grade, pk=pk, ligue=ligue)
+
+    # Inscriptions → PROTECT (bloquant)
+    inscriptions    = grade.inscriptions.select_related('session', 'pratiquant').order_by('-session__date_examen')
+    nb_inscriptions = inscriptions.count()
+    # Pratiquants → SET_NULL (grade devient "Sans grade")
+    pratiquants     = grade.pratiquants.select_related('club').order_by('nom', 'prenom')
+    nb_pratiquants  = pratiquants.count()
+    # Tarifs et rubriques → CASCADE (supprimés avec le grade)
+    tarifs          = grade.tarifs.select_related('annee_sportive')
+    nb_tarifs       = tarifs.count()
+    rubriques       = grade.rubrique_grades.select_related('rubrique')
+    nb_rubriques    = rubriques.count()
+
+    peut_supprimer  = nb_inscriptions == 0
+
     if request.method == 'POST':
-        try:
-            nom = grade.nom
-            grade.delete()
-            messages.success(request, f"Grade « {nom} » supprimé.")
-        except ProtectedError:
-            messages.error(
-                request,
-                f"Impossible de supprimer « {grade.nom} » : des pratiquants ou inscriptions y sont liés."
-            )
-    return redirect('practitioners:grades')
+        if not peut_supprimer:
+            messages.error(request, f"Impossible : {nb_inscriptions} inscription(s) utilisent ce grade.")
+            return redirect('practitioners:supprimer_grade', pk=pk)
+        nom = grade.nom
+        grade.delete()  # CASCADE → tarifs + rubriques supprimés ; SET_NULL → grade_actuel des pratiquants
+        messages.success(
+            request,
+            f"Grade « {nom} » supprimé"
+            + (f" — {nb_pratiquants} pratiquant(s) sans grade" if nb_pratiquants else "")
+            + (f" — {nb_tarifs} tarif(s) supprimé(s)" if nb_tarifs else "")
+            + "."
+        )
+        return redirect('practitioners:grades')
+
+    return render(request, 'practitioners/confirmer_supprimer_grade.html', {
+        'grade':           grade,
+        'inscriptions':    inscriptions[:10],
+        'nb_inscriptions': nb_inscriptions,
+        'pratiquants':     pratiquants,
+        'nb_pratiquants':  nb_pratiquants,
+        'tarifs':          tarifs,
+        'nb_tarifs':       nb_tarifs,
+        'rubriques':       rubriques,
+        'nb_rubriques':    nb_rubriques,
+        'peut_supprimer':  peut_supprimer,
+    })
 
 
 @gest_ligue_requis

@@ -69,12 +69,16 @@
                 <i class="bi bi-award me-2"></i>Grade & Statut
             </h6>
 
-            {# Datalist pour l'autocomplétion des grades #}
-            <datalist id="grades-datalist">
-                {% for grade in grades %}
-                <option value="{{ grade.nom }}">
-                {% endfor %}
-            </datalist>
+            {% if not grades %}
+            <div class="alert alert-warning d-flex align-items-start gap-2 mb-3" role="alert">
+                <i class="bi bi-exclamation-triangle-fill fs-5 mt-1"></i>
+                <div>
+                    <strong>Aucun grade disponible.</strong> Le gestionnaire de la ligue doit créer la liste
+                    complète des grades (Blanc, Jaune, Orange, Vert, Bleu, Marron, Noir…) pour que vous
+                    puissiez en attribuer un à vos pratiquants.
+                </div>
+            </div>
+            {% endif %}
 
             <div class="row g-3 mb-4">
                 <div class="col-md-6">
@@ -83,7 +87,10 @@
                     {% if form.grade_actuel_nom.errors %}
                         <div class="text-danger small mt-1">{{ form.grade_actuel_nom.errors.0 }}</div>
                     {% endif %}
-                    <div class="form-text text-muted">Tapez le nom du grade (Blanc, Jaune, Vert, Bleu, Marron, Noir)</div>
+                    <div class="form-text text-muted">
+                        Sélectionnez le grade actuel du pratiquant.
+                        Si son grade n'est pas dans la liste, contactez le gestionnaire de la ligue pour qu'il le crée.
+                    </div>
                 </div>
                 <div class="col-md-6">
                     <label class="form-label fw-semibold">{{ form.photo.label }}</label>

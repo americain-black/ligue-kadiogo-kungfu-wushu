@@ -1,11 +1,13 @@
+from decimal import Decimal
+
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Sum
 
 from .models import PaiementExamen
-from .forms import PaiementExamenForm, RejetPaiementForm
-from apps.exams.models import SessionExamen, Inscription
+from .forms import PaiementExamenForm, RejetPaiementForm, InsuffisantPaiementForm
+from apps.exams.models import SessionExamen, Inscription, ParametresExamen
 
 
 # ── Décorateurs ───────────────────────────────────────────────────────────────
@@ -53,41 +55,56 @@ def soumettre_paiement_examen(request, session_pk):
         messages.error(request, "Vous ne pouvez pas soumettre de paiement pour cette session.")
         return redirect('exams:club_inscriptions', session_pk=session_pk)
 
-    nb_inscrits = Inscription.objects.filter(session=session, pratiquant__club=club).count()
-    if nb_inscrits == 0:
-        messages.error(request, "Inscrivez d'abord vos pratiquants avant de soumettre un paiement.")
-        return redirect('exams:club_inscriptions', session_pk=session_pk)
-
-    montant_attendu = (
-        Inscription.objects
-        .filter(session=session, pratiquant__club=club)
-        .aggregate(total=Sum('montant'))['total'] or 0
+    # Compter uniquement les inscriptions EN_ATTENTE_PAIEMENT (non encore couvertes)
+    inscriptions_en_attente = Inscription.objects.filter(
+        session=session, pratiquant__club=club, statut='EN_ATTENTE_PAIEMENT'
     )
+    nb_en_attente = inscriptions_en_attente.count()
 
-    paiement_existant = PaiementExamen.objects.filter(club=club, session=session).first()
-
-    if paiement_existant and paiement_existant.statut == 'VALIDE':
-        messages.info(request, "Le paiement pour cette session est déjà validé.")
+    if nb_en_attente == 0:
+        messages.info(request, "Tous vos pratiquants inscrits ont déjà un paiement soumis ou validé.")
         return redirect('exams:club_inscriptions', session_pk=session_pk)
 
-    if paiement_existant and paiement_existant.statut == 'EN_ATTENTE':
+    # Montant brut (somme des tarifs pour les inscriptions en attente)
+    montant_brut = inscriptions_en_attente.aggregate(total=Sum('montant'))['total'] or Decimal('0')
+
+    # Appliquer le pourcentage de la ligue
+    params        = ParametresExamen.objects.filter(ligue=club.ligue).first()
+    pourcentage   = params.pourcentage_ligue if params else Decimal('100')
+    montant_attendu = (montant_brut * pourcentage / 100).quantize(Decimal('1'))
+
+    # Bloquer si un paiement est déjà EN_ATTENTE de vérification
+    paiement_en_attente = PaiementExamen.objects.filter(
+        club=club, session=session, statut='EN_ATTENTE'
+    ).first()
+    if paiement_en_attente:
         messages.info(request, "Votre preuve de paiement est déjà en cours de vérification.")
         return redirect('exams:club_inscriptions', session_pk=session_pk)
+
+    # Paiement le plus récent à retravailler : REJETE ou INSUFFISANT
+    paiement_rejete = (
+        PaiementExamen.objects
+        .filter(club=club, session=session, statut__in=['REJETE', 'INSUFFISANT'])
+        .order_by('-date_soumission')
+        .first()
+    )
 
     if request.method == 'POST':
         form = PaiementExamenForm(request.POST, request.FILES)
         if form.is_valid():
-            if paiement_existant:
-                # Resoumission après rejet
-                paiement_existant.montant_paye    = form.cleaned_data['montant_paye']
-                paiement_existant.reference       = form.cleaned_data['reference']
-                paiement_existant.fichier_preuve  = form.cleaned_data['fichier_preuve']
-                paiement_existant.montant_attendu = montant_attendu
-                paiement_existant.statut          = 'EN_ATTENTE'
-                paiement_existant.motif_rejet     = ''
-                paiement_existant.valide_par      = None
-                paiement_existant.date_validation = None
-                paiement_existant.save()
+            if paiement_rejete:
+                paiement_rejete.mode_paiement       = form.cleaned_data['mode_paiement']
+                paiement_rejete.numero_expediteur   = form.cleaned_data['numero_expediteur']
+                paiement_rejete.numero_beneficiaire = form.cleaned_data['numero_beneficiaire']
+                paiement_rejete.montant_paye        = form.cleaned_data['montant_paye']
+                paiement_rejete.reference           = form.cleaned_data['reference']
+                paiement_rejete.fichier_preuve      = form.cleaned_data['fichier_preuve']
+                paiement_rejete.montant_attendu     = montant_attendu
+                paiement_rejete.statut              = 'EN_ATTENTE'
+                paiement_rejete.motif_rejet         = ''
+                paiement_rejete.valide_par          = None
+                paiement_rejete.date_validation     = None
+                paiement_rejete.save()
                 messages.success(request, "Preuve de paiement resoumise avec succès.")
             else:
                 paiement = form.save(commit=False)
@@ -107,9 +124,12 @@ def soumettre_paiement_examen(request, session_pk):
         'form':            form,
         'session':         session,
         'club':            club,
+        'montant_brut':    montant_brut,
         'montant_attendu': montant_attendu,
-        'nb_inscrits':     nb_inscrits,
-        'paiement':        paiement_existant,
+        'pourcentage':     pourcentage,
+        'nb_en_attente':   nb_en_attente,
+        'paiement':        paiement_rejete,
+        'params':          params,
     })
 
 
@@ -117,7 +137,7 @@ def soumettre_paiement_examen(request, session_pk):
 
 @gest_financier_requis
 def liste_paiements_examen(request):
-    statut_filtre = request.GET.get('statut', 'EN_ATTENTE')
+    statut_filtre = request.GET.get('statut', '')
     paiements = (
         PaiementExamen.objects
         .filter(session__annee_sportive__ligue=request.user.ligue)
@@ -157,16 +177,77 @@ def valider_paiement_examen(request, pk):
         session__annee_sportive__ligue=request.user.ligue,
         statut='EN_ATTENTE'
     )
+    inscriptions = (
+        Inscription.objects
+        .filter(session=paiement.session, pratiquant__club=paiement.club,
+                statut='EN_ATTENTE_PAIEMENT')
+        .select_related('pratiquant', 'grade_vise')
+    )
     if request.method == 'POST':
         paiement.valider(request.user)
         messages.success(
             request,
             f"Paiement de « {paiement.club.nom_club} » validé. "
-            f"Les inscriptions passent en « Paiement validé »."
+            f"{inscriptions.count()} inscription(s) passent en « Paiement validé »."
         )
         return redirect('payments:liste_paiements_examen')
+    # Calcul pour affichage
+    manque = max(Decimal('0'), paiement.montant_attendu - paiement.montant_paye)
     return render(request, 'payments/confirmer_valider_paiement.html', {
-        'paiement': paiement,
+        'paiement':     paiement,
+        'inscriptions': inscriptions,
+        'manque':       manque,
+    })
+
+
+@gest_financier_requis
+def insuffisant_paiement_examen(request, pk):
+    paiement = get_object_or_404(
+        PaiementExamen, pk=pk,
+        session__annee_sportive__ligue=request.user.ligue,
+        statut='EN_ATTENTE'
+    )
+    inscriptions = (
+        Inscription.objects
+        .filter(session=paiement.session, pratiquant__club=paiement.club,
+                statut='EN_ATTENTE_PAIEMENT')
+        .select_related('pratiquant', 'grade_vise')
+    )
+    manque = max(Decimal('0'), paiement.montant_attendu - paiement.montant_paye)
+    session = paiement.session
+
+    if request.method == 'POST':
+        form = InsuffisantPaiementForm(request.POST)
+        if form.is_valid():
+            motif = form.cleaned_data['motif']
+            paiement.valider_insuffisant(request.user, motif)
+            date_limite = session.date_limite_paiement
+            date_str = date_limite.strftime('%d/%m/%Y') if date_limite else "non définie"
+            messages.warning(
+                request,
+                f"Paiement de « {paiement.club.nom_club} » marqué insuffisant. "
+                f"Le club doit compléter ou régulariser avant le {date_str}."
+            )
+            return redirect('payments:liste_paiements_examen')
+    else:
+        montant_recu  = paiement.montant_paye
+        montant_dû    = paiement.montant_attendu
+        date_limite   = session.date_limite_paiement
+        date_str      = date_limite.strftime('%d/%m/%Y') if date_limite else "non définie"
+        motif_auto = (
+            f"Montant reçu : {montant_recu:,.0f} FCFA — "
+            f"Montant attendu : {montant_dû:,.0f} FCFA — "
+            f"Manque : {manque:,.0f} FCFA. "
+            f"Veuillez compléter le paiement ou retirer les pratiquants non couverts "
+            f"avant le {date_str}."
+        )
+        form = InsuffisantPaiementForm(initial={'motif': motif_auto})
+    return render(request, 'payments/insuffisant_paiement.html', {
+        'form':         form,
+        'paiement':     paiement,
+        'inscriptions': inscriptions,
+        'manque':       manque,
+        'session':      session,
     })
 
 

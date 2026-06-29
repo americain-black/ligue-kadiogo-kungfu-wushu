@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+
 from .models import Utilisateur, Role, UtilisateurRole
 from .forms import UtilisateurCreationForm, UtilisateurModificationForm, RolesForm
 
@@ -133,7 +134,7 @@ def dashboard_ligue(request):
     tarifs_actifs = []
     nb_tarifs = 0
     if annee_active:
-        tarifs_actifs = annee_active.tarifs.select_related('grade').order_by('grade__ordre')
+        tarifs_actifs = annee_active.tarifs.select_related('grade').order_by('grade__id_grade')
         nb_tarifs = tarifs_actifs.count()
 
     contexte = {

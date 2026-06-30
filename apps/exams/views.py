@@ -1015,18 +1015,18 @@ def _csv_licencies(qs, filename):
     response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
     response['Content-Disposition'] = f'attachment; filename="{filename}"'
     writer = csv.writer(response, delimiter=';')
-    writer.writerow(['N°', 'Nom', 'Prénom', 'Matricule', 'Grade actuel', 'Grade visé', 'Club', 'Statut'])
+    writer.writerow(['N°', 'Nom', 'Prénom', 'Sexe', 'Matricule', 'Grade actuel', 'Grade visé', 'Club'])
     for i, insc in enumerate(qs, 1):
         p = insc.pratiquant
         writer.writerow([
             i,
             p.nom,
             p.prenom,
+            p.get_sexe_display(),
             p.matricule or '',
             p.grade_actuel.nom if p.grade_actuel else 'Sans grade',
             insc.grade_vise.nom,
             p.club.nom_club,
-            insc.get_statut_display(),
         ])
     return response
 

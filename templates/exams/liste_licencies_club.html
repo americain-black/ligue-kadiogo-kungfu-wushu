@@ -1,3 +1,4 @@
+{% load static %}
 {% extends 'base.html' %}
 {% block title %}Mes licenciés — {{ session.titre }}{% endblock %}
 
@@ -18,57 +19,109 @@
 </a>
 {% endblock %}
 
+{% block extra_css %}
+<style>
+@media print {
+    .no-print { display: none !important; }
+    body { background: white !important; font-size: 12pt; }
+    .main-content { padding: 0 !important; }
+    .card { box-shadow: none !important; border: 1px solid #dee2e6 !important; border-radius: 0 !important; }
+    .entete-impression { display: block !important; }
+    .table th { background-color: #343a40 !important; color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .badge { border: 1px solid #999 !important; background: none !important; color: #000 !important; }
+}
+@media screen {
+    .entete-impression { display: none; }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
-    <div>
-        <small class="text-muted">
-            <a href="{% url 'exams:club_sessions' %}">Sessions</a>
-            › <a href="{% url 'exams:club_inscriptions' session.pk %}">{{ session.titre }}</a>
-            › Mes licenciés
-        </small>
-        <h4 class="fw-bold mt-1 mb-0">Mes licenciés — {{ club.nom_club }}</h4>
-        <small class="text-muted">{{ session.titre }} — {{ session.date_examen|date:"d/m/Y" }}</small>
+
+<!-- En-tête visible uniquement à l'impression -->
+<div class="entete-impression mb-4 pb-3 border-bottom">
+    <div class="text-center mb-3">
+        <h4 class="fw-bold text-uppercase mb-1">{{ club.ligue.nom_ligue }}</h4>
+        <div class="text-muted" style="font-size:11pt;">{{ club.ligue.sigle }}</div>
     </div>
+    <table style="width:100%; font-size:11pt; border-collapse:collapse;">
+        <tr>
+            <td style="padding:3px 0;"><strong>Club :</strong> {{ club.nom_club }}</td>
+            <td style="padding:3px 0; text-align:right;"><strong>Date examen :</strong> {{ session.date_examen|date:"d/m/Y" }}</td>
+        </tr>
+        <tr>
+            <td style="padding:3px 0;"><strong>Session :</strong> {{ session.titre }}</td>
+            <td style="padding:3px 0; text-align:right;"><strong>Lieu :</strong> {{ session.lieu }}</td>
+        </tr>
+        <tr>
+            <td style="padding:3px 0;"><strong>Année sportive :</strong> {{ session.annee_sportive.libelle }}</td>
+            <td style="padding:3px 0; text-align:right;">
+                <strong>Grade visé :</strong>
+                {% if grade_pk %}{{ licencies.first.grade_vise.nom|default:"—" }}{% else %}Tous grades{% endif %}
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" style="padding:3px 0;">
+                <strong>Total licenciés :</strong> {{ nb_total }} &nbsp;&nbsp;|&nbsp;&nbsp;
+                <strong>Imprimé le :</strong> {% now "d/m/Y à H:i" %}
+            </td>
+        </tr>
+    </table>
+    <h5 class="text-center mt-3 fw-bold text-uppercase" style="letter-spacing:1px;">
+        Liste des licenciés — {{ club.nom_club }}
+    </h5>
 </div>
 
-<!-- Filtre par grade -->
-<form method="get" class="card p-3 mb-3">
-    <div class="row g-2 align-items-end">
-        <div class="col-md-5">
-            <label class="form-label form-label-sm fw-semibold">Filtrer par grade visé</label>
-            <select name="grade" class="form-select form-select-sm" onchange="this.form.submit()">
-                <option value="">— Tous les grades —</option>
-                {% for pk, nom in grades %}
-                <option value="{{ pk }}" {% if grade_pk == pk|stringformat:"s" %}selected{% endif %}>{{ nom }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        <div class="col-md-3">
-            <a href="{% url 'exams:licencies_club' session.pk %}" class="btn btn-outline-secondary btn-sm w-100">
-                <i class="bi bi-x me-1"></i>Réinitialiser
-            </a>
-        </div>
-        <div class="col-md-4">
-            <a href="?{% if grade_pk %}grade={{ grade_pk }}&{% endif %}format=csv"
-               class="btn btn-success btn-sm w-100">
-                <i class="bi bi-download me-1"></i>Télécharger CSV
-            </a>
+<!-- En-tête écran -->
+<div class="no-print">
+    <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+        <div>
+            <small class="text-muted">
+                <a href="{% url 'exams:club_sessions' %}">Sessions</a>
+                › <a href="{% url 'exams:club_inscriptions' session.pk %}">{{ session.titre }}</a>
+                › Mes licenciés
+            </small>
+            <h4 class="fw-bold mt-1 mb-0">Mes licenciés — {{ club.nom_club }}</h4>
+            <small class="text-muted">{{ session.titre }} — {{ session.date_examen|date:"d/m/Y" }}</small>
         </div>
     </div>
-</form>
 
-<!-- Résumé -->
-<div class="d-flex justify-content-between align-items-center mb-2">
-    <span class="fw-semibold">
-        <span class="badge bg-primary fs-6">{{ nb_total }}</span>
-        licencié(s) du club
-        {% if grade_pk %}
-        <small class="text-muted ms-1">(filtre grade actif)</small>
-        {% endif %}
-    </span>
-    <button onclick="window.print()" class="btn btn-outline-secondary btn-sm">
-        <i class="bi bi-printer me-1"></i>Imprimer
-    </button>
+    <!-- Filtre -->
+    <form method="get" class="card p-3 mb-3">
+        <div class="row g-2 align-items-end">
+            <div class="col-md-5">
+                <label class="form-label">Filtrer par grade visé</label>
+                <select name="grade" class="form-select form-select-sm" onchange="this.form.submit()">
+                    <option value="">— Tous les grades —</option>
+                    {% for pk, nom in grades %}
+                    <option value="{{ pk }}" {% if grade_pk == pk|stringformat:"s" %}selected{% endif %}>{{ nom }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <a href="{% url 'exams:licencies_club' session.pk %}" class="btn btn-outline-secondary btn-sm w-100">
+                    <i class="bi bi-x me-1"></i>Réinitialiser
+                </a>
+            </div>
+            <div class="col-md-4">
+                <a href="?{% if grade_pk %}grade={{ grade_pk }}&{% endif %}format=csv"
+                   class="btn btn-success btn-sm w-100">
+                    <i class="bi bi-download me-1"></i>Télécharger CSV
+                </a>
+            </div>
+        </div>
+    </form>
+
+    <div class="d-flex justify-content-between align-items-center mb-2">
+        <span class="fw-semibold">
+            <span class="badge bg-primary">{{ nb_total }}</span>
+            licencié(s)
+            {% if grade_pk %}<small class="text-muted">(filtre grade actif)</small>{% endif %}
+        </span>
+        <button onclick="window.print()" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-printer me-1"></i>Imprimer / PDF
+        </button>
+    </div>
 </div>
 
 {% if licencies %}
@@ -79,37 +132,25 @@
                 <tr>
                     <th class="ps-3">N°</th>
                     <th>Nom & Prénom</th>
+                    <th>Sexe</th>
                     <th>Matricule</th>
                     <th>Grade actuel</th>
                     <th>Grade visé</th>
-                    <th>Statut</th>
                 </tr>
             </thead>
             <tbody>
             {% for insc in licencies %}
             <tr>
-                <td class="ps-3 text-muted small">{{ forloop.counter }}</td>
+                <td class="ps-3 text-muted">{{ forloop.counter }}</td>
+                <td><strong>{{ insc.pratiquant.nom }}</strong> {{ insc.pratiquant.prenom }}</td>
+                <td>{{ insc.pratiquant.get_sexe_display }}</td>
                 <td>
-                    <strong>{{ insc.pratiquant.nom }}</strong> {{ insc.pratiquant.prenom }}
-                </td>
-                <td class="small">
                     {% if insc.pratiquant.matricule %}
                         <span class="badge bg-secondary">{{ insc.pratiquant.matricule }}</span>
-                    {% else %}
-                        <span class="text-muted">—</span>
-                    {% endif %}
+                    {% else %}<span class="text-muted">—</span>{% endif %}
                 </td>
-                <td class="small text-muted">
-                    {{ insc.pratiquant.grade_actuel.nom|default:"Sans grade" }}
-                </td>
+                <td class="text-muted">{{ insc.pratiquant.grade_actuel.nom|default:"Sans grade" }}</td>
                 <td><span class="badge bg-primary">{{ insc.grade_vise.nom }}</span></td>
-                <td>
-                    {% if insc.statut == 'AUTORISE' %}
-                        <span class="badge bg-success">Autorisé</span>
-                    {% elif insc.statut == 'PAIEMENT_VALIDE' %}
-                        <span class="badge bg-info text-dark">Paiement validé</span>
-                    {% endif %}
-                </td>
             </tr>
             {% endfor %}
             </tbody>
@@ -120,17 +161,7 @@
 <div class="card p-5 text-center text-muted">
     <i class="bi bi-people fs-1 opacity-25 d-block mb-2"></i>
     Aucun licencié validé pour ce filtre.
-    {% if not grade_pk %}
-    <div class="mt-2 small">Seuls les pratiquants avec paiement validé ou autorisés apparaissent ici.</div>
-    {% endif %}
 </div>
 {% endif %}
-
-<style>
-@media print {
-    .sidebar, nav, .btn, form { display: none !important; }
-    .card { box-shadow: none !important; border: 1px solid #ccc !important; }
-}
-</style>
 
 {% endblock %}

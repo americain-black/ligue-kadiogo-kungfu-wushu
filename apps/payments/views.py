@@ -5,7 +5,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Sum
 
-from .models import PaiementExamen
+from .models import PaiementExamen, HistoriquePaiementExamen
 from .forms import PaiementExamenForm, RejetPaiementForm, InsuffisantPaiementForm
 from apps.exams.models import SessionExamen, Inscription, ParametresExamen
 
@@ -105,6 +105,10 @@ def soumettre_paiement_examen(request, session_pk):
                 paiement_rejete.valide_par          = None
                 paiement_rejete.date_validation     = None
                 paiement_rejete.save()
+                HistoriquePaiementExamen.objects.create(
+                    paiement=paiement_rejete, action='RESOUMIS',
+                    acteur=request.user, montant=form.cleaned_data['montant_paye']
+                )
                 messages.success(request, "Preuve de paiement resoumise avec succès.")
             else:
                 paiement = form.save(commit=False)
@@ -112,6 +116,10 @@ def soumettre_paiement_examen(request, session_pk):
                 paiement.session         = session
                 paiement.montant_attendu = montant_attendu
                 paiement.save()
+                HistoriquePaiementExamen.objects.create(
+                    paiement=paiement, action='SOUMIS',
+                    acteur=request.user, montant=form.cleaned_data['montant_paye']
+                )
                 messages.success(
                     request,
                     "Preuve de paiement soumise. Le gestionnaire financier va la vérifier."
@@ -184,11 +192,16 @@ def valider_paiement_examen(request, pk):
         .select_related('pratiquant', 'grade_vise')
     )
     if request.method == 'POST':
+        nb = inscriptions.count()
         paiement.valider(request.user)
+        HistoriquePaiementExamen.objects.create(
+            paiement=paiement, action='VALIDE',
+            acteur=request.user, montant=paiement.montant_paye
+        )
         messages.success(
             request,
             f"Paiement de « {paiement.club.nom_club} » validé. "
-            f"{inscriptions.count()} inscription(s) passent en « Paiement validé »."
+            f"{nb} inscription(s) passent en « Paiement validé »."
         )
         return redirect('payments:liste_paiements_examen')
     # Calcul pour affichage
@@ -221,6 +234,10 @@ def insuffisant_paiement_examen(request, pk):
         if form.is_valid():
             motif = form.cleaned_data['motif']
             paiement.valider_insuffisant(request.user, motif)
+            HistoriquePaiementExamen.objects.create(
+                paiement=paiement, action='INSUFFISANT',
+                acteur=request.user, montant=paiement.montant_paye, motif=motif
+            )
             date_limite = session.date_limite_paiement
             date_str = date_limite.strftime('%d/%m/%Y') if date_limite else "non définie"
             messages.warning(
@@ -261,7 +278,12 @@ def rejeter_paiement_examen(request, pk):
     if request.method == 'POST':
         form = RejetPaiementForm(request.POST)
         if form.is_valid():
-            paiement.rejeter(request.user, motif=form.cleaned_data['motif'])
+            motif = form.cleaned_data['motif']
+            paiement.rejeter(request.user, motif=motif)
+            HistoriquePaiementExamen.objects.create(
+                paiement=paiement, action='REJETE',
+                acteur=request.user, montant=paiement.montant_paye, motif=motif
+            )
             messages.warning(
                 request,
                 f"Paiement de « {paiement.club.nom_club} » rejeté. Le club peut resoumettre une preuve."
@@ -272,4 +294,40 @@ def rejeter_paiement_examen(request, pk):
     return render(request, 'payments/rejeter_paiement_examen.html', {
         'form':    form,
         'paiement': paiement,
+    })
+
+
+@gest_financier_requis
+def historique_paiements_examen(request):
+    ligue = request.user.ligue
+    session_pk = request.GET.get('session', '')
+    club_pk    = request.GET.get('club', '')
+    action_filtre = request.GET.get('action', '')
+
+    historique = (
+        HistoriquePaiementExamen.objects
+        .filter(paiement__session__annee_sportive__ligue=ligue)
+        .select_related('paiement__club', 'paiement__session', 'acteur')
+        .order_by('-date_action')
+    )
+    if session_pk:
+        historique = historique.filter(paiement__session_id=session_pk)
+    if club_pk:
+        historique = historique.filter(paiement__club_id=club_pk)
+    if action_filtre:
+        historique = historique.filter(action=action_filtre)
+
+    from apps.exams.models import SessionExamen
+    from apps.clubs.models import Club
+    sessions = SessionExamen.objects.filter(annee_sportive__ligue=ligue).order_by('-date_examen')
+    clubs    = Club.objects.filter(ligue=ligue).order_by('nom_club')
+
+    return render(request, 'payments/historique_paiements.html', {
+        'historique':     historique,
+        'sessions':       sessions,
+        'clubs':          clubs,
+        'session_pk':     session_pk,
+        'club_pk':        club_pk,
+        'action_filtre':  action_filtre,
+        'actions':        HistoriquePaiementExamen.ACTION_CHOICES,
     })

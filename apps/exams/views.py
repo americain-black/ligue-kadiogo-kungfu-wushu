@@ -590,19 +590,26 @@ def detail_session(request, pk):
             paiements_par_club[p.club_id] = p
         elif paiements_par_club[p.club_id].statut == 'VALIDE' and p.statut in ('EN_ATTENTE', 'INSUFFISANT', 'REJETE'):
             paiements_par_club[p.club_id] = p
+    params = ParametresExamen.objects.filter(ligue=request.user.ligue).first()
+    pourcentage_ligue = params.pourcentage_ligue if params else 100
+
     for club_pk, data in clubs_dict.items():
         data['paiement'] = paiements_par_club.get(club_pk)
-        # Flag Python : évite {% break %} non supporté dans les templates Django
         data['a_paiement_valide_en_attente'] = any(
             i.statut == 'PAIEMENT_VALIDE' for i in data['inscriptions']
         )
+        mt = data['montant_total']
+        data['part_ligue'] = round(mt * pourcentage_ligue / 100)
+        data['part_club']  = round(mt - data['part_ligue'])
 
     return render(request, 'exams/session_detail.html', {
-        'session':      session,
-        'clubs_data':   list(clubs_dict.values()),
-        'affectations': affectations,
-        'jury_form':    jury_form,
-        'nb_inscrits':  inscriptions.count(),
+        'session':           session,
+        'clubs_data':        list(clubs_dict.values()),
+        'affectations':      affectations,
+        'jury_form':         jury_form,
+        'nb_inscrits':       inscriptions.count(),
+        'pourcentage_ligue': pourcentage_ligue,
+        'params':            params,
     })
 
 

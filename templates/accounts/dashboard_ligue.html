@@ -76,17 +76,25 @@
         <div class="card stat-card p-3">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <div class="text-muted small">Licenciés inscrits</div>
-                    <div class="fs-3 fw-bold text-primary">{{ nb_licencies }}</div>
+                    <div class="text-muted small">Pratiquants inscrits</div>
+                    <div class="fs-3 fw-bold text-secondary">{{ nb_inscrits_session }}</div>
                     <div class="text-muted small">
-                        {% if derniere_session %}
-                            session : {{ derniere_session.titre|truncatechars:20 }}
-                        {% else %}
-                            aucune session active
-                        {% endif %}
+                        {% if derniere_session %}{{ derniere_session.titre|truncatechars:18 }}{% else %}aucune session{% endif %}
                     </div>
                 </div>
-                <i class="bi bi-people fs-1 text-primary opacity-25"></i>
+                <i class="bi bi-person-plus fs-1 text-secondary opacity-25"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card stat-card p-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-muted small">Licenciés validés</div>
+                    <div class="fs-3 fw-bold text-primary">{{ nb_licencies }}</div>
+                    <div class="text-muted small">paiement validé ou autorisé</div>
+                </div>
+                <i class="bi bi-patch-check fs-1 text-primary opacity-25"></i>
             </div>
         </div>
     </div>
@@ -109,11 +117,8 @@
                     <div class="text-muted small">Grades définis</div>
                     <div class="fs-3 fw-bold text-danger">{{ nb_grades }}</div>
                     <div class="text-muted small">
-                        {% if ligue.est_active %}
-                            <span class="badge bg-success">Ligue active</span>
-                        {% else %}
-                            <span class="badge bg-secondary">Inactive</span>
-                        {% endif %}
+                        {% if ligue.est_active %}<span class="badge bg-success">Ligue active</span>
+                        {% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}
                     </div>
                 </div>
                 <i class="bi bi-award fs-1 text-danger opacity-25"></i>

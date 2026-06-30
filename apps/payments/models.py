@@ -207,3 +207,38 @@ class PaiementExamen(models.Model):
         self.valide_par  = gestionnaire
         self.motif_rejet = motif
         self.save()
+
+
+class HistoriquePaiementExamen(models.Model):
+
+    ACTION_CHOICES = [
+        ('SOUMIS',      'Preuve soumise'),
+        ('RESOUMIS',    'Preuve resoumise'),
+        ('VALIDE',      'Paiement validé'),
+        ('REJETE',      'Preuve rejetée'),
+        ('INSUFFISANT', 'Montant insuffisant'),
+    ]
+
+    paiement    = models.ForeignKey(
+        PaiementExamen,
+        on_delete=models.CASCADE,
+        related_name='historique'
+    )
+    action      = models.CharField(max_length=15, choices=ACTION_CHOICES)
+    acteur      = models.ForeignKey(
+        'accounts.Utilisateur',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='historique_paiements_examen'
+    )
+    date_action = models.DateTimeField(auto_now_add=True)
+    motif       = models.TextField(blank=True)
+    montant     = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+    class Meta:
+        verbose_name        = "Historique paiement examen"
+        verbose_name_plural = "Historique paiements examen"
+        ordering            = ['-date_action']
+
+    def __str__(self):
+        return f"{self.get_action_display()} — {self.paiement.club.nom_club}"

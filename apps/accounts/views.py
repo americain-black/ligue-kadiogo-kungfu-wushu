@@ -107,11 +107,16 @@ def dashboard_ligue(request):
         .first()
     )
 
-    # Licenciés = pratiquants inscrits à la dernière session
-    nb_licencies = 0
+    # Stats session
+    nb_inscrits_session = 0  # total inscriptions dans la session
+    nb_licencies = 0          # pratiquants avec paiement validé ou autorisés
     clubs_resume = []
     if derniere_session:
-        nb_licencies = Inscription.objects.filter(session=derniere_session).count()
+        nb_inscrits_session = Inscription.objects.filter(session=derniere_session).count()
+        nb_licencies = Inscription.objects.filter(
+            session=derniere_session,
+            statut__in=['PAIEMENT_VALIDE', 'AUTORISE']
+        ).count()
 
         # Résumé par club pour la session
         from apps.clubs.models import Club
@@ -141,6 +146,7 @@ def dashboard_ligue(request):
         'ligue':               ligue,
         'nb_clubs_affilies':   clubs_qs.filter(statut_club='AFFILIE').count(),
         'nb_clubs_en_attente': clubs_qs.filter(statut_club='EN_ATTENTE').count(),
+        'nb_inscrits_session': nb_inscrits_session,
         'nb_licencies':        nb_licencies,
         'nb_demandes_attente': demandes_qs.count(),
         'demandes_en_attente': demandes_qs.select_related('club', 'annee_sportive').order_by('-date_demande')[:5],

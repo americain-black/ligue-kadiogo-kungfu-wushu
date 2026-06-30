@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+{% block title %}Historique des paiements d'examen{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:tableau_de_bord' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Paiements</span>
+<a href="{% url 'payments:liste_paiements_examen' %}" class="nav-link">
+    <i class="bi bi-cash-coin me-2"></i>Paiements d'examen
+</a>
+<a href="{% url 'payments:historique_paiements_examen' %}" class="nav-link active">
+    <i class="bi bi-clock-history me-2"></i>Historique
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h4 class="fw-bold mb-0">Historique des paiements d'examen</h4>
+        <small class="text-muted">Toutes les actions enregistrées (soumissions, validations, rejets…)</small>
+    </div>
+    <a href="{% url 'payments:liste_paiements_examen' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Retour aux paiements
+    </a>
+</div>
+
+<!-- Filtres -->
+<form method="get" class="card p-3 mb-4">
+    <div class="row g-2 align-items-end">
+        <div class="col-md-3">
+            <label class="form-label form-label-sm fw-semibold">Session</label>
+            <select name="session" class="form-select form-select-sm">
+                <option value="">— Toutes les sessions —</option>
+                {% for s in sessions %}
+                <option value="{{ s.pk }}" {% if session_pk == s.pk|stringformat:"s" %}selected{% endif %}>
+                    {{ s.titre }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label form-label-sm fw-semibold">Club</label>
+            <select name="club" class="form-select form-select-sm">
+                <option value="">— Tous les clubs —</option>
+                {% for c in clubs %}
+                <option value="{{ c.pk }}" {% if club_pk == c.pk|stringformat:"s" %}selected{% endif %}>
+                    {{ c.nom_club }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label form-label-sm fw-semibold">Action</label>
+            <select name="action" class="form-select form-select-sm">
+                <option value="">— Toutes les actions —</option>
+                {% for code, label in actions %}
+                <option value="{{ code }}" {% if action_filtre == code %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-ligue btn-sm w-100">
+                <i class="bi bi-funnel me-1"></i>Filtrer
+            </button>
+        </div>
+    </div>
+</form>
+
+{% if historique %}
+<div class="card">
+    <div class="card-body p-0">
+        <table class="table table-hover table-sm align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th class="ps-3">Date / Heure</th>
+                    <th>Club</th>
+                    <th>Session</th>
+                    <th>Action</th>
+                    <th>Montant payé</th>
+                    <th>Effectué par</th>
+                    <th>Motif / Détail</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for h in historique %}
+            <tr>
+                <td class="ps-3 text-muted small">{{ h.date_action|date:"d/m/Y H:i" }}</td>
+                <td><strong>{{ h.paiement.club.nom_club }}</strong></td>
+                <td class="small text-muted">{{ h.paiement.session.titre }}</td>
+                <td>
+                    {% if h.action == 'SOUMIS' %}
+                        <span class="badge bg-secondary">Preuve soumise</span>
+                    {% elif h.action == 'RESOUMIS' %}
+                        <span class="badge bg-info text-dark">Preuve resoumise</span>
+                    {% elif h.action == 'VALIDE' %}
+                        <span class="badge bg-success">Validé</span>
+                    {% elif h.action == 'REJETE' %}
+                        <span class="badge bg-danger">Rejeté</span>
+                    {% elif h.action == 'INSUFFISANT' %}
+                        <span class="badge bg-warning text-dark">Insuffisant</span>
+                    {% endif %}
+                </td>
+                <td class="small">
+                    {% if h.montant %}{{ h.montant|floatformat:"0" }} FCFA{% else %}—{% endif %}
+                </td>
+                <td class="small text-muted">
+                    {% if h.acteur %}{{ h.acteur.get_full_name|default:h.acteur.username }}{% else %}—{% endif %}
+                </td>
+                <td class="small text-muted">
+                    {% if h.motif %}
+                    <span class="text-danger">{{ h.motif|truncatechars:80 }}</span>
+                    {% else %}—{% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+<div class="text-muted small mt-2">{{ historique|length }} entrée(s) affichée(s)</div>
+
+{% else %}
+<div class="card p-5 text-center text-muted">
+    <i class="bi bi-clock-history fs-1 opacity-25 d-block mb-2"></i>
+    Aucun événement enregistré pour les filtres sélectionnés.
+</div>
+{% endif %}
+
+{% endblock %}

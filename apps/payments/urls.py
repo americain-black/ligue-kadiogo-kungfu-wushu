@@ -13,4 +13,5 @@ urlpatterns = [
     path('examen/<int:pk>/valider/',        views.valider_paiement_examen,      name='valider_paiement_examen'),
     path('examen/<int:pk>/insuffisant/',   views.insuffisant_paiement_examen,  name='insuffisant_paiement_examen'),
     path('examen/<int:pk>/rejeter/',       views.rejeter_paiement_examen,      name='rejeter_paiement_examen'),
+    path('examen/historique/',             views.historique_paiements_examen,  name='historique_paiements_examen'),
 ]

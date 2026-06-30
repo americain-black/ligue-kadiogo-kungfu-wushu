@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+{% block title %}Licenciés — {{ session.titre }}{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Examens</span>
+<a href="{% url 'exams:liste' %}" class="nav-link">
+    <i class="bi bi-journal-check me-2"></i>Sessions d'examen
+</a>
+<a href="{% url 'exams:detail' session.pk %}" class="nav-link">
+    <i class="bi bi-arrow-left me-2"></i>Retour à la session
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+    <div>
+        <small class="text-muted">
+            <a href="{% url 'exams:liste' %}">Sessions</a>
+            › <a href="{% url 'exams:detail' session.pk %}">{{ session.titre }}</a>
+            › Licenciés
+        </small>
+        <h4 class="fw-bold mt-1 mb-0">Liste des licenciés</h4>
+        <small class="text-muted">{{ session.titre }} — {{ session.date_examen|date:"d/m/Y" }}</small>
+    </div>
+</div>
+
+<!-- Filtres -->
+<form method="get" class="card p-3 mb-3">
+    <div class="row g-2 align-items-end">
+        <div class="col-md-4">
+            <label class="form-label form-label-sm fw-semibold">Filtrer par club</label>
+            <select name="club" class="form-select form-select-sm" onchange="this.form.submit()">
+                <option value="">— Tous les clubs —</option>
+                {% for pk, nom in clubs %}
+                <option value="{{ pk }}" {% if club_pk == pk|stringformat:"s" %}selected{% endif %}>{{ nom }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-4">
+            <label class="form-label form-label-sm fw-semibold">Filtrer par grade visé</label>
+            <select name="grade" class="form-select form-select-sm" onchange="this.form.submit()">
+                <option value="">— Tous les grades —</option>
+                {% for pk, nom in grades %}
+                <option value="{{ pk }}" {% if grade_pk == pk|stringformat:"s" %}selected{% endif %}>{{ nom }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-2">
+            <a href="{% url 'exams:licencies_gl' session.pk %}" class="btn btn-outline-secondary btn-sm w-100">
+                <i class="bi bi-x me-1"></i>Réinitialiser
+            </a>
+        </div>
+        <div class="col-md-2">
+            <a href="?{% if club_pk %}club={{ club_pk }}&{% endif %}{% if grade_pk %}grade={{ grade_pk }}&{% endif %}format=csv"
+               class="btn btn-success btn-sm w-100">
+                <i class="bi bi-download me-1"></i>Télécharger CSV
+            </a>
+        </div>
+    </div>
+</form>
+
+<!-- Résumé -->
+<div class="d-flex justify-content-between align-items-center mb-2">
+    <span class="fw-semibold">
+        <span class="badge bg-primary fs-6">{{ nb_total }}</span>
+        licencié(s) affiché(s)
+        {% if club_pk or grade_pk %}
+        <small class="text-muted ms-1">
+            (filtre actif{% if club_pk %} — club{% endif %}{% if grade_pk %} — grade{% endif %})
+        </small>
+        {% endif %}
+    </span>
+    <button onclick="window.print()" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-printer me-1"></i>Imprimer
+    </button>
+</div>
+
+{% if licencies %}
+<div class="card">
+    <div class="card-body p-0">
+        <table class="table table-hover table-sm align-middle mb-0" id="tableau-licencies">
+            <thead class="table-dark">
+                <tr>
+                    <th class="ps-3">N°</th>
+                    <th>Nom & Prénom</th>
+                    <th>Matricule</th>
+                    <th>Grade actuel</th>
+                    <th>Grade visé</th>
+                    <th>Club</th>
+                    <th>Statut</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for insc in licencies %}
+            <tr>
+                <td class="ps-3 text-muted small">{{ forloop.counter }}</td>
+                <td>
+                    <strong>{{ insc.pratiquant.nom }}</strong> {{ insc.pratiquant.prenom }}
+                </td>
+                <td class="small">
+                    {% if insc.pratiquant.matricule %}
+                        <span class="badge bg-secondary">{{ insc.pratiquant.matricule }}</span>
+                    {% else %}
+                        <span class="text-muted">—</span>
+                    {% endif %}
+                </td>
+                <td class="small text-muted">
+                    {{ insc.pratiquant.grade_actuel.nom|default:"Sans grade" }}
+                </td>
+                <td><span class="badge bg-primary">{{ insc.grade_vise.nom }}</span></td>
+                <td class="small text-muted">{{ insc.pratiquant.club.nom_club }}</td>
+                <td>
+                    {% if insc.statut == 'AUTORISE' %}
+                        <span class="badge bg-success">Autorisé</span>
+                    {% elif insc.statut == 'PAIEMENT_VALIDE' %}
+                        <span class="badge bg-info text-dark">Paiement validé</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<div class="card p-5 text-center text-muted">
+    <i class="bi bi-people fs-1 opacity-25 d-block mb-2"></i>
+    Aucun licencié pour les filtres sélectionnés.
+</div>
+{% endif %}
+
+<style>
+@media print {
+    .sidebar, nav, .btn, form { display: none !important; }
+    .card { box-shadow: none !important; border: 1px solid #ccc !important; }
+    h4 small { display: block; }
+}
+</style>
+
+{% endblock %}

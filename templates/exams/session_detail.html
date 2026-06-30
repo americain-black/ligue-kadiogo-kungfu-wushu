@@ -51,6 +51,9 @@
         </div>
     </div>
     <div class="d-flex align-items-center gap-2 flex-wrap">
+        <a href="{% url 'exams:licencies_gl' session.pk %}" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-people me-1"></i>Liste des licenciés
+        </a>
         {% if session.statut == 'EN_PREPARATION' %}
             <span class="badge bg-secondary fs-6">En préparation</span>
             <a href="{% url 'exams:modifier' session.pk %}" class="btn btn-sm btn-outline-primary">

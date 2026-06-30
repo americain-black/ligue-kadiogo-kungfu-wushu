@@ -50,10 +50,12 @@ urlpatterns = [
     path('<int:pk>/affecter-jury/',           views.affecter_jury,         name='affecter_jury'),
     path('jury/<int:pk>/retirer/',            views.retirer_jury,          name='retirer_jury'),
     path('<int:session_pk>/valider-club/<int:club_pk>/', views.valider_liste_club, name='valider_liste_club'),
+    path('<int:pk>/licencies/',                    views.liste_licencies_gl,        name='licencies_gl'),
 
     # ── GEST_CLUB ─────────────────────────────────────────────────────────────
     path('club/sessions/',                         views.sessions_ouvertes,         name='club_sessions'),
     path('club/<int:session_pk>/inscriptions/',    views.session_inscriptions_club, name='club_inscriptions'),
     path('club/<int:session_pk>/inscrire/',        views.inscrire_pratiquant,       name='inscrire'),
+    path('club/<int:session_pk>/licencies/',       views.liste_licencies_club,      name='licencies_club'),
     path('inscriptions/<int:pk>/supprimer/',       views.supprimer_inscription,     name='supprimer_inscription'),
 ]

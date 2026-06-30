@@ -29,7 +29,7 @@
             <span class="text-muted small"><i class="bi bi-clock me-1"></i>Clôture inscriptions : {{ session.date_cloture_inscriptions|date:"d/m/Y" }}</span>
         </div>
     </div>
-    <div>
+    <div class="d-flex align-items-center gap-2 flex-wrap">
         {% if session.statut == 'INSCRIPTIONS_OUVERTES' %}
             <span class="badge bg-success fs-6">Inscriptions ouvertes</span>
         {% elif session.statut == 'INSCRIPTIONS_CLOSES' %}
@@ -37,6 +37,9 @@
         {% else %}
             <span class="badge bg-secondary fs-6">{{ session.get_statut_display }}</span>
         {% endif %}
+        <a href="{% url 'exams:licencies_club' session.pk %}" class="btn btn-sm btn-outline-primary">
+            <i class="bi bi-people me-1"></i>Mes licenciés
+        </a>
     </div>
 </div>
 

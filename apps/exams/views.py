@@ -1,7 +1,9 @@
+import csv
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.core.exceptions import ValidationError
+from django.http import HttpResponse
 from django.urls import reverse
 from django.db.models import Sum
 
@@ -988,3 +990,110 @@ def supprimer_inscription(request, pk):
                         "Le gestionnaire financier va revalider votre dossier."
                     )
     return redirect('exams:club_inscriptions', session_pk=session_pk)
+
+
+# ── Listes licenciés ─────────────────────────────────────────────────────────
+
+STATUTS_LICENCIES = ['PAIEMENT_VALIDE', 'AUTORISE']
+
+
+def _qs_licencies(session, club_pk=None, grade_pk=None):
+    qs = (
+        Inscription.objects
+        .filter(session=session, statut__in=STATUTS_LICENCIES)
+        .select_related('pratiquant__club', 'pratiquant__grade_actuel', 'grade_vise')
+        .order_by('pratiquant__club__nom_club', 'pratiquant__nom', 'pratiquant__prenom')
+    )
+    if club_pk:
+        qs = qs.filter(pratiquant__club_id=club_pk)
+    if grade_pk:
+        qs = qs.filter(grade_vise_id=grade_pk)
+    return qs
+
+
+def _csv_licencies(qs, filename):
+    response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
+    response['Content-Disposition'] = f'attachment; filename="{filename}"'
+    writer = csv.writer(response, delimiter=';')
+    writer.writerow(['N°', 'Nom', 'Prénom', 'Matricule', 'Grade actuel', 'Grade visé', 'Club', 'Statut'])
+    for i, insc in enumerate(qs, 1):
+        p = insc.pratiquant
+        writer.writerow([
+            i,
+            p.nom,
+            p.prenom,
+            p.matricule or '',
+            p.grade_actuel.nom if p.grade_actuel else 'Sans grade',
+            insc.grade_vise.nom,
+            p.club.nom_club,
+            insc.get_statut_display(),
+        ])
+    return response
+
+
+@gest_ligue_requis
+def liste_licencies_gl(request, pk):
+    session = get_object_or_404(
+        SessionExamen, pk=pk,
+        annee_sportive__ligue=request.user.ligue
+    )
+    ligue  = request.user.ligue
+    clubs  = session.inscriptions.filter(statut__in=STATUTS_LICENCIES).values_list(
+        'pratiquant__club__pk', 'pratiquant__club__nom_club'
+    ).distinct().order_by('pratiquant__club__nom_club')
+    grades = session.inscriptions.filter(statut__in=STATUTS_LICENCIES).values_list(
+        'grade_vise__pk', 'grade_vise__nom'
+    ).distinct().order_by('grade_vise__id_grade')
+
+    club_pk  = request.GET.get('club', '')
+    grade_pk = request.GET.get('grade', '')
+    qs = _qs_licencies(session, club_pk or None, grade_pk or None)
+
+    if request.GET.get('format') == 'csv':
+        parts = []
+        if club_pk:
+            parts.append(f"club{club_pk}")
+        if grade_pk:
+            parts.append(f"grade{grade_pk}")
+        suffix = '_'.join(parts) or 'tous'
+        filename = f"licencies_{session.titre.replace(' ', '_')}_{suffix}.csv"
+        return _csv_licencies(qs, filename)
+
+    return render(request, 'exams/liste_licencies_session.html', {
+        'session':   session,
+        'licencies': qs,
+        'clubs':     clubs,
+        'grades':    grades,
+        'club_pk':   club_pk,
+        'grade_pk':  grade_pk,
+        'nb_total':  qs.count(),
+    })
+
+
+@gest_club_requis
+def liste_licencies_club(request, session_pk):
+    club    = request.user.club
+    session = get_object_or_404(
+        SessionExamen, pk=session_pk,
+        annee_sportive__ligue=club.ligue
+    )
+    grades = session.inscriptions.filter(
+        pratiquant__club=club, statut__in=STATUTS_LICENCIES
+    ).values_list('grade_vise__pk', 'grade_vise__nom').distinct().order_by('grade_vise__id_grade')
+
+    grade_pk = request.GET.get('grade', '')
+    qs = _qs_licencies(session, club_pk=club.pk, grade_pk=grade_pk or None)
+
+    if request.GET.get('format') == 'csv':
+        suffix = f"grade{grade_pk}" if grade_pk else 'tous'
+        filename = f"licencies_{club.nom_club.replace(' ', '_')}_{session.titre.replace(' ', '_')}_{suffix}.csv"
+        return _csv_licencies(qs, filename)
+
+    return render(request, 'exams/liste_licencies_club.html', {
+        'session':   session,
+        'club':      club,
+        'licencies': qs,
+        'grades':    grades,
+        'grade_pk':  grade_pk,
+        'nb_total':  qs.count(),
+    })

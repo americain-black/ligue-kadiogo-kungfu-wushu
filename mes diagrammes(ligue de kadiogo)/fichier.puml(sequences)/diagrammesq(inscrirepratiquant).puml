@@ -1,0 +1,68 @@
+@startuml "Inscrire les pratiquants à un examen de passage de grade"
+
+participant "Gestionnaire Club" as GC
+participant "Gestionnaire Financier" as GF
+participant "Gestionnaire Ligue" as GL
+
+participant "Système" as SYS
+participant "Base de données" as DB
+
+GC -> SYS : 1. Consulter les sessions ouvertes
+SYS --> GC : 2. Afficher sessions de passage de grade
+
+GC -> SYS : 3. Sélectionner une session
+SYS -> DB :4. Vérifier session OUVERTE
+DB --> SYS :5. Données session
+
+SYS --> GC : 6 . Afficher liste des pratiquants + éligibilité
+
+alt Certains pratiquants NON ELIGIBLE
+    SYS --> GC :7. Indiquer motifs de non-éligibilité
+end
+
+GC -> SYS : 8. Sélectionner pratiquants éligibles
+
+alt Aucun pratiquant sélectionné
+    SYS --> GC :9. Message d'avertissement
+else sélection valide
+
+    SYS -> DB : 10. Enregistrer candidatures (EN_ATTENTE_PAIEMENT)
+    SYS -> SYS : 11. Calculer montant global
+
+    SYS --> GC : 12. Récapitulatif inscription + montant total
+
+    GC -> SYS : 13. Effectuer paiement global
+    GC -> SYS : 14. Transmettre preuve de paiement
+
+    SYS -> DB : 15. Enregistrer preuve de paiement
+    SYS --> GF : 16. Notifier paiement à vérifier
+
+    GF -> SYS : 17. Consulter preuve de paiement
+
+    alt Paiement rejeté
+        GF -> SYS : 17. Rejeter avec motif
+        SYS -> DB : 18. PaiementExamen → statut REJETE
+        SYS --> GC : 19. Notification rejet
+        GC -> SYS : 20. Envoyer nouvelle preuve
+        SYS --> GF : 21. Retour étape 10
+
+    else Paiement validé
+
+        GF -> SYS : 22. Valider paiement global
+        SYS -> DB : 23. PaiementExamen → VALIDE\nInscriptions → PAIEMENT_VALIDE
+        SYS --> GL : 24. Notifier liste candidats
+
+        GL -> SYS : 25. Consulter liste candidats
+        GL -> SYS : 26. Autoriser participation
+
+        alt Refus partiel candidats
+            SYS -> DB : 27. Inscription → statut EXCLU (certains)
+        end
+
+        SYS -> DB : 28. Inscription → statut AUTORISE
+        SYS --> GC : 29. Notification confirmation participation
+
+    end
+end
+
+@enduml

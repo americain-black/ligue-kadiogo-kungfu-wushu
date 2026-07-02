@@ -70,11 +70,15 @@ def ajouter_pratiquant(request):
             return redirect('practitioners:liste')
     else:
         form = PratiquantForm(ligue=ligue)
+    import json
+    grades_qs = Grade.objects.filter(ligue=ligue, actif=True).order_by('id_grade')
+    grades_json = json.dumps({str(g.pk): g.id_grade for g in grades_qs})
     return render(request, 'practitioners/form.html', {
-        'form':   form,
-        'titre':  'Inscrire un pratiquant',
-        'club':   club,
-        'grades': Grade.objects.filter(ligue=ligue, actif=True).order_by('id_grade'),
+        'form':        form,
+        'titre':       'Inscrire un pratiquant',
+        'club':        club,
+        'grades':      grades_qs,
+        'grades_json': grades_json,
     })
 
 
@@ -91,12 +95,16 @@ def modifier_pratiquant(request, pk):
             return redirect('practitioners:liste')
     else:
         form = PratiquantForm(instance=pratiquant, ligue=ligue)
+    import json
+    grades_qs = Grade.objects.filter(ligue=ligue, actif=True).order_by('id_grade')
+    grades_json = json.dumps({str(g.pk): g.id_grade for g in grades_qs})
     return render(request, 'practitioners/form.html', {
-        'form':       form,
-        'titre':      f'Modifier — {pratiquant.prenom} {pratiquant.nom}',
-        'pratiquant': pratiquant,
-        'club':       club,
-        'grades':     Grade.objects.filter(ligue=ligue, actif=True).order_by('id_grade'),
+        'form':        form,
+        'titre':       f'Modifier — {pratiquant.prenom} {pratiquant.nom}',
+        'pratiquant':  pratiquant,
+        'club':        club,
+        'grades':      grades_qs,
+        'grades_json': grades_json,
     })
 
 
@@ -180,8 +188,10 @@ def liste_grades(request):
     ligue  = request.user.ligue
     grades = Grade.objects.filter(ligue=ligue).order_by('id_grade')
     return render(request, 'practitioners/grades_liste.html', {
-        'grades': grades,
-        'ligue':  ligue,
+        'grades':      grades,
+        'ligue':       ligue,
+        'nb_actifs':   grades.filter(actif=True).count(),
+        'nb_inactifs': grades.filter(actif=False).count(),
     })
 
 

@@ -58,15 +58,20 @@
     <span class="badge bg-danger px-3 py-2">Gestionnaire Ligue</span>
 </div>
 
-<!-- Statistiques -->
+<!-- Statistiques globales -->
 <div class="row g-3 mb-4">
     <div class="col-6 col-md-3">
         <div class="card stat-card p-3">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <div class="text-muted small">Clubs affiliés</div>
-                    <div class="fs-3 fw-bold text-success">{{ nb_clubs_affilies }}</div>
-                    <div class="text-muted small">{{ nb_clubs_en_attente }} en attente</div>
+                    <div class="text-muted small">Clubs de la ligue</div>
+                    <div class="fs-3 fw-bold text-success">{{ nb_clubs_total }}</div>
+                    <div class="text-muted small">
+                        {{ nb_clubs_affilies }} affilié(s)
+                        {% if nb_clubs_en_attente > 0 %}
+                        · <span class="text-warning">{{ nb_clubs_en_attente }} en attente</span>
+                        {% endif %}
+                    </div>
                 </div>
                 <i class="bi bi-building fs-1 text-success opacity-25"></i>
             </div>
@@ -76,13 +81,15 @@
         <div class="card stat-card p-3">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <div class="text-muted small">Pratiquants inscrits</div>
-                    <div class="fs-3 fw-bold text-secondary">{{ nb_inscrits_session }}</div>
+                    <div class="text-muted small">Sessions d'examen</div>
+                    <div class="fs-3 fw-bold text-secondary">{{ nb_sessions_total }}</div>
                     <div class="text-muted small">
-                        {% if derniere_session %}{{ derniere_session.titre|truncatechars:18 }}{% else %}aucune session{% endif %}
+                        {% if nb_sessions_actives > 0 %}
+                            <span class="text-success">{{ nb_sessions_actives }} active(s)</span>
+                        {% else %}aucune active{% endif %}
                     </div>
                 </div>
-                <i class="bi bi-person-plus fs-1 text-secondary opacity-25"></i>
+                <i class="bi bi-journal-check fs-1 text-secondary opacity-25"></i>
             </div>
         </div>
     </div>
@@ -90,9 +97,9 @@
         <div class="card stat-card p-3">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <div class="text-muted small">Licenciés validés</div>
-                    <div class="fs-3 fw-bold text-primary">{{ nb_licencies }}</div>
-                    <div class="text-muted small">paiement validé ou autorisé</div>
+                    <div class="text-muted small">Licenciés (total)</div>
+                    <div class="fs-3 fw-bold text-primary">{{ nb_licencies_total }}</div>
+                    <div class="text-muted small">toutes sessions confondues</div>
                 </div>
                 <i class="bi bi-patch-check fs-1 text-primary opacity-25"></i>
             </div>
@@ -104,83 +111,108 @@
                 <div>
                     <div class="text-muted small">Affiliations en attente</div>
                     <div class="fs-3 fw-bold text-warning">{{ nb_demandes_attente }}</div>
-                    <div class="text-muted small">à valider</div>
+                    <div class="text-muted small">demandes à valider</div>
                 </div>
                 <i class="bi bi-file-earmark-check fs-1 text-warning opacity-25"></i>
             </div>
         </div>
     </div>
-    <div class="col-6 col-md-3">
-        <div class="card stat-card p-3">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <div class="text-muted small">Grades définis</div>
-                    <div class="fs-3 fw-bold text-danger">{{ nb_grades }}</div>
-                    <div class="text-muted small">
-                        {% if ligue.est_active %}<span class="badge bg-success">Ligue active</span>
-                        {% else %}<span class="badge bg-secondary">Inactive</span>{% endif %}
-                    </div>
-                </div>
-                <i class="bi bi-award fs-1 text-danger opacity-25"></i>
-            </div>
-        </div>
-    </div>
 </div>
 
-
-<!-- Alerte demandes en attente -->
-{% if nb_demandes_attente > 0 %}
-<div class="alert alert-warning d-flex align-items-center gap-2 mb-4">
-    <i class="bi bi-hourglass-split fs-5"></i>
-    <span>
-        <strong>{{ nb_demandes_attente }} demande(s) d'affiliation</strong> en attente de validation.
-        <a href="{% url 'clubs:demandes_affiliation' %}" class="alert-link ms-2">Traiter les demandes →</a>
-    </span>
-</div>
-{% endif %}
-
-<!-- Résumé par club (dernière session) -->
-{% if derniere_session and clubs_resume %}
+<!-- Sessions d'examen -->
 <div class="card mb-4">
-    <div class="card-header py-2">
+    <div class="card-header py-2 d-flex justify-content-between align-items-center">
         <h6 class="fw-bold mb-0">
-            <i class="bi bi-journal-check me-2 text-primary"></i>
-            Licenciés par club — session « {{ derniere_session.titre }} »
-            <span class="badge bg-secondary ms-2">{{ derniere_session.get_statut_display }}</span>
+            <i class="bi bi-journal-check me-2 text-primary"></i>Sessions d'examen
         </h6>
+        <a href="{% url 'exams:creer' %}" class="btn btn-sm btn-ligue">
+            <i class="bi bi-plus me-1"></i>Nouvelle session
+        </a>
     </div>
+    {% if sessions_list %}
     <div class="card-body p-0">
         <table class="table table-sm table-hover align-middle mb-0">
             <thead class="table-light">
                 <tr>
-                    <th class="ps-3">Club</th>
+                    <th class="ps-3">Session</th>
+                    <th class="text-center">Date</th>
+                    <th class="text-center">Statut</th>
                     <th class="text-center">Inscrits</th>
                     <th class="text-center">Autorisés</th>
-                    <th class="text-center">En attente paiement</th>
+                    <th class="text-center">Exclus</th>
+                    <th class="text-center">En attente</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
-            {% for r in clubs_resume %}
+            {% for item in sessions_list %}
             <tr>
-                <td class="ps-3"><strong>{{ r.nom }}</strong></td>
-                <td class="text-center"><span class="badge bg-primary">{{ r.nb_inscrits }}</span></td>
-                <td class="text-center"><span class="badge bg-success">{{ r.nb_autorises }}</span></td>
-                <td class="text-center"><span class="badge bg-warning text-dark">{{ r.nb_attente }}</span></td>
+                <td class="ps-3 fw-semibold">{{ item.session.titre }}</td>
+                <td class="text-center text-muted small">{{ item.session.date_examen|date:"d/m/Y" }}</td>
+                <td class="text-center">
+                    {% if item.session.statut == 'EN_PREPARATION' %}
+                        <span class="badge bg-secondary">En préparation</span>
+                    {% elif item.session.statut == 'INSCRIPTIONS_OUVERTES' %}
+                        <span class="badge bg-success">Inscriptions ouvertes</span>
+                    {% elif item.session.statut == 'INSCRIPTIONS_CLOSES' %}
+                        <span class="badge bg-warning text-dark">Inscriptions closes</span>
+                    {% elif item.session.statut == 'EN_COURS' %}
+                        <span class="badge bg-primary">En cours</span>
+                    {% elif item.session.statut == 'CLOTUREE' %}
+                        <span class="badge bg-dark">Clôturée</span>
+                    {% elif item.session.statut == 'RESULTATS_PUBLIES' %}
+                        <span class="badge bg-info">Résultats publiés</span>
+                    {% endif %}
+                </td>
+                <td class="text-center">
+                    {% if item.nb_inscrits > 0 %}
+                        <span class="badge bg-primary">{{ item.nb_inscrits }}</span>
+                    {% else %}<span class="text-muted">—</span>{% endif %}
+                </td>
+                <td class="text-center">
+                    {% if item.nb_autorises > 0 %}
+                        <span class="badge bg-success">{{ item.nb_autorises }}</span>
+                    {% else %}<span class="text-muted">—</span>{% endif %}
+                </td>
+                <td class="text-center">
+                    {% if item.nb_exclus > 0 %}
+                        <span class="badge bg-danger">{{ item.nb_exclus }}</span>
+                    {% else %}<span class="text-muted">—</span>{% endif %}
+                </td>
+                <td class="text-center">
+                    {% if item.nb_en_attente > 0 %}
+                        <span class="badge bg-warning text-dark">{{ item.nb_en_attente }}</span>
+                    {% else %}<span class="text-muted">—</span>{% endif %}
+                </td>
+                <td class="text-end pe-3">
+                    <a href="{% url 'exams:traiter_dossiers' item.session.pk %}"
+                       class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-eye me-1"></i>Voir
+                    </a>
+                </td>
             </tr>
             {% endfor %}
             </tbody>
         </table>
     </div>
+    {% else %}
+    <div class="card-body text-center py-4 text-muted">
+        <i class="bi bi-journal-x fs-1 opacity-25 d-block mb-2"></i>
+        Aucune session d'examen créée.
+    </div>
+    {% endif %}
 </div>
-{% endif %}
 
 <!-- Demandes d'affiliation récentes -->
 {% if demandes_en_attente %}
 <div class="card">
-    <div class="card-header py-2">
+    <div class="card-header py-2 d-flex justify-content-between align-items-center">
         <h6 class="fw-bold mb-0">
             <i class="bi bi-file-earmark-check me-2 text-warning"></i>Demandes d'affiliation à valider
         </h6>
+        <a href="{% url 'clubs:demandes_affiliation' %}" class="btn btn-sm btn-outline-warning">
+            Tout voir
+        </a>
     </div>
     <div class="card-body p-0">
         <table class="table table-sm table-hover mb-0">
@@ -189,6 +221,7 @@
                     <th class="ps-3">Club</th>
                     <th>Année sportive</th>
                     <th>Date</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
@@ -197,6 +230,11 @@
                 <td class="ps-3"><strong>{{ demande.club.nom_club }}</strong></td>
                 <td>{{ demande.annee_sportive.libelle }}</td>
                 <td class="text-muted small">{{ demande.date_demande|date:"d/m/Y" }}</td>
+                <td class="text-end pe-3">
+                    <a href="{% url 'clubs:demandes_affiliation' %}" class="btn btn-sm btn-outline-secondary py-0">
+                        <i class="bi bi-eye"></i>
+                    </a>
+                </td>
             </tr>
             {% endfor %}
             </tbody>

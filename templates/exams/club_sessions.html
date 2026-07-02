@@ -17,48 +17,105 @@
 
 {% block content %}
 <div class="mb-4">
-    <h4 class="fw-bold mb-0">Sessions d'examen ouvertes</h4>
-    <small class="text-muted">{{ club.nom_club }} — inscrivez vos pratiquants aux sessions disponibles</small>
+    <h4 class="fw-bold mb-0">Sessions d'examen</h4>
+    <small class="text-muted">{{ club.nom_club }}</small>
 </div>
 
-<div class="card p-3">
-    {% if sessions %}
-    <div class="row g-3">
-        {% for session in sessions %}
-        <div class="col-12 col-md-6">
-            <div class="card border h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <h6 class="fw-bold mb-0">{{ session.titre }}</h6>
+{% if sessions_actives %}
+<div class="row g-3 mb-4">
+    {% for session in sessions_actives %}
+    <div class="col-12 col-md-6">
+        <div class="card border h-100">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h6 class="fw-bold mb-0">{{ session.titre }}</h6>
+                    {% if session.statut == 'EN_PREPARATION' %}
+                        <span class="badge bg-secondary">En préparation</span>
+                    {% elif session.statut == 'INSCRIPTIONS_OUVERTES' %}
                         <span class="badge bg-success">Inscriptions ouvertes</span>
-                    </div>
-                    <p class="text-muted small mb-1">
-                        <i class="bi bi-calendar3 me-1"></i>{{ session.date_examen|date:"d/m/Y" }}
-                    </p>
-                    <p class="text-muted small mb-1">
-                        <i class="bi bi-geo-alt me-1"></i>{{ session.lieu }}
-                    </p>
-                    <p class="text-muted small mb-3">
-                        <i class="bi bi-trophy me-1"></i>{{ session.annee_sportive.libelle }}
-                    </p>
-                    <p class="text-muted small mb-3">
-                        <i class="bi bi-clock me-1"></i>
-                        Clôture : {{ session.date_cloture_inscriptions|date:"d/m/Y" }}
-                    </p>
-                    <a href="{% url 'exams:club_inscriptions' session.pk %}"
-                       class="btn btn-ligue btn-sm w-100">
-                        <i class="bi bi-person-plus me-1"></i>Gérer mes inscriptions
-                    </a>
+                    {% elif session.statut == 'INSCRIPTIONS_CLOSES' %}
+                        <span class="badge bg-warning text-dark">Inscriptions closes</span>
+                    {% elif session.statut == 'EN_COURS' %}
+                        <span class="badge bg-primary">En cours</span>
+                    {% endif %}
                 </div>
+                <p class="text-muted small mb-1">
+                    <i class="bi bi-calendar3 me-1"></i>{{ session.date_examen|date:"d/m/Y" }}
+                </p>
+                <p class="text-muted small mb-1">
+                    <i class="bi bi-geo-alt me-1"></i>{{ session.lieu }}
+                </p>
+                <p class="text-muted small mb-1">
+                    <i class="bi bi-trophy me-1"></i>{{ session.annee_sportive.libelle }}
+                </p>
+                <p class="text-muted small mb-3">
+                    <i class="bi bi-clock me-1"></i>
+                    Clôture inscriptions : {{ session.date_cloture_inscriptions|date:"d/m/Y" }}
+                </p>
+                <div class="mb-3">
+                    <span class="badge bg-success">
+                        <i class="bi bi-award me-1"></i>{{ session.nb_licencies }} licencié(s)
+                    </span>
+                </div>
+                <a href="{% url 'exams:club_inscriptions' session.pk %}"
+                   class="btn btn-ligue btn-sm w-100">
+                    <i class="bi bi-journal-text me-1"></i>Voir mes inscriptions
+                </a>
             </div>
         </div>
-        {% endfor %}
     </div>
-    {% else %}
-    <div class="text-center py-5 text-muted">
-        <i class="bi bi-journal-x fs-1 opacity-25 d-block mb-2"></i>
-        Aucune session d'examen n'est ouverte aux inscriptions pour le moment.
-    </div>
-    {% endif %}
+    {% endfor %}
 </div>
+{% else %}
+<div class="card p-4 text-center text-muted mb-4">
+    <i class="bi bi-journal-x fs-1 opacity-25 d-block mb-2"></i>
+    Aucune session en cours pour le moment.
+</div>
+{% endif %}
+
+{% if sessions_historique %}
+<h6 class="fw-bold text-muted mb-2">
+    <i class="bi bi-clock-history me-1"></i>Historique des sessions passées
+</h6>
+<div class="card p-0">
+    <table class="table table-sm table-hover align-middle mb-0">
+        <thead class="table-light">
+            <tr>
+                <th class="ps-3">Session</th>
+                <th>Date examen</th>
+                <th>Année sportive</th>
+                <th class="text-center">Licenciés</th>
+                <th>Statut</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for session in sessions_historique %}
+        <tr>
+            <td class="ps-3"><strong>{{ session.titre }}</strong></td>
+            <td class="text-muted small">{{ session.date_examen|date:"d/m/Y" }}</td>
+            <td class="text-muted small">{{ session.annee_sportive.libelle }}</td>
+            <td class="text-center">
+                <span class="badge bg-secondary">{{ session.nb_licencies }}</span>
+            </td>
+            <td>
+                {% if session.statut == 'CLOTUREE' %}
+                    <span class="badge bg-dark">Clôturée</span>
+                {% elif session.statut == 'RESULTATS_PUBLIES' %}
+                    <span class="badge bg-info">Résultats publiés</span>
+                {% endif %}
+            </td>
+            <td>
+                <a href="{% url 'exams:club_inscriptions' session.pk %}"
+                   class="btn btn-sm btn-outline-secondary" title="Voir les inscriptions">
+                    <i class="bi bi-eye"></i>
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
 {% endblock %}

@@ -30,13 +30,71 @@
 </div>
 {% else %}
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-3">
     <div>
         <h4 class="fw-bold mb-0">Tableau de bord</h4>
         <small class="text-muted">{{ club.nom_club }}{% if club.sigle_club %} ({{ club.sigle_club }}){% endif %}</small>
     </div>
     <span class="badge bg-success px-3 py-2">Gestionnaire Club</span>
 </div>
+
+{% if ticker_sessions %}
+<style>
+.ticker-wrap {
+    display: flex;
+    align-items: stretch;
+    overflow: hidden;
+    border-radius: 6px;
+    margin-bottom: 1.25rem;
+}
+.ticker-label {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    padding: 8px 14px;
+    font-size: .85rem;
+    font-weight: 700;
+    letter-spacing: .03em;
+    white-space: nowrap;
+    border-right: 1px solid rgba(255,255,255,.3);
+}
+.ticker-track {
+    overflow: hidden;
+    flex: 1;
+    display: flex;
+    align-items: center;
+}
+.ticker-content {
+    display: inline-block;
+    white-space: nowrap;
+    font-size: .95rem;
+    padding-left: 100%;
+    animation: ticker-move 35s linear infinite;
+}
+@keyframes ticker-move {
+    0%   { transform: translateX(0); }
+    100% { transform: translateX(-100%); }
+}
+.ticker-vert   { background: #198754; color: #fff; }
+.ticker-orange { background: #fd7e14; color: #fff; }
+.ticker-bleu   { background: #0d6efd; color: #fff; }
+.ticker-sombre { background: #343a40; color: #fff; }
+.ticker-gris   { background: #6c757d; color: #fff; }
+</style>
+
+{% for t in ticker_sessions %}
+<div class="ticker-wrap {{ t.couleur }}">
+    <div class="ticker-label">
+        <i class="bi bi-broadcast me-1"></i>Actualité
+    </div>
+    <div class="ticker-track">
+        <span class="ticker-content">
+            &#9654;&nbsp;<strong>{{ t.titre }}</strong>&nbsp;&mdash;&nbsp;{{ t.message }}
+        </span>
+    </div>
+</div>
+{% endfor %}
+{% endif %}
 
 <div class="row g-3 mb-4">
     <div class="col-md-4">
@@ -148,7 +206,8 @@
                         <th>Session</th>
                         <th>Date</th>
                         <th>Statut</th>
-                        <th class="text-center">Pratiquants inscrits</th>
+                        <th class="text-center">Inscrits</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -159,18 +218,28 @@
                         <td>
                             {% if session.statut == 'INSCRIPTIONS_OUVERTES' %}
                             <span class="badge bg-success">Inscriptions ouvertes</span>
+                            {% elif session.statut == 'INSCRIPTIONS_CLOSES' %}
+                            <span class="badge bg-warning text-dark">Closes</span>
                             {% elif session.statut == 'EN_PREPARATION' %}
                             <span class="badge bg-secondary">En préparation</span>
                             {% elif session.statut == 'EN_COURS' %}
                             <span class="badge bg-primary">En cours</span>
+                            {% elif session.statut == 'CLOTUREE' %}
+                            <span class="badge bg-dark">Clôturée</span>
                             {% elif session.statut == 'RESULTATS_PUBLIES' %}
-                            <span class="badge bg-info text-dark">Résultats publiés</span>
+                            <span class="badge bg-info">Résultats publiés</span>
                             {% else %}
                             <span class="badge bg-secondary">{{ session.get_statut_display }}</span>
                             {% endif %}
                         </td>
                         <td class="text-center">
-                            <span class="badge bg-primary fs-6">{{ session.nb_inscrits }}</span>
+                            <span class="badge bg-primary">{{ session.nb_inscrits }}</span>
+                        </td>
+                        <td class="text-end">
+                            <a href="{% url 'exams:club_inscriptions' session.pk %}"
+                               class="btn btn-sm btn-outline-primary" title="Voir mes inscriptions">
+                                <i class="bi bi-eye"></i>
+                            </a>
                         </td>
                     </tr>
                     {% endfor %}

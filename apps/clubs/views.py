@@ -70,12 +70,13 @@ def modifier_club(request, pk):
 @gest_ligue_requis
 def detail_club(request, pk):
     club = get_object_or_404(Club, pk=pk, ligue=request.user.ligue)
-    pratiquants = club.pratiquants.select_related('grade_actuel').order_by('nom', 'prenom')
     demandes    = club.demandes_affiliation.select_related('annee_sportive').order_by('-date_demande')
     return render(request, 'clubs/detail.html', {
-        'club':        club,
-        'pratiquants': pratiquants,
-        'demandes':    demandes,
+        'club':           club,
+        'nb_pratiquants': club.pratiquants.count(),
+        'nb_actifs':      club.pratiquants.filter(actif=True).count(),
+        'nb_inactifs':    club.pratiquants.filter(actif=False).count(),
+        'demandes':       demandes,
     })
 
 

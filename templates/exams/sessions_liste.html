@@ -98,22 +98,26 @@
                 {% elif session.statut == 'EN_COURS' %}
                     <span class="badge bg-primary">En cours</span>
                 {% elif session.statut == 'CLOTUREE' %}
-                    <span class="badge bg-danger">Clôturée</span>
+                    <span class="badge bg-dark">Clôturée</span>
                 {% elif session.statut == 'RESULTATS_PUBLIES' %}
                     <span class="badge bg-info">Résultats publiés</span>
                 {% endif %}
             </td>
             <td class="text-end">
                 <a href="{% url 'exams:detail' session.pk %}"
-                   class="btn btn-sm btn-outline-secondary" title="Voir">
-                    <i class="bi bi-eye"></i>
+                   class="btn btn-sm btn-outline-secondary" title="Détail">
+                    <i class="bi bi-info-circle"></i>
                 </a>
-                {% if session.statut == 'EN_PREPARATION' %}
+{% if session.statut == 'EN_PREPARATION' %}
                 <a href="{% url 'exams:modifier' session.pk %}"
                    class="btn btn-sm btn-outline-primary ms-1" title="Modifier">
                     <i class="bi bi-pencil"></i>
                 </a>
                 {% endif %}
+                <a href="{% url 'exams:supprimer' session.pk %}"
+                   class="btn btn-sm btn-outline-danger ms-1" title="Supprimer">
+                    <i class="bi bi-trash"></i>
+                </a>
             </td>
         </tr>
         {% endfor %}

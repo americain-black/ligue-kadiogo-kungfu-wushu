@@ -82,8 +82,7 @@ def dashboard_super_admin(request):
 @login_required
 def dashboard_ligue(request):
     from apps.clubs.models import Club, DemandeAffiliation
-    from apps.practitioners.models import Pratiquant, Grade
-    from apps.exams.models import SessionExamen, Inscription, AnneeSportive, TarifExamen
+    from apps.exams.models import SessionExamen, Inscription
     from django.db.models import Count, Q
 
     ligue = request.user.ligue
@@ -92,70 +91,55 @@ def dashboard_ligue(request):
         messages.warning(request, "Votre compte n'est rattaché à aucune ligue.")
         return render(request, 'accounts/dashboard_ligue.html', {'ligue': None})
 
-    clubs_qs   = Club.objects.filter(ligue=ligue)
+    clubs_qs    = Club.objects.filter(ligue=ligue)
     demandes_qs = DemandeAffiliation.objects.filter(
         club__ligue=ligue,
         statut_affiliation='EN_ATTENTE_VALID_LIGUE'
     )
 
-    # Dernière session active
-    derniere_session = (
+    # Statistiques globales
+    nb_clubs_total      = clubs_qs.count()
+    nb_clubs_affilies   = clubs_qs.filter(statut_club='AFFILIE').count()
+    nb_clubs_en_attente = clubs_qs.filter(statut_club='EN_ATTENTE').count()
+    nb_demandes_attente = demandes_qs.count()
+
+    # Toutes les sessions de la ligue, avec stats d'inscription
+    sessions_qs = (
         SessionExamen.objects
         .filter(annee_sportive__ligue=ligue)
-        .exclude(statut='RESULTATS_PUBLIES')
+        .select_related('annee_sportive')
         .order_by('-date_examen')
-        .first()
     )
+    sessions_list = []
+    nb_licencies_total = 0
+    for s in sessions_qs:
+        qs_i = Inscription.objects.filter(session=s)
+        nb_aut = qs_i.filter(statut='AUTORISE').count()
+        nb_licencies_total += nb_aut
+        sessions_list.append({
+            'session':       s,
+            'nb_inscrits':   qs_i.count(),
+            'nb_autorises':  nb_aut,
+            'nb_exclus':     qs_i.filter(statut='EXCLU').count(),
+            'nb_en_attente': qs_i.filter(statut='EN_ATTENTE_PAIEMENT').count(),
+        })
 
-    # Stats session
-    nb_inscrits_session = 0  # total inscriptions dans la session
-    nb_licencies = 0          # pratiquants avec paiement validé ou autorisés
-    clubs_resume = []
-    if derniere_session:
-        nb_inscrits_session = Inscription.objects.filter(session=derniere_session).count()
-        nb_licencies = Inscription.objects.filter(
-            session=derniere_session,
-            statut__in=['PAIEMENT_VALIDE', 'AUTORISE']
-        ).count()
-
-        # Résumé par club pour la session
-        from apps.clubs.models import Club
-        for club in Club.objects.filter(ligue=ligue).order_by('nom_club'):
-            qs_club = Inscription.objects.filter(session=derniere_session, pratiquant__club=club)
-            total      = qs_club.count()
-            if total == 0:
-                continue
-            nb_autorises = qs_club.filter(statut='AUTORISE').count()
-            nb_attente   = qs_club.filter(statut='EN_ATTENTE_PAIEMENT').count()
-            clubs_resume.append({
-                'nom':          club.nom_club,
-                'nb_inscrits':  total,
-                'nb_autorises': nb_autorises,
-                'nb_attente':   nb_attente,
-            })
-
-    # Année sportive active + tarifs
-    annee_active = AnneeSportive.objects.filter(ligue=ligue, statut='ACTIVE').first()
-    tarifs_actifs = []
-    nb_tarifs = 0
-    if annee_active:
-        tarifs_actifs = annee_active.tarifs.select_related('grade').order_by('grade__id_grade')
-        nb_tarifs = tarifs_actifs.count()
+    nb_sessions_total  = len(sessions_list)
+    nb_sessions_actives = sessions_qs.exclude(
+        statut__in=['CLOTUREE', 'RESULTATS_PUBLIES']
+    ).count()
 
     contexte = {
         'ligue':               ligue,
-        'nb_clubs_affilies':   clubs_qs.filter(statut_club='AFFILIE').count(),
-        'nb_clubs_en_attente': clubs_qs.filter(statut_club='EN_ATTENTE').count(),
-        'nb_inscrits_session': nb_inscrits_session,
-        'nb_licencies':        nb_licencies,
-        'nb_demandes_attente': demandes_qs.count(),
+        'nb_clubs_total':      nb_clubs_total,
+        'nb_clubs_affilies':   nb_clubs_affilies,
+        'nb_clubs_en_attente': nb_clubs_en_attente,
+        'nb_demandes_attente': nb_demandes_attente,
         'demandes_en_attente': demandes_qs.select_related('club', 'annee_sportive').order_by('-date_demande')[:5],
-        'derniere_session':    derniere_session,
-        'clubs_resume':        clubs_resume,
-        'nb_grades':           Grade.objects.filter(ligue=ligue).count(),
-        'annee_active':        annee_active,
-        'tarifs_actifs':       tarifs_actifs,
-        'nb_tarifs':           nb_tarifs,
+        'nb_licencies_total':  nb_licencies_total,
+        'nb_sessions_total':   nb_sessions_total,
+        'nb_sessions_actives': nb_sessions_actives,
+        'sessions_list':       sessions_list,
     }
     return render(request, 'accounts/dashboard_ligue.html', contexte)
 
@@ -179,12 +163,44 @@ def dashboard_club(request):
         .order_by('-date_examen')
     )
 
+    # Sessions actives de la ligue — pour le ticker d'information
+    _MESSAGES = {
+        'EN_PREPARATION':     "est en cours de préparation par la ligue. Vous serez informé dès que les inscriptions seront ouvertes.",
+        'INSCRIPTIONS_OUVERTES': "Les inscriptions sont ouvertes. Inscrivez vos pratiquants et soumettez votre preuve de paiement avant la date de clôture.",
+        'INSCRIPTIONS_CLOSES':   "Les inscriptions sont closes. Vous ne pouvez plus inscrire de nouveaux pratiquants, mais vous pouvez encore régulariser votre paiement si nécessaire.",
+        'EN_COURS':           "L'examen est en cours. Assurez-vous que le paiement de vos pratiquants est bien validé.",
+        'CLOTUREE':           "L'examen est terminé. Les résultats sont en cours de traitement par la ligue.",
+    }
+    _COULEURS = {
+        'EN_PREPARATION':     'ticker-gris',
+        'INSCRIPTIONS_OUVERTES': 'ticker-vert',
+        'INSCRIPTIONS_CLOSES':   'ticker-orange',
+        'EN_COURS':           'ticker-bleu',
+        'CLOTUREE':           'ticker-sombre',
+    }
+    ticker_sessions = []
+    if club.ligue:
+        qs_ticker = (
+            SessionExamen.objects
+            .filter(annee_sportive__ligue=club.ligue)
+            .exclude(statut='RESULTATS_PUBLIES')
+            .order_by('date_examen')
+        )
+        for s in qs_ticker:
+            ticker_sessions.append({
+                'titre':   s.titre,
+                'statut':  s.statut,
+                'message': _MESSAGES.get(s.statut, ''),
+                'couleur': _COULEURS.get(s.statut, 'ticker-gris'),
+            })
+
     contexte = {
-        'club':                 club,
-        'nb_pratiquants':       Pratiquant.objects.filter(club=club, actif=True).count(),
-        'nb_inactifs':          Pratiquant.objects.filter(club=club, actif=False).count(),
-        'derniers_pratiquants': Pratiquant.objects.filter(club=club).select_related('grade_actuel').order_by('-date_inscription')[:5],
+        'club':                   club,
+        'nb_pratiquants':         Pratiquant.objects.filter(club=club, actif=True).count(),
+        'nb_inactifs':            Pratiquant.objects.filter(club=club, actif=False).count(),
+        'derniers_pratiquants':   Pratiquant.objects.filter(club=club).select_related('grade_actuel').order_by('-date_inscription')[:5],
         'sessions_avec_inscrits': sessions_avec_inscrits,
+        'ticker_sessions':        ticker_sessions,
     }
     return render(request, 'accounts/dashboard_club.html', contexte)
 

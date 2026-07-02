@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}{{ session.titre }} — Ligue du Kadiogo{% endblock %}
+{% block title %}{{ session.titre }}{% endblock %}
 
 {% block sidebar %}
 <span class="sidebar-title">Navigation</span>
@@ -7,248 +7,143 @@
     <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
 </a>
 <span class="sidebar-title mt-2">Examens</span>
-<a href="{% url 'exams:annees_sportives' %}" class="nav-link">
-    <i class="bi bi-calendar2-range me-2"></i>Années sportives
-</a>
 <a href="{% url 'exams:liste' %}" class="nav-link active">
     <i class="bi bi-journal-check me-2"></i>Sessions d'examen
 </a>
-<a href="{% url 'exams:tarifs_accueil' %}" class="nav-link ps-4">
-    <i class="bi bi-cash-coin me-2"></i>Tarifs d'examen
-</a>
-<a href="{% url 'exams:rubriques' %}" class="nav-link">
-    <i class="bi bi-list-task me-2"></i>Rubriques / Épreuves
-</a>
-<a href="{% url 'exams:options' %}" class="nav-link">
-    <i class="bi bi-tags me-2"></i>Options / Styles
-</a>
-<a href="{% url 'exams:modele_matricule' %}" class="nav-link">
-    <i class="bi bi-123 me-2"></i>Modèle de matricule
-</a>
-<a href="{% url 'exams:parametres_examen' %}" class="nav-link">
-    <i class="bi bi-percent me-2"></i>Paramètres paiement
-</a>
+{% endblock %}
 
-<span class="sidebar-title mt-2">Clubs</span>
-<a href="{% url 'clubs:liste' %}" class="nav-link">
-    <i class="bi bi-building me-2"></i>Clubs
-</a>
-<a href="{% url 'clubs:demandes_affiliation' %}" class="nav-link">
-    <i class="bi bi-file-earmark-check me-2"></i>Affiliations
-</a>
+{% block extra_css %}
+<style>
+.hub-card {
+    border: none;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    transition: transform 0.15s, box-shadow 0.15s;
+    cursor: pointer;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+}
+.hub-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.14);
+    color: inherit;
+}
+.hub-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+.hub-title {
+    font-size: 1.2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+.hub-desc {
+    font-size: 0.9rem;
+    color: #6c757d;
+    line-height: 1.5;
+}
+.status-bar {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 1rem 1.5rem;
+    border: 1px solid #e9ecef;
+}
+</style>
 {% endblock %}
 
 {% block content %}
+
 <!-- En-tête -->
-<div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
-    <div>
-        <small class="text-muted"><a href="{% url 'exams:liste' %}">Sessions</a> › {{ session.titre }}</small>
-        <h4 class="fw-bold mb-1 mt-1">{{ session.titre }}</h4>
-        <div class="d-flex gap-3 flex-wrap">
-            <span class="text-muted small"><i class="bi bi-calendar3 me-1"></i>{{ session.date_examen|date:"d/m/Y" }}</span>
-            <span class="text-muted small"><i class="bi bi-geo-alt me-1"></i>{{ session.lieu }}</span>
-            <span class="text-muted small"><i class="bi bi-trophy me-1"></i>{{ session.annee_sportive.libelle }}</span>
-        </div>
-    </div>
-    <div class="d-flex align-items-center gap-2 flex-wrap">
-        <a href="{% url 'exams:licencies_gl' session.pk %}" class="btn btn-sm btn-outline-primary">
-            <i class="bi bi-people me-1"></i>Liste des licenciés
-        </a>
+<div class="mb-3">
+    <small class="text-muted">
+        <a href="{% url 'exams:liste' %}">Sessions d'examen</a> › {{ session.titre }}
+    </small>
+    <h4 class="fw-bold mt-1 mb-1">{{ session.titre }}</h4>
+    <div class="d-flex gap-3 flex-wrap align-items-center">
+        <span class="text-muted small"><i class="bi bi-calendar3 me-1"></i>{{ session.date_examen|date:"d/m/Y" }}</span>
+        <span class="text-muted small"><i class="bi bi-geo-alt me-1"></i>{{ session.lieu }}</span>
+        <span class="text-muted small"><i class="bi bi-trophy me-1"></i>{{ session.annee_sportive.libelle }}</span>
+        <span class="text-muted small"><i class="bi bi-people me-1"></i>{{ nb_inscrits }} inscrit(s)</span>
         {% if session.statut == 'EN_PREPARATION' %}
-            <span class="badge bg-secondary fs-6">En préparation</span>
-            <a href="{% url 'exams:modifier' session.pk %}" class="btn btn-sm btn-outline-primary">
-                <i class="bi bi-pencil me-1"></i>Modifier
-            </a>
-            <a href="{% url 'exams:ouvrir_inscriptions' session.pk %}" class="btn btn-sm btn-success">
-                <i class="bi bi-unlock me-1"></i>Ouvrir les inscriptions
-            </a>
-            <a href="{% url 'exams:supprimer' session.pk %}" class="btn btn-sm btn-outline-danger">
-                <i class="bi bi-trash me-1"></i>Supprimer
-            </a>
+            <span class="badge bg-secondary">En préparation</span>
         {% elif session.statut == 'INSCRIPTIONS_OUVERTES' %}
-            <span class="badge bg-success fs-6">Inscriptions ouvertes</span>
-            <a href="{% url 'exams:cloturer_inscriptions' session.pk %}" class="btn btn-sm btn-warning">
-                <i class="bi bi-lock me-1"></i>Clôturer les inscriptions
-            </a>
-            <a href="{% url 'exams:supprimer' session.pk %}" class="btn btn-sm btn-outline-danger">
-                <i class="bi bi-trash me-1"></i>Supprimer
-            </a>
+            <span class="badge bg-success">Inscriptions ouvertes</span>
         {% elif session.statut == 'INSCRIPTIONS_CLOSES' %}
-            <span class="badge bg-warning text-dark fs-6">Inscriptions closes</span>
-            <a href="{% url 'exams:demarrer' session.pk %}" class="btn btn-sm btn-primary">
-                <i class="bi bi-play-fill me-1"></i>Démarrer la session
-            </a>
+            <span class="badge bg-warning text-dark">Inscriptions closes</span>
         {% elif session.statut == 'EN_COURS' %}
-            <span class="badge bg-primary fs-6">En cours</span>
+            <span class="badge bg-primary">En cours</span>
         {% elif session.statut == 'CLOTUREE' %}
-            <span class="badge bg-danger fs-6">Clôturée</span>
+            <span class="badge bg-dark">Clôturée</span>
         {% elif session.statut == 'RESULTATS_PUBLIES' %}
-            <span class="badge bg-info fs-6">Résultats publiés</span>
+            <span class="badge bg-info">Résultats publiés</span>
         {% endif %}
     </div>
 </div>
 
-<div class="row g-3">
-    <!-- Colonne gauche : infos + jury -->
+<hr class="mb-4">
+
+<!-- 3 boutons principaux -->
+<div class="row g-4 mb-4">
+
+    <!-- Gestion de la session -->
     <div class="col-12 col-md-4">
-        <!-- Infos -->
-        <div class="card p-3 mb-3">
-            <h6 class="fw-bold mb-3"><i class="bi bi-info-circle me-2 text-muted"></i>Informations</h6>
-            <table class="table table-sm table-borderless mb-0">
-                <tr>
-                    <td class="text-muted small">Inscriptions ouvertes</td>
-                    <td class="small">{{ session.date_ouverture_inscriptions|date:"d/m/Y" }}</td>
-                </tr>
-                <tr>
-                    <td class="text-muted small">Inscriptions closes</td>
-                    <td class="small">{{ session.date_cloture_inscriptions|date:"d/m/Y" }}</td>
-                </tr>
-                <tr>
-                    <td class="text-muted small">Date examen</td>
-                    <td class="small fw-semibold">{{ session.date_examen|date:"d/m/Y" }}</td>
-                </tr>
-                <tr>
-                    <td class="text-muted small">Total inscrits</td>
-                    <td class="small"><span class="badge bg-secondary">{{ nb_inscrits }}</span></td>
-                </tr>
-                {% if session.date_limite_paiement %}
-                <tr>
-                    <td class="text-muted small">Limite paiement</td>
-                    <td class="small fw-semibold text-warning">{{ session.date_limite_paiement|date:"d/m/Y" }}</td>
-                </tr>
-                {% endif %}
-            </table>
-        </div>
-
-        <!-- Jury -->
-        <div class="card p-3">
-            <h6 class="fw-bold mb-3"><i class="bi bi-person-badge me-2 text-muted"></i>Membres du jury</h6>
-            {% if affectations %}
-            <ul class="list-unstyled mb-3">
-                {% for aff in affectations %}
-                <li class="d-flex justify-content-between align-items-center py-1 border-bottom">
-                    <span class="small">{{ aff.jury.get_full_name|default:aff.jury.username }}</span>
-                    <form method="post" action="{% url 'exams:retirer_jury' aff.pk %}"
-                          onsubmit="return confirm('Retirer ce membre du jury ?')">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-1">
-                            <i class="bi bi-x"></i>
-                        </button>
-                    </form>
-                </li>
-                {% endfor %}
-            </ul>
-            {% else %}
-            <p class="text-muted small mb-3">Aucun jury affecté.</p>
-            {% endif %}
-            {% if session.statut != 'RESULTATS_PUBLIES' %}
-            <form method="post" action="{% url 'exams:affecter_jury' session.pk %}">
-                {% csrf_token %}
-                <div class="d-flex gap-2">
-                    {{ jury_form.jury }}
-                    <button type="submit" class="btn btn-sm btn-ligue text-nowrap">
-                        <i class="bi bi-plus"></i> Affecter
-                    </button>
-                </div>
-            </form>
-            {% endif %}
-        </div>
-    </div>
-
-    <!-- Colonne droite : liste par club -->
-    <div class="col-12 col-md-8">
-        {% if clubs_data %}
-            {% for data in clubs_data %}
-            <div class="card mb-3">
-                <div class="card-header d-flex justify-content-between align-items-center py-2 flex-wrap gap-2">
-                    <div>
-                        <strong>{{ data.club.nom_club }}</strong>
-                        <span class="badge bg-secondary ms-2">{{ data.inscriptions|length }} inscrit(s)</span>
-                        {% if params %}
-                        <span class="text-muted small ms-2">
-                            <span class="badge bg-danger bg-opacity-10 text-danger border border-danger">
-                                Quote-part ligue : {{ data.part_ligue|floatformat:"0" }} FCFA
-                            </span>
-                            <span class="badge bg-success bg-opacity-10 text-success border border-success ms-1">
-                                Quote-part club : {{ data.part_club|floatformat:"0" }} FCFA
-                            </span>
-                        </span>
-                        {% else %}
-                        <span class="text-muted small ms-2">Total : {{ data.montant_total|floatformat:"0" }} FCFA</span>
-                        {% endif %}
-                    </div>
-                    <div class="d-flex align-items-center gap-2">
-                        {% if data.paiement %}
-                            {% if data.paiement.statut == 'EN_ATTENTE' %}
-                                <span class="badge bg-warning text-dark">Preuve en vérification</span>
-                            {% elif data.paiement.statut == 'INSUFFISANT' %}
-                                <span class="badge bg-warning text-dark">
-                                    <i class="bi bi-exclamation-triangle me-1"></i>Insuffisant — en attente
-                                </span>
-                            {% elif data.paiement.statut == 'VALIDE' %}
-                                <span class="badge bg-success">Paiement validé</span>
-                                {% if data.a_paiement_valide_en_attente %}
-                                <form method="post"
-                                      action="{% url 'exams:valider_liste_club' session.pk data.club.pk %}"
-                                      onsubmit="return confirm('Valider la liste de {{ data.club.nom_club }} ?')">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-sm btn-success">
-                                        <i class="bi bi-check2-all me-1"></i>Valider la liste
-                                    </button>
-                                </form>
-                                {% endif %}
-                            {% elif data.paiement.statut == 'REJETE' %}
-                                <span class="badge bg-danger">Preuve rejetée</span>
-                            {% endif %}
-                        {% else %}
-                            <span class="badge bg-light text-dark border">Aucun paiement soumis</span>
-                        {% endif %}
-                    </div>
-                </div>
-                <div class="card-body p-0">
-                    <table class="table table-hover table-sm align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th class="ps-3">Pratiquant</th>
-                                <th>Matricule</th>
-                                <th>Grade actuel</th>
-                                <th>Grade visé</th>
-                                <th>Montant</th>
-                                <th>Statut</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        {% for insc in data.inscriptions %}
-                        <tr>
-                            <td class="ps-3"><strong>{{ insc.pratiquant.nom }} {{ insc.pratiquant.prenom }}</strong></td>
-                            <td class="small text-muted">{{ insc.pratiquant.matricule|default:"—" }}</td>
-                            <td class="small text-muted">{{ insc.pratiquant.get_grade_display }}</td>
-                            <td><span class="badge bg-primary">{{ insc.grade_vise }}</span></td>
-                            <td class="small">{{ insc.montant|floatformat:"0" }} FCFA</td>
-                            <td>
-                                {% if insc.statut == 'EN_ATTENTE_PAIEMENT' %}
-                                    <span class="badge bg-warning text-dark">Paiement attendu</span>
-                                {% elif insc.statut == 'PAIEMENT_VALIDE' %}
-                                    <span class="badge bg-info">Paiement validé</span>
-                                {% elif insc.statut == 'AUTORISE' %}
-                                    <span class="badge bg-success">Autorisé</span>
-                                {% elif insc.statut == 'EXCLU' %}
-                                    <span class="badge bg-danger">Exclu</span>
-                                {% endif %}
-                            </td>
-                        </tr>
-                        {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+        <a href="{% url 'exams:gestion_session' session.pk %}" class="hub-card card p-4 text-center h-100">
+            <div class="hub-icon text-danger">
+                <i class="bi bi-gear-fill"></i>
             </div>
-            {% endfor %}
-        {% else %}
-        <div class="card p-4 text-center text-muted">
-            <i class="bi bi-people fs-1 opacity-25 d-block mb-2"></i>
-            Aucun pratiquant inscrit pour le moment.
-        </div>
-        {% endif %}
+            <div class="hub-title">Gestion de la session</div>
+            <div class="hub-desc">
+                Faire avancer le cycle de vie : ouvrir les inscriptions, démarrer, clôturer, publier les résultats.
+                Modifier ou supprimer la session.
+            </div>
+            <div class="mt-3">
+                <span class="btn btn-danger btn-sm px-4">Accéder →</span>
+            </div>
+        </a>
     </div>
+
+    <!-- Traitement des dossiers -->
+    <div class="col-12 col-md-4">
+        <a href="{% url 'exams:traiter_dossiers' session.pk %}" class="hub-card card p-4 text-center h-100">
+            <div class="hub-icon text-primary">
+                <i class="bi bi-folder-check"></i>
+            </div>
+            <div class="hub-title">Traitement des dossiers</div>
+            <div class="hub-desc">
+                Vérifier les paiements par club, valider ou rejeter les preuves, exclure un candidat
+                si le montant est insuffisant.
+            </div>
+            <div class="mt-3">
+                <span class="btn btn-primary btn-sm px-4">Accéder →</span>
+            </div>
+        </a>
+    </div>
+
+    <!-- Gestion du jury -->
+    <div class="col-12 col-md-4">
+        <a href="{% url 'exams:gestion_jury' session.pk %}" class="hub-card card p-4 text-center h-100">
+            <div class="hub-icon text-success">
+                <i class="bi bi-person-badge"></i>
+            </div>
+            <div class="hub-title">Gérer le jury</div>
+            <div class="hub-desc">
+                Affecter les membres du jury, définir pour chacun les grades, options et rubriques
+                qu'il doit évaluer.
+            </div>
+            <div class="mt-3">
+                <span class="btn btn-success btn-sm px-4">Accéder →</span>
+            </div>
+        </a>
+    </div>
+
 </div>
+
+<!-- Raccourcis complémentaires -->
+<div class="d-flex gap-2 flex-wrap">
+    <a href="{% url 'exams:licencies_gl' session.pk %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-people me-1"></i>Liste des licenciés
+    </a>
+</div>
+
 {% endblock %}

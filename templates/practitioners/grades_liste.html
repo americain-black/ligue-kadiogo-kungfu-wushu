@@ -43,17 +43,33 @@
     </a>
 </div>
 
-<div class="alert alert-info d-flex align-items-start gap-2 mb-4" role="alert">
-    <i class="bi bi-info-circle-fill fs-5 mt-1 flex-shrink-0"></i>
-    <div>
-        <strong>Liste complète requise.</strong>
-        Cette liste sert à <strong>deux usages</strong> : définir les grades visés lors des examens
-        de passage <em>et</em> indiquer le grade actuel de chaque pratiquant.
-        Veuillez donc y inscrire <strong>tous les grades existants</strong> dans votre ligue
-        (ex : Blanc, Jaune, Orange, Vert, Bleu, Marron, Noir, etc.),
-        pas uniquement ceux qui font l'objet d'une prochaine session d'examen.
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card stat-card p-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-muted small">Grades définis</div>
+                    <div class="fs-3 fw-bold text-danger">{{ grades|length }}</div>
+                    <div class="text-muted small">dans cette ligue</div>
+                </div>
+                <i class="bi bi-award fs-1 text-danger opacity-25"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card stat-card p-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="text-muted small">Grades actifs</div>
+                    <div class="fs-3 fw-bold text-success">{{ nb_actifs }}</div>
+                    <div class="text-muted small">{{ nb_inactifs }} inactif(s)</div>
+                </div>
+                <i class="bi bi-check-circle fs-1 text-success opacity-25"></i>
+            </div>
+        </div>
     </div>
 </div>
+
 
 {% if grades %}
 <div class="card">

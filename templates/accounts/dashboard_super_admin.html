@@ -15,105 +15,344 @@
 </a>
 {% endblock %}
 
+{% block extra_css %}
+<style>
+    /* ── En-tête ── */
+    .dash-header {
+        background: linear-gradient(135deg, #7b1010 0%, #c0392b 100%);
+        border-radius: 16px;
+        padding: 1.6rem 2rem;
+        color: #fff;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1rem;
+        box-shadow: 0 4px 20px rgba(192,57,43,0.3);
+    }
+    .dash-header .welcome { font-size: 1.4rem; font-weight: 700; }
+    .dash-header .date    { font-size: 0.85rem; opacity: 0.8; margin-top: 0.2rem; }
+    .dash-header .badge-role {
+        background: rgba(255,255,255,0.2);
+        color: #fff;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 0.5rem 1.1rem;
+        border-radius: 30px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+    }
+
+    /* ── Stat cards ── */
+    .kpi-card {
+        border: none;
+        border-radius: 14px;
+        padding: 1.4rem 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 1.2rem;
+        box-shadow: 0 3px 14px rgba(0,0,0,0.07);
+        transition: transform 0.2s, box-shadow 0.2s;
+        background: #fff;
+    }
+    .kpi-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+    }
+    .kpi-icon {
+        width: 58px;
+        height: 58px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.6rem;
+        flex-shrink: 0;
+    }
+    .kpi-icon.vert   { background: #e8f8f0; color: #27ae60; }
+    .kpi-icon.gris   { background: #f0f2f5; color: #6c757d; }
+    .kpi-icon.bleu   { background: #e8f0fe; color: #2563eb; }
+    .kpi-icon.orange { background: #fff4e5; color: #e67e22; }
+
+    .kpi-value  { font-size: 2rem; font-weight: 800; line-height: 1; color: #1a1a2e; }
+    .kpi-label  { font-size: 0.82rem; color: #6c757d; font-weight: 600;
+                  text-transform: uppercase; letter-spacing: 0.5px; margin-top: 0.2rem; }
+    .kpi-sub    { font-size: 0.8rem; color: #aaa; margin-top: 0.15rem; }
+
+    /* ── Tableaux ── */
+    .section-card {
+        background: #fff;
+        border-radius: 14px;
+        box-shadow: 0 3px 14px rgba(0,0,0,0.07);
+        overflow: hidden;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+    }
+    .section-card .card-body-inner {
+        flex: 1;
+    }
+    .section-card .card-head {
+        padding: 1rem 1.4rem;
+        border-bottom: 1px solid #f0f0f0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .section-card .card-head h6 {
+        margin: 0;
+        font-size: 0.95rem;
+        font-weight: 700;
+        color: #1a1a2e;
+    }
+    .section-card .card-body-inner { padding: 0.5rem 0; flex: 1; }
+
+    .table-clean { margin: 0; }
+    .table-clean th {
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: #9ca3af;
+        border-bottom: 1px solid #f0f0f0;
+        padding: 0.6rem 1.4rem;
+        background: #fafafa;
+    }
+    .table-clean td {
+        padding: 0.75rem 1.4rem;
+        border-bottom: 1px solid #f8f8f8;
+        vertical-align: middle;
+        font-size: 0.9rem;
+    }
+    .table-clean tbody tr:last-child td { border-bottom: none; }
+    .table-clean tbody tr:hover td { background: #fef8f8; }
+
+    /* ── Initiales utilisateur ── */
+    .user-avatar {
+        width: 34px;
+        height: 34px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #c0392b, #7b1010);
+        color: #fff;
+        font-size: 0.78rem;
+        font-weight: 700;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    /* ── Bouton voir tout ── */
+    .btn-voir-tout {
+        font-size: 0.8rem;
+        color: #c0392b;
+        background: #fff0f0;
+        border: 1.5px solid #f5c6c6;
+        border-radius: 20px;
+        padding: 5px 14px;
+        font-weight: 600;
+        text-decoration: none;
+        transition: background 0.18s, color 0.18s, border-color 0.18s;
+        white-space: nowrap;
+    }
+    .btn-voir-tout:hover {
+        background: #c0392b;
+        color: #fff;
+        border-color: #c0392b;
+    }
+
+    /* ── Badge statut ── */
+    .badge-actif    { background: #e8f8f0; color: #27ae60; padding: 4px 10px;
+                      border-radius: 20px; font-size: 0.78rem; font-weight: 600; }
+    .badge-inactif  { background: #f0f2f5; color: #6c757d; padding: 4px 10px;
+                      border-radius: 20px; font-size: 0.78rem; font-weight: 600; }
+    .badge-desact   { background: #fff0f0; color: #c0392b; padding: 4px 10px;
+                      border-radius: 20px; font-size: 0.78rem; font-weight: 600; }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
+
+<!-- ══ En-tête ══ -->
+<div class="dash-header">
     <div>
-        <h4 class="fw-bold mb-0">Tableau de bord</h4>
-        <small class="text-muted">Super Administrateur</small>
+        <div class="welcome">
+            Bonjour, {{ user.get_full_name|default:user.username }} 👋
+        </div>
+        <div class="date">
+            <i class="bi bi-calendar3 me-1"></i>
+            {% now "l d F Y" %}
+        </div>
     </div>
-    <span class="badge bg-dark px-3 py-2">Super Admin</span>
+    <span class="badge-role">
+        <i class="bi bi-shield-fill-check me-1"></i> Super Administrateur
+    </span>
 </div>
 
-<!-- Statistiques -->
+<!-- ══ Stat cards ══ -->
 <div class="row g-3 mb-4">
-    <div class="col-sm-6 col-md-3">
-        <div class="card stat-card p-3">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <div class="text-muted small">Ligues actives</div>
-                    <div class="fs-3 fw-bold text-danger">{{ nb_ligues_actives }}</div>
-                    <div class="text-muted small">sur {{ nb_ligues_total }} au total</div>
-                </div>
-                <i class="bi bi-building fs-1 text-danger opacity-25"></i>
+
+    <!-- Ligues actives -->
+    <div class="col-6 col-md-3">
+        <div class="kpi-card">
+            <div class="kpi-icon vert">
+                <i class="bi bi-building-check"></i>
+            </div>
+            <div>
+                <div class="kpi-value">{{ nb_ligues_actives }}</div>
+                <div class="kpi-label">Ligues actives</div>
+                <div class="kpi-sub">sur {{ nb_ligues_total }} au total</div>
             </div>
         </div>
     </div>
-    <div class="col-sm-6 col-md-3">
-        <div class="card stat-card p-3">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <div class="text-muted small">Utilisateurs</div>
-                    <div class="fs-3 fw-bold text-primary">{{ nb_utilisateurs }}</div>
-                    <div class="text-muted small">{{ nb_actifs }} comptes actifs</div>
-                </div>
-                <i class="bi bi-people fs-1 text-primary opacity-25"></i>
+
+    <!-- Ligues inactives -->
+    <div class="col-6 col-md-3">
+        <div class="kpi-card">
+            <div class="kpi-icon gris">
+                <i class="bi bi-building-x"></i>
+            </div>
+            <div>
+                <div class="kpi-value">{{ nb_ligues_inactives }}</div>
+                <div class="kpi-label">Ligues inactives</div>
+                <div class="kpi-sub">non opérationnelles</div>
             </div>
         </div>
     </div>
+
+    <!-- Comptes actifs -->
+    <div class="col-6 col-md-3">
+        <div class="kpi-card">
+            <div class="kpi-icon bleu">
+                <i class="bi bi-person-check"></i>
+            </div>
+            <div>
+                <div class="kpi-value">{{ nb_actifs }}</div>
+                <div class="kpi-label">Comptes actifs</div>
+                <div class="kpi-sub">sur {{ nb_utilisateurs }} utilisateurs</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Comptes inactifs -->
+    <div class="col-6 col-md-3">
+        <div class="kpi-card">
+            <div class="kpi-icon orange">
+                <i class="bi bi-person-dash"></i>
+            </div>
+            <div>
+                <div class="kpi-value">{{ nb_inactifs }}</div>
+                <div class="kpi-label">Comptes désactivés</div>
+                <div class="kpi-sub">accès bloqué</div>
+            </div>
+        </div>
+    </div>
+
 </div>
 
-<!-- Dernières ligues -->
-<div class="row g-3">
-    <div class="col-md-6">
-        <div class="card p-3">
-            <h6 class="fw-bold mb-3">Dernières ligues créées</h6>
-            {% if dernieres_ligues %}
-            <table class="table table-sm table-hover mb-0">
-                <thead><tr><th>Ligue</th><th>Région</th><th>Statut</th></tr></thead>
-                <tbody>
-                {% for ligue in dernieres_ligues %}
-                <tr>
-                    <td><strong>{{ ligue.sigle }}</strong> — {{ ligue.nom_ligue }}</td>
-                    <td>{{ ligue.region }}</td>
-                    <td>
-                        {% if ligue.statut == 'ACTIVE' %}
-                            <span class="badge bg-success">Active</span>
-                        {% else %}
-                            <span class="badge bg-secondary">Inactive</span>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-            {% else %}
-            <p class="text-muted small mb-0">Aucune ligue créée.</p>
-            {% endif %}
+<!-- ══ Tableaux ══ -->
+<div class="row g-3 mt-5">
+
+    <!-- Dernières ligues -->
+    <div class="col-md-6 d-flex">
+        <div class="section-card" style="width:100%">
+            <div class="card-head">
+                <h6><i class="bi bi-building me-2 text-danger"></i>Dernières ligues créées</h6>
+                <a href="{% url 'ligues:liste' %}" class="btn-voir-tout">
+                    Voir tout &rarr;
+                </a>
+            </div>
+            <div class="card-body-inner">
+                {% if dernieres_ligues %}
+                <table class="table table-clean">
+                    <thead>
+                        <tr>
+                            <th>Ligue</th>
+                            <th>Région</th>
+                            <th>Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for ligue in dernieres_ligues %}
+                    <tr>
+                        <td>
+                            <span class="fw-bold">{{ ligue.sigle }}</span>
+                            <span class="text-muted ms-1">{{ ligue.nom_ligue }}</span>
+                        </td>
+                        <td class="text-muted">{{ ligue.region }}</td>
+                        <td>
+                            {% if ligue.statut == 'ACTIVE' %}
+                                <span class="badge-actif">Active</span>
+                            {% else %}
+                                <span class="badge-inactif">Inactive</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p class="text-muted small px-4 py-3 mb-0">Aucune ligue créée.</p>
+                {% endif %}
+            </div>
         </div>
     </div>
 
-    <div class="col-md-6">
-        <div class="card p-3">
-            <h6 class="fw-bold mb-3">Derniers comptes créés</h6>
-            {% if derniers_utilisateurs %}
-            <table class="table table-sm table-hover mb-0">
-                <thead><tr><th>Utilisateur</th><th>Rôles</th><th>Statut</th></tr></thead>
-                <tbody>
-                {% for u in derniers_utilisateurs %}
-                <tr>
-                    <td>{{ u.get_full_name|default:u.username }}</td>
-                    <td>
-                        {% for role in u.roles.all %}
-                            <span class="badge bg-dark badge-role">{{ role.get_nom_role_display }}</span>
-                        {% empty %}
-                            <span class="text-muted small">Aucun</span>
-                        {% endfor %}
-                    </td>
-                    <td>
-                        {% if u.statut_compte %}
-                            <span class="badge bg-success">Actif</span>
-                        {% else %}
-                            <span class="badge bg-danger">Désactivé</span>
-                        {% endif %}
-                    </td>
-                </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-            {% else %}
-            <p class="text-muted small mb-0">Aucun utilisateur créé.</p>
-            {% endif %}
+    <!-- Derniers utilisateurs -->
+    <div class="col-md-6 d-flex">
+        <div class="section-card" style="width:100%">
+            <div class="card-head">
+                <h6><i class="bi bi-people me-2 text-primary"></i>Derniers comptes créés</h6>
+                <a href="{% url 'accounts:liste_utilisateurs' %}" class="btn-voir-tout">
+                    Voir tout &rarr;
+                </a>
+            </div>
+            <div class="card-body-inner">
+                {% if derniers_utilisateurs %}
+                <table class="table table-clean">
+                    <thead>
+                        <tr>
+                            <th>Utilisateur</th>
+                            <th>Rôles</th>
+                            <th>Statut</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    {% for u in derniers_utilisateurs %}
+                    <tr>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="user-avatar">
+                                    {{ u.first_name|first|upper }}{{ u.last_name|first|upper }}
+                                </div>
+                                <span class="fw-semibold">{{ u.get_full_name|default:u.username }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            {% for role in u.roles.all %}
+                                <span class="badge bg-dark badge-role">{{ role.get_nom_role_display }}</span>
+                            {% empty %}
+                                <span class="text-muted small">—</span>
+                            {% endfor %}
+                        </td>
+                        <td>
+                            {% if u.statut_compte %}
+                                <span class="badge-actif">Actif</span>
+                            {% else %}
+                                <span class="badge-desact">Désactivé</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <p class="text-muted small px-4 py-3 mb-0">Aucun utilisateur créé.</p>
+                {% endif %}
+            </div>
         </div>
     </div>
+
 </div>
 {% endblock %}

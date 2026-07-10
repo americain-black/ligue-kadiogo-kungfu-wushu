@@ -10,12 +10,12 @@ class LigueForm(forms.ModelForm):
             'adresse_siege', 'email_contact', 'telephone', 'logo',
         ]
         widgets = {
-            'nom_ligue':     forms.TextInput(attrs={'class': 'form-control'}),
-            'sigle':         forms.TextInput(attrs={'class': 'form-control'}),
-            'region':        forms.TextInput(attrs={'class': 'form-control'}),
-            'adresse_siege': forms.TextInput(attrs={'class': 'form-control'}),
-            'email_contact': forms.EmailInput(attrs={'class': 'form-control'}),
-            'telephone':     forms.TextInput(attrs={'class': 'form-control'}),
+            'nom_ligue':     forms.TextInput(attrs={'class': 'form-control', 'placeholder': ' '}),
+            'sigle':         forms.TextInput(attrs={'class': 'form-control', 'placeholder': ' '}),
+            'region':        forms.TextInput(attrs={'class': 'form-control', 'placeholder': ' '}),
+            'adresse_siege': forms.TextInput(attrs={'class': 'form-control', 'placeholder': ' '}),
+            'email_contact': forms.EmailInput(attrs={'class': 'form-control', 'placeholder': ' '}),
+            'telephone':     forms.TextInput(attrs={'class': 'form-control', 'placeholder': ' '}),
             'logo':          forms.FileInput(attrs={'class': 'form-control'}),
         }
 

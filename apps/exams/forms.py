@@ -70,7 +70,7 @@ class MultiInscriptionForm(forms.Form):
         widget=forms.Select(attrs={'class': 'form-select form-select-lg'}),
         label="Option / Style",
         empty_label="— Choisir une option —",
-        required=False,
+        required=True,
     )
     pratiquants = forms.ModelMultipleChoiceField(
         queryset=None,
@@ -104,9 +104,12 @@ class MultiInscriptionForm(forms.Form):
     def clean(self):
         cleaned_data = super().clean()
         grade_vise  = cleaned_data.get('grade_vise')
+        option      = cleaned_data.get('option')
         pratiquants = cleaned_data.get('pratiquants')
         if not grade_vise:
             raise forms.ValidationError("Veuillez choisir un grade visé.")
+        if not option:
+            raise forms.ValidationError("Veuillez choisir une option.")
         if not pratiquants:
             raise forms.ValidationError("Cochez au moins un pratiquant à inscrire.")
         # Validation : chaque pratiquant doit avoir exactement le grade précédent
@@ -228,12 +231,12 @@ class RubriqueGradeForm(forms.ModelForm):
         widgets = {
             'grade':         forms.Select(attrs={'class': 'form-select'}),
             'coefficient':   forms.NumberInput(attrs={'class': 'form-control', 'min': '1', 'max': '10'}),
-            'note_minimale': forms.NumberInput(attrs={'class': 'form-control', 'min': '0', 'max': '20', 'step': '0.5'}),
+            'note_minimale': forms.NumberInput(attrs={'class': 'form-control', 'min': '0', 'max': '5', 'step': '0.25'}),
         }
         labels = {
             'grade':         'Grade concerné',
             'coefficient':   'Coefficient',
-            'note_minimale': 'Note minimale /20',
+            'note_minimale': 'Note minimale /5',
         }
 
     def __init__(self, *args, ligue=None, rubrique=None, **kwargs):

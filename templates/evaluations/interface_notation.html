@@ -207,7 +207,7 @@ function afficherResultat(inscriptionId, decision, moyenne) {
     const couleur = decision === 'ADMIS' ? 'success' : 'warning';
     div.innerHTML = `
         <span class="badge bg-${couleur} me-1">${decision}</span>
-        <small class="text-muted">Moy. ${moyenne}/20</small>`;
+        <small class="text-muted">Moy. ${moyenne}/5</small>`;
     div.classList.remove('d-none');
     const carte = document.getElementById(`candidat-${inscriptionId}`);
     if (carte) carte.classList.add('flash-update');
@@ -258,7 +258,7 @@ ws.onmessage = function(event) {
         afficherResultat(d.inscription_id, d.decision, d.moyenne);
         const couleur = d.decision === 'ADMIS' ? 'bg-success' : 'bg-warning';
         afficherToast(
-            `Résultat ${d.pratiquant} : ${d.decision} (${d.moyenne}/20)`,
+            `Résultat ${d.pratiquant} : ${d.decision} (${d.moyenne}/5)`,
             `${couleur} text-white`
         );
     }

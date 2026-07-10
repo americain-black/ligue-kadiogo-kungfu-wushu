@@ -79,7 +79,7 @@
                         <tr>
                             <th class="ps-3">Grade</th>
                             <th class="text-center">Coefficient</th>
-                            <th class="text-center">Note min. /20</th>
+                            <th class="text-center">Note min. /5</th>
                             <th class="text-center">Statut</th>
                             <th class="text-end pe-3">Actions</th>
                         </tr>
@@ -180,7 +180,7 @@
                         {% if form.note_minimale.errors %}
                         <div class="text-danger small">{{ form.note_minimale.errors.as_text }}</div>
                         {% endif %}
-                        <div class="form-text">Note sur 20 pour valider cette épreuve</div>
+                        <div class="form-text">Note sur 5 pour valider cette épreuve</div>
                     </div>
                     <div class="d-flex gap-2">
                         <button type="submit" class="btn btn-{% if rg_en_edition %}warning{% else %}primary{% endif %}">

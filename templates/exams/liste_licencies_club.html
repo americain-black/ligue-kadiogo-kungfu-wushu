@@ -1,4 +1,3 @@
-{% load static %}
 {% extends 'base.html' %}
 {% block title %}Mes licenciés — {{ session.titre }}{% endblock %}
 
@@ -62,14 +61,10 @@
         </tr>
         <tr>
             <td colspan="2" style="padding:3px 0;">
-                <strong>Total licenciés :</strong> {{ nb_total }} &nbsp;&nbsp;|&nbsp;&nbsp;
-                <strong>Imprimé le :</strong> {% now "d/m/Y à H:i" %}
+                <strong>Total licenciés :</strong> {{ nb_total }}
             </td>
         </tr>
     </table>
-    <h5 class="text-center mt-3 fw-bold text-uppercase" style="letter-spacing:1px;">
-        Liste des licenciés — {{ club.nom_club }}
-    </h5>
 </div>
 
 <!-- En-tête écran -->

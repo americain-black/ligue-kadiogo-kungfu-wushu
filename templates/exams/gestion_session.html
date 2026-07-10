@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+{% block title %}Gestion — {{ session.titre }}{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Examens</span>
+<a href="{% url 'exams:liste' %}" class="nav-link">
+    <i class="bi bi-journal-check me-2"></i>Sessions d'examen
+</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.step-item { display:flex; align-items:flex-start; gap:1rem; padding:1rem; border-radius:10px; margin-bottom:0.5rem; }
+.step-item.active  { background:#fff3f3; border:2px solid #c0392b; }
+.step-item.done    { background:#f0fff4; border:1px solid #b7ebc8; opacity:0.75; }
+.step-item.pending { background:#f8f9fa; border:1px dashed #ced4da; opacity:0.6; }
+.step-number { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; flex-shrink:0; }
+.step-item.active  .step-number { background:#c0392b; color:#fff; }
+.step-item.done    .step-number { background:#28a745; color:#fff; }
+.step-item.pending .step-number { background:#dee2e6; color:#6c757d; }
+</style>
+{% endblock %}
+
+{% block content %}
+
+<!-- En-tête + retour -->
+<div class="d-flex align-items-start gap-3 mb-4">
+    <a href="{% url 'exams:detail' session.pk %}" class="btn-action btn-action-edit flex-shrink-0" title="Retour" data-bs-toggle="tooltip">
+        <i class="bi bi-arrow-left"></i>
+    </a>
+    <div>
+        <small class="text-muted">
+            <a href="{% url 'exams:liste' %}">Sessions</a> ›
+            <a href="{% url 'exams:detail' session.pk %}">{{ session.titre }}</a> › Gestion
+        </small>
+        <h4 class="fw-bold mt-1 mb-1">
+            <i class="bi bi-gear-fill me-2 text-danger"></i>Gestion de la session
+        </h4>
+        <small class="text-muted">{{ session.titre }} — {{ session.date_examen|date:"d/m/Y" }} — {{ session.lieu }}</small>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Cycle de vie -->
+    <div class="col-md-7">
+        <div class="card p-3">
+            <h6 class="fw-bold mb-3"><i class="bi bi-arrow-right-circle me-2 text-muted"></i>Cycle de vie de la session</h6>
+
+            {% for code, label, num in statuts_cycle %}
+            <div class="step-item
+                {% if session.statut == code %}active
+                {% elif session.statut > code %}done
+                {% else %}pending{% endif %}">
+                <div class="step-number">
+                    {% if session.statut > code %}
+                        <i class="bi bi-check-lg"></i>
+                    {% else %}
+                        {{ num }}
+                    {% endif %}
+                </div>
+                <div class="flex-grow-1">
+                    <div class="fw-bold">{{ label }}</div>
+                    {% if session.statut == code %}
+                    <div class="mt-2 d-flex flex-wrap gap-2">
+                        {% if code == 'EN_PREPARATION' %}
+                            <a href="{% url 'exams:modifier' session.pk %}" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-pencil me-1"></i>Modifier
+                            </a>
+                            <a href="{% url 'exams:ouvrir_inscriptions' session.pk %}" class="btn btn-success btn-sm">
+                                <i class="bi bi-unlock me-1"></i>Ouvrir les inscriptions
+                            </a>
+                        {% elif code == 'INSCRIPTIONS_OUVERTES' %}
+                            <a href="{% url 'exams:cloturer_inscriptions' session.pk %}" class="btn btn-warning btn-sm">
+                                <i class="bi bi-lock me-1"></i>Clôturer les inscriptions
+                            </a>
+                        {% elif code == 'INSCRIPTIONS_CLOSES' %}
+                            <a href="{% url 'exams:demarrer' session.pk %}" class="btn btn-primary btn-sm">
+                                <i class="bi bi-play-fill me-1"></i>Démarrer la session
+                            </a>
+                        {% elif code == 'EN_COURS' %}
+                            <a href="{% url 'exams:cloturer_session' session.pk %}" class="btn btn-danger btn-sm">
+                                <i class="bi bi-stop-fill me-1"></i>Clôturer la session
+                            </a>
+                        {% elif code == 'CLOTUREE' %}
+                            <a href="{% url 'exams:publier_resultats' session.pk %}" class="btn btn-info btn-sm">
+                                <i class="bi bi-megaphone me-1"></i>Publier les résultats
+                            </a>
+                        {% elif code == 'RESULTATS_PUBLIES' %}
+                            <span class="text-success fw-semibold"><i class="bi bi-check-circle me-1"></i>Session terminée</span>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Infos + Danger zone -->
+    <div class="col-md-5">
+        <!-- Informations -->
+        <div class="card p-3 mb-3">
+            <h6 class="fw-bold mb-3"><i class="bi bi-info-circle me-2 text-muted"></i>Informations</h6>
+            <table class="table table-sm table-borderless mb-0">
+                <tr>
+                    <td class="text-muted">Ouverture inscriptions</td>
+                    <td class="fw-semibold">{{ session.date_ouverture_inscriptions|date:"d/m/Y" }}</td>
+                </tr>
+                <tr>
+                    <td class="text-muted">Clôture inscriptions</td>
+                    <td class="fw-semibold">{{ session.date_cloture_inscriptions|date:"d/m/Y" }}</td>
+                </tr>
+                <tr>
+                    <td class="text-muted">Date examen</td>
+                    <td class="fw-bold text-danger">{{ session.date_examen|date:"d/m/Y" }}</td>
+                </tr>
+                {% if session.date_limite_paiement %}
+                <tr>
+                    <td class="text-muted">Limite paiement</td>
+                    <td class="fw-semibold text-warning">{{ session.date_limite_paiement|date:"d/m/Y" }}</td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <td class="text-muted">Inscrits</td>
+                    <td><span class="badge bg-secondary">{{ nb_inscrits }}</span></td>
+                </tr>
+                <tr>
+                    <td class="text-muted">Année sportive</td>
+                    <td>{{ session.annee_sportive.libelle }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Supprimer -->
+        <div class="card border-danger p-3">
+            <h6 class="fw-bold text-danger mb-2"><i class="bi bi-exclamation-triangle me-2"></i>Zone de danger</h6>
+            <p class="text-muted small mb-3">
+                Supprimer cette session effacera définitivement toutes les inscriptions, paiements et affectations de jury associés.
+            </p>
+            <a href="{% url 'exams:supprimer' session.pk %}" class="btn btn-outline-danger btn-sm w-100">
+                <i class="bi bi-trash me-1"></i>Supprimer la session
+            </a>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

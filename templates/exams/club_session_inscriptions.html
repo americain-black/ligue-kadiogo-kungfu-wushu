@@ -18,15 +18,20 @@
 {% block content %}
 <!-- En-tête -->
 <div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
-    <div>
-        <small class="text-muted">
-            <a href="{% url 'exams:club_sessions' %}">Sessions</a> › {{ session.titre }}
-        </small>
-        <h4 class="fw-bold mt-1 mb-0">{{ session.titre }}</h4>
-        <div class="d-flex gap-3 mt-1 flex-wrap">
-            <span class="text-muted small"><i class="bi bi-calendar3 me-1"></i>{{ session.date_examen|date:"d/m/Y" }}</span>
-            <span class="text-muted small"><i class="bi bi-geo-alt me-1"></i>{{ session.lieu }}</span>
-            <span class="text-muted small"><i class="bi bi-clock me-1"></i>Clôture inscriptions : {{ session.date_cloture_inscriptions|date:"d/m/Y" }}</span>
+    <div class="d-flex align-items-center gap-3">
+        <button onclick="history.back()" class="btn-action btn-action-edit flex-shrink-0" title="Retour" data-bs-toggle="tooltip">
+            <i class="bi bi-arrow-left"></i>
+        </button>
+        <div>
+            <small class="text-muted">
+                <a href="{% url 'exams:club_sessions' %}">Sessions</a> › {{ session.titre }}
+            </small>
+            <h4 class="fw-bold mt-1 mb-0">{{ session.titre }}</h4>
+            <div class="d-flex gap-3 mt-1 flex-wrap">
+                <span class="text-muted small"><i class="bi bi-calendar3 me-1"></i>{{ session.date_examen|date:"d/m/Y" }}</span>
+                <span class="text-muted small"><i class="bi bi-geo-alt me-1"></i>{{ session.lieu }}</span>
+                <span class="text-muted small"><i class="bi bi-clock me-1"></i>Clôture inscriptions : {{ session.date_cloture_inscriptions|date:"d/m/Y" }}</span>
+            </div>
         </div>
     </div>
     <div class="d-flex align-items-center gap-2 flex-wrap">
@@ -37,9 +42,6 @@
         {% else %}
             <span class="badge bg-secondary fs-6">{{ session.get_statut_display }}</span>
         {% endif %}
-        <a href="{% url 'exams:licencies_club' session.pk %}" class="btn btn-sm btn-outline-primary">
-            <i class="bi bi-people me-1"></i>Mes licenciés
-        </a>
     </div>
 </div>
 
@@ -76,8 +78,22 @@
                 </thead>
                 <tbody>
                 {% for insc in inscriptions %}
-                <tr>
-                    <td><strong>{{ insc.pratiquant.nom }} {{ insc.pratiquant.prenom }}</strong></td>
+                <tr class="{% if insc.statut == 'EXCLU' %}table-danger{% endif %}">
+                    <td>
+                        <strong>{{ insc.pratiquant.nom }} {{ insc.pratiquant.prenom }}</strong>
+                        {% if insc.statut == 'EXCLU' and insc.motif_exclusion %}
+                        <div class="mt-1 p-2 rounded small" style="background:#fff0f0; border:1px solid #f5c6cb;">
+                            <i class="bi bi-exclamation-circle text-danger me-1"></i>
+                            <strong class="text-danger">Motif :</strong> {{ insc.motif_exclusion }}
+                            <div class="mt-1">
+                                <a href="{% url 'practitioners:modifier' insc.pratiquant.pk %}"
+                                   class="btn btn-outline-danger btn-sm py-0 px-2">
+                                    <i class="bi bi-pencil me-1"></i>Corriger le dossier
+                                </a>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </td>
                     <td class="small text-muted">{{ insc.pratiquant.get_grade_display }}</td>
                     <td><span class="badge bg-primary">{{ insc.grade_vise }}</span></td>
                     <td class="small text-muted">{{ insc.option.nom|default:"—" }}</td>
@@ -90,7 +106,9 @@
                         {% elif insc.statut == 'AUTORISE' %}
                             <span class="badge bg-success">Autorisé</span>
                         {% elif insc.statut == 'EXCLU' %}
-                            <span class="badge bg-danger">Exclu</span>
+                            <span class="badge bg-danger">
+                                <i class="bi bi-person-x me-1"></i>Exclu
+                            </span>
                         {% endif %}
                     </td>
                     {% if peut_inscrire %}

@@ -70,6 +70,12 @@ class Pratiquant(models.Model):
         upload_to='pratiquants/',
         null=True, blank=True
     )
+    bulletin_grade    = models.FileField(
+        upload_to='bulletins_grade/',
+        null=True, blank=True,
+        verbose_name="Bulletin / attestation de grade",
+        help_text="Requis si le grade actuel est ≥ 2ème grade"
+    )
     actif             = models.BooleanField(default=True)
     date_inscription  = models.DateField(auto_now_add=True)
     matricule         = models.CharField(

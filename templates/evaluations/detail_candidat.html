@@ -99,7 +99,7 @@
                     <th class="ps-3">Rubrique / Épreuve</th>
                     <th class="text-center">Coefficient</th>
                     <th class="text-center">Note min.</th>
-                    <th class="text-center">Note /20</th>
+                    <th class="text-center">Note /5</th>
                     <th class="text-center">État</th>
                     {% if est_jury %}
                     <th class="text-center">Actions</th>
@@ -119,13 +119,13 @@
                     <td class="text-center">
                         <span class="badge bg-secondary">×{{ rg.coefficient }}</span>
                     </td>
-                    <td class="text-center text-muted small">{{ rg.note_minimale }}/20</td>
+                    <td class="text-center text-muted small">{{ rg.note_minimale }}/5</td>
                     <td class="text-center">
                         {% if note_obj and note_obj.validee %}
                             <span class="badge badge-note
                                 {% if note_obj.note >= rg.note_minimale %}bg-success{% else %}bg-danger{% endif %}"
                                   id="note-affichee-{{ rg.pk }}">
-                                {{ note_obj.note }}/20
+                                {{ note_obj.note }}/5
                             </span>
                         {% else %}
                             {% if est_jury %}
@@ -137,7 +137,7 @@
                                    {% if note_obj and note_obj.validee %}disabled{% endif %}>
                             {% else %}
                                 <span class="text-muted small" id="note-affichee-{{ rg.pk }}">
-                                    {% if note_obj %}{{ note_obj.note }}/20{% else %}—{% endif %}
+                                    {% if note_obj %}{{ note_obj.note }}/5{% else %}—{% endif %}
                                 </span>
                             {% endif %}
                         {% endif %}
@@ -384,10 +384,10 @@ ws.onmessage = function(event) {
         bandeau.className = `alert ${couleur} mb-4`;
         bandeau.innerHTML = `
             <strong><i class="bi bi-trophy me-2"></i>Résultat calculé :</strong>
-            ${d.decision} — Moyenne ${d.moyenne}/20`;
+            ${d.decision} — Moyenne ${d.moyenne}/5`;
         bandeau.classList.remove('d-none');
         afficherToast(
-            `Résultat : ${d.decision} (${d.moyenne}/20)`,
+            `Résultat : ${d.decision} (${d.moyenne}/5)`,
             d.decision === 'ADMIS' ? 'bg-success text-white' : 'bg-warning text-dark'
         );
     }

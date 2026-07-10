@@ -7,150 +7,374 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
-            background: linear-gradient(135deg, #c0392b 0%, #2c3e50 100%);
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
+            background: url('/static/img/bg_login.png') center/cover no-repeat fixed;
+            font-family: 'Segoe UI', sans-serif;
         }
-        .login-card {
-            background: #fff;
-            border-radius: 16px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(96,15,10,0.82) 0%, rgba(20,20,20,0.75) 100%);
+            z-index: 0;
+        }
+
+        /* ── Carte principale ── */
+        .login-wrapper {
+            position: relative;
+            z-index: 1;
+            display: flex;
             width: 100%;
-            max-width: 420px;
-            padding: 2.5rem;
+            max-width: 860px;
+            min-height: 520px;
+            border-radius: 20px;
+            overflow: hidden;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.6);
+            animation: slideUp 0.5s ease both;
+            margin: 1rem;
         }
-        .login-logo {
-            width: 70px;
-            height: 70px;
-            background: linear-gradient(135deg, #c0392b, #96281b);
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Panneau gauche (branding) ── */
+        .login-brand {
+            flex: 1;
+            background: linear-gradient(160deg, #7b1010 0%, #3d0707 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 3rem 2rem;
+            color: #fff;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-brand::before {
+            content: '';
+            position: absolute;
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.05);
+            top: -80px;
+            right: -80px;
+        }
+
+        .login-brand::after {
+            content: '';
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.04);
+            bottom: -60px;
+            left: -60px;
+        }
+
+        .brand-icon {
+            width: 90px;
+            height: 90px;
+            background: rgba(255,255,255,0.15);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 1rem;
+            margin-bottom: 1.5rem;
+            border: 2px solid rgba(255,255,255,0.25);
         }
-        .login-logo i {
-            font-size: 2rem;
+
+        .brand-icon i {
+            font-size: 2.8rem;
             color: #fff;
         }
-        .form-control:focus {
-            border-color: #c0392b;
-            box-shadow: 0 0 0 0.2rem rgba(192, 57, 43, 0.2);
+
+        .brand-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            letter-spacing: 0.5px;
         }
+
+        .brand-subtitle {
+            font-size: 0.9rem;
+            opacity: 0.75;
+            margin-bottom: 2rem;
+            line-height: 1.5;
+        }
+
+        .brand-divider {
+            width: 40px;
+            height: 3px;
+            background: rgba(255,255,255,0.4);
+            border-radius: 2px;
+            margin: 0 auto 1.5rem;
+        }
+
+        .brand-features {
+            list-style: none;
+            text-align: left;
+            font-size: 0.85rem;
+            opacity: 0.85;
+        }
+
+        .brand-slogan {
+            font-size: 1.05rem;
+            font-style: italic;
+            opacity: 0.88;
+            line-height: 1.8;
+            letter-spacing: 0.3px;
+            text-align: center;
+        }
+
+        /* ── Panneau droit (formulaire) ── */
+        .login-form-panel {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.97);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 3rem 2.5rem;
+        }
+
+        .form-title {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-bottom: 0.3rem;
+        }
+
+        .form-subtitle {
+            font-size: 0.875rem;
+            color: #888;
+            margin-bottom: 2rem;
+        }
+
+        /* ── Floating labels ── */
+        .form-floating > .form-control {
+            border: 1.5px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 1rem 1rem 0.5rem 3rem;
+            height: 58px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-floating > .form-control:focus {
+            border-color: #c0392b;
+            box-shadow: 0 0 0 3px rgba(192,57,43,0.12);
+        }
+
+        .form-floating > label {
+            padding-left: 3rem;
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #c0392b;
+            font-size: 1.1rem;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .field-wrap {
+            position: relative;
+            margin-bottom: 1.2rem;
+        }
+
+        .toggle-password {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #aaa;
+            cursor: pointer;
+            z-index: 10;
+            padding: 0;
+            font-size: 1.1rem;
+            transition: color 0.2s;
+        }
+
+        .toggle-password:hover { color: #c0392b; }
+
+        /* ── Bouton ── */
         .btn-connexion {
-            background: linear-gradient(135deg, #c0392b, #96281b);
+            background: linear-gradient(135deg, #c0392b, #7b1010);
             border: none;
             color: #fff;
-            padding: 0.7rem;
+            padding: 0.85rem;
             font-size: 1rem;
             font-weight: 600;
-            border-radius: 8px;
-            transition: opacity 0.2s;
+            border-radius: 10px;
+            width: 100%;
+            transition: transform 0.15s, box-shadow 0.15s;
+            margin-top: 0.5rem;
+            letter-spacing: 0.3px;
         }
+
         .btn-connexion:hover {
-            opacity: 0.9;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(192,57,43,0.35);
             color: #fff;
         }
-        .input-group-text {
-            background-color: #f8f9fa;
-            border-right: none;
+
+        .btn-connexion:active {
+            transform: translateY(0);
+        }
+
+        .btn-connexion .spinner-border {
+            width: 1rem;
+            height: 1rem;
+            border-width: 2px;
+        }
+
+        /* ── Liens et footer ── */
+        .forgot-link {
             color: #c0392b;
+            text-decoration: none;
+            font-size: 0.85rem;
+            font-weight: 500;
         }
-        .form-control {
-            border-left: none;
+
+        .forgot-link:hover {
+            text-decoration: underline;
+            color: #7b1010;
         }
-        .form-control:focus {
-            border-left: none;
+
+        .login-footer {
+            margin-top: 2rem;
+            padding-top: 1.2rem;
+            border-top: 1px solid #f0f0f0;
+            text-align: center;
+            font-size: 0.78rem;
+            color: #bbb;
+        }
+
+        /* ── Responsive ── */
+        @media (max-width: 640px) {
+            .login-brand { display: none; }
+            .login-form-panel { padding: 2.5rem 1.8rem; border-radius: 20px; }
+            .login-wrapper { border-radius: 20px; max-width: 420px; }
         }
     </style>
 </head>
 <body>
 
-<div class="login-card">
-    <!-- Logo -->
-    <div class="login-logo">
-        <i class="bi bi-trophy-fill"></i>
+<div class="login-wrapper">
+
+    <!-- ══ Panneau gauche : branding ══ -->
+    <div class="login-brand">
+        <div class="brand-icon">
+            <i class="bi bi-trophy-fill"></i>
+        </div>
+        <div class="brand-title">Ligue du Kadiogo</div>
+        <div class="brand-subtitle">Kung-Fu Wushu<br>Plateforme de gestion officielle</div>
+        <div class="brand-divider"></div>
+        <p class="brand-slogan">
+            « La discipline forge le corps,<br>
+            l'art martial élève l'esprit. »
+        </p>
     </div>
 
-    <h4 class="text-center fw-bold mb-1">Ligue du Kadiogo</h4>
-    <p class="text-center text-muted small mb-4">Kung-Fu Wushu — Espace de gestion</p>
+    <!-- ══ Panneau droit : formulaire ══ -->
+    <div class="login-form-panel">
+        <div class="form-title">Bon retour 👋</div>
+        <div class="form-subtitle">Connectez-vous à votre espace de gestion</div>
 
-    <!-- Messages d'erreur -->
-    {% if form.errors %}
-        <div class="alert alert-danger py-2 small">
-            <i class="bi bi-exclamation-triangle me-1"></i>
-            Identifiant ou mot de passe incorrect.
-        </div>
-    {% endif %}
-
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} py-2 small">
-                {{ message }}
+        <!-- Erreurs -->
+        {% if form.errors %}
+            <div class="alert alert-danger py-2 small rounded-3 mb-3">
+                <i class="bi bi-exclamation-triangle-fill me-1"></i>
+                Identifiant ou mot de passe incorrect.
             </div>
-        {% endfor %}
-    {% endif %}
+        {% endif %}
 
-    <!-- Formulaire -->
-    <form method="post" action="{% url 'accounts:login' %}">
-        {% csrf_token %}
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }} py-2 small rounded-3 mb-3">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
 
-        <div class="mb-3">
-            <label class="form-label fw-semibold small">Identifiant</label>
-            <div class="input-group">
-                <span class="input-group-text">
-                    <i class="bi bi-person"></i>
-                </span>
-                <input
-                    type="text"
-                    name="username"
-                    class="form-control"
-                    placeholder="Votre identifiant"
-                    autofocus
-                    required
-                >
+        <!-- Formulaire -->
+        <form method="post" action="{% url 'accounts:login' %}" id="loginForm">
+            {% csrf_token %}
+
+            <!-- Identifiant -->
+            <div class="field-wrap">
+                <i class="bi bi-person-fill input-icon"></i>
+                <div class="form-floating">
+                    <input
+                        type="text"
+                        name="username"
+                        id="username"
+                        class="form-control"
+                        placeholder="Identifiant"
+                        autofocus
+                        required
+                    >
+                    <label for="username">Identifiant</label>
+                </div>
             </div>
-        </div>
 
-        <div class="mb-4">
-            <label class="form-label fw-semibold small">Mot de passe</label>
-            <div class="input-group">
-                <span class="input-group-text">
-                    <i class="bi bi-lock"></i>
-                </span>
-                <input
-                    type="password"
-                    name="password"
-                    id="password"
-                    class="form-control"
-                    placeholder="Votre mot de passe"
-                    required
-                >
-                <button
-                    type="button"
-                    class="btn btn-outline-secondary"
-                    onclick="togglePassword()"
-                >
+            <!-- Mot de passe -->
+            <div class="field-wrap">
+                <i class="bi bi-lock-fill input-icon"></i>
+                <div class="form-floating">
+                    <input
+                        type="password"
+                        name="password"
+                        id="password"
+                        class="form-control"
+                        placeholder="Mot de passe"
+                        required
+                    >
+                    <label for="password">Mot de passe</label>
+                </div>
+                <button type="button" class="toggle-password" onclick="togglePassword()" tabindex="-1">
                     <i class="bi bi-eye" id="eye-icon"></i>
                 </button>
             </div>
+
+            <div class="d-flex justify-content-end mb-1">
+                <a href="{% url 'accounts:password_reset' %}" class="forgot-link">
+                    <i class="bi bi-key me-1"></i>Mot de passe oublié ?
+                </a>
+            </div>
+
+            <input type="hidden" name="next" value="{{ next }}">
+
+            <button type="submit" class="btn btn-connexion" id="btnSubmit">
+                <span id="btnText"><i class="bi bi-box-arrow-in-right me-2"></i>Se connecter</span>
+                <span id="btnSpinner" class="d-none">
+                    <span class="spinner-border spinner-border-sm me-2"></span>Connexion...
+                </span>
+            </button>
+        </form>
+
+        <div class="login-footer">
+            <i class="bi bi-shield-lock me-1"></i>
+            Accès réservé aux membres autorisés &mdash; &copy; {% now "Y" %} Ligue du Kadiogo
         </div>
-
-        <input type="hidden" name="next" value="{{ next }}">
-
-        <button type="submit" class="btn btn-connexion w-100">
-            <i class="bi bi-box-arrow-in-right me-2"></i>Se connecter
-        </button>
-    </form>
-
-    <hr class="my-3">
-    <p class="text-center text-muted small mb-0">
-        <i class="bi bi-shield-lock me-1"></i>
-        Accès réservé aux membres autorisés
-    </p>
+    </div>
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
@@ -166,6 +390,12 @@
             icon.classList.replace('bi-eye-slash', 'bi-eye');
         }
     }
+
+    document.getElementById('loginForm').addEventListener('submit', function () {
+        document.getElementById('btnText').classList.add('d-none');
+        document.getElementById('btnSpinner').classList.remove('d-none');
+        document.getElementById('btnSubmit').disabled = true;
+    });
 </script>
 </body>
 </html>

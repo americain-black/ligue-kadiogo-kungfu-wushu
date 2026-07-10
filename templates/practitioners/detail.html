@@ -77,6 +77,13 @@
                 <span class="badge bg-secondary">Inactif</span>
                 {% endif %}
             </div>
+            {% if pratiquant.matricule %}
+            <div class="mt-2">
+                <span class="badge bg-dark fs-6">
+                    <i class="bi bi-credit-card me-1"></i>{{ pratiquant.matricule }}
+                </span>
+            </div>
+            {% endif %}
         </div>
     </div>
 
@@ -110,6 +117,12 @@
                     <th class="text-muted">Inscrit le</th>
                     <td>{{ pratiquant.date_inscription|date:"d/m/Y" }}</td>
                 </tr>
+                {% if pratiquant.matricule %}
+                <tr>
+                    <th class="text-muted">Matricule</th>
+                    <td><span class="badge bg-dark">{{ pratiquant.matricule }}</span></td>
+                </tr>
+                {% endif %}
             </table>
         </div>
     </div>

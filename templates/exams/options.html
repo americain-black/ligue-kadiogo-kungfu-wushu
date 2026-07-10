@@ -33,11 +33,16 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
+    <div class="d-flex align-items-center gap-3">
+    <a href="{% url 'accounts:dashboard_ligue' %}" class="btn-action btn-action-edit flex-shrink-0" title="Tableau de bord" data-bs-toggle="tooltip">
+        <i class="bi bi-arrow-left"></i>
+    </a>
+        <div>
         <h4 class="fw-bold mb-0">
-            <i class="bi bi-tags me-2 text-primary"></i>Options / Styles d'examen
+        <i class="bi bi-tags me-2 text-primary"></i>Options / Styles d'examen
         </h4>
         <small class="text-muted">Styles de pratique proposés lors des sessions (ex : Shaolin, Sanda…)</small>
+        </div>
     </div>
 </div>
 

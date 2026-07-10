@@ -64,7 +64,7 @@ class RubriqueGrade(models.Model):
     """
     Associe une rubrique à un grade avec son coefficient
     et la note minimale requise pour valider cette épreuve.
-    Ex : Kata — grade Bleue — coeff 3 — note min 10/20
+    Ex : Kata — grade Bleue — coeff 3 — note min 3/5
     """
 
     rubrique      = models.ForeignKey(
@@ -79,8 +79,8 @@ class RubriqueGrade(models.Model):
     )
     coefficient   = models.PositiveSmallIntegerField(default=1)
     note_minimale = models.DecimalField(
-        max_digits=4, decimal_places=2, default=10,
-        help_text="Note minimale sur 20 pour valider cette épreuve"
+        max_digits=4, decimal_places=2, default=3,
+        help_text="Note minimale sur 5 pour valider cette épreuve"
     )
     actif         = models.BooleanField(default=True)
 
@@ -295,7 +295,7 @@ class SessionExamen(models.Model):
 class AffectationJury(models.Model):
     """
     Affectation d'un membre du jury à une session d'examen.
-    Un jury n'a accès aux candidats que s'il est affecté.
+    Un jury peut évaluer plusieurs grades, options et rubriques.
     """
 
     session          = models.ForeignKey(
@@ -307,6 +307,24 @@ class AffectationJury(models.Model):
         'accounts.Utilisateur',
         on_delete=models.PROTECT,
         related_name='affectations_jury'
+    )
+    grades    = models.ManyToManyField(
+        'practitioners.Grade',
+        blank=True,
+        related_name='affectations_jury',
+        verbose_name='Grades à évaluer'
+    )
+    options   = models.ManyToManyField(
+        OptionExamen,
+        blank=True,
+        related_name='affectations_jury',
+        verbose_name='Options à évaluer'
+    )
+    rubriques = models.ManyToManyField(
+        Rubrique,
+        blank=True,
+        related_name='affectations_jury',
+        verbose_name='Rubriques à évaluer'
     )
     date_affectation = models.DateTimeField(auto_now_add=True)
 
@@ -350,7 +368,6 @@ class Inscription(models.Model):
     option      = models.ForeignKey(
         OptionExamen,
         on_delete=models.PROTECT,
-        null=True, blank=True,
         related_name='inscriptions'
     )
     montant     = models.DecimalField(
@@ -361,6 +378,11 @@ class Inscription(models.Model):
         max_length=25,
         choices=STATUT_CHOICES,
         default='EN_ATTENTE_PAIEMENT'
+    )
+    motif_exclusion  = models.TextField(
+        blank=True,
+        verbose_name="Motif d'exclusion",
+        help_text="Raison de l'exclusion communiquée au club"
     )
     date_inscription = models.DateTimeField(auto_now_add=True)
 

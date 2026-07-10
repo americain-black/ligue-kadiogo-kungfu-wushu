@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% block title %}Paiements validés — Ligue du Kadiogo{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Gestion</span>
+<a href="{% url 'clubs:liste' %}" class="nav-link">
+    <i class="bi bi-building me-2"></i>Clubs
+</a>
+<a href="{% url 'exams:liste' %}" class="nav-link">
+    <i class="bi bi-journal-check me-2"></i>Sessions d'examen
+</a>
+<a href="{% url 'clubs:demandes_affiliation' %}" class="nav-link">
+    <i class="bi bi-file-earmark-check me-2"></i>Affiliations
+</a>
+<span class="sidebar-title mt-2">Finances</span>
+<a href="{% url 'payments:paiements_valides_gl' %}" class="nav-link active">
+    <i class="bi bi-cash-coin me-2"></i>Paiements validés
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-start gap-3 mb-4">
+    <a href="{% url 'accounts:dashboard_ligue' %}" class="btn-action btn-action-edit flex-shrink-0"
+       title="Tableau de bord" data-bs-toggle="tooltip">
+        <i class="bi bi-arrow-left"></i>
+    </a>
+    <div>
+        <h4 class="fw-bold mb-0">Paiements validés</h4>
+        <small class="text-muted">Droits d'examen confirmés par le Gestionnaire Financier</small>
+    </div>
+</div>
+
+<!-- Filtre par session -->
+<div class="card p-3 mb-4">
+    <form method="get" class="d-flex align-items-center gap-2 flex-wrap">
+        <span class="fw-semibold small">Session :</span>
+        <select name="session" class="form-select form-select-sm" style="max-width:280px;"
+                onchange="this.form.submit()">
+            <option value="">Toutes les sessions</option>
+            {% for s in sessions %}
+            <option value="{{ s.pk }}" {% if session_pk == s.pk|stringformat:"s" %}selected{% endif %}>
+                {{ s.titre }} — {{ s.date_examen|date:"d/m/Y" }}
+            </option>
+            {% endfor %}
+        </select>
+        {% if session_pk %}
+        <a href="{% url 'payments:paiements_valides_gl' %}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-x me-1"></i>Réinitialiser
+        </a>
+        {% endif %}
+    </form>
+</div>
+
+<!-- Récapitulatif -->
+{% if paiements %}
+<div class="alert alert-success d-flex align-items-center gap-3 mb-3">
+    <i class="bi bi-check-circle-fill fs-4"></i>
+    <div>
+        <strong>{{ paiements.count }} paiement{{ paiements.count|pluralize }}</strong> validé{{ paiements.count|pluralize }} —
+        Montant total encaissé : <strong>{{ total|floatformat:"0" }} FCFA</strong>
+    </div>
+</div>
+{% endif %}
+
+<div class="card p-3">
+    {% if paiements %}
+    <table class="table table-hover table-sm align-middle mb-0">
+        <thead class="table-light">
+            <tr>
+                <th>Club</th>
+                <th>Session</th>
+                <th>Montant attendu</th>
+                <th>Montant payé</th>
+                <th>Mode</th>
+                <th>Référence</th>
+                <th>Validé le</th>
+                <th>Validé par</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for p in paiements %}
+        <tr>
+            <td><strong>{{ p.club.nom_club }}</strong></td>
+            <td class="small text-muted">{{ p.session.titre }}</td>
+            <td class="small">{{ p.montant_attendu|floatformat:"0" }} FCFA</td>
+            <td class="small fw-semibold text-success">{{ p.montant_paye|floatformat:"0" }} FCFA</td>
+            <td class="small text-muted">{{ p.get_mode_paiement_display|default:"—" }}</td>
+            <td class="small text-muted">{{ p.reference|default:"—" }}</td>
+            <td class="small text-muted">
+                {% if p.date_validation %}{{ p.date_validation|date:"d/m/Y" }}{% else %}—{% endif %}
+            </td>
+            <td class="small text-muted">
+                {% if p.valide_par %}{{ p.valide_par.get_full_name|default:p.valide_par.username }}{% else %}—{% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="text-center py-5 text-muted">
+        <i class="bi bi-cash-stack fs-1 opacity-25 d-block mb-2"></i>
+        Aucun paiement validé{% if session_pk %} pour cette session{% endif %}.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

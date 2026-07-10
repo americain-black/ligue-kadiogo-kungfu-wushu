@@ -27,7 +27,7 @@
         <small class="text-muted">{{ session.titre }} — {{ session.date_examen|date:"d/m/Y" }}</small>
     </div>
     <a href="{% url 'exams:club_inscriptions' session.pk %}" class="btn btn-outline-secondary btn-sm">
-        <i class="bi bi-arrow-left me-1"></i>Retour aux inscriptions
+        <i class="bi bi-arrow-left me-1"></i>Retour
     </a>
 </div>
 
@@ -39,262 +39,268 @@
 {% endfor %}
 {% endif %}
 
-{% if nb_dispo == 0 %}
+{% if nb_total_dispo == 0 %}
 <div class="alert alert-info">
     <i class="bi bi-info-circle me-2"></i>
     Tous vos pratiquants actifs sont déjà inscrits à cette session.
     <a href="{% url 'exams:club_inscriptions' session.pk %}" class="alert-link ms-2">Voir les inscriptions →</a>
 </div>
+
 {% else %}
 
-<form method="post" id="form-inscription">
-    {% csrf_token %}
-
-    <!-- Étape 1 : Grade visé + Option -->
-    <div class="card mb-3">
-        <div class="card-header py-2 bg-primary text-white">
-            <h6 class="mb-0 fw-bold"><i class="bi bi-award me-2"></i>Étape 1 — Choisir le grade visé et l'option</h6>
-        </div>
-        <div class="card-body">
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold">Grade visé <span class="text-danger">*</span></label>
-                    <select name="grade_vise" id="id_grade_vise" class="form-select form-select-lg" required
-                            onchange="filtrerPratiquants()">
-                        <option value="">— Sélectionner un grade visé —</option>
-                        {% for grade in grades %}
-                        <option value="{{ grade.pk }}" data-pos="{{ forloop.counter }}">
-                            {{ grade }}
-                        </option>
-                        {% endfor %}
-                    </select>
-                    <div class="form-text">Seuls les pratiquants de grade inférieur s'afficheront.</div>
-                </div>
-                {% if options %}
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold">Option / Style <span class="text-danger">*</span></label>
-                    <select name="option" class="form-select form-select-lg" required>
-                        <option value="">— Choisir une option —</option>
-                        {% for opt in options %}
-                        <option value="{{ opt.pk }}">{{ opt.nom }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                {% endif %}
-            </div>
-        </div>
+<!-- Sélection du grade visé (auto-submit au changement) -->
+<div class="card mb-4">
+    <div class="card-header py-2 bg-primary text-white">
+        <h6 class="mb-0 fw-bold"><i class="bi bi-award me-2"></i>Grade visé</h6>
     </div>
+    <div class="card-body">
+        <form method="get" action="" id="form-grade">
+            <div class="col-md-6">
+                <label class="form-label fw-semibold">Grade visé <span class="text-danger">*</span></label>
+                <select name="grade_vise" class="form-select form-select-lg"
+                        onchange="document.getElementById('form-grade').submit()">
+                    <option value="">— Sélectionner un grade visé —</option>
+                    {% for g in grades %}
+                    <option value="{{ g.pk }}" {% if grade_vise and grade_vise.pk == g.pk %}selected{% endif %}>
+                        {{ g.nom }}
+                    </option>
+                    {% endfor %}
+                </select>
+                <div class="form-text">Seuls les pratiquants possédant le grade précédent apparaîtront.</div>
+            </div>
+        </form>
+    </div>
+</div>
 
-    <!-- Étape 2 : Sélectionner les pratiquants -->
-    <div class="card mb-3">
+{% if grade_vise %}
+
+{% if not pratiquants_eligibles %}
+<div class="alert alert-warning">
+    <i class="bi bi-exclamation-triangle me-2"></i>
+    Aucun pratiquant de votre club n'est éligible pour le grade <strong>{{ grade_vise.nom }}</strong>.
+    Seuls les pratiquants avec le grade précédent peuvent viser ce grade.
+</div>
+
+{% else %}
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    <input type="hidden" name="grade_vise" value="{{ grade_vise.pk }}">
+
+    <div class="card mb-4">
         <div class="card-header py-2 bg-success text-white d-flex justify-content-between align-items-center">
-            <h6 class="mb-0 fw-bold"><i class="bi bi-people me-2"></i>Étape 2 — Sélectionner les pratiquants</h6>
-            <div id="compteur-selection" class="badge bg-white text-success fs-6" style="display:none;">
-                <span id="nb-coches">0</span> sélectionné(s)
+            <h6 class="mb-0 fw-bold">
+                <i class="bi bi-people me-2"></i>Pratiquants éligibles
+                <span class="badge bg-white text-success ms-2">{{ pratiquants_eligibles|length }}</span>
+            </h6>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-sm btn-outline-light" id="btn-tout-cocher">
+                    <i class="bi bi-check-all me-1"></i>Tout cocher
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-light" id="btn-decocher">
+                    <i class="bi bi-x-square me-1"></i>Décocher
+                </button>
             </div>
         </div>
-        <div class="card-body p-0">
-            <!-- Message avant sélection grade -->
-            <div id="msg-choisir-grade" class="text-center py-5 text-muted">
-                <i class="bi bi-arrow-up-circle fs-1 opacity-25 d-block mb-2"></i>
-                Choisissez d'abord un grade visé ci-dessus.
-            </div>
+        <div class="card-body p-3">
 
-            <!-- Message aucun pratiquant -->
-            <div id="msg-aucun" class="text-center py-5 text-muted" style="display:none;">
-                <i class="bi bi-people fs-1 opacity-25 d-block mb-2"></i>
-                Aucun pratiquant éligible pour ce grade.
-            </div>
-
-            <!-- Liste des pratiquants filtrés -->
-            <div id="liste-pratiquants" style="display:none;">
-                <div class="p-2 bg-light border-bottom d-flex align-items-center gap-2">
-                    <button type="button" id="btn-tout-cocher" class="btn btn-sm btn-outline-success">
-                        <i class="bi bi-check-all me-1"></i>Tout cocher
-                    </button>
-                    <button type="button" id="btn-decocher" class="btn btn-sm btn-outline-secondary">
-                        <i class="bi bi-x-square me-1"></i>Tout décocher
-                    </button>
-                    <span id="label-nb-dispo" class="text-muted small ms-2"></span>
+            {% for p in pratiquants_eligibles %}
+            <div class="border rounded mb-3 p-3" id="bloc-{{ p.pk }}">
+                <!-- En-tête : case + nom + grade badge -->
+                <div class="d-flex align-items-center gap-3 mb-2">
+                    <input class="form-check-input prat-check flex-shrink-0" type="checkbox"
+                           name="pratiquants" value="{{ p.pk }}" id="chk-{{ p.pk }}">
+                    <label class="form-check-label fw-semibold flex-grow-1" for="chk-{{ p.pk }}">
+                        {{ p.nom }} {{ p.prenom }}
+                    </label>
+                    <div class="text-end">
+                        <span class="badge bg-secondary">{{ p.grade_actuel.nom }}</span>
+                        {% if p.grade_actuel.id_grade >= 2 %}
+                            {% if p.bulletin_grade %}
+                            <a href="{{ p.bulletin_grade.url }}" target="_blank"
+                               class="badge bg-success text-white ms-1 text-decoration-none">
+                                <i class="bi bi-file-earmark-check"></i> Bulletin OK
+                            </a>
+                            {% else %}
+                            <span class="badge bg-warning text-dark ms-1">
+                                <i class="bi bi-file-earmark-text"></i> Bulletin requis
+                            </span>
+                            {% endif %}
+                        {% endif %}
+                    </div>
                 </div>
-                <div class="p-2">
-                    {% for p, pos_actuelle in pratiquants_avec_pos %}
-                    <div class="pratiquant-row border-bottom"
-                         data-pk="{{ p.pk }}"
-                         data-pos-actuelle="{{ pos_actuelle }}"
-                         style="display:none;">
-                        <div class="form-check d-flex align-items-center gap-3 p-3">
-                            <input class="form-check-input mt-0 pratiquant-check" type="checkbox"
-                                   name="pratiquants" value="{{ p.pk }}" id="p{{ p.pk }}">
-                            <label class="form-check-label flex-grow-1" style="cursor:pointer;"
-                                   for="p{{ p.pk }}">
-                                <div class="fw-semibold">{{ p.nom }} {{ p.prenom }}</div>
-                                <div class="small text-muted">
-                                    Grade actuel :
-                                    {% if p.grade_actuel %}
-                                        <span class="badge bg-secondary">{{ p.grade_actuel }}</span>
-                                    {% else %}
-                                        <span class="badge bg-light text-muted border">Sans grade</span>
-                                    {% endif %}
-                                </div>
-                            </label>
+
+                <!-- Corps : option + bulletin (toujours visibles si présents) -->
+                <div class="ps-4">
+                    {% if options %}
+                    <div class="mb-2">
+                        <label class="form-label small fw-semibold mb-1 text-primary">
+                            <i class="bi bi-tags me-1"></i>Option / Style <span class="text-danger">*</span>
+                        </label>
+                        <div class="d-flex flex-wrap gap-3">
+                            {% for opt in options %}
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio"
+                                       name="option_{{ p.pk }}" id="opt-{{ p.pk }}-{{ opt.pk }}"
+                                       value="{{ opt.pk }}">
+                                <label class="form-check-label" for="opt-{{ p.pk }}-{{ opt.pk }}">
+                                    {{ opt.nom }}
+                                </label>
+                            </div>
+                            {% endfor %}
                         </div>
                     </div>
-                    {% endfor %}
+                    {% endif %}
+
+                    {% if p.grade_actuel.id_grade >= 2 and not p.bulletin_grade %}
+                    <div class="col-md-8">
+                        <div class="p-2 border border-warning rounded" style="background:#fffbea;">
+                            <label class="form-label small fw-semibold text-warning mb-1">
+                                <i class="bi bi-file-earmark-arrow-up me-1"></i>
+                                Bulletin du grade actuel <span class="text-danger">*</span>
+                            </label>
+                            <input type="file" name="bulletin_{{ p.pk }}"
+                                   class="form-control form-control-sm"
+                                   accept=".pdf,.jpg,.jpeg,.png">
+                            <div class="form-text text-warning">Obligatoire pour ce pratiquant.</div>
+                        </div>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
+            {% endfor %}
+
         </div>
     </div>
 
-    <!-- Récapitulatif montant en temps réel -->
-    <div id="recap-montant" class="card mb-3" style="display:none;">
-        <div class="card-body py-2">
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
-                <div>
-                    <span class="text-muted small">Total droits d'examen :</span>
-                    <strong id="recap-brut" class="ms-1">0 FCFA</strong>
-                </div>
-                {% if params %}
-                <div>
-                    <span class="text-muted small">Part à reverser à la ligue ({{ pourcentage_ligue }}%) :</span>
-                    <strong id="recap-ligue" class="ms-1 text-primary">0 FCFA</strong>
-                </div>
-                {% endif %}
+    <!-- Récapitulatif montant -->
+    {% if tarif_grade_vise %}
+    <div class="card mb-4 border-primary">
+        <div class="card-body py-2 d-flex flex-wrap gap-3 align-items-center">
+            <div>
+                <span class="text-muted small">Tarif par pratiquant :</span>
+                <strong class="ms-1">{{ tarif_grade_vise|floatformat:0 }} FCFA</strong>
+            </div>
+            {% if params %}
+            <div>
+                <span class="text-muted small">Part ligue ({{ pourcentage_ligue|floatformat:0 }}%) :</span>
+                <strong class="ms-1 text-primary" id="montant-ligue">—</strong>
+            </div>
+            <div>
+                <span class="text-muted small">Part club :</span>
+                <strong class="ms-1 text-success" id="montant-club">—</strong>
+            </div>
+            {% endif %}
+            <div class="ms-auto">
+                <span class="text-muted small">Total sélection :</span>
+                <strong class="ms-1 fs-5 text-dark" id="montant-total">0 FCFA</strong>
             </div>
         </div>
     </div>
+    {% endif %}
 
-    <!-- Bouton soumettre -->
     <div class="d-flex gap-2 justify-content-end">
         <a href="{% url 'exams:club_inscriptions' session.pk %}" class="btn btn-outline-secondary">Annuler</a>
-        <button type="submit" id="btn-inscrire" class="btn btn-ligue btn-lg" disabled>
-            <i class="bi bi-plus-circle me-2"></i>Inscrire les pratiquants sélectionnés
+        <button type="submit" name="inscrire" value="1" id="btn-inscrire"
+                class="btn btn-success btn-lg" disabled>
+            <i class="bi bi-plus-circle me-2"></i>Inscrire les sélectionnés
+            <span id="nb-selection" class="badge bg-white text-success ms-1" style="display:none;">0</span>
         </button>
     </div>
 </form>
 
-{% endif %}
-
+{% endif %}{# pratiquants_eligibles #}
+{% endif %}{# grade_vise #}
+{% endif %}{# nb_total_dispo #}
 
 <script>
-// Variables globales pour accès depuis onchange HTML
-var _gs, _rows, _checks, _btnInscrire, _compteur, _nbCoches,
-    _msgGrade, _msgAucun, _listePrat, _labelDispo,
-    _recapDiv, _recapBrut, _recapLigue, _TARIFS, _POURCENTAGE;
-
-function filtrerPratiquants() {
-    var gradeSelect = _gs || document.getElementById('id_grade_vise');
-    var rows = _rows || document.querySelectorAll('.pratiquant-row');
-    var msgGrade = _msgGrade || document.getElementById('msg-choisir-grade');
-    var msgAucun = _msgAucun || document.getElementById('msg-aucun');
-    var listePrat = _listePrat || document.getElementById('liste-pratiquants');
-    var labelDispo = _labelDispo || document.getElementById('label-nb-dispo');
-
-    if (!gradeSelect.value) {
-        msgGrade.style.display = '';
-        msgAucun.style.display = 'none';
-        listePrat.style.display = 'none';
-        rows.forEach(function(r) { r.style.display = 'none'; var inp = r.querySelector('input'); if(inp) inp.checked = false; });
-        mettreAJourCompteur();
-        return;
-    }
-    var opt = gradeSelect.options[gradeSelect.selectedIndex];
-    var posVise = parseInt(opt.getAttribute('data-pos'));
-    var nb = 0;
-    rows.forEach(function(r) {
-        var posActuelle = parseInt(r.getAttribute('data-pos-actuelle'));
-        if (posActuelle === posVise - 1) {
-            r.style.display = '';
-            nb++;
-        } else {
-            r.style.display = 'none';
-            var inp = r.querySelector('input'); if(inp) inp.checked = false;
-        }
-    });
-    msgGrade.style.display = 'none';
-    if (nb === 0) {
-        msgAucun.style.display = '';
-        listePrat.style.display = 'none';
-    } else {
-        msgAucun.style.display = 'none';
-        listePrat.style.display = '';
-        if (labelDispo) labelDispo.textContent = nb + ' pratiquant(s) éligible(s)';
-    }
-    mettreAJourCompteur();
-    mettreAJourMontant();
-}
-
-function mettreAJourCompteur() {
-    var n = document.querySelectorAll('.pratiquant-check:checked').length;
-    var nbCoches = _nbCoches || document.getElementById('nb-coches');
-    var compteur = _compteur || document.getElementById('compteur-selection');
-    var btnInscrire = _btnInscrire || document.getElementById('btn-inscrire');
-    var gradeSelect = _gs || document.getElementById('id_grade_vise');
-    if (nbCoches) nbCoches.textContent = n;
-    if (compteur) compteur.style.display = n > 0 ? '' : 'none';
-    if (btnInscrire) btnInscrire.disabled = n === 0 || !gradeSelect.value;
-    mettreAJourMontant();
-}
-
-function mettreAJourMontant() {
-    var gradeSelect = _gs || document.getElementById('id_grade_vise');
-    var recapDiv = _recapDiv || document.getElementById('recap-montant');
-    var recapBrut = _recapBrut || document.getElementById('recap-brut');
-    var recapLigue = _recapLigue || document.getElementById('recap-ligue');
-    var TARIFS = _TARIFS || {};
-    var POURCENTAGE = _POURCENTAGE || 100;
-    if (!gradeSelect.value) { if (recapDiv) recapDiv.style.display = 'none'; return; }
-    var gradePk = gradeSelect.value;
-    var tarif = TARIFS[gradePk] || 0;
-    var n = document.querySelectorAll('.pratiquant-check:checked').length;
-    var brut = tarif * n;
-    var ligue = brut * POURCENTAGE / 100;
-    if (recapDiv) {
-        recapDiv.style.display = n > 0 && tarif > 0 ? '' : 'none';
-        if (recapBrut) recapBrut.textContent = Math.round(brut).toLocaleString('fr-FR') + ' FCFA';
-        if (recapLigue) recapLigue.textContent = Math.round(ligue).toLocaleString('fr-FR') + ' FCFA';
-    }
-}
-
 document.addEventListener('DOMContentLoaded', function() {
-    _gs         = document.getElementById('id_grade_vise');
-    _rows       = document.querySelectorAll('.pratiquant-row');
-    _checks     = document.querySelectorAll('.pratiquant-check');
-    _btnInscrire = document.getElementById('btn-inscrire');
-    _compteur   = document.getElementById('compteur-selection');
-    _nbCoches   = document.getElementById('nb-coches');
-    _msgGrade   = document.getElementById('msg-choisir-grade');
-    _msgAucun   = document.getElementById('msg-aucun');
-    _listePrat  = document.getElementById('liste-pratiquants');
-    _labelDispo = document.getElementById('label-nb-dispo');
-    _recapDiv   = document.getElementById('recap-montant');
-    _recapBrut  = document.getElementById('recap-brut');
-    _recapLigue = document.getElementById('recap-ligue');
-    _TARIFS     = {{ tarifs_json|safe }};
-    _POURCENTAGE = {{ pourcentage_ligue }};
+    var TARIF      = parseFloat('{{ tarif_grade_vise|default:"0" }}') || 0;
+    var POURCENTAGE = parseFloat('{{ pourcentage_ligue|default:"100" }}') || 100;
 
-    if (_checks) _checks.forEach(function(c) { c.addEventListener('change', mettreAJourCompteur); });
+    var btn        = document.getElementById('btn-inscrire');
+    var nbSpan     = document.getElementById('nb-selection');
+    var elTotal    = document.getElementById('montant-total');
+    var elLigue    = document.getElementById('montant-ligue');
+    var elClub     = document.getElementById('montant-club');
 
-    var btnTout = document.getElementById('btn-tout-cocher');
-    if (btnTout) btnTout.addEventListener('click', function() {
-        _rows.forEach(function(r) {
-            if (r.style.display !== 'none') { var inp = r.querySelector('input'); if(inp) inp.checked = true; }
+    function majCompteur() {
+        var coches = document.querySelectorAll('.prat-check:checked');
+        var n = coches.length;
+
+        if (btn) {
+            if (n > 0) { btn.removeAttribute('disabled'); }
+            else        { btn.setAttribute('disabled', ''); }
+        }
+        if (nbSpan) {
+            nbSpan.textContent = n;
+            nbSpan.style.display = n > 0 ? '' : 'none';
+        }
+        if (TARIF > 0 && elTotal) {
+            var total = TARIF * n;
+            var ligue = Math.round(total * POURCENTAGE / 100);
+            var club  = Math.round(total - ligue);
+            elTotal.textContent = total.toLocaleString('fr-FR') + ' FCFA';
+            if (elLigue) elLigue.textContent = ligue.toLocaleString('fr-FR') + ' FCFA';
+            if (elClub)  elClub.textContent  = club.toLocaleString('fr-FR')  + ' FCFA';
+        }
+    }
+
+    /* Écoute sur toutes les cases à cocher + effet visuel */
+    document.querySelectorAll('.prat-check').forEach(function(chk) {
+        chk.addEventListener('change', function() {
+            var bloc = document.getElementById('bloc-' + chk.value);
+            if (bloc) {
+                bloc.style.borderColor = chk.checked ? '#0d6efd' : '';
+                bloc.style.background  = chk.checked ? '#f0f5ff' : '';
+            }
+            majCompteur();
         });
-        mettreAJourCompteur();
     });
 
-    var btnDec = document.getElementById('btn-decocher');
+    /* Tout cocher / décocher */
+    var btnTout = document.getElementById('btn-tout-cocher');
+    var btnDec  = document.getElementById('btn-decocher');
+    if (btnTout) btnTout.addEventListener('click', function() {
+        document.querySelectorAll('.prat-check').forEach(function(c) {
+            c.checked = true;
+            var bloc = document.getElementById('bloc-' + c.value);
+            if (bloc) { bloc.style.borderColor = '#0d6efd'; bloc.style.background = '#f0f5ff'; }
+        });
+        majCompteur();
+    });
     if (btnDec) btnDec.addEventListener('click', function() {
-        if (_checks) _checks.forEach(function(c) { c.checked = false; });
-        mettreAJourCompteur();
+        document.querySelectorAll('.prat-check').forEach(function(c) {
+            c.checked = false;
+            var bloc = document.getElementById('bloc-' + c.value);
+            if (bloc) { bloc.style.borderColor = ''; bloc.style.background = ''; }
+        });
+        majCompteur();
     });
 
-    var formInscr = document.getElementById('form-inscription');
-    if (formInscr) formInscr.addEventListener('submit', function(e) {
-        var n = document.querySelectorAll('.pratiquant-check:checked').length;
-        if (n === 0) { e.preventDefault(); return; }
-        var grade = _gs.options[_gs.selectedIndex].text;
-        if (!confirm(n + ' pratiquant(s) seront inscrits pour le grade « ' + grade + ' ». Confirmer ?')) {
+    /* Validation à la soumission */
+    var form = document.querySelector('form[method="post"]');
+    if (form) form.addEventListener('submit', function(e) {
+        var coches = document.querySelectorAll('.prat-check:checked');
+        if (coches.length === 0) { e.preventDefault(); return; }
+
+        {% if options %}
+        var sansOption = [];
+        coches.forEach(function(c) {
+            var choisi = form.querySelector('input[name="option_' + c.value + '"]:checked');
+            if (!choisi) {
+                var label = document.querySelector('label[for="chk-' + c.value + '"]');
+                sansOption.push(label ? label.textContent.trim() : 'Pratiquant #' + c.value);
+            }
+        });
+        if (sansOption.length > 0) {
+            e.preventDefault();
+            alert('Option non choisie pour :\n' + sansOption.join('\n'));
+            return;
+        }
+        {% endif %}
+
+        if (!confirm(coches.length + ' pratiquant(s) seront inscrits. Confirmer ?')) {
             e.preventDefault();
         }
     });

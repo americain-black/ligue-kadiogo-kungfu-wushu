@@ -223,7 +223,7 @@ function traiterNoteSaisie(d) {
     if (ligne) ligne.classList.add('flash-row');
 
     ajouterJournal(
-        `<strong>${d.pratiquant}</strong> — ${d.rubrique} : <strong>${d.note}/20</strong>` +
+        `<strong>${d.pratiquant}</strong> — ${d.rubrique} : <strong>${d.note}/5</strong>` +
         (d.validee ? ' ✓ validée' : ''),
         d.validee ? 'text-success' : 'text-secondary'
     );
@@ -235,7 +235,7 @@ function afficherResultat(d) {
     const cellDec = document.getElementById(`dec-${d.inscription_id}`);
     const ligne   = document.getElementById(`ligne-${d.inscription_id}`);
 
-    if (cellMoy) cellMoy.innerHTML = `<span class="${d.decision === 'ADMIS' ? 'admis' : 'ajourne'}">${d.moyenne}/20</span>`;
+    if (cellMoy) cellMoy.innerHTML = `<span class="${d.decision === 'ADMIS' ? 'admis' : 'ajourne'}">${d.moyenne}/5</span>`;
     if (cellDec) {
         const couleur = d.decision === 'ADMIS' ? 'bg-success' : 'bg-warning text-dark';
         cellDec.innerHTML = `<span class="badge ${couleur}">${d.decision}</span>`;
@@ -254,12 +254,12 @@ function afficherResultat(d) {
         `Dernière mise à jour : ${new Date().toLocaleTimeString('fr-FR')}`;
 
     ajouterJournal(
-        `🏆 <strong>${d.pratiquant}</strong> → <strong>${d.decision}</strong> (moy. ${d.moyenne}/20)`,
+        `🏆 <strong>${d.pratiquant}</strong> → <strong>${d.decision}</strong> (moy. ${d.moyenne}/5)`,
         d.decision === 'ADMIS' ? 'text-success' : 'text-warning'
     );
 
     afficherToast(
-        `${d.pratiquant} : ${d.decision} — ${d.moyenne}/20`,
+        `${d.pratiquant} : ${d.decision} — ${d.moyenne}/5`,
         d.decision === 'ADMIS' ? 'bg-success text-white' : 'bg-warning text-dark'
     );
 }

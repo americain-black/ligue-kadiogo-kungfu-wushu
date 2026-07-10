@@ -38,12 +38,17 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
+    <div class="d-flex align-items-center gap-3">
+    <a href="{% url 'accounts:dashboard_ligue' %}" class="btn-action btn-action-edit flex-shrink-0" title="Tableau de bord" data-bs-toggle="tooltip">
+        <i class="bi bi-arrow-left"></i>
+    </a>
+        <div>
         <h4 class="fw-bold mb-0">Années sportives</h4>
         <small class="text-muted">Gérer les années sportives avant de créer des sessions d'examen</small>
+        </div>
     </div>
     <a href="{% url 'exams:creer_annee_sportive' %}" class="btn btn-ligue btn-sm">
-        <i class="bi bi-plus me-1"></i>Nouvelle année sportive
+    <i class="bi bi-plus me-1"></i>Nouvelle année sportive
     </a>
 </div>
 

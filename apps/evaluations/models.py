@@ -20,18 +20,18 @@ class NoteRubrique(models.Model):
         on_delete=models.PROTECT,
         related_name='notes'
     )
-    jury          = models.ForeignKey(
-        'accounts.Utilisateur',
+    affectation   = models.ForeignKey(
+        'exams.AffectationJury',
         on_delete=models.PROTECT,
-        related_name='notes_saisies'
+        related_name='notes'
     )
     note          = models.DecimalField(
         max_digits=4, decimal_places=2,
         validators=[
             MinValueValidator(0),
-            MaxValueValidator(20)
+            MaxValueValidator(5)
         ],
-        help_text="Note sur 20"
+        help_text="Note sur 5"
     )
     validee       = models.BooleanField(
         default=False,
@@ -54,7 +54,7 @@ class NoteRubrique(models.Model):
         return (
             f"{self.inscription.pratiquant} — "
             f"{self.rubrique_grade.rubrique.nom} : "
-            f"{self.note}/20"
+            f"{self.note}/5"
         )
 
     def clean(self):

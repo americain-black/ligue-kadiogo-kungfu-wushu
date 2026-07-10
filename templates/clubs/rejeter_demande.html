@@ -17,9 +17,14 @@
 {% endblock %}
 
 {% block content %}
-<div class="mb-4">
-    <h4 class="fw-bold mb-0">Rejeter la demande</h4>
-    <small class="text-muted">{{ demande.club.nom_club }} — {{ demande.annee_sportive.libelle }}</small>
+<div class="d-flex align-items-start gap-3 mb-4">
+    <button onclick="history.back()" class="btn-action btn-action-edit flex-shrink-0" title="Retour" data-bs-toggle="tooltip">
+        <i class="bi bi-arrow-left"></i>
+    </button>
+    <div>    
+        <h4 class="fw-bold mb-0">Rejeter la demande</h4>
+        <small class="text-muted">{{ demande.club.nom_club }} — {{ demande.annee_sportive.libelle }}</small>
+    </div>
 </div>
 
 <div class="card p-4" style="max-width: 600px;">

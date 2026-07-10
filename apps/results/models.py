@@ -47,7 +47,7 @@ class Resultat(models.Model):
         return (
             f"{self.inscription.pratiquant} — "
             f"{self.inscription.session.titre} : "
-            f"{self.moyenne}/20 ({self.get_decision_display()})"
+            f"{self.moyenne}/5 ({self.get_decision_display()})"
         )
 
     @classmethod

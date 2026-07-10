@@ -12,6 +12,19 @@ from apps.exams.models import SessionExamen, Inscription, ParametresExamen
 
 # ── Décorateurs ───────────────────────────────────────────────────────────────
 
+def gest_ligue_requis(view_func):
+    @login_required
+    def wrapper(request, *args, **kwargs):
+        if not (request.user.is_superuser or request.user.est_gest_ligue()):
+            messages.error(request, "Accès réservé au Gestionnaire de Ligue.")
+            return redirect('accounts:tableau_de_bord')
+        if not request.user.ligue and not request.user.is_superuser:
+            messages.error(request, "Votre compte n'est rattaché à aucune ligue.")
+            return redirect('accounts:tableau_de_bord')
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+
 def gest_financier_requis(view_func):
     @login_required
     def wrapper(request, *args, **kwargs):
@@ -171,10 +184,13 @@ def detail_paiement_examen(request, pk):
         Inscription.objects
         .filter(session=paiement.session, pratiquant__club=paiement.club)
         .select_related('pratiquant', 'grade_vise')
+        .order_by('statut', 'pratiquant__nom')
     )
+    historique = paiement.historique.select_related('acteur').order_by('date_action')
     return render(request, 'payments/detail_paiement_examen.html', {
-        'paiement':    paiement,
+        'paiement':     paiement,
         'inscriptions': inscriptions,
+        'historique':   historique,
     })
 
 
@@ -330,4 +346,35 @@ def historique_paiements_examen(request):
         'club_pk':        club_pk,
         'action_filtre':  action_filtre,
         'actions':        HistoriquePaiementExamen.ACTION_CHOICES,
+    })
+
+
+# ── Vues GEST_LIGUE — Consultation paiements validés ─────────────────────────
+
+@gest_ligue_requis
+def paiements_valides_gl(request):
+    ligue = request.user.ligue
+    session_pk = request.GET.get('session', '')
+
+    from apps.exams.models import SessionExamen
+    sessions = SessionExamen.objects.filter(
+        annee_sportive__ligue=ligue
+    ).order_by('-date_examen')
+
+    paiements = (
+        PaiementExamen.objects
+        .filter(session__annee_sportive__ligue=ligue, statut='VALIDE')
+        .select_related('club', 'session', 'valide_par')
+        .order_by('-date_validation')
+    )
+    if session_pk:
+        paiements = paiements.filter(session_id=session_pk)
+
+    total = paiements.aggregate(total=Sum('montant_paye'))['total'] or 0
+
+    return render(request, 'payments/paiements_valides_gl.html', {
+        'paiements':   paiements,
+        'sessions':    sessions,
+        'session_pk':  session_pk,
+        'total':       total,
     })

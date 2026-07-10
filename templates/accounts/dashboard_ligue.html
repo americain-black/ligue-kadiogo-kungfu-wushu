@@ -35,6 +35,9 @@
 <a href="{% url 'clubs:demandes_affiliation' %}" class="nav-link">
     <i class="bi bi-file-earmark-check me-2"></i>Affiliations
 </a>
+<a href="{% url 'payments:paiements_valides_gl' %}" class="nav-link">
+    <i class="bi bi-cash-coin me-2"></i>Paiements validés
+</a>
 <a href="{% url 'ligues:organigramme' %}" class="nav-link">
     <i class="bi bi-diagram-3 me-2"></i>Organigramme ligue
 </a>
@@ -185,9 +188,10 @@
                     {% else %}<span class="text-muted">—</span>{% endif %}
                 </td>
                 <td class="text-end pe-3">
-                    <a href="{% url 'exams:traiter_dossiers' item.session.pk %}"
-                       class="btn btn-sm btn-outline-primary">
-                        <i class="bi bi-eye me-1"></i>Voir
+                    <a href="{% url 'exams:licencies_gl' item.session.pk %}"
+                       class="btn-action btn-action-edit"
+                       title="Liste des licenciés" data-bs-toggle="tooltip">
+                        <i class="bi bi-people"></i>
                     </a>
                 </td>
             </tr>

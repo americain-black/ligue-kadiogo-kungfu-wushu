@@ -17,12 +17,17 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
+    <div class="d-flex align-items-center gap-3">
+    <a href="{% url 'accounts:dashboard_club' %}" class="btn-action btn-action-edit flex-shrink-0" title="Tableau de bord" data-bs-toggle="tooltip">
+        <i class="bi bi-arrow-left"></i>
+    </a>
+        <div>
         <h4 class="fw-bold mb-0">Pratiquants</h4>
         <small class="text-muted">{{ club.nom_club }}</small>
+        </div>
     </div>
     <a href="{% url 'practitioners:ajouter' %}" class="btn btn-success">
-        <i class="bi bi-person-plus me-1"></i>Inscrire un pratiquant
+    <i class="bi bi-person-plus me-1"></i>Inscrire un pratiquant
     </a>
 </div>
 

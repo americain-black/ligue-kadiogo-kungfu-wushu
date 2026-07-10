@@ -68,13 +68,19 @@ def tableau_de_bord(request):
 @login_required
 def dashboard_super_admin(request):
     from apps.ligues.models import Ligue
+    nb_ligues_actives = Ligue.objects.filter(statut='ACTIVE').count()
+    nb_ligues_total   = Ligue.objects.count()
+    nb_utilisateurs   = Utilisateur.objects.filter(is_superuser=False).count()
+    nb_actifs         = Utilisateur.objects.filter(statut_compte=True, is_superuser=False).count()
     contexte = {
-        'nb_ligues_actives':   Ligue.objects.filter(statut='ACTIVE').count(),
-        'nb_ligues_total':     Ligue.objects.count(),
-        'nb_utilisateurs':     Utilisateur.objects.filter(is_superuser=False).count(),
-        'nb_actifs':           Utilisateur.objects.filter(statut_compte=True, is_superuser=False).count(),
-        'dernieres_ligues':    Ligue.objects.order_by('-date_creation')[:5],
-        'derniers_utilisateurs': Utilisateur.objects.filter(is_superuser=False).order_by('-date_joined')[:5],
+        'nb_ligues_actives':    nb_ligues_actives,
+        'nb_ligues_inactives':  nb_ligues_total - nb_ligues_actives,
+        'nb_ligues_total':      nb_ligues_total,
+        'nb_utilisateurs':      nb_utilisateurs,
+        'nb_actifs':            nb_actifs,
+        'nb_inactifs':          nb_utilisateurs - nb_actifs,
+        'dernieres_ligues':     Ligue.objects.order_by('-date_creation')[:3],
+        'derniers_utilisateurs': Utilisateur.objects.filter(is_superuser=False).order_by('-date_joined')[:3],
     }
     return render(request, 'accounts/dashboard_super_admin.html', contexte)
 

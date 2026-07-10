@@ -55,29 +55,34 @@
 {% block content %}
 
 <!-- En-tête -->
-<div class="mb-3">
-    <small class="text-muted">
-        <a href="{% url 'exams:liste' %}">Sessions d'examen</a> › {{ session.titre }}
-    </small>
-    <h4 class="fw-bold mt-1 mb-1">{{ session.titre }}</h4>
-    <div class="d-flex gap-3 flex-wrap align-items-center">
-        <span class="text-muted small"><i class="bi bi-calendar3 me-1"></i>{{ session.date_examen|date:"d/m/Y" }}</span>
-        <span class="text-muted small"><i class="bi bi-geo-alt me-1"></i>{{ session.lieu }}</span>
-        <span class="text-muted small"><i class="bi bi-trophy me-1"></i>{{ session.annee_sportive.libelle }}</span>
-        <span class="text-muted small"><i class="bi bi-people me-1"></i>{{ nb_inscrits }} inscrit(s)</span>
-        {% if session.statut == 'EN_PREPARATION' %}
-            <span class="badge bg-secondary">En préparation</span>
-        {% elif session.statut == 'INSCRIPTIONS_OUVERTES' %}
-            <span class="badge bg-success">Inscriptions ouvertes</span>
-        {% elif session.statut == 'INSCRIPTIONS_CLOSES' %}
-            <span class="badge bg-warning text-dark">Inscriptions closes</span>
-        {% elif session.statut == 'EN_COURS' %}
-            <span class="badge bg-primary">En cours</span>
-        {% elif session.statut == 'CLOTUREE' %}
-            <span class="badge bg-dark">Clôturée</span>
-        {% elif session.statut == 'RESULTATS_PUBLIES' %}
-            <span class="badge bg-info">Résultats publiés</span>
-        {% endif %}
+<div class="d-flex align-items-start gap-3 mb-4">
+    <button onclick="history.back()" class="btn-action btn-action-edit flex-shrink-0" title="Retour" data-bs-toggle="tooltip">
+        <i class="bi bi-arrow-left"></i>
+    </button>
+    <div>
+        <small class="text-muted">
+            <a href="{% url 'exams:liste' %}">Sessions d'examen</a> › {{ session.titre }}
+        </small>
+        <h4 class="fw-bold mt-1 mb-1">{{ session.titre }}</h4>
+        <div class="d-flex gap-3 flex-wrap align-items-center">
+            <span class="text-muted small"><i class="bi bi-calendar3 me-1"></i>{{ session.date_examen|date:"d/m/Y" }}</span>
+            <span class="text-muted small"><i class="bi bi-geo-alt me-1"></i>{{ session.lieu }}</span>
+            <span class="text-muted small"><i class="bi bi-trophy me-1"></i>{{ session.annee_sportive.libelle }}</span>
+            <span class="text-muted small"><i class="bi bi-people me-1"></i>{{ nb_inscrits }} inscrit(s)</span>
+            {% if session.statut == 'EN_PREPARATION' %}
+                <span class="badge bg-secondary">En préparation</span>
+            {% elif session.statut == 'INSCRIPTIONS_OUVERTES' %}
+                <span class="badge bg-success">Inscriptions ouvertes</span>
+            {% elif session.statut == 'INSCRIPTIONS_CLOSES' %}
+                <span class="badge bg-warning text-dark">Inscriptions closes</span>
+            {% elif session.statut == 'EN_COURS' %}
+                <span class="badge bg-primary">En cours</span>
+            {% elif session.statut == 'CLOTUREE' %}
+                <span class="badge bg-dark">Clôturée</span>
+            {% elif session.statut == 'RESULTATS_PUBLIES' %}
+                <span class="badge bg-info">Résultats publiés</span>
+            {% endif %}
+        </div>
     </div>
 </div>
 
@@ -137,13 +142,6 @@
         </a>
     </div>
 
-</div>
-
-<!-- Raccourcis complémentaires -->
-<div class="d-flex gap-2 flex-wrap">
-    <a href="{% url 'exams:licencies_gl' session.pk %}" class="btn btn-outline-secondary btn-sm">
-        <i class="bi bi-people me-1"></i>Liste des licenciés
-    </a>
 </div>
 
 {% endblock %}

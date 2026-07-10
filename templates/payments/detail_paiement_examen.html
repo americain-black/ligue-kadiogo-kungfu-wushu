@@ -13,11 +13,16 @@
 {% endblock %}
 
 {% block content %}
-<div class="mb-4">
-    <small class="text-muted">
-        <a href="{% url 'payments:liste_paiements_examen' %}">Paiements examens</a> › {{ paiement.club.nom_club }}
-    </small>
-    <h4 class="fw-bold mt-1">Vérification preuve — {{ paiement.club.nom_club }}</h4>
+<div class="d-flex align-items-start gap-3 mb-4">
+    <button onclick="history.back()" class="btn-action btn-action-edit flex-shrink-0" title="Retour" data-bs-toggle="tooltip">
+        <i class="bi bi-arrow-left"></i>
+    </button>
+    <div>    
+        <small class="text-muted">
+            <a href="{% url 'payments:liste_paiements_examen' %}">Paiements examens</a> › {{ paiement.club.nom_club }}
+        </small>
+        <h4 class="fw-bold mt-1">Vérification preuve — {{ paiement.club.nom_club }}</h4>
+    </div>
 </div>
 
 <div class="row g-3">
@@ -126,8 +131,20 @@
         {% elif paiement.statut == 'VALIDE' %}
         <div class="alert alert-success">
             <i class="bi bi-check-circle-fill me-2"></i>
-            <strong>Validé</strong> le {{ paiement.date_validation|date:"d/m/Y H:i" }}
+            <strong>Validé</strong>
+            {% if paiement.date_validation %}
+            le {{ paiement.date_validation|date:"d/m/Y H:i" }}
+            {% endif %}
+            {% if paiement.valide_par %}
             par {{ paiement.valide_par.get_full_name|default:paiement.valide_par.username }}
+            {% endif %}
+            {% for h in historique %}
+                {% if h.action == 'VALIDE' and h.motif %}
+                <div class="mt-2 small border-top pt-2">
+                    <i class="bi bi-info-circle me-1"></i>{{ h.motif }}
+                </div>
+                {% endif %}
+            {% endfor %}
         </div>
         {% elif paiement.statut == 'REJETE' %}
         <div class="alert alert-danger">
@@ -150,25 +167,51 @@
                 <thead class="table-light">
                     <tr>
                         <th>Pratiquant</th>
-                        <th>Grade actuel</th>
                         <th>Grade visé</th>
-                        <th>Montant</th>
+                        <th>Statut</th>
+                        <th class="text-end">Montant</th>
                     </tr>
                 </thead>
                 <tbody>
                 {% for insc in inscriptions %}
-                <tr>
-                    <td><strong>{{ insc.pratiquant.nom }} {{ insc.pratiquant.prenom }}</strong></td>
-                    <td class="small text-muted">{{ insc.pratiquant.get_grade_display }}</td>
-                    <td><span class="badge bg-primary">{{ insc.grade_vise }}</span></td>
-                    <td class="small">{{ insc.montant|floatformat:"0" }} FCFA</td>
+                <tr {% if insc.statut == 'EXCLU' %}class="text-muted"{% endif %}>
+                    <td>
+                        {% if insc.statut == 'EXCLU' %}
+                        <s class="text-danger">{{ insc.pratiquant.nom }} {{ insc.pratiquant.prenom }}</s>
+                        {% else %}
+                        <strong>{{ insc.pratiquant.nom }} {{ insc.pratiquant.prenom }}</strong>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if insc.statut != 'EXCLU' %}
+                        <span class="badge bg-primary">{{ insc.grade_vise }}</span>
+                        {% else %}
+                        <span class="badge bg-secondary text-decoration-line-through">{{ insc.grade_vise }}</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if insc.statut == 'EN_ATTENTE_PAIEMENT' %}
+                            <span class="badge bg-warning text-dark">Att. paiement</span>
+                        {% elif insc.statut == 'PAIEMENT_VALIDE' %}
+                            <span class="badge bg-info text-white">Paiement validé</span>
+                        {% elif insc.statut == 'AUTORISE' %}
+                            <span class="badge bg-success">Autorisé</span>
+                        {% elif insc.statut == 'EXCLU' %}
+                            <span class="badge bg-danger">
+                                <i class="bi bi-person-x me-1"></i>Exclu par GL
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end small {% if insc.statut == 'EXCLU' %}text-decoration-line-through{% endif %}">
+                        {{ insc.montant|floatformat:"0" }} FCFA
+                    </td>
                 </tr>
                 {% endfor %}
                 </tbody>
                 <tfoot class="table-light">
                     <tr>
-                        <td colspan="3" class="fw-bold small text-end pe-3">Total</td>
-                        <td class="fw-bold small">{{ paiement.montant_attendu|floatformat:"0" }} FCFA</td>
+                        <td colspan="3" class="fw-bold small text-end pe-3">Montant retenu</td>
+                        <td class="fw-bold small text-end">{{ paiement.montant_attendu|floatformat:"0" }} FCFA</td>
                     </tr>
                 </tfoot>
             </table>

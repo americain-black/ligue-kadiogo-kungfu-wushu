@@ -16,9 +16,14 @@
 {% endblock %}
 
 {% block content %}
-<div class="mb-4">
-    <h4 class="fw-bold mb-0">Paiements — Droits d'examen</h4>
-    <small class="text-muted">Vérifier et valider les preuves soumises par les clubs</small>
+<div class="d-flex align-items-start gap-3 mb-4">
+    <a href="{% url 'accounts:dashboard_ligue' %}" class="btn-action btn-action-edit flex-shrink-0" title="Tableau de bord" data-bs-toggle="tooltip">
+        <i class="bi bi-arrow-left"></i>
+    </a>
+    <div>    
+        <h4 class="fw-bold mb-0">Paiements — Droits d'examen</h4>
+        <small class="text-muted">Vérifier et valider les preuves soumises par les clubs</small>
+    </div>
 </div>
 
 <!-- Filtres -->

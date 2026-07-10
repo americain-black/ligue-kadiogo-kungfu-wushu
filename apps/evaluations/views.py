@@ -137,7 +137,7 @@ def detail_candidat(request, session_id, inscription_id):
     notes_existantes = {
         n.rubrique_grade_id: n
         for n in NoteRubrique.objects.filter(
-            inscription=inscription, jury=user
+            inscription=inscription, affectation__jury=user
         )
     }
 
@@ -175,12 +175,14 @@ def saisir_note(request, session_id, inscription_id, rubrique_grade_id):
     rubrique_grade = get_object_or_404(
         RubriqueGrade, pk=rubrique_grade_id, grade=inscription.grade_vise, actif=True
     )
+    affectation = get_object_or_404(
+        AffectationJury, session_id=session_id, jury=request.user
+    )
 
     note, _ = NoteRubrique.objects.get_or_create(
         inscription=inscription,
         rubrique_grade=rubrique_grade,
-        jury=request.user,
-        defaults={'note': valeur},
+        defaults={'note': valeur, 'affectation': affectation},
     )
 
     if note.validee:
@@ -208,7 +210,7 @@ def valider_note(request, note_id):
     Le Jury valide définitivement une note.
     Déclenche le calcul du résultat si toutes les notes sont présentes.
     """
-    note = get_object_or_404(NoteRubrique, pk=note_id, jury=request.user)
+    note = get_object_or_404(NoteRubrique, pk=note_id, affectation__jury=request.user)
 
     if note.validee:
         return JsonResponse({'erreur': 'Note déjà validée.'}, status=400)
@@ -238,7 +240,7 @@ def valider_note(request, note_id):
 @jury_requis
 def demander_correction_note(request, note_id):
     """Le Jury signale une erreur sur une note validée et demande une correction."""
-    note = get_object_or_404(NoteRubrique, pk=note_id, jury=request.user)
+    note = get_object_or_404(NoteRubrique, pk=note_id, affectation__jury=request.user)
 
     try:
         note.demander_correction()
@@ -269,7 +271,7 @@ def deverrouiller_note(request, note_id):
         'inscription_id': note.inscription_id,
         'pratiquant': str(note.inscription.pratiquant),
         'rubrique': note.rubrique_grade.rubrique.nom,
-        'jury': str(note.jury),
+        'jury': str(note.affectation.jury),
     })
 
     return JsonResponse({'statut': 'ok', 'message': 'Note déverrouillée.'})

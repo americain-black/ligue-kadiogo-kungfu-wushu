@@ -16,9 +16,14 @@
 {% endblock %}
 
 {% block content %}
-<div class="mb-4">
-    <h4 class="fw-bold mb-0">Sessions d'examen</h4>
-    <small class="text-muted">{{ club.nom_club }}</small>
+<div class="d-flex align-items-start gap-3 mb-4">
+    <a href="{% url 'accounts:dashboard_club' %}" class="btn-action btn-action-edit flex-shrink-0" title="Tableau de bord" data-bs-toggle="tooltip">
+        <i class="bi bi-arrow-left"></i>
+    </a>
+    <div>    
+        <h4 class="fw-bold mb-0">Sessions d'examen</h4>
+        <small class="text-muted">{{ club.nom_club }}</small>
+    </div>
 </div>
 
 {% if sessions_actives %}

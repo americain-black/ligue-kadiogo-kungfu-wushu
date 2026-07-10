@@ -1,0 +1,197 @@
+{% extends 'base.html' %}
+{% block title %}Configurer jury — {{ affectation.jury }}{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Examens</span>
+<a href="{% url 'exams:liste' %}" class="nav-link">
+    <i class="bi bi-journal-check me-2"></i>Sessions d'examen
+</a>
+<a href="{% url 'exams:gestion_jury' session.pk %}" class="nav-link active">
+    <i class="bi bi-arrow-left me-2"></i>Retour au jury
+</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.grade-block { border: 1px solid #dee2e6; border-radius: 8px; margin-bottom: 0.75rem; overflow: hidden; }
+.grade-block-header { background: #f8f9fa; padding: 0.6rem 1rem; border-bottom: 1px solid #dee2e6; cursor: pointer; }
+.grade-block-header:hover { background: #e9ecef; }
+.rubriques-list { padding: 0.75rem 1rem; display: none; }
+.rubriques-list.visible { display: block; }
+.check-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.3rem 0; }
+.check-item label { cursor: pointer; font-weight: 500; margin: 0; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <small class="text-muted">
+        <a href="{% url 'exams:liste' %}">Sessions</a> ›
+        <a href="{% url 'exams:detail' session.pk %}">{{ session.titre }}</a> ›
+        <a href="{% url 'exams:gestion_jury' session.pk %}">Jury</a> ›
+        Configurer
+    </small>
+    <h4 class="fw-bold mt-1 mb-0">
+        <i class="bi bi-sliders me-2"></i>{{ affectation.jury.get_full_name|default:affectation.jury.username }}
+    </h4>
+    <small class="text-muted">Session : {{ session.titre }}</small>
+</div>
+
+<form method="post">
+{% csrf_token %}
+<div class="row g-3">
+
+    <!-- Grades + Rubriques (cascade) -->
+    <div class="col-md-7">
+        <div class="card p-3">
+            <h6 class="fw-bold mb-1">
+                <i class="bi bi-award me-2 text-muted"></i>Grades & Rubriques
+            </h6>
+            <p class="text-muted small mb-3">
+                Cochez un grade pour voir ses rubriques, puis sélectionnez celles que ce jury évalue.
+            </p>
+
+            {% for grade in grades %}
+            {% with gid=grade.pk|stringformat:"s" %}
+            <div class="grade-block">
+                <div class="grade-block-header d-flex align-items-center gap-2"
+                     onclick="toggleGrade({{ grade.pk }})">
+                    <input type="checkbox"
+                           name="grades"
+                           value="{{ grade.pk }}"
+                           id="grade-{{ grade.pk }}"
+                           class="grade-cb form-check-input mt-0"
+                           data-grade="{{ grade.pk }}"
+                           {% if grade.pk in grades_affectes %}checked{% endif %}
+                           onclick="event.stopPropagation(); handleGradeCheck({{ grade.pk }}, this.checked)">
+                    <label for="grade-{{ grade.pk }}" class="fw-semibold mb-0" onclick="event.stopPropagation()">
+                        {{ grade.id_grade }} — {{ grade.nom }}
+                    </label>
+                    <i class="bi bi-chevron-down ms-auto text-muted toggle-icon" id="icon-{{ grade.pk }}"></i>
+                </div>
+                <div class="rubriques-list {% if grade.pk in grades_affectes %}visible{% endif %}"
+                     id="rubriques-grade-{{ grade.pk }}">
+                    <small class="text-muted d-block mb-2">Rubriques de ce grade :</small>
+                    <div id="rubrique-items-{{ grade.pk }}">
+                        <!-- Rempli par JS -->
+                    </div>
+                    <div id="no-rubrique-{{ grade.pk }}" class="text-muted small" style="display:none;">
+                        Aucune rubrique définie pour ce grade.
+                    </div>
+                </div>
+            </div>
+            {% endwith %}
+            {% empty %}
+            <p class="text-muted">Aucun grade défini pour cette ligue.</p>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Options -->
+    <div class="col-md-5">
+        <div class="card p-3 mb-3">
+            <h6 class="fw-bold mb-3">
+                <i class="bi bi-tags me-2 text-muted"></i>Options / Styles évalués
+            </h6>
+            {% for option in options %}
+            <div class="check-item">
+                <input type="checkbox"
+                       name="options"
+                       value="{{ option.pk }}"
+                       id="opt-{{ option.pk }}"
+                       class="form-check-input mt-0"
+                       {% if option.pk in options_affectees %}checked{% endif %}>
+                <label for="opt-{{ option.pk }}">{{ option.nom }}</label>
+            </div>
+            {% empty %}
+            <p class="text-muted small">Aucune option définie.</p>
+            {% endfor %}
+        </div>
+
+        <!-- Boutons -->
+        <div class="d-grid gap-2">
+            <button type="submit" class="btn btn-ligue">
+                <i class="bi bi-save me-1"></i>Enregistrer la configuration
+            </button>
+            <a href="{% url 'exams:gestion_jury' session.pk %}" class="btn btn-outline-secondary">
+                Annuler
+            </a>
+        </div>
+    </div>
+
+</div>
+</form>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Données injectées depuis la vue
+const RUBRIQUES_PAR_GRADE = {{ rubriques_par_grade|safe }};
+// Rubriques déjà affectées à CE jury
+const RUBRIQUES_AFFECTEES = new Set([{% for pk in rubriques_affectees %}{{ pk }},{% endfor %}]);
+// Rubriques déjà prises par d'AUTRES jury (à masquer)
+const RUBRIQUES_PRISES = new Set({{ rubriques_prises|safe }});
+
+function renderRubriques(gradeId) {
+    const container = document.getElementById('rubrique-items-' + gradeId);
+    const noRub     = document.getElementById('no-rubrique-' + gradeId);
+    const rubriques = RUBRIQUES_PAR_GRADE[String(gradeId)] || [];
+
+    // Filtrer : garder celles non prises par d'autres (ou déjà affectées à ce jury)
+    const disponibles = rubriques.filter(r => !RUBRIQUES_PRISES.has(r.pk) || RUBRIQUES_AFFECTEES.has(r.pk));
+
+    if (disponibles.length === 0) {
+        container.innerHTML = '';
+        noRub.style.display = 'block';
+        noRub.textContent   = rubriques.length > 0
+            ? 'Toutes les rubriques de ce grade sont déjà affectées à un autre jury.'
+            : 'Aucune rubrique définie pour ce grade.';
+        return;
+    }
+    noRub.style.display = 'none';
+    container.innerHTML = disponibles.map(r => `
+        <div class="check-item">
+            <input type="checkbox"
+                   name="rubriques"
+                   value="${r.pk}"
+                   id="rub-${r.pk}"
+                   class="form-check-input mt-0"
+                   ${RUBRIQUES_AFFECTEES.has(r.pk) ? 'checked' : ''}>
+            <label for="rub-${r.pk}">${r.nom}</label>
+        </div>
+    `).join('');
+}
+
+function handleGradeCheck(gradeId, isChecked) {
+    const rubDiv = document.getElementById('rubriques-grade-' + gradeId);
+    const icon   = document.getElementById('icon-' + gradeId);
+    if (isChecked) {
+        renderRubriques(gradeId);
+        rubDiv.classList.add('visible');
+        icon.classList.replace('bi-chevron-down', 'bi-chevron-up');
+    } else {
+        rubDiv.classList.remove('visible');
+        icon.classList.replace('bi-chevron-up', 'bi-chevron-down');
+        // Décocher toutes les rubriques de ce grade
+        rubDiv.querySelectorAll('input[type=checkbox]').forEach(cb => cb.checked = false);
+    }
+}
+
+function toggleGrade(gradeId) {
+    const cb = document.getElementById('grade-' + gradeId);
+    cb.checked = !cb.checked;
+    handleGradeCheck(gradeId, cb.checked);
+}
+
+// Initialiser les grades déjà cochés
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.grade-cb:checked').forEach(cb => {
+        renderRubriques(parseInt(cb.dataset.grade));
+    });
+});
+</script>
+{% endblock %}

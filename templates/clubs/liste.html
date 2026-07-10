@@ -43,12 +43,17 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
+    <div class="d-flex align-items-center gap-3">
+    <a href="{% url 'accounts:dashboard_ligue' %}" class="btn-action btn-action-edit flex-shrink-0" title="Tableau de bord" data-bs-toggle="tooltip">
+        <i class="bi bi-arrow-left"></i>
+    </a>
+        <div>
         <h4 class="fw-bold mb-0">Clubs</h4>
         <small class="text-muted">Liste des clubs de la ligue</small>
+        </div>
     </div>
     <a href="{% url 'clubs:creer' %}" class="btn btn-ligue btn-sm">
-        <i class="bi bi-plus me-1"></i>Enregistrer un club
+    <i class="bi bi-plus me-1"></i>Enregistrer un club
     </a>
 </div>
 

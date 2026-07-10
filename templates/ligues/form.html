@@ -1,5 +1,4 @@
 {% extends 'base.html' %}
-
 {% block title %}{{ titre }} — Ligue du Kadiogo{% endblock %}
 
 {% block sidebar %}
@@ -16,74 +15,182 @@
 </a>
 {% endblock %}
 
+{% block extra_css %}
+<style>
+    .form-section {
+        background: #fff;
+        border-radius: 14px;
+        box-shadow: 0 3px 14px rgba(0,0,0,0.07);
+        padding: 1.6rem 1.8rem;
+        margin-bottom: 1.2rem;
+    }
+    .form-section-title {
+        font-size: 0.82rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: #c0392b;
+        margin-bottom: 1.2rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    .form-section-title::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: #f0e8e8;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
+
+<!-- En-tête -->
+<div class="d-flex align-items-center gap-3 mb-4">
+    <a href="{% url 'ligues:liste' %}" class="btn-action btn-action-edit" title="Retour" data-bs-toggle="tooltip">
+        <i class="bi bi-arrow-left"></i>
+    </a>
     <div>
         <h4 class="fw-bold mb-0">{{ titre }}</h4>
         <small class="text-muted">
-            <a href="{% url 'ligues:liste' %}" class="text-decoration-none">Ligues</a>
-            → {{ titre }}
+            <a href="{% url 'ligues:liste' %}" class="text-decoration-none text-muted">Ligues</a>
+            <i class="bi bi-chevron-right mx-1" style="font-size:0.7rem"></i>{{ titre }}
         </small>
     </div>
 </div>
 
-<div class="card" style="max-width: 750px;">
-    <div class="card-body p-4">
-        <form method="post" enctype="multipart/form-data">
-            {% csrf_token %}
+<form method="post" enctype="multipart/form-data" style="max-width: 720px;">
+    {% csrf_token %}
 
-            <h6 class="fw-bold text-danger mb-3">
-                <i class="bi bi-info-circle me-2"></i>Informations générales
-            </h6>
-            <div class="row g-3 mb-4">
-                <div class="col-md-8">
-                    <label class="form-label fw-semibold small">Nom de la ligue *</label>
-                    {{ form.nom_ligue }}
+    <!-- Section 1 : Informations générales -->
+    <div class="form-section">
+        <div class="form-section-title">
+            <i class="bi bi-building"></i> Informations générales
+        </div>
+
+        <div class="row g-3">
+            <!-- Nom de la ligue -->
+            <div class="col-md-8">
+                <div class="field-float">
+                    <i class="bi bi-building fi-icon"></i>
+                    <div class="form-floating">
+                        {{ form.nom_ligue }}
+                        <label for="{{ form.nom_ligue.id_for_label }}">Nom de la ligue *</label>
+                    </div>
                     {% if form.nom_ligue.errors %}
-                        <div class="text-danger small">{{ form.nom_ligue.errors }}</div>
+                        <div class="text-danger small mt-1">{{ form.nom_ligue.errors.0 }}</div>
                     {% endif %}
                 </div>
-                <div class="col-md-4">
-                    <label class="form-label fw-semibold small">Sigle *</label>
-                    {{ form.sigle }}
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold small">Région *</label>
-                    {{ form.region }}
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold small">Logo</label>
-                    {{ form.logo }}
-                </div>
-                <div class="col-12">
-                    <label class="form-label fw-semibold small">Adresse du siège</label>
-                    {{ form.adresse_siege }}
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold small">Email</label>
-                    {{ form.email_contact }}
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold small">Téléphone</label>
-                    {{ form.telephone }}
+            </div>
+
+            <!-- Sigle -->
+            <div class="col-md-4">
+                <div class="field-float">
+                    <i class="bi bi-tag fi-icon"></i>
+                    <div class="form-floating">
+                        {{ form.sigle }}
+                        <label for="{{ form.sigle.id_for_label }}">Sigle *</label>
+                    </div>
+                    {% if form.sigle.errors %}
+                        <div class="text-danger small mt-1">{{ form.sigle.errors.0 }}</div>
+                    {% endif %}
                 </div>
             </div>
 
-            <div class="alert alert-info py-2">
-                <i class="bi bi-info-circle me-2"></i>
-                Les membres de l'organigramme (directeurs, secrétaire, etc.) se gèrent depuis la page
-                <strong>Organigramme</strong> du tableau de bord de la ligue.
+            <!-- Région -->
+            <div class="col-md-6">
+                <div class="field-float">
+                    <i class="bi bi-geo-alt fi-icon"></i>
+                    <div class="form-floating">
+                        {{ form.region }}
+                        <label for="{{ form.region.id_for_label }}">Région *</label>
+                    </div>
+                    {% if form.region.errors %}
+                        <div class="text-danger small mt-1">{{ form.region.errors.0 }}</div>
+                    {% endif %}
+                </div>
             </div>
 
-            <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-ligue">
-                    <i class="bi bi-check-lg me-1"></i>Enregistrer
-                </button>
-                <a href="{% url 'ligues:liste' %}" class="btn btn-outline-secondary">
-                    Annuler
-                </a>
+            <!-- Adresse du siège -->
+            <div class="col-md-6">
+                <div class="field-float">
+                    <i class="bi bi-map fi-icon"></i>
+                    <div class="form-floating">
+                        {{ form.adresse_siege }}
+                        <label for="{{ form.adresse_siege.id_for_label }}">Adresse ligue</label>
+                    </div>
+                </div>
             </div>
-        </form>
+        </div>
     </div>
-</div>
+
+    <!-- Section 2 : Contact -->
+    <div class="form-section">
+        <div class="form-section-title">
+            <i class="bi bi-telephone"></i> Contact
+        </div>
+
+        <div class="row g-3">
+            <!-- Email -->
+            <div class="col-md-6">
+                <div class="field-float">
+                    <i class="bi bi-envelope fi-icon"></i>
+                    <div class="form-floating">
+                        {{ form.email_contact }}
+                        <label for="{{ form.email_contact.id_for_label }}">Email de contact</label>
+                    </div>
+                    {% if form.email_contact.errors %}
+                        <div class="text-danger small mt-1">{{ form.email_contact.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Téléphone -->
+            <div class="col-md-6">
+                <div class="field-float">
+                    <i class="bi bi-phone fi-icon"></i>
+                    <div class="form-floating">
+                        {{ form.telephone }}
+                        <label for="{{ form.telephone.id_for_label }}">Téléphone</label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 3 : Logo -->
+    <div class="form-section">
+        <div class="form-section-title">
+            <i class="bi bi-image"></i> Logo
+        </div>
+        <div class="row g-3 align-items-center">
+            <div class="col-md-8">
+                <label class="form-label small text-muted mb-1">Fichier image (PNG, JPG…)</label>
+                {{ form.logo }}
+            </div>
+            {% if form.instance.logo %}
+            <div class="col-md-4 text-center">
+                <img src="{{ form.instance.logo.url }}" alt="Logo actuel"
+                     style="max-height:60px; border-radius:8px; border:1px solid #eee; padding:4px;">
+                <div class="small text-muted mt-1">Logo actuel</div>
+            </div>
+            {% endif %}
+        </div>
+        {% if form.logo.errors %}
+            <div class="text-danger small mt-1">{{ form.logo.errors.0 }}</div>
+        {% endif %}
+    </div>
+
+    <!-- Boutons -->
+    <div class="d-flex gap-2">
+        <button type="submit" class="btn btn-ligue px-4">
+            <i class="bi bi-check-lg me-1"></i>Enregistrer
+        </button>
+        <a href="{% url 'ligues:liste' %}" class="btn btn-outline-secondary px-4">
+            Annuler
+        </a>
+    </div>
+
+</form>
 {% endblock %}

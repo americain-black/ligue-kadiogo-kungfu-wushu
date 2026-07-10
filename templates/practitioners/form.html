@@ -89,7 +89,6 @@
                     {% endif %}
                     <div class="form-text text-muted">
                         Sélectionnez le grade actuel du pratiquant.
-                        Si son grade n'est pas dans la liste, contactez le gestionnaire de la ligue pour qu'il le crée.
                     </div>
                 </div>
                 <div class="col-md-6">
@@ -101,6 +100,35 @@
                     </div>
                     {% endif %}
                 </div>
+
+                <!-- Bulletin de grade (affiché si grade >= 2ème grade) -->
+                <div class="col-12" id="bloc-bulletin" style="display:none;">
+                    <div class="p-3 rounded border border-warning" style="background:#fffbea;">
+                        <label class="form-label fw-semibold text-warning mb-1">
+                            <i class="bi bi-file-earmark-text me-1"></i>
+                            {{ form.bulletin_grade.label }} <span class="text-danger">*</span>
+                        </label>
+                        {{ form.bulletin_grade }}
+                        {% if form.bulletin_grade.errors %}
+                            <div class="text-danger small mt-1">{{ form.bulletin_grade.errors.0 }}</div>
+                        {% endif %}
+                        {% if pratiquant.bulletin_grade %}
+                        <div class="mt-2 d-flex align-items-center gap-2">
+                            <i class="bi bi-file-earmark-check text-success"></i>
+                            <a href="{{ pratiquant.bulletin_grade.url }}" target="_blank" class="small">
+                                Voir le bulletin actuel
+                            </a>
+                            <span class="text-muted small">(laisser vide pour garder l'actuel)</span>
+                        </div>
+                        {% else %}
+                        <div class="form-text text-warning">
+                            <i class="bi bi-exclamation-triangle me-1"></i>
+                            Obligatoire pour tout pratiquant ayant déjà un grade.
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
                 <div class="col-12">
                     <div class="form-check">
                         {{ form.actif }}
@@ -118,4 +146,25 @@
         </form>
     </div>
 </div>
+
+<script>
+const GRADES_ID = {{ grades_json|default:"{}"|safe }};
+
+function verifierBulletin() {
+    var gradeSelect  = document.getElementById('id_grade_actuel_nom');
+    var blocBulletin = document.getElementById('bloc-bulletin');
+    if (!gradeSelect || !blocBulletin) return;
+    var pk      = gradeSelect.value;
+    var idGrade = pk ? (GRADES_ID[pk] || 0) : 0;
+    blocBulletin.style.display = (idGrade >= 2) ? '' : 'none';
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    var gradeSelect = document.getElementById('id_grade_actuel_nom');
+    if (gradeSelect) {
+        gradeSelect.addEventListener('change', verifierBulletin);
+        verifierBulletin();
+    }
+});
+</script>
 {% endblock %}

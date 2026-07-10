@@ -16,13 +16,18 @@
 {% endblock %}
 
 {% block content %}
-<div class="mb-4">
-    <small class="text-muted">
-        <a href="{% url 'exams:club_sessions' %}">Sessions</a> ›
-        <a href="{% url 'exams:club_inscriptions' session.pk %}">{{ session.titre }}</a> ›
-        Soumettre preuve de paiement
-    </small>
-    <h4 class="fw-bold mt-1">Soumettre la preuve de paiement</h4>
+<div class="d-flex align-items-start gap-3 mb-4">
+    <button onclick="history.back()" class="btn-action btn-action-edit flex-shrink-0" title="Retour" data-bs-toggle="tooltip">
+        <i class="bi bi-arrow-left"></i>
+    </button>
+    <div>    
+        <small class="text-muted">
+            <a href="{% url 'exams:club_sessions' %}">Sessions</a> ›
+            <a href="{% url 'exams:club_inscriptions' session.pk %}">{{ session.titre }}</a> ›
+            Soumettre preuve de paiement
+        </small>
+        <h4 class="fw-bold mt-1">Soumettre la preuve de paiement</h4>
+    </div>
 </div>
 
 <div class="row g-3" style="max-width: 860px;">

@@ -63,7 +63,8 @@
             <hr class="my-3">
             <p class="small text-muted mb-0">
                 <i class="bi bi-info-circle me-1"></i>
-                Réglez ce montant auprès de la ligue, puis joignez votre reçu ci-contre.
+                Réglez ce montant par <strong>dépôt mobile</strong> (Orange Money, Moov Money)
+                ou en <strong>espèces</strong> auprès de la ligue, puis joignez votre reçu ci-contre.
             </p>
         </div>
     </div>
@@ -84,6 +85,47 @@
                 </div>
                 {% endif %}
 
+                <!-- Mode de paiement -->
+                <div class="mb-3">
+                    <label class="form-label fw-semibold small">{{ form.mode_paiement.label }}</label>
+                    {{ form.mode_paiement }}
+                    {% for error in form.mode_paiement.errors %}
+                    <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- Champs dépôt mobile -->
+                <div id="section-depot-mobile">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">{{ form.numero_expediteur.label }}</label>
+                        {{ form.numero_expediteur }}
+                        <div class="form-text">Numéro du téléphone qui a effectué le dépôt (optionnel)</div>
+                        {% for error in form.numero_expediteur.errors %}
+                        <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">{{ form.numero_beneficiaire.label }}</label>
+                        {{ form.numero_beneficiaire }}
+                        <div class="form-text">Numéro de la ligue qui a reçu le dépôt</div>
+                        {% for error in form.numero_beneficiaire.errors %}
+                        <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Champ espèces : nom du payeur -->
+                <div id="section-especes" style="display:none;">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">{{ form.nom_payeur.label }}</label>
+                        {{ form.nom_payeur }}
+                        <div class="form-text">Nom de la personne qui a apporté le paiement à la ligue</div>
+                        {% for error in form.nom_payeur.errors %}
+                        <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+
                 <div class="mb-3">
                     <label class="form-label fw-semibold small">{{ form.montant_paye.label }}</label>
                     {{ form.montant_paye }}
@@ -93,10 +135,10 @@
                     {% endfor %}
                 </div>
 
-                <div class="mb-3">
+                <div id="section-reference" class="mb-3">
                     <label class="form-label fw-semibold small">{{ form.reference.label }}</label>
                     {{ form.reference }}
-                    <div class="form-text">Numéro de transaction ou de reçu</div>
+                    <div class="form-text">Numéro de transaction (Orange Money, Moov Money…)</div>
                     {% for error in form.reference.errors %}
                     <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
                     {% endfor %}
@@ -123,4 +165,23 @@
         </div>
     </div>
 </div>
+
+<script>
+(function () {
+    const modeSelect    = document.getElementById('id_mode_paiement');
+    const sectionMobile = document.getElementById('section-depot-mobile');
+    const sectionEsp    = document.getElementById('section-especes');
+    const sectionRef    = document.getElementById('section-reference');
+
+    function toggleMode() {
+        const isDepot = modeSelect.value === 'DEPOT_MOBILE';
+        sectionMobile.style.display = isDepot ? '' : 'none';
+        sectionEsp.style.display    = isDepot ? 'none' : '';
+        sectionRef.style.display    = isDepot ? '' : 'none';
+    }
+
+    modeSelect.addEventListener('change', toggleMode);
+    toggleMode();
+})();
+</script>
 {% endblock %}

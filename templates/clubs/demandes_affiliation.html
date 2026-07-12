@@ -76,11 +76,8 @@
                 <span class="badge bg-secondary">{{ demande.nombre_soumissions }}</span>
             </td>
             <td class="text-end">
-                <a href="{% url 'clubs:valider_demande' demande.pk %}" class="btn btn-sm btn-success me-1" title="Approuver">
-                    <i class="bi bi-check-lg me-1"></i>Approuver
-                </a>
-                <a href="{% url 'clubs:rejeter_demande' demande.pk %}" class="btn btn-sm btn-outline-danger" title="Rejeter">
-                    <i class="bi bi-x-lg me-1"></i>Rejeter
+                <a href="{% url 'clubs:detail_demande_affiliation' demande.pk %}" class="btn btn-sm btn-primary" title="Examiner le dossier">
+                    <i class="bi bi-folder2-open me-1"></i>Examiner le dossier
                 </a>
             </td>
         </tr>

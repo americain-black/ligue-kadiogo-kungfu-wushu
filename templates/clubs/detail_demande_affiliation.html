@@ -1,0 +1,207 @@
+{% extends 'base.html' %}
+{% block title %}Dossier d'affiliation — {{ club.nom_club }}{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Gestion</span>
+<a href="{% url 'clubs:liste' %}" class="nav-link">
+    <i class="bi bi-building me-2"></i>Clubs
+</a>
+<a href="{% url 'clubs:demandes_affiliation' %}" class="nav-link active">
+    <i class="bi bi-file-earmark-check me-2"></i>Affiliations
+</a>
+<a href="{% url 'clubs:parametres_affiliation' %}" class="nav-link ps-4">
+    <i class="bi bi-cash-coin me-2"></i>Frais d'affiliation
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-start gap-3 mb-4">
+    <a href="{% url 'clubs:demandes_affiliation' %}" class="btn-action btn-action-edit flex-shrink-0"
+       title="Retour" data-bs-toggle="tooltip">
+        <i class="bi bi-arrow-left"></i>
+    </a>
+    <div>
+        <small class="text-muted">
+            <a href="{% url 'clubs:demandes_affiliation' %}">Demandes d'affiliation</a> › {{ club.nom_club }}
+        </small>
+        <h4 class="fw-bold mt-1 mb-0">Dossier d'affiliation — {{ club.nom_club }}</h4>
+        <small class="text-muted">{{ demande.annee_sportive.libelle }}</small>
+    </div>
+    <div class="ms-auto">
+        {% if demande.statut_affiliation == 'APPROUVEE' %}
+        <span class="badge bg-success fs-6">Approuvée</span>
+        {% elif demande.statut_affiliation == 'REJETEE' %}
+        <span class="badge bg-danger fs-6">Rejetée</span>
+        {% elif demande.statut_affiliation == 'EN_ATTENTE_PAIEMENT' %}
+        <span class="badge bg-warning text-dark fs-6">En attente de paiement</span>
+        {% elif demande.statut_affiliation == 'EN_ATTENTE_VALID_FINANCIER' %}
+        <span class="badge bg-info fs-6">En attente validation financier</span>
+        {% elif demande.statut_affiliation == 'EN_ATTENTE_VALID_LIGUE' %}
+        <span class="badge bg-primary fs-6">En attente de votre validation</span>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row g-3" style="max-width: 1000px;">
+    <!-- Informations du club -->
+    <div class="col-12 col-md-6">
+        <div class="card p-3 mb-3">
+            <h6 class="fw-bold mb-3"><i class="bi bi-building me-2 text-muted"></i>Club</h6>
+            <table class="table table-sm table-borderless mb-0">
+                <tr>
+                    <td class="text-muted small" style="width:160px;">Nom</td>
+                    <td class="fw-semibold">{{ club.nom_club }}{% if club.sigle_club %} ({{ club.sigle_club }}){% endif %}</td>
+                </tr>
+                <tr>
+                    <td class="text-muted small">Localité</td>
+                    <td>{{ club.localite }}</td>
+                </tr>
+                <tr>
+                    <td class="text-muted small">Adresse</td>
+                    <td>{{ club.adresse|default:"—" }}</td>
+                </tr>
+                <tr>
+                    <td class="text-muted small">Téléphone</td>
+                    <td>{{ club.telephone|default:"—" }}</td>
+                </tr>
+                <tr>
+                    <td class="text-muted small">Email</td>
+                    <td>{{ club.email|default:"—" }}</td>
+                </tr>
+                <tr>
+                    <td class="text-muted small">Statut actuel</td>
+                    <td>{{ club.get_statut_club_display }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <div class="card p-3">
+            <h6 class="fw-bold mb-3"><i class="bi bi-receipt me-2 text-muted"></i>Demande</h6>
+            <table class="table table-sm table-borderless mb-0">
+                <tr>
+                    <td class="text-muted small" style="width:160px;">Année sportive</td>
+                    <td>{{ demande.annee_sportive.libelle }}</td>
+                </tr>
+                <tr>
+                    <td class="text-muted small">Frais d'affiliation</td>
+                    <td class="fw-bold">{{ demande.montant_frais|floatformat:"0" }} FCFA</td>
+                </tr>
+                <tr>
+                    <td class="text-muted small">Date de la demande</td>
+                    <td>{{ demande.date_demande|date:"d/m/Y" }}</td>
+                </tr>
+                <tr>
+                    <td class="text-muted small">Soumissions</td>
+                    <td>{{ demande.nombre_soumissions }}</td>
+                </tr>
+                {% if demande.motif_rejet %}
+                <tr>
+                    <td class="text-muted small">Motif rejet précédent</td>
+                    <td class="text-danger">{{ demande.motif_rejet }}</td>
+                </tr>
+                {% endif %}
+            </table>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-6">
+        <!-- Pièces justificatives -->
+        <div class="card p-3 mb-3">
+            <h6 class="fw-bold mb-3">
+                <i class="bi bi-paperclip me-2 text-muted"></i>Pièces justificatives
+                <span class="badge bg-secondary ms-1">{{ pieces|length }}</span>
+            </h6>
+            {% if pieces %}
+            <ul class="list-unstyled mb-0">
+                {% for piece in pieces %}
+                <li class="py-1 border-bottom small">
+                    <a href="{{ piece.fichier.url }}" target="_blank">
+                        <i class="bi bi-file-earmark-pdf me-1"></i>
+                        {{ piece.get_type_piece_display }} — {{ piece.nom_fichier }}
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="text-muted small mb-0">Aucune pièce jointe.</p>
+            {% endif %}
+        </div>
+
+        <!-- Paiement -->
+        <div class="card p-3">
+            <h6 class="fw-bold mb-3"><i class="bi bi-cash-coin me-2 text-muted"></i>Paiement</h6>
+            {% if paiement %}
+            <table class="table table-sm table-borderless mb-0">
+                <tr>
+                    <td class="text-muted small" style="width:160px;">Statut</td>
+                    <td>
+                        {% if paiement.statut == 'VALIDE' %}
+                        <span class="badge bg-success">Validé</span>
+                        {% elif paiement.statut == 'EN_ATTENTE' %}
+                        <span class="badge bg-warning text-dark">En attente</span>
+                        {% elif paiement.statut == 'REJETE' %}
+                        <span class="badge bg-danger">Rejeté</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-muted small">Montant payé</td>
+                    <td class="fw-bold">{{ paiement.montant_paye|floatformat:"0" }} FCFA</td>
+                </tr>
+                <tr>
+                    <td class="text-muted small">Mode de paiement</td>
+                    <td>{{ paiement.get_mode_paiement_display }}</td>
+                </tr>
+                {% if paiement.mode_paiement == 'DEPOT_MOBILE' %}
+                <tr>
+                    <td class="text-muted small">N° expéditeur</td>
+                    <td>{{ paiement.numero_expediteur|default:"—" }}</td>
+                </tr>
+                <tr>
+                    <td class="text-muted small">N° bénéficiaire</td>
+                    <td>{{ paiement.numero_beneficiaire|default:"—" }}</td>
+                </tr>
+                <tr>
+                    <td class="text-muted small">Référence</td>
+                    <td>{{ paiement.reference|default:"—" }}</td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td class="text-muted small">Nom du payeur</td>
+                    <td>{{ paiement.nom_payeur|default:"—" }}</td>
+                </tr>
+                {% endif %}
+                <tr>
+                    <td class="text-muted small">Preuve</td>
+                    <td><a href="{{ paiement.fichier_preuve.url }}" target="_blank">Voir le fichier <i class="bi bi-box-arrow-up-right"></i></a></td>
+                </tr>
+                <tr>
+                    <td class="text-muted small">Validé par</td>
+                    <td>
+                        {% if paiement.valide_par %}{{ paiement.valide_par.get_full_name|default:paiement.valide_par.username }}{% else %}—{% endif %}
+                        {% if paiement.date_validation %}<span class="text-muted small">— {{ paiement.date_validation|date:"d/m/Y" }}</span>{% endif %}
+                    </td>
+                </tr>
+            </table>
+            {% else %}
+            <p class="text-muted small mb-0">Aucun paiement soumis pour cette demande.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if demande.statut_affiliation == 'EN_ATTENTE_VALID_LIGUE' %}
+<div class="d-flex gap-2 mt-4" style="max-width: 1000px;">
+    <a href="{% url 'clubs:valider_demande' demande.pk %}" class="btn btn-success">
+        <i class="bi bi-check-lg me-1"></i>Approuver l'affiliation
+    </a>
+    <a href="{% url 'clubs:rejeter_demande' demande.pk %}" class="btn btn-outline-danger">
+        <i class="bi bi-x-lg me-1"></i>Rejeter
+    </a>
+</div>
+{% endif %}
+{% endblock %}

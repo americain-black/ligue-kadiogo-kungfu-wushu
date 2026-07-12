@@ -5,7 +5,7 @@ from .models import PaiementAffiliation, PaiementExamen
 @admin.register(PaiementAffiliation)
 class PaiementAffiliationAdmin(admin.ModelAdmin):
     list_display   = (
-        'demande', 'montant_paye', 'reference', 'statut', 'date_soumission'
+        'demande', 'mode_paiement', 'montant_paye', 'reference', 'statut', 'date_soumission'
     )
     list_filter    = ('statut',)
     search_fields  = ('demande__club__nom_club', 'reference')

@@ -128,6 +128,22 @@ def demandes_affiliation(request):
 
 
 @gest_ligue_requis
+def detail_demande_affiliation(request, pk):
+    demande = get_object_or_404(
+        DemandeAffiliation, pk=pk,
+        club__ligue=request.user.ligue,
+    )
+    pieces   = demande.pieces_justificatives.order_by('type_piece')
+    paiement = getattr(demande, 'paiement', None)
+    return render(request, 'clubs/detail_demande_affiliation.html', {
+        'demande':  demande,
+        'club':     demande.club,
+        'pieces':   pieces,
+        'paiement': paiement,
+    })
+
+
+@gest_ligue_requis
 def valider_demande(request, pk):
     demande = get_object_or_404(
         DemandeAffiliation, pk=pk,

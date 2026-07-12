@@ -11,6 +11,7 @@ urlpatterns = [
     path('<int:pk>/toggle-statut/',        views.toggle_statut_club,   name='toggle_statut'),
     path('<int:pk>/supprimer/',           views.supprimer_club,       name='supprimer'),
     path('affiliations/',                 views.demandes_affiliation, name='demandes_affiliation'),
+    path('affiliations/<int:pk>/',         views.detail_demande_affiliation, name='detail_demande_affiliation'),
     path('affiliations/<int:pk>/valider/', views.valider_demande,     name='valider_demande'),
     path('affiliations/<int:pk>/rejeter/', views.rejeter_demande,     name='rejeter_demande'),
     path('affiliations/parametres/',       views.gerer_parametres_affiliation, name='parametres_affiliation'),

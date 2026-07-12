@@ -37,9 +37,28 @@
                     <td class="small">{{ demande.annee_sportive.libelle }}</td>
                 </tr>
                 <tr>
+                    <td class="text-muted small">Mode de paiement</td>
+                    <td class="small fw-semibold">{{ paiement.get_mode_paiement_display }}</td>
+                </tr>
+                {% if paiement.mode_paiement == 'DEPOT_MOBILE' %}
+                <tr>
+                    <td class="text-muted small">N° expéditeur</td>
+                    <td class="small">{{ paiement.numero_expediteur|default:"—" }}</td>
+                </tr>
+                <tr>
+                    <td class="text-muted small">N° bénéficiaire</td>
+                    <td class="small">{{ paiement.numero_beneficiaire|default:"—" }}</td>
+                </tr>
+                <tr>
                     <td class="text-muted small">Référence</td>
                     <td class="small">{{ paiement.reference|default:"—" }}</td>
                 </tr>
+                {% else %}
+                <tr>
+                    <td class="text-muted small">Nom du payeur</td>
+                    <td class="small fw-semibold">{{ paiement.nom_payeur|default:"—" }}</td>
+                </tr>
+                {% endif %}
                 <tr>
                     <td class="text-muted small">Preuve</td>
                     <td class="small"><a href="{{ paiement.fichier_preuve.url }}" target="_blank">Voir le fichier</a></td>

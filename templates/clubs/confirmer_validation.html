@@ -21,7 +21,10 @@
 
 {% block content %}
 <div class="mb-4">
-    <h4 class="fw-bold mb-0">Approuver l'affiliation</h4>
+    <small class="text-muted">
+        <a href="{% url 'clubs:detail_demande_affiliation' demande.pk %}">{{ demande.club.nom_club }}</a> › Approuver
+    </small>
+    <h4 class="fw-bold mt-1 mb-0">Approuver l'affiliation</h4>
     <small class="text-muted">Confirmation requise</small>
 </div>
 
@@ -39,7 +42,7 @@
         <button type="submit" class="btn btn-success">
             <i class="bi bi-check-lg me-1"></i>Confirmer l'approbation
         </button>
-        <a href="{% url 'clubs:demandes_affiliation' %}" class="btn btn-outline-secondary">Annuler</a>
+        <a href="{% url 'clubs:detail_demande_affiliation' demande.pk %}" class="btn btn-outline-secondary">Annuler</a>
     </form>
 </div>
 {% endblock %}

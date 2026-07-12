@@ -21,11 +21,14 @@
 
 {% block content %}
 <div class="d-flex align-items-start gap-3 mb-4">
-    <button onclick="history.back()" class="btn-action btn-action-edit flex-shrink-0" title="Retour" data-bs-toggle="tooltip">
+    <a href="{% url 'clubs:detail_demande_affiliation' demande.pk %}" class="btn-action btn-action-edit flex-shrink-0" title="Retour" data-bs-toggle="tooltip">
         <i class="bi bi-arrow-left"></i>
-    </button>
-    <div>    
-        <h4 class="fw-bold mb-0">Rejeter la demande</h4>
+    </a>
+    <div>
+        <small class="text-muted">
+            <a href="{% url 'clubs:detail_demande_affiliation' demande.pk %}">{{ demande.club.nom_club }}</a> › Rejeter
+        </small>
+        <h4 class="fw-bold mt-1 mb-0">Rejeter la demande</h4>
         <small class="text-muted">{{ demande.club.nom_club }} — {{ demande.annee_sportive.libelle }}</small>
     </div>
 </div>
@@ -46,7 +49,7 @@
             <button type="submit" class="btn btn-danger">
                 <i class="bi bi-x-lg me-1"></i>Confirmer le rejet
             </button>
-            <a href="{% url 'clubs:demandes_affiliation' %}" class="btn btn-outline-secondary">Annuler</a>
+            <a href="{% url 'clubs:detail_demande_affiliation' demande.pk %}" class="btn btn-outline-secondary">Annuler</a>
         </div>
     </form>
 </div>

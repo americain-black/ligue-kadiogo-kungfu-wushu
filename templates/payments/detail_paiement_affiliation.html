@@ -59,9 +59,28 @@
                     </td>
                 </tr>
                 <tr>
+                    <td class="text-muted small">Mode de paiement</td>
+                    <td class="fw-semibold">{{ paiement.get_mode_paiement_display }}</td>
+                </tr>
+                {% if paiement.mode_paiement == 'DEPOT_MOBILE' %}
+                <tr>
+                    <td class="text-muted small">N° expéditeur</td>
+                    <td>{{ paiement.numero_expediteur|default:"—" }}</td>
+                </tr>
+                <tr>
+                    <td class="text-muted small">N° bénéficiaire</td>
+                    <td>{{ paiement.numero_beneficiaire|default:"—" }}</td>
+                </tr>
+                <tr>
                     <td class="text-muted small">Référence</td>
                     <td>{{ paiement.reference|default:"—" }}</td>
                 </tr>
+                {% else %}
+                <tr>
+                    <td class="text-muted small">Nom du payeur</td>
+                    <td class="fw-semibold">{{ paiement.nom_payeur|default:"—" }}</td>
+                </tr>
+                {% endif %}
                 <tr>
                     <td class="text-muted small">Soumis le</td>
                     <td>{{ paiement.date_soumission|date:"d/m/Y H:i" }}</td>

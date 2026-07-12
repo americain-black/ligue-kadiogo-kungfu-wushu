@@ -31,10 +31,33 @@ class PaiementAffiliation(models.Model):
         ('REJETE',      'Rejeté'),
     ]
 
+    MODE_CHOICES = [
+        ('DEPOT_MOBILE', 'Dépôt mobile (Orange Money, Moov Money…)'),
+        ('ESPECES',      'Espèces'),
+    ]
+
     demande        = models.OneToOneField(
         'clubs.DemandeAffiliation',
         on_delete=models.CASCADE,
         related_name='paiement'
+    )
+    mode_paiement       = models.CharField(
+        max_length=15,
+        choices=MODE_CHOICES,
+        default='DEPOT_MOBILE',
+        help_text="Mode de règlement utilisé"
+    )
+    numero_expediteur   = models.CharField(
+        max_length=50, blank=True,
+        help_text="Numéro de l'expéditeur (dépôt mobile — optionnel)"
+    )
+    numero_beneficiaire = models.CharField(
+        max_length=50, blank=True,
+        help_text="Numéro du bénéficiaire (dépôt mobile)"
+    )
+    nom_payeur     = models.CharField(
+        max_length=100, blank=True,
+        help_text="Nom de la personne qui a effectué le paiement en espèces"
     )
     montant_paye   = models.DecimalField(
         max_digits=10, decimal_places=2,

@@ -92,6 +92,40 @@ class PaiementAffiliation(models.Model):
         self.demande.rejeter_par_financier(motif=motif)
 
 
+class HistoriquePaiementAffiliation(models.Model):
+
+    ACTION_CHOICES = [
+        ('SOUMIS',   'Preuve soumise'),
+        ('RESOUMIS', 'Preuve resoumise'),
+        ('VALIDE',   'Paiement validé'),
+        ('REJETE',   'Preuve rejetée'),
+    ]
+
+    paiement    = models.ForeignKey(
+        PaiementAffiliation,
+        on_delete=models.CASCADE,
+        related_name='historique'
+    )
+    action      = models.CharField(max_length=15, choices=ACTION_CHOICES)
+    acteur      = models.ForeignKey(
+        'accounts.Utilisateur',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='historique_paiements_affiliation'
+    )
+    date_action = models.DateTimeField(auto_now_add=True)
+    motif       = models.TextField(blank=True)
+    montant     = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+
+    class Meta:
+        verbose_name        = "Historique paiement affiliation"
+        verbose_name_plural = "Historique paiements affiliation"
+        ordering            = ['-date_action']
+
+    def __str__(self):
+        return f"{self.get_action_display()} — {self.paiement.demande.club.nom_club}"
+
+
 class PaiementExamen(models.Model):
     """
     Preuve de paiement global des droits d'examen soumise par un club.

@@ -8,6 +8,9 @@
     <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
 </a>
 <span class="sidebar-title mt-2">Gestion</span>
+<a href="{% url 'clubs:mon_affiliation' %}" class="nav-link">
+    <i class="bi bi-file-earmark-check me-2"></i>Mon affiliation
+</a>
 <a href="{% url 'practitioners:liste' %}" class="nav-link">
     <i class="bi bi-people me-2"></i>Pratiquants
 </a>
@@ -137,6 +140,41 @@
                 <i class="bi bi-building fs-2 text-primary opacity-50"></i>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Affiliation -->
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="mb-0 fw-bold"><i class="bi bi-file-earmark-check me-2"></i>Affiliation</h6>
+        <a href="{% url 'clubs:mon_affiliation' %}" class="btn btn-sm btn-outline-primary">
+            Gérer <i class="bi bi-arrow-right ms-1"></i>
+        </a>
+    </div>
+    <div class="card-body">
+        {% if not demande_affiliation %}
+        <p class="text-muted small mb-0">
+            <i class="bi bi-info-circle me-1"></i>Aucune demande d'affiliation en cours pour l'année sportive active.
+        </p>
+        {% else %}
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+                <div class="small text-muted">{{ demande_affiliation.annee_sportive.libelle }}</div>
+                <div class="fw-semibold">{{ demande_affiliation.montant_frais|floatformat:"0" }} FCFA</div>
+            </div>
+            {% if demande_affiliation.statut_affiliation == 'APPROUVEE' %}
+            <span class="badge bg-success fs-6">Approuvée</span>
+            {% elif demande_affiliation.statut_affiliation == 'REJETEE' %}
+            <span class="badge bg-danger fs-6">Rejetée</span>
+            {% elif demande_affiliation.statut_affiliation == 'EN_ATTENTE_PAIEMENT' %}
+            <span class="badge bg-warning text-dark fs-6">En attente de paiement</span>
+            {% elif demande_affiliation.statut_affiliation == 'EN_ATTENTE_VALID_FINANCIER' %}
+            <span class="badge bg-info fs-6">En attente validation financier</span>
+            {% elif demande_affiliation.statut_affiliation == 'EN_ATTENTE_VALID_LIGUE' %}
+            <span class="badge bg-primary fs-6">En attente validation ligue</span>
+            {% endif %}
+        </div>
+        {% endif %}
     </div>
 </div>
 

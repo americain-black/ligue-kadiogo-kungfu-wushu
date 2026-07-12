@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Paiements validés — Ligue du Kadiogo{% endblock %}
+{% block title %}Paiements validés — Affiliations — Ligue du Kadiogo{% endblock %}
 
 {% block sidebar %}
 <span class="sidebar-title">Navigation</span>
@@ -33,27 +33,27 @@
     </a>
     <div>
         <small class="text-muted">
-            <a href="{% url 'payments:paiements_valides_accueil' %}">Paiements validés</a> › Examens
+            <a href="{% url 'payments:paiements_valides_accueil' %}">Paiements validés</a> › Affiliations
         </small>
-        <h4 class="fw-bold mt-1">Paiements validés — Examens</h4>
+        <h4 class="fw-bold mt-1">Paiements validés — Affiliations</h4>
     </div>
 </div>
 
-<!-- Filtre par session -->
+<!-- Filtre par année sportive -->
 <div class="card p-3 mb-4">
     <form method="get" class="d-flex align-items-center gap-2 flex-wrap">
-        <span class="fw-semibold small">Session :</span>
-        <select name="session" class="form-select form-select-sm" style="max-width:280px;"
+        <span class="fw-semibold small">Année sportive :</span>
+        <select name="annee" class="form-select form-select-sm" style="max-width:280px;"
                 onchange="this.form.submit()">
-            <option value="">Toutes les sessions</option>
-            {% for s in sessions %}
-            <option value="{{ s.pk }}" {% if session_pk == s.pk|stringformat:"s" %}selected{% endif %}>
-                {{ s.titre }} — {{ s.date_examen|date:"d/m/Y" }}
+            <option value="">Toutes les années</option>
+            {% for a in annees %}
+            <option value="{{ a.pk }}" {% if annee_pk == a.pk|stringformat:"s" %}selected{% endif %}>
+                {{ a.libelle }}
             </option>
             {% endfor %}
         </select>
-        {% if session_pk %}
-        <a href="{% url 'payments:paiements_valides_gl' %}" class="btn btn-sm btn-outline-secondary">
+        {% if annee_pk %}
+        <a href="{% url 'payments:paiements_valides_affiliation_gl' %}" class="btn btn-sm btn-outline-secondary">
             <i class="bi bi-x me-1"></i>Réinitialiser
         </a>
         {% endif %}
@@ -77,10 +77,9 @@
         <thead class="table-light">
             <tr>
                 <th>Club</th>
-                <th>Session</th>
+                <th>Année sportive</th>
                 <th>Montant attendu</th>
                 <th>Montant payé</th>
-                <th>Mode</th>
                 <th>Référence</th>
                 <th>Validé le</th>
                 <th>Validé par</th>
@@ -89,11 +88,10 @@
         <tbody>
         {% for p in paiements %}
         <tr>
-            <td><strong>{{ p.club.nom_club }}</strong></td>
-            <td class="small text-muted">{{ p.session.titre }}</td>
-            <td class="small">{{ p.montant_attendu|floatformat:"0" }} FCFA</td>
+            <td><strong>{{ p.demande.club.nom_club }}</strong></td>
+            <td class="small text-muted">{{ p.demande.annee_sportive.libelle }}</td>
+            <td class="small">{{ p.demande.montant_frais|floatformat:"0" }} FCFA</td>
             <td class="small fw-semibold text-success">{{ p.montant_paye|floatformat:"0" }} FCFA</td>
-            <td class="small text-muted">{{ p.get_mode_paiement_display|default:"—" }}</td>
             <td class="small text-muted">{{ p.reference|default:"—" }}</td>
             <td class="small text-muted">
                 {% if p.date_validation %}{{ p.date_validation|date:"d/m/Y" }}{% else %}—{% endif %}
@@ -108,7 +106,7 @@
     {% else %}
     <div class="text-center py-5 text-muted">
         <i class="bi bi-cash-stack fs-1 opacity-25 d-block mb-2"></i>
-        Aucun paiement validé{% if session_pk %} pour cette session{% endif %}.
+        Aucun paiement validé{% if annee_pk %} pour cette année sportive{% endif %}.
     </div>
     {% endif %}
 </div>

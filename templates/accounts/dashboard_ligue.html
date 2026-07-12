@@ -35,7 +35,11 @@
 <a href="{% url 'clubs:demandes_affiliation' %}" class="nav-link">
     <i class="bi bi-file-earmark-check me-2"></i>Affiliations
 </a>
-<a href="{% url 'payments:paiements_valides_gl' %}" class="nav-link">
+<a href="{% url 'clubs:parametres_affiliation' %}" class="nav-link ps-4">
+    <i class="bi bi-cash-coin me-2"></i>Frais d'affiliation
+</a>
+<span class="sidebar-title mt-2">Finances</span>
+<a href="{% url 'payments:paiements_valides_accueil' %}" class="nav-link">
     <i class="bi bi-cash-coin me-2"></i>Paiements validés
 </a>
 <a href="{% url 'ligues:organigramme' %}" class="nav-link">

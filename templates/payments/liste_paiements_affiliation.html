@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Paiements examens — Ligue du Kadiogo{% endblock %}
+{% block title %}Paiements affiliation — Ligue du Kadiogo{% endblock %}
 
 {% block sidebar %}
 <span class="sidebar-title">Navigation</span>
@@ -7,10 +7,10 @@
     <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
 </a>
 <span class="sidebar-title mt-2">Paiements</span>
-<a href="{% url 'payments:liste_paiements_examen' %}" class="nav-link active">
+<a href="{% url 'payments:liste_paiements_examen' %}" class="nav-link">
     <i class="bi bi-cash-coin me-2"></i>Droits d'examen
 </a>
-<a href="{% url 'payments:liste_paiements_affiliation' %}" class="nav-link">
+<a href="{% url 'payments:liste_paiements_affiliation' %}" class="nav-link active">
     <i class="bi bi-file-earmark-check me-2"></i>Frais d'affiliation
 </a>
 <a href="{% url 'payments:historique_paiements_accueil' %}" class="nav-link">
@@ -20,11 +20,11 @@
 
 {% block content %}
 <div class="d-flex align-items-start gap-3 mb-4">
-    <a href="{% url 'accounts:dashboard_ligue' %}" class="btn-action btn-action-edit flex-shrink-0" title="Tableau de bord" data-bs-toggle="tooltip">
+    <a href="{% url 'accounts:dashboard_financier' %}" class="btn-action btn-action-edit flex-shrink-0" title="Tableau de bord" data-bs-toggle="tooltip">
         <i class="bi bi-arrow-left"></i>
     </a>
-    <div>    
-        <h4 class="fw-bold mb-0">Paiements — Droits d'examen</h4>
+    <div>
+        <h4 class="fw-bold mb-0">Paiements — Frais d'affiliation</h4>
         <small class="text-muted">Vérifier et valider les preuves soumises par les clubs</small>
     </div>
 </div>
@@ -33,7 +33,7 @@
 <div class="card p-3 mb-4">
     <div class="d-flex align-items-center gap-2 flex-wrap">
         <span class="fw-semibold small">Filtrer :</span>
-        <a href="{% url 'payments:liste_paiements_examen' %}"
+        <a href="{% url 'payments:liste_paiements_affiliation' %}"
            class="btn btn-sm {% if not statut_filtre %}btn-danger{% else %}btn-outline-secondary{% endif %}">
             Tous
         </a>
@@ -52,7 +52,7 @@
         <thead class="table-light">
             <tr>
                 <th>Club</th>
-                <th>Session</th>
+                <th>Année sportive</th>
                 <th>Montant attendu</th>
                 <th>Montant déclaré</th>
                 <th>Référence</th>
@@ -64,12 +64,12 @@
         <tbody>
         {% for p in paiements %}
         <tr>
-            <td><strong>{{ p.club.nom_club }}</strong></td>
-            <td class="small">{{ p.session.titre }}</td>
-            <td class="small">{{ p.montant_attendu|floatformat:"0" }} FCFA</td>
-            <td class="small {% if p.montant_paye < p.montant_attendu %}text-danger fw-bold{% endif %}">
+            <td><strong>{{ p.demande.club.nom_club }}</strong></td>
+            <td class="small">{{ p.demande.annee_sportive.libelle }}</td>
+            <td class="small">{{ p.demande.montant_frais|floatformat:"0" }} FCFA</td>
+            <td class="small {% if p.montant_paye < p.demande.montant_frais %}text-danger fw-bold{% endif %}">
                 {{ p.montant_paye|floatformat:"0" }} FCFA
-                {% if p.montant_paye < p.montant_attendu %}
+                {% if p.montant_paye < p.demande.montant_frais %}
                 <i class="bi bi-exclamation-triangle-fill ms-1" title="Montant insuffisant"></i>
                 {% endif %}
             </td>
@@ -78,8 +78,6 @@
             <td>
                 {% if p.statut == 'EN_ATTENTE' %}
                     <span class="badge bg-warning text-dark">En attente</span>
-                {% elif p.statut == 'INSUFFISANT' %}
-                    <span class="badge bg-warning text-dark"><i class="bi bi-exclamation-triangle me-1"></i>Insuffisant</span>
                 {% elif p.statut == 'VALIDE' %}
                     <span class="badge bg-success">Validé</span>
                 {% elif p.statut == 'REJETE' %}
@@ -87,16 +85,16 @@
                 {% endif %}
             </td>
             <td class="text-end">
-                <a href="{% url 'payments:detail_paiement_examen' p.pk %}"
+                <a href="{% url 'payments:detail_paiement_affiliation' p.pk %}"
                    class="btn btn-sm btn-outline-secondary" title="Voir le détail">
                     <i class="bi bi-eye"></i>
                 </a>
                 {% if p.statut == 'EN_ATTENTE' %}
-                <a href="{% url 'payments:valider_paiement_examen' p.pk %}"
+                <a href="{% url 'payments:valider_paiement_affiliation' p.pk %}"
                    class="btn btn-sm btn-outline-success ms-1" title="Valider">
                     <i class="bi bi-check-lg"></i>
                 </a>
-                <a href="{% url 'payments:rejeter_paiement_examen' p.pk %}"
+                <a href="{% url 'payments:rejeter_paiement_affiliation' p.pk %}"
                    class="btn btn-sm btn-outline-danger ms-1" title="Rejeter">
                     <i class="bi bi-x-lg"></i>
                 </a>

@@ -1,0 +1,247 @@
+{% extends 'base.html' %}
+{% block title %}Mon affiliation — {{ club.nom_club|default:"Club" }}{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_club' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Mon club</span>
+<a href="{% url 'clubs:mon_affiliation' %}" class="nav-link active">
+    <i class="bi bi-file-earmark-check me-2"></i>Mon affiliation
+</a>
+<a href="{% url 'practitioners:liste' %}" class="nav-link">
+    <i class="bi bi-people me-2"></i>Pratiquants
+</a>
+<a href="{% url 'exams:club_sessions' %}" class="nav-link">
+    <i class="bi bi-journal-check me-2"></i>Sessions d'examen
+</a>
+{% if club %}
+<a href="{% url 'clubs:organigramme' club.pk %}" class="nav-link">
+    <i class="bi bi-diagram-3 me-2"></i>Organigramme
+</a>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-4">
+    <div>
+        <h4 class="fw-bold mb-0">Mon affiliation</h4>
+        <small class="text-muted">{{ club.nom_club }}{% if annee %} — {{ annee.libelle }}{% endif %}</small>
+    </div>
+</div>
+
+{% if messages %}
+{% for msg in messages %}
+<div class="alert alert-{{ msg.tags }} alert-dismissible fade show">
+    {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endfor %}
+{% endif %}
+
+{% if not annee %}
+<div class="alert alert-secondary">
+    <i class="bi bi-calendar-x me-2"></i>
+    Aucune année sportive active pour votre ligue actuellement. Contactez votre Gestionnaire de Ligue.
+</div>
+
+{% elif not demande %}
+<div class="card p-4 text-center" style="max-width: 560px;">
+    <i class="bi bi-file-earmark-plus fs-1 text-primary mb-2"></i>
+    <h6 class="fw-bold">Aucune demande d'affiliation pour {{ annee.libelle }}</h6>
+    {% if params %}
+    <p class="text-muted small mb-3">
+        Montant des frais d'affiliation : <strong>{{ params.montant_frais_affiliation|floatformat:"0" }} FCFA</strong>
+    </p>
+    <form method="post" action="{% url 'clubs:demarrer_demande_affiliation' %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-play-circle me-1"></i>Démarrer ma demande d'affiliation
+        </button>
+    </form>
+    {% else %}
+    <p class="text-muted small mb-0">
+        Le montant des frais d'affiliation n'a pas encore été défini par votre ligue.
+        Vous pourrez démarrer votre demande dès qu'il sera disponible.
+    </p>
+    {% endif %}
+</div>
+
+{% else %}
+
+<!-- Statut de la demande -->
+<div class="card mb-4">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h6 class="mb-0 fw-bold"><i class="bi bi-info-circle me-2"></i>Statut de la demande</h6>
+        {% if demande.statut_affiliation == 'APPROUVEE' %}
+        <span class="badge bg-success fs-6">Approuvée</span>
+        {% elif demande.statut_affiliation == 'REJETEE' %}
+        <span class="badge bg-danger fs-6">Rejetée</span>
+        {% elif demande.statut_affiliation == 'EN_ATTENTE_PAIEMENT' %}
+        <span class="badge bg-warning text-dark fs-6">En attente de paiement</span>
+        {% elif demande.statut_affiliation == 'EN_ATTENTE_VALID_FINANCIER' %}
+        <span class="badge bg-info fs-6">En attente validation financier</span>
+        {% elif demande.statut_affiliation == 'EN_ATTENTE_VALID_LIGUE' %}
+        <span class="badge bg-primary fs-6">En attente validation ligue</span>
+        {% endif %}
+    </div>
+    <div class="card-body">
+        <table class="table table-sm table-borderless mb-0">
+            <tr>
+                <td class="text-muted small" style="width:220px;">Montant des frais</td>
+                <td class="fw-semibold">{{ demande.montant_frais|floatformat:"0" }} FCFA</td>
+            </tr>
+            <tr>
+                <td class="text-muted small">Date de la demande</td>
+                <td>{{ demande.date_demande|date:"d/m/Y" }}</td>
+            </tr>
+            <tr>
+                <td class="text-muted small">Nombre de soumissions</td>
+                <td>{{ demande.nombre_soumissions }}</td>
+            </tr>
+        </table>
+
+        {% if demande.motif_rejet %}
+        <div class="alert alert-warning mt-3 mb-0">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <strong>Motif du rejet :</strong> {{ demande.motif_rejet }}
+        </div>
+        {% endif %}
+
+        {% if demande.statut_affiliation == 'REJETEE' %}
+        <form method="post" action="{% url 'clubs:demarrer_demande_affiliation' %}" class="mt-3">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-arrow-repeat me-1"></i>Recommencer ma demande
+            </button>
+        </form>
+        <div class="form-text">Vos anciennes pièces justificatives seront supprimées, vous devrez les rejoindre.</div>
+        {% endif %}
+
+        {% if demande.statut_affiliation == 'APPROUVEE' %}
+        <div class="alert alert-success mt-3 mb-0">
+            <i class="bi bi-check-circle me-2"></i>Votre club est affilié pour {{ annee.libelle }}.
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+{% if demande.statut_affiliation == 'EN_ATTENTE_PAIEMENT' and demande.nombre_soumissions > 0 %}
+
+<!-- Pièces justificatives -->
+<div class="card mb-4">
+    <div class="card-header">
+        <h6 class="mb-0 fw-bold"><i class="bi bi-paperclip me-2"></i>Pièces justificatives</h6>
+    </div>
+    <div class="card-body">
+        {% if pieces %}
+        <div class="table-responsive mb-3">
+            <table class="table table-sm table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Type</th>
+                        <th>Fichier</th>
+                        <th>Ajouté le</th>
+                        <th></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for piece in pieces %}
+                    <tr>
+                        <td>{{ piece.get_type_piece_display }}</td>
+                        <td><a href="{{ piece.fichier.url }}" target="_blank">{{ piece.nom_fichier }}</a></td>
+                        <td class="text-muted small">{{ piece.date_upload|date:"d/m/Y H:i" }}</td>
+                        <td class="text-end">
+                            <form method="post" action="{% url 'clubs:supprimer_piece_affiliation' piece.pk %}"
+                                  onsubmit="return confirm('Supprimer cette pièce ?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger py-0">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <p class="text-muted small">Aucune pièce jointe pour l'instant.</p>
+        {% endif %}
+
+        <form method="post" action="{% url 'clubs:ajouter_piece_affiliation' %}" enctype="multipart/form-data"
+              class="row g-2 align-items-end border-top pt-3">
+            {% csrf_token %}
+            <div class="col-12 col-sm-4">
+                <label class="form-label small fw-semibold">{{ piece_form.type_piece.label }}</label>
+                {{ piece_form.type_piece }}
+            </div>
+            <div class="col-12 col-sm-6">
+                <label class="form-label small fw-semibold">{{ piece_form.fichier.label }}</label>
+                {{ piece_form.fichier }}
+            </div>
+            <div class="col-12 col-sm-2">
+                <button type="submit" class="btn btn-outline-primary w-100">
+                    <i class="bi bi-plus-lg me-1"></i>Ajouter
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Paiement -->
+<div class="card">
+    <div class="card-header">
+        <h6 class="mb-0 fw-bold"><i class="bi bi-cash-coin me-2"></i>Paiement</h6>
+    </div>
+    <div class="card-body">
+        {% if paiement and paiement.statut == 'REJETE' %}
+        <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <strong>Preuve de paiement rejetée :</strong> {{ paiement.motif_rejet }}
+        </div>
+        {% endif %}
+        <p class="text-muted small">
+            Montant à payer : <strong>{{ demande.montant_frais|floatformat:"0" }} FCFA</strong>
+        </p>
+        <a href="{% url 'payments:soumettre_paiement_affiliation' %}" class="btn btn-primary">
+            <i class="bi bi-send me-1"></i>
+            {% if paiement %}Resoumettre la preuve de paiement{% else %}Soumettre la preuve de paiement{% endif %}
+        </a>
+    </div>
+</div>
+
+{% elif pieces %}
+
+<!-- Lecture seule une fois le paiement soumis -->
+<div class="card">
+    <div class="card-header">
+        <h6 class="mb-0 fw-bold"><i class="bi bi-paperclip me-2"></i>Pièces justificatives</h6>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-sm table-hover mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Type</th>
+                        <th>Fichier</th>
+                        <th>Ajouté le</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for piece in pieces %}
+                    <tr>
+                        <td>{{ piece.get_type_piece_display }}</td>
+                        <td><a href="{{ piece.fichier.url }}" target="_blank">{{ piece.nom_fichier }}</a></td>
+                        <td class="text-muted small">{{ piece.date_upload|date:"d/m/Y H:i" }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endif %}
+{% endblock %}

@@ -156,6 +156,8 @@ def dashboard_club(request):
     from apps.exams.models import SessionExamen, Inscription
     from django.db.models import Count, Q
 
+    from apps.clubs.models import DemandeAffiliation
+
     club = getattr(request.user, 'club', None)
     if not club:
         messages.warning(request, "Votre compte n'est rattaché à aucun club.")
@@ -200,6 +202,15 @@ def dashboard_club(request):
                 'couleur': _COULEURS.get(s.statut, 'ticker-gris'),
             })
 
+    annee_active = None
+    if club.ligue:
+        from apps.exams.models import AnneeSportive
+        annee_active = AnneeSportive.objects.filter(ligue=club.ligue, statut='ACTIVE').first()
+    demande_affiliation = (
+        DemandeAffiliation.objects.filter(club=club, annee_sportive=annee_active).first()
+        if annee_active else None
+    )
+
     contexte = {
         'club':                   club,
         'nb_pratiquants':         Pratiquant.objects.filter(club=club, actif=True).count(),
@@ -207,20 +218,29 @@ def dashboard_club(request):
         'derniers_pratiquants':   Pratiquant.objects.filter(club=club).select_related('grade_actuel').order_by('-date_inscription')[:5],
         'sessions_avec_inscrits': sessions_avec_inscrits,
         'ticker_sessions':        ticker_sessions,
+        'demande_affiliation':    demande_affiliation,
     }
     return render(request, 'accounts/dashboard_club.html', contexte)
 
 
 @login_required
 def dashboard_financier(request):
-    from apps.payments.models import PaiementExamen
+    from apps.payments.models import PaiementExamen, PaiementAffiliation
     ligue = request.user.ligue
     qs = PaiementExamen.objects.filter(session__annee_sportive__ligue=ligue) if ligue else PaiementExamen.objects.none()
+    qs_aff = (
+        PaiementAffiliation.objects.filter(demande__club__ligue=ligue)
+        if ligue else PaiementAffiliation.objects.none()
+    )
     contexte = {
         'nb_en_attente': qs.filter(statut='EN_ATTENTE').count(),
         'nb_valides':    qs.filter(statut='VALIDE').count(),
         'nb_rejetes':    qs.filter(statut='REJETE').count(),
         'derniers_en_attente': qs.filter(statut='EN_ATTENTE').select_related('club', 'session').order_by('-date_soumission')[:5],
+        'nb_en_attente_affiliation': qs_aff.filter(statut='EN_ATTENTE').count(),
+        'nb_valides_affiliation':    qs_aff.filter(statut='VALIDE').count(),
+        'nb_rejetes_affiliation':    qs_aff.filter(statut='REJETE').count(),
+        'derniers_en_attente_affiliation': qs_aff.filter(statut='EN_ATTENTE').select_related('demande__club', 'demande__annee_sportive').order_by('-date_soumission')[:5],
     }
     return render(request, 'accounts/dashboard_financier.html', contexte)
 

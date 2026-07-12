@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% block title %}Historique des paiements — Ligue du Kadiogo{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_financier' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Paiements</span>
+<a href="{% url 'payments:liste_paiements_examen' %}" class="nav-link">
+    <i class="bi bi-cash-coin me-2"></i>Droits d'examen
+</a>
+<a href="{% url 'payments:liste_paiements_affiliation' %}" class="nav-link">
+    <i class="bi bi-file-earmark-check me-2"></i>Frais d'affiliation
+</a>
+<a href="{% url 'payments:historique_paiements_accueil' %}" class="nav-link active">
+    <i class="bi bi-clock-history me-2"></i>Historique
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-start gap-3 mb-4">
+    <a href="{% url 'accounts:dashboard_financier' %}" class="btn-action btn-action-edit flex-shrink-0"
+       title="Tableau de bord" data-bs-toggle="tooltip">
+        <i class="bi bi-arrow-left"></i>
+    </a>
+    <div>
+        <h4 class="fw-bold mb-0">Historique des paiements</h4>
+        <small class="text-muted">Choisissez le type de paiement à consulter</small>
+    </div>
+</div>
+
+<div class="row g-4" style="max-width: 900px;">
+    <div class="col-12 col-md-6">
+        <a href="{% url 'payments:historique_paiements_examen' %}" class="text-decoration-none">
+            <div class="card stat-card p-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small">Consulter</div>
+                        <div class="fs-3 fw-bold text-dark">Droits d'examen</div>
+                        <div class="text-muted small">Soumissions, validations, rejets</div>
+                    </div>
+                    <i class="bi bi-journal-check text-primary opacity-50" style="font-size:3.5rem;"></i>
+                </div>
+            </div>
+        </a>
+    </div>
+    <div class="col-12 col-md-6">
+        <a href="{% url 'payments:historique_paiements_affiliation' %}" class="text-decoration-none">
+            <div class="card stat-card p-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small">Consulter</div>
+                        <div class="fs-3 fw-bold text-dark">Frais d'affiliation</div>
+                        <div class="text-muted small">Soumissions, validations, rejets</div>
+                    </div>
+                    <i class="bi bi-file-earmark-check text-warning opacity-50" style="font-size:3.5rem;"></i>
+                </div>
+            </div>
+        </a>
+    </div>
+</div>
+{% endblock %}

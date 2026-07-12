@@ -5,8 +5,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.db.models import Sum
 
-from .models import PaiementExamen, HistoriquePaiementExamen
-from .forms import PaiementExamenForm, RejetPaiementForm, InsuffisantPaiementForm
+from .models import PaiementExamen, HistoriquePaiementExamen, PaiementAffiliation, HistoriquePaiementAffiliation
+from .forms import PaiementExamenForm, RejetPaiementForm, InsuffisantPaiementForm, PaiementAffiliationForm
 from apps.exams.models import SessionExamen, Inscription, ParametresExamen
 
 
@@ -151,6 +151,147 @@ def soumettre_paiement_examen(request, session_pk):
         'nb_en_attente':   nb_en_attente,
         'paiement':        paiement_rejete,
         'params':          params,
+    })
+
+
+@gest_club_requis
+def soumettre_paiement_affiliation(request):
+    from apps.clubs.models import DemandeAffiliation
+    from apps.exams.models import AnneeSportive
+
+    club  = request.user.club
+    annee = AnneeSportive.objects.filter(ligue=club.ligue, statut='ACTIVE').first() if club.ligue else None
+    if not annee:
+        messages.error(request, "Aucune année sportive active pour votre ligue.")
+        return redirect('clubs:mon_affiliation')
+
+    demande = get_object_or_404(DemandeAffiliation, club=club, annee_sportive=annee)
+    if demande.statut_affiliation != 'EN_ATTENTE_PAIEMENT' or demande.nombre_soumissions == 0:
+        messages.error(request, "Vous ne pouvez pas soumettre de paiement dans l'état actuel de la demande.")
+        return redirect('clubs:mon_affiliation')
+
+    paiement_existant = getattr(demande, 'paiement', None)
+
+    if request.method == 'POST':
+        form = PaiementAffiliationForm(request.POST, request.FILES, instance=paiement_existant)
+        if form.is_valid():
+            paiement = form.save(commit=False)
+            paiement.demande       = demande
+            paiement.statut        = 'EN_ATTENTE'
+            paiement.motif_rejet   = ''
+            paiement.valide_par    = None
+            paiement.date_validation = None
+            paiement.save()
+            demande.soumettre_preuve_paiement()
+            HistoriquePaiementAffiliation.objects.create(
+                paiement=paiement,
+                action='RESOUMIS' if paiement_existant else 'SOUMIS',
+                acteur=request.user, montant=paiement.montant_paye,
+            )
+            messages.success(
+                request,
+                "Preuve de paiement soumise. Le gestionnaire financier va la vérifier."
+            )
+            return redirect('clubs:mon_affiliation')
+    else:
+        form = PaiementAffiliationForm(instance=paiement_existant)
+
+    return render(request, 'payments/soumettre_paiement_affiliation.html', {
+        'form':     form,
+        'club':     club,
+        'demande':  demande,
+        'paiement': paiement_existant,
+    })
+
+
+# ── Vues GEST_FINANCIER — Frais d'affiliation ────────────────────────────────
+
+@gest_financier_requis
+def liste_paiements_affiliation(request):
+    statut_filtre = request.GET.get('statut', '')
+    paiements = (
+        PaiementAffiliation.objects
+        .filter(demande__club__ligue=request.user.ligue)
+        .select_related('demande__club', 'demande__annee_sportive', 'valide_par')
+        .order_by('-date_soumission')
+    )
+    if statut_filtre:
+        paiements = paiements.filter(statut=statut_filtre)
+    return render(request, 'payments/liste_paiements_affiliation.html', {
+        'paiements':     paiements,
+        'statut_filtre': statut_filtre,
+        'statuts':       PaiementAffiliation.STATUT_CHOICES,
+    })
+
+
+@gest_financier_requis
+def detail_paiement_affiliation(request, pk):
+    paiement = get_object_or_404(
+        PaiementAffiliation, pk=pk,
+        demande__club__ligue=request.user.ligue
+    )
+    pieces     = paiement.demande.pieces_justificatives.all()
+    historique = paiement.historique.select_related('acteur').order_by('date_action')
+    return render(request, 'payments/detail_paiement_affiliation.html', {
+        'paiement':   paiement,
+        'demande':    paiement.demande,
+        'pieces':     pieces,
+        'historique': historique,
+    })
+
+
+@gest_financier_requis
+def valider_paiement_affiliation(request, pk):
+    paiement = get_object_or_404(
+        PaiementAffiliation, pk=pk,
+        demande__club__ligue=request.user.ligue,
+        statut='EN_ATTENTE'
+    )
+    if request.method == 'POST':
+        paiement.valider(request.user)
+        HistoriquePaiementAffiliation.objects.create(
+            paiement=paiement, action='VALIDE',
+            acteur=request.user, montant=paiement.montant_paye,
+        )
+        messages.success(
+            request,
+            f"Paiement d'affiliation de « {paiement.demande.club.nom_club} » validé. "
+            f"La demande passe en attente de validation par la ligue."
+        )
+        return redirect('payments:liste_paiements_affiliation')
+    return render(request, 'payments/valider_paiement_affiliation.html', {
+        'paiement': paiement,
+        'demande':  paiement.demande,
+    })
+
+
+@gest_financier_requis
+def rejeter_paiement_affiliation(request, pk):
+    paiement = get_object_or_404(
+        PaiementAffiliation, pk=pk,
+        demande__club__ligue=request.user.ligue,
+        statut='EN_ATTENTE'
+    )
+    if request.method == 'POST':
+        form = RejetPaiementForm(request.POST)
+        if form.is_valid():
+            motif = form.cleaned_data['motif']
+            paiement.rejeter(request.user, motif=motif)
+            HistoriquePaiementAffiliation.objects.create(
+                paiement=paiement, action='REJETE',
+                acteur=request.user, montant=paiement.montant_paye, motif=motif,
+            )
+            messages.warning(
+                request,
+                f"Paiement d'affiliation de « {paiement.demande.club.nom_club} » rejeté. "
+                f"Le club peut resoumettre une preuve."
+            )
+            return redirect('payments:liste_paiements_affiliation')
+    else:
+        form = RejetPaiementForm()
+    return render(request, 'payments/rejeter_paiement_affiliation.html', {
+        'form':     form,
+        'paiement': paiement,
     })
 
 
@@ -314,6 +455,11 @@ def rejeter_paiement_examen(request, pk):
 
 
 @gest_financier_requis
+def historique_paiements_accueil(request):
+    return render(request, 'payments/historique_paiements_accueil.html')
+
+
+@gest_financier_requis
 def historique_paiements_examen(request):
     ligue = request.user.ligue
     session_pk = request.GET.get('session', '')
@@ -349,7 +495,48 @@ def historique_paiements_examen(request):
     })
 
 
+@gest_financier_requis
+def historique_paiements_affiliation(request):
+    ligue = request.user.ligue
+    annee_pk   = request.GET.get('annee', '')
+    club_pk    = request.GET.get('club', '')
+    action_filtre = request.GET.get('action', '')
+
+    historique = (
+        HistoriquePaiementAffiliation.objects
+        .filter(paiement__demande__club__ligue=ligue)
+        .select_related('paiement__demande__club', 'paiement__demande__annee_sportive', 'acteur')
+        .order_by('-date_action')
+    )
+    if annee_pk:
+        historique = historique.filter(paiement__demande__annee_sportive_id=annee_pk)
+    if club_pk:
+        historique = historique.filter(paiement__demande__club_id=club_pk)
+    if action_filtre:
+        historique = historique.filter(action=action_filtre)
+
+    from apps.exams.models import AnneeSportive
+    from apps.clubs.models import Club
+    annees = AnneeSportive.objects.filter(ligue=ligue).order_by('-date_debut')
+    clubs  = Club.objects.filter(ligue=ligue).order_by('nom_club')
+
+    return render(request, 'payments/historique_paiements_affiliation.html', {
+        'historique':     historique,
+        'annees':         annees,
+        'clubs':          clubs,
+        'annee_pk':       annee_pk,
+        'club_pk':        club_pk,
+        'action_filtre':  action_filtre,
+        'actions':        HistoriquePaiementAffiliation.ACTION_CHOICES,
+    })
+
+
 # ── Vues GEST_LIGUE — Consultation paiements validés ─────────────────────────
+
+@gest_ligue_requis
+def paiements_valides_accueil(request):
+    return render(request, 'payments/paiements_valides_accueil.html')
+
 
 @gest_ligue_requis
 def paiements_valides_gl(request):
@@ -377,4 +564,31 @@ def paiements_valides_gl(request):
         'sessions':    sessions,
         'session_pk':  session_pk,
         'total':       total,
+    })
+
+
+@gest_ligue_requis
+def paiements_valides_affiliation_gl(request):
+    ligue = request.user.ligue
+    annee_pk = request.GET.get('annee', '')
+
+    from apps.exams.models import AnneeSportive
+    annees = AnneeSportive.objects.filter(ligue=ligue).order_by('-date_debut')
+
+    paiements = (
+        PaiementAffiliation.objects
+        .filter(demande__club__ligue=ligue, statut='VALIDE')
+        .select_related('demande__club', 'demande__annee_sportive', 'valide_par')
+        .order_by('-date_validation')
+    )
+    if annee_pk:
+        paiements = paiements.filter(demande__annee_sportive_id=annee_pk)
+
+    total = paiements.aggregate(total=Sum('montant_paye'))['total'] or 0
+
+    return render(request, 'payments/paiements_valides_affiliation_gl.html', {
+        'paiements': paiements,
+        'annees':    annees,
+        'annee_pk':  annee_pk,
+        'total':     total,
     })

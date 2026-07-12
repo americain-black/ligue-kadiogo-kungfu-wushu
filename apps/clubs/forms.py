@@ -1,5 +1,8 @@
 from django import forms
-from .models import Club, DemandeAffiliation, VoletOrganigrammeClub, MembreOrganigrammeClub
+from .models import (
+    Club, DemandeAffiliation, PieceJustificativeAffiliation,
+    ParametresAffiliation, VoletOrganigrammeClub, MembreOrganigrammeClub,
+)
 from apps.accounts.models import Utilisateur, Role
 
 
@@ -60,6 +63,43 @@ class ClubForm(forms.ModelForm):
             self.fields['utilisateur'].queryset = gest_club_qs
         else:
             self.fields['utilisateur'].queryset = Utilisateur.objects.none()
+
+
+class ParametresAffiliationForm(forms.ModelForm):
+    class Meta:
+        model  = ParametresAffiliation
+        fields = ['montant_frais_affiliation']
+        widgets = {
+            'montant_frais_affiliation': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '0', 'step': '1',
+                'placeholder': 'Ex : 15000',
+            }),
+        }
+        labels = {'montant_frais_affiliation': "Montant des frais d'affiliation (FCFA)"}
+
+    def clean_montant_frais_affiliation(self):
+        val = self.cleaned_data['montant_frais_affiliation']
+        if val < 0:
+            raise forms.ValidationError("Le montant ne peut pas être négatif.")
+        return val
+
+
+class PieceJustificativeAffiliationForm(forms.ModelForm):
+    class Meta:
+        model  = PieceJustificativeAffiliation
+        fields = ['type_piece', 'fichier']
+        widgets = {
+            'type_piece': forms.Select(attrs={'class': 'form-select'}),
+            'fichier':    forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': '.pdf,.jpg,.jpeg,.png',
+            }),
+        }
+        labels = {
+            'type_piece': 'Type de document',
+            'fichier':    'Fichier (PDF, JPG, PNG)',
+        }
 
 
 class RejetDemandeForm(forms.Form):

@@ -225,6 +225,31 @@ class PieceJustificativeAffiliation(models.Model):
         super().save(*args, **kwargs)
 
 
+class ParametresAffiliation(models.Model):
+    """
+    Montant des frais d'affiliation pour une ligue.
+    Défini par le Gestionnaire de Ligue, réutilisé pour
+    chaque nouvelle demande d'affiliation de la saison.
+    """
+
+    ligue = models.OneToOneField(
+        'ligues.Ligue',
+        on_delete=models.CASCADE,
+        related_name='parametres_affiliation'
+    )
+    montant_frais_affiliation = models.DecimalField(
+        max_digits=10, decimal_places=2, default=0,
+        help_text="Montant des frais d'affiliation dus par un club (FCFA)"
+    )
+
+    class Meta:
+        verbose_name        = "Paramètres d'affiliation"
+        verbose_name_plural = "Paramètres d'affiliation"
+
+    def __str__(self):
+        return f"Paramètres affiliation — {self.ligue.sigle} ({self.montant_frais_affiliation} FCFA)"
+
+
 class VoletOrganigrammeClub(models.Model):
     club        = models.ForeignKey(Club, on_delete=models.CASCADE, related_name='volets')
     nom_volet   = models.CharField(max_length=200)

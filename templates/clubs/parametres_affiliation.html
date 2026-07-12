@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% block title %}Paramètres affiliation — Ligue du Kadiogo{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Clubs</span>
+<a href="{% url 'clubs:liste' %}" class="nav-link">
+    <i class="bi bi-building me-2"></i>Clubs
+</a>
+<a href="{% url 'clubs:demandes_affiliation' %}" class="nav-link">
+    <i class="bi bi-file-earmark-check me-2"></i>Affiliations
+</a>
+<a href="{% url 'clubs:parametres_affiliation' %}" class="nav-link active">
+    <i class="bi bi-cash-coin me-2"></i>Frais d'affiliation
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-0">
+            <i class="bi bi-cash-coin me-2 text-primary"></i>Frais d'affiliation
+        </h4>
+        <small class="text-muted">Définissez le montant que chaque club doit payer pour son affiliation annuelle.</small>
+    </div>
+</div>
+
+{% if messages %}
+{% for msg in messages %}
+<div class="alert alert-{{ msg.tags }} alert-dismissible fade show">
+    {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+</div>
+{% endfor %}
+{% endif %}
+
+<div class="row g-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h6 class="mb-0 fw-bold"><i class="bi bi-sliders me-2"></i>Montant des frais</h6>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                    {% endif %}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">
+                            {{ form.montant_frais_affiliation.label }}
+                        </label>
+                        <div class="input-group">
+                            {{ form.montant_frais_affiliation }}
+                            <span class="input-group-text fw-bold">FCFA</span>
+                        </div>
+                        {% if form.montant_frais_affiliation.errors %}
+                        <div class="text-danger small">{{ form.montant_frais_affiliation.errors.as_text }}</div>
+                        {% endif %}
+                        <div class="form-text">
+                            Ce montant sera appliqué à chaque nouvelle demande d'affiliation soumise par un club.
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-check-circle me-1"></i>Enregistrer
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        {% if params %}
+        <div class="card">
+            <div class="card-header">
+                <h6 class="mb-0 fw-bold"><i class="bi bi-info-circle me-2"></i>Montant actuel</h6>
+            </div>
+            <div class="card-body text-center">
+                <div class="display-6 fw-bold text-primary">{{ params.montant_frais_affiliation|floatformat:"0" }} FCFA</div>
+                <p class="small text-muted mt-3 mb-0">
+                    Ce montant s'applique à toutes les demandes d'affiliation en cours et futures.
+                    Modifier ce montant n'affecte pas les demandes déjà validées.
+                </p>
+            </div>
+        </div>
+        {% else %}
+        <div class="card p-4 bg-light text-muted text-center">
+            <i class="bi bi-exclamation-circle fs-2 mb-2"></i>
+            <p class="mb-0">Aucun montant défini. Configurez-le ci-contre.</p>
+            <small>Sans ce paramètre, les clubs ne pourront pas soumettre de demande d'affiliation.</small>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

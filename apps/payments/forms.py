@@ -1,5 +1,5 @@
 from django import forms
-from .models import PaiementExamen
+from .models import PaiementExamen, PaiementAffiliation
 
 
 class PaiementExamenForm(forms.ModelForm):
@@ -62,6 +62,32 @@ class PaiementExamenForm(forms.ModelForm):
             if not cleaned.get('nom_payeur', '').strip():
                 self.add_error('nom_payeur', "Indiquez le nom de la personne qui a payé.")
         return cleaned
+
+
+class PaiementAffiliationForm(forms.ModelForm):
+    class Meta:
+        model = PaiementAffiliation
+        fields = ['montant_paye', 'reference', 'fichier_preuve']
+        widgets = {
+            'montant_paye':   forms.NumberInput(attrs={
+                'class': 'form-control',
+                'step': '1',
+                'min': '0',
+            }),
+            'reference':      forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Ex : OM-12345678, MM-87654321…',
+            }),
+            'fichier_preuve': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': '.pdf,.jpg,.jpeg,.png',
+            }),
+        }
+        labels = {
+            'montant_paye':   "Montant payé (FCFA)",
+            'reference':      "Référence / N° de transaction",
+            'fichier_preuve': "Fichier preuve (PDF, JPG, PNG)",
+        }
 
 
 class RejetPaiementForm(forms.Form):

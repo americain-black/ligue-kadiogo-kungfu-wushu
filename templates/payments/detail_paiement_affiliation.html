@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% block title %}Paiement affiliation — {{ demande.club.nom_club }}{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_financier' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Paiements</span>
+<a href="{% url 'payments:liste_paiements_examen' %}" class="nav-link">
+    <i class="bi bi-cash-coin me-2"></i>Droits d'examen
+</a>
+<a href="{% url 'payments:liste_paiements_affiliation' %}" class="nav-link active">
+    <i class="bi bi-file-earmark-check me-2"></i>Frais d'affiliation
+</a>
+<a href="{% url 'payments:historique_paiements_accueil' %}" class="nav-link">
+    <i class="bi bi-clock-history me-2"></i>Historique
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-start gap-3 mb-4">
+    <a href="{% url 'payments:liste_paiements_affiliation' %}" class="btn-action btn-action-edit flex-shrink-0" title="Retour" data-bs-toggle="tooltip">
+        <i class="bi bi-arrow-left"></i>
+    </a>
+    <div>
+        <small class="text-muted">
+            <a href="{% url 'payments:liste_paiements_affiliation' %}">Paiements affiliation</a> › {{ demande.club.nom_club }}
+        </small>
+        <h4 class="fw-bold mt-1">{{ demande.club.nom_club }} — {{ demande.annee_sportive.libelle }}</h4>
+    </div>
+</div>
+
+<div class="row g-3" style="max-width: 900px;">
+    <div class="col-12 col-md-6">
+        <div class="card p-3 mb-3">
+            <h6 class="fw-bold mb-3"><i class="bi bi-receipt me-2 text-muted"></i>Paiement</h6>
+            <table class="table table-sm table-borderless mb-0">
+                <tr>
+                    <td class="text-muted small">Statut</td>
+                    <td>
+                        {% if paiement.statut == 'EN_ATTENTE' %}
+                        <span class="badge bg-warning text-dark">En attente</span>
+                        {% elif paiement.statut == 'VALIDE' %}
+                        <span class="badge bg-success">Validé</span>
+                        {% elif paiement.statut == 'REJETE' %}
+                        <span class="badge bg-danger">Rejeté</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-muted small">Montant attendu</td>
+                    <td class="fw-bold">{{ demande.montant_frais|floatformat:"0" }} FCFA</td>
+                </tr>
+                <tr>
+                    <td class="text-muted small">Montant déclaré</td>
+                    <td class="fw-bold {% if paiement.montant_paye < demande.montant_frais %}text-danger{% else %}text-success{% endif %}">
+                        {{ paiement.montant_paye|floatformat:"0" }} FCFA
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-muted small">Référence</td>
+                    <td>{{ paiement.reference|default:"—" }}</td>
+                </tr>
+                <tr>
+                    <td class="text-muted small">Soumis le</td>
+                    <td>{{ paiement.date_soumission|date:"d/m/Y H:i" }}</td>
+                </tr>
+                <tr>
+                    <td class="text-muted small">Preuve</td>
+                    <td><a href="{{ paiement.fichier_preuve.url }}" target="_blank">Voir le fichier <i class="bi bi-box-arrow-up-right"></i></a></td>
+                </tr>
+                {% if paiement.motif_rejet %}
+                <tr>
+                    <td class="text-muted small">Motif rejet</td>
+                    <td class="text-danger">{{ paiement.motif_rejet }}</td>
+                </tr>
+                {% endif %}
+            </table>
+        </div>
+
+        {% if paiement.statut == 'EN_ATTENTE' %}
+        <div class="d-flex gap-2">
+            <a href="{% url 'payments:valider_paiement_affiliation' paiement.pk %}" class="btn btn-success">
+                <i class="bi bi-check-lg me-1"></i>Valider
+            </a>
+            <a href="{% url 'payments:rejeter_paiement_affiliation' paiement.pk %}" class="btn btn-outline-danger">
+                <i class="bi bi-x-lg me-1"></i>Rejeter
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+    <div class="col-12 col-md-6">
+        <div class="card p-3">
+            <h6 class="fw-bold mb-3"><i class="bi bi-paperclip me-2 text-muted"></i>Pièces justificatives</h6>
+            {% if pieces %}
+            <ul class="list-unstyled mb-0">
+                {% for piece in pieces %}
+                <li class="py-1 border-bottom small">
+                    <a href="{{ piece.fichier.url }}" target="_blank">
+                        {{ piece.get_type_piece_display }} — {{ piece.nom_fichier }}
+                    </a>
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <p class="text-muted small mb-0">Aucune pièce jointe.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

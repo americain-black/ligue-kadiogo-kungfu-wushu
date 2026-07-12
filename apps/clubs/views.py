@@ -1,8 +1,14 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Club, DemandeAffiliation, VoletOrganigrammeClub, MembreOrganigrammeClub
-from .forms import ClubForm, RejetDemandeForm, VoletOrganigrammeClubForm, MembreOrganigrammeClubForm
+from .models import (
+    Club, DemandeAffiliation, PieceJustificativeAffiliation, ParametresAffiliation,
+    VoletOrganigrammeClub, MembreOrganigrammeClub,
+)
+from .forms import (
+    ClubForm, RejetDemandeForm, ParametresAffiliationForm, PieceJustificativeAffiliationForm,
+    VoletOrganigrammeClubForm, MembreOrganigrammeClubForm,
+)
 
 
 def gest_ligue_requis(view_func):
@@ -156,6 +162,31 @@ def rejeter_demande(request, pk):
     })
 
 
+@gest_ligue_requis
+def gerer_parametres_affiliation(request):
+    ligue  = request.user.ligue
+    params = ParametresAffiliation.objects.filter(ligue=ligue).first()
+
+    if request.method == 'POST':
+        form = ParametresAffiliationForm(request.POST, instance=params)
+        if form.is_valid():
+            p = form.save(commit=False)
+            p.ligue = ligue
+            p.save()
+            messages.success(
+                request,
+                f"Montant des frais d'affiliation enregistré : {p.montant_frais_affiliation:,.0f} FCFA."
+            )
+            return redirect('clubs:parametres_affiliation')
+    else:
+        form = ParametresAffiliationForm(instance=params)
+
+    return render(request, 'clubs/parametres_affiliation.html', {
+        'params': params,
+        'form':   form,
+    })
+
+
 # ─── Organigramme Club ────────────────────────────────────────────────────────
 
 def gest_club_requis(view_func):
@@ -167,6 +198,110 @@ def gest_club_requis(view_func):
             return redirect('accounts:tableau_de_bord')
         return view_func(request, *args, **kwargs)
     return wrapper
+
+
+# ─── Affiliation — côté Gestionnaire de Club ─────────────────────────────────
+
+def _annee_active_club(club):
+    from apps.exams.models import AnneeSportive
+    if not club.ligue:
+        return None
+    return AnneeSportive.objects.filter(ligue=club.ligue, statut='ACTIVE').first()
+
+
+@gest_club_requis
+def mon_affiliation(request):
+    club  = request.user.club
+    annee = _annee_active_club(club)
+
+    demande = None
+    pieces  = []
+    paiement = None
+    if annee:
+        demande = DemandeAffiliation.objects.filter(club=club, annee_sportive=annee).first()
+        if demande:
+            pieces   = demande.pieces_justificatives.order_by('-date_upload')
+            paiement = getattr(demande, 'paiement', None)
+
+    params = ParametresAffiliation.objects.filter(ligue=club.ligue).first() if club.ligue else None
+
+    return render(request, 'clubs/mon_affiliation.html', {
+        'club':          club,
+        'annee':         annee,
+        'demande':       demande,
+        'pieces':        pieces,
+        'paiement':      paiement,
+        'params':        params,
+        'piece_form':    PieceJustificativeAffiliationForm(),
+    })
+
+
+@gest_club_requis
+def demarrer_demande_affiliation(request):
+    club  = request.user.club
+    annee = _annee_active_club(club)
+
+    if not annee:
+        messages.error(request, "Aucune année sportive active pour votre ligue.")
+        return redirect('clubs:mon_affiliation')
+
+    params = ParametresAffiliation.objects.filter(ligue=club.ligue).first()
+    if not params:
+        messages.error(request, "Le montant des frais d'affiliation n'a pas encore été défini par la ligue. Contactez-la.")
+        return redirect('clubs:mon_affiliation')
+
+    if request.method == 'POST':
+        demande, _created = DemandeAffiliation.objects.get_or_create(
+            club=club, annee_sportive=annee,
+            defaults={'montant_frais': params.montant_frais_affiliation},
+        )
+        demande.montant_frais = params.montant_frais_affiliation
+        demande.save()
+        try:
+            demande.soumettre()
+            messages.success(
+                request,
+                "Demande d'affiliation démarrée. Joignez vos pièces justificatives puis soumettez votre preuve de paiement."
+            )
+        except Exception as exc:
+            messages.error(request, str(exc))
+    return redirect('clubs:mon_affiliation')
+
+
+@gest_club_requis
+def ajouter_piece_affiliation(request):
+    club  = request.user.club
+    annee = _annee_active_club(club)
+    demande = get_object_or_404(DemandeAffiliation, club=club, annee_sportive=annee) if annee else None
+
+    if not demande or demande.statut_affiliation != 'EN_ATTENTE_PAIEMENT':
+        messages.error(request, "Vous ne pouvez pas ajouter de pièce dans l'état actuel de la demande.")
+        return redirect('clubs:mon_affiliation')
+
+    if request.method == 'POST':
+        form = PieceJustificativeAffiliationForm(request.POST, request.FILES)
+        if form.is_valid():
+            piece = form.save(commit=False)
+            piece.demande = demande
+            piece.save()
+            messages.success(request, f"« {piece.get_type_piece_display()} » ajouté.")
+        else:
+            messages.error(request, "Impossible d'ajouter ce fichier : vérifiez le formulaire.")
+    return redirect('clubs:mon_affiliation')
+
+
+@gest_club_requis
+def supprimer_piece_affiliation(request, pk):
+    piece = get_object_or_404(
+        PieceJustificativeAffiliation, pk=pk, demande__club=request.user.club
+    )
+    if piece.demande.statut_affiliation != 'EN_ATTENTE_PAIEMENT':
+        messages.error(request, "Vous ne pouvez pas supprimer cette pièce dans l'état actuel de la demande.")
+        return redirect('clubs:mon_affiliation')
+    if request.method == 'POST':
+        piece.delete()
+        messages.success(request, "Pièce supprimée.")
+    return redirect('clubs:mon_affiliation')
 
 
 def organigramme_club_acces(view_func):

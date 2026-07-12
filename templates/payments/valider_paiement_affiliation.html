@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% block title %}Valider paiement — {{ demande.club.nom_club }}{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_financier' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Paiements</span>
+<a href="{% url 'payments:liste_paiements_affiliation' %}" class="nav-link active">
+    <i class="bi bi-file-earmark-check me-2"></i>Frais d'affiliation
+</a>
+<a href="{% url 'payments:historique_paiements_accueil' %}" class="nav-link">
+    <i class="bi bi-clock-history me-2"></i>Historique
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <small class="text-muted">
+        <a href="{% url 'payments:liste_paiements_affiliation' %}">Paiements affiliation</a> › Valider
+    </small>
+    <h4 class="fw-bold mt-1">Valider la preuve de paiement</h4>
+</div>
+
+<div class="row g-3" style="max-width: 700px;">
+    <div class="col-12">
+        <div class="card p-3 mb-3">
+            <h6 class="fw-bold mb-3"><i class="bi bi-receipt me-2 text-muted"></i>Récapitulatif</h6>
+            <table class="table table-sm table-borderless mb-0">
+                <tr>
+                    <td class="text-muted small">Club</td>
+                    <td class="fw-semibold small">{{ demande.club.nom_club }}</td>
+                </tr>
+                <tr>
+                    <td class="text-muted small">Année sportive</td>
+                    <td class="small">{{ demande.annee_sportive.libelle }}</td>
+                </tr>
+                <tr>
+                    <td class="text-muted small">Référence</td>
+                    <td class="small">{{ paiement.reference|default:"—" }}</td>
+                </tr>
+                <tr>
+                    <td class="text-muted small">Preuve</td>
+                    <td class="small"><a href="{{ paiement.fichier_preuve.url }}" target="_blank">Voir le fichier</a></td>
+                </tr>
+                <tr class="border-top">
+                    <td class="text-muted small pt-2">Montant attendu</td>
+                    <td class="fw-bold pt-2">{{ demande.montant_frais|floatformat:"0" }} FCFA</td>
+                </tr>
+                <tr>
+                    <td class="text-muted small">Montant déclaré</td>
+                    <td class="fw-bold {% if paiement.montant_paye < demande.montant_frais %}text-danger{% else %}text-success{% endif %}">
+                        {{ paiement.montant_paye|floatformat:"0" }} FCFA
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        {% if paiement.montant_paye < demande.montant_frais %}
+        <div class="alert alert-warning mb-3">
+            <i class="bi bi-exclamation-triangle-fill me-2"></i>
+            Le montant déclaré est inférieur au montant attendu.
+        </div>
+        {% else %}
+        <div class="alert alert-success mb-3">
+            <i class="bi bi-check-circle-fill me-2"></i>
+            Le montant déclaré correspond au montant attendu.
+        </div>
+        {% endif %}
+
+        <div class="card p-4">
+            <p class="mb-3">
+                En validant, la demande d'affiliation de <strong>« {{ demande.club.nom_club }} »</strong>
+                passera en <strong>« attente de validation par la ligue »</strong>.
+            </p>
+            <form method="post">
+                {% csrf_token %}
+                <div class="d-flex gap-2">
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-check-lg me-1"></i>Valider le paiement
+                    </button>
+                    <a href="{% url 'payments:detail_paiement_affiliation' paiement.pk %}"
+                       class="btn btn-outline-secondary">Annuler</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

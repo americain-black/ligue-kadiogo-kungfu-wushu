@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Historique des paiements d'examen{% endblock %}
+{% block title %}Historique des paiements d'affiliation{% endblock %}
 
 {% block sidebar %}
 <span class="sidebar-title">Navigation</span>
@@ -22,9 +22,9 @@
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <div>
         <small class="text-muted">
-            <a href="{% url 'payments:historique_paiements_accueil' %}">Historique</a> › Examens
+            <a href="{% url 'payments:historique_paiements_accueil' %}">Historique</a> › Affiliations
         </small>
-        <h4 class="fw-bold mt-1 mb-0">Historique des paiements d'examen</h4>
+        <h4 class="fw-bold mt-1 mb-0">Historique des paiements d'affiliation</h4>
         <small class="text-muted">Toutes les actions enregistrées (soumissions, validations, rejets…)</small>
     </div>
     <a href="{% url 'payments:historique_paiements_accueil' %}" class="btn btn-outline-secondary btn-sm">
@@ -36,12 +36,12 @@
 <form method="get" class="card p-3 mb-4">
     <div class="row g-2 align-items-end">
         <div class="col-md-3">
-            <label class="form-label form-label-sm fw-semibold">Session</label>
-            <select name="session" class="form-select form-select-sm">
-                <option value="">— Toutes les sessions —</option>
-                {% for s in sessions %}
-                <option value="{{ s.pk }}" {% if session_pk == s.pk|stringformat:"s" %}selected{% endif %}>
-                    {{ s.titre }}
+            <label class="form-label form-label-sm fw-semibold">Année sportive</label>
+            <select name="annee" class="form-select form-select-sm">
+                <option value="">— Toutes les années —</option>
+                {% for a in annees %}
+                <option value="{{ a.pk }}" {% if annee_pk == a.pk|stringformat:"s" %}selected{% endif %}>
+                    {{ a.libelle }}
                 </option>
                 {% endfor %}
             </select>
@@ -82,7 +82,7 @@
                 <tr>
                     <th class="ps-3">Date / Heure</th>
                     <th>Club</th>
-                    <th>Session</th>
+                    <th>Année sportive</th>
                     <th>Action</th>
                     <th>Montant payé</th>
                     <th>Effectué par</th>
@@ -93,8 +93,8 @@
             {% for h in historique %}
             <tr>
                 <td class="ps-3 text-muted small">{{ h.date_action|date:"d/m/Y H:i" }}</td>
-                <td><strong>{{ h.paiement.club.nom_club }}</strong></td>
-                <td class="small text-muted">{{ h.paiement.session.titre }}</td>
+                <td><strong>{{ h.paiement.demande.club.nom_club }}</strong></td>
+                <td class="small text-muted">{{ h.paiement.demande.annee_sportive.libelle }}</td>
                 <td>
                     {% if h.action == 'SOUMIS' %}
                         <span class="badge bg-secondary">Preuve soumise</span>
@@ -104,8 +104,6 @@
                         <span class="badge bg-success">Validé</span>
                     {% elif h.action == 'REJETE' %}
                         <span class="badge bg-danger">Rejeté</span>
-                    {% elif h.action == 'INSUFFISANT' %}
-                        <span class="badge bg-warning text-dark">Insuffisant</span>
                     {% endif %}
                 </td>
                 <td class="small">

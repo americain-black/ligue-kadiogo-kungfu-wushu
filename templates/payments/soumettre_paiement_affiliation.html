@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% block title %}Soumettre preuve de paiement — Affiliation{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_club' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Mon club</span>
+<a href="{% url 'clubs:mon_affiliation' %}" class="nav-link active">
+    <i class="bi bi-file-earmark-check me-2"></i>Mon affiliation
+</a>
+<a href="{% url 'practitioners:liste' %}" class="nav-link">
+    <i class="bi bi-people me-2"></i>Pratiquants
+</a>
+<a href="{% url 'exams:club_sessions' %}" class="nav-link">
+    <i class="bi bi-journal-check me-2"></i>Sessions d'examen
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-start gap-3 mb-4">
+    <button onclick="history.back()" class="btn-action btn-action-edit flex-shrink-0" title="Retour" data-bs-toggle="tooltip">
+        <i class="bi bi-arrow-left"></i>
+    </button>
+    <div>
+        <small class="text-muted">
+            <a href="{% url 'clubs:mon_affiliation' %}">Mon affiliation</a> ›
+            Soumettre preuve de paiement
+        </small>
+        <h4 class="fw-bold mt-1">Soumettre la preuve de paiement d'affiliation</h4>
+    </div>
+</div>
+
+<div class="row g-3" style="max-width: 860px;">
+    <!-- Récapitulatif -->
+    <div class="col-12 col-md-5">
+        <div class="card p-3 h-100">
+            <h6 class="fw-bold mb-3"><i class="bi bi-receipt me-2 text-muted"></i>Récapitulatif</h6>
+            <table class="table table-sm table-borderless mb-0">
+                <tr>
+                    <td class="text-muted small">Club</td>
+                    <td class="small fw-semibold">{{ club.nom_club }}</td>
+                </tr>
+                <tr>
+                    <td class="text-muted small">Année sportive</td>
+                    <td class="small">{{ demande.annee_sportive.libelle }}</td>
+                </tr>
+                <tr class="border-top">
+                    <td class="text-muted small fw-semibold pt-2">Montant à payer</td>
+                    <td class="fw-bold text-danger fs-5 pt-2">{{ demande.montant_frais|floatformat:"0" }} FCFA</td>
+                </tr>
+            </table>
+
+            {% if demande.motif_rejet %}
+            <hr class="my-3">
+            <div class="alert alert-warning py-2 small mb-0">
+                <i class="bi bi-exclamation-triangle me-1"></i>
+                <strong>Motif du rejet précédent :</strong> {{ demande.motif_rejet }}
+            </div>
+            {% endif %}
+
+            <hr class="my-3">
+            <p class="small text-muted mb-0">
+                <i class="bi bi-info-circle me-1"></i>
+                Réglez ce montant auprès de la ligue, puis joignez votre reçu ci-contre.
+            </p>
+        </div>
+    </div>
+
+    <!-- Formulaire -->
+    <div class="col-12 col-md-7">
+        <div class="card p-4">
+            <h6 class="fw-bold mb-3">
+                <i class="bi bi-upload me-2 text-muted"></i>
+                {% if paiement %}Resoumettre la preuve{% else %}Joindre la preuve de paiement{% endif %}
+            </h6>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger py-2 small">
+                    {% for err in form.non_field_errors %}{{ err }}{% endfor %}
+                </div>
+                {% endif %}
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold small">{{ form.montant_paye.label }}</label>
+                    {{ form.montant_paye }}
+                    <div class="form-text">Montant attendu : <strong>{{ demande.montant_frais|floatformat:"0" }} FCFA</strong></div>
+                    {% for error in form.montant_paye.errors %}
+                    <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold small">{{ form.reference.label }}</label>
+                    {{ form.reference }}
+                    <div class="form-text">Numéro de transaction ou de reçu</div>
+                    {% for error in form.reference.errors %}
+                    <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold small">{{ form.fichier_preuve.label }}</label>
+                    {{ form.fichier_preuve }}
+                    <div class="form-text">Photo du reçu ou bordereau de dépôt (PDF, JPG, PNG)</div>
+                    {% for error in form.fichier_preuve.errors %}
+                    <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <div class="d-flex gap-2 mt-4 pt-2 border-top">
+                    <button type="submit" class="btn btn-ligue">
+                        <i class="bi bi-send me-1"></i>Soumettre
+                    </button>
+                    <a href="{% url 'clubs:mon_affiliation' %}" class="btn btn-outline-secondary">
+                        Annuler
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

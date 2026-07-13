@@ -239,7 +239,8 @@
                 <td>{{ demande.annee_sportive.libelle }}</td>
                 <td class="text-muted small">{{ demande.date_demande|date:"d/m/Y" }}</td>
                 <td class="text-end pe-3">
-                    <a href="{% url 'clubs:demandes_affiliation' %}" class="btn btn-sm btn-outline-secondary py-0">
+                    <a href="{% url 'clubs:demandes_affiliation' %}" class="btn-action btn-action-edit" title="Voir la demande"
+                       data-bs-toggle="tooltip" data-bs-placement="top">
                         <i class="bi bi-eye"></i>
                     </a>
                 </td>

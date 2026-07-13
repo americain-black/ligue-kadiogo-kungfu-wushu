@@ -45,6 +45,20 @@
     </div>
     {% endif %}
 
+    {% if affectations_jury %}
+    <div class="alert alert-danger mb-3">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <strong>Suppression impossible pour le moment.</strong>
+        Cet utilisateur est affecté comme jury sur :
+        <ul class="mb-0 mt-1">
+            {% for a in affectations_jury %}
+            <li>{{ a.session.titre }}</li>
+            {% endfor %}
+        </ul>
+        Retirez d'abord ces affectations depuis la gestion du jury de chaque session avant de supprimer le compte.
+    </div>
+    {% endif %}
+
     <div class="alert alert-danger mb-4">
         <i class="bi bi-exclamation-triangle-fill me-2"></i>
         <strong>Cette action est irréversible.</strong>
@@ -54,7 +68,7 @@
     <form method="post">
         {% csrf_token %}
         <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-danger">
+            <button type="submit" class="btn btn-danger" {% if affectations_jury %}disabled{% endif %}>
                 <i class="bi bi-trash me-1"></i>Oui, supprimer ce compte
             </button>
             <a href="{% url 'accounts:liste_utilisateurs' %}" class="btn btn-outline-secondary">

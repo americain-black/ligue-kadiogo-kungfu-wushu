@@ -1,6 +1,23 @@
 {% extends 'base.html' %}
 {% block title %}Pratiquants — {{ club.nom_club }}{% endblock %}
 
+{% block extra_css %}
+<style>
+@media print {
+    .no-print { display: none !important; }
+    body { background: white !important; font-size: 12pt; }
+    .main-content { padding: 0 !important; }
+    .card { box-shadow: none !important; border: 1px solid #dee2e6 !important; border-radius: 0 !important; }
+    .entete-impression { display: block !important; }
+    .table th { background-color: #343a40 !important; color: white !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .badge { border: 1px solid #999 !important; background: none !important; color: #000 !important; }
+}
+@media screen {
+    .entete-impression { display: none; }
+}
+</style>
+{% endblock %}
+
 {% block sidebar %}
 <span class="sidebar-title">Navigation</span>
 <a href="{% url 'accounts:dashboard_club' %}" class="nav-link">
@@ -16,6 +33,42 @@
 {% endblock %}
 
 {% block content %}
+
+<!-- En-tête visible uniquement à l'impression -->
+<div class="entete-impression mb-4 pb-3 border-bottom">
+    <div class="text-center mb-3">
+        <h4 class="fw-bold text-uppercase mb-1">{{ club.ligue.nom_ligue }}</h4>
+        <div class="text-muted" style="font-size:11pt;">{{ club.ligue.sigle }}</div>
+    </div>
+    <table style="width:100%; font-size:11pt; border-collapse:collapse;">
+        <tr>
+            <td style="padding:3px 0;"><strong>Club :</strong> {{ club.nom_club }}</td>
+            <td style="padding:3px 0; text-align:right;"><strong>Date d'impression :</strong> {% now "d/m/Y" %}</td>
+        </tr>
+        <tr>
+            <td style="padding:3px 0;">
+                <strong>Statut :</strong> {% if filtre == 'inactif' %}Inactifs{% else %}Actifs{% endif %}
+            </td>
+            <td style="padding:3px 0; text-align:right;">
+                <strong>Sexe :</strong>
+                {% if filtre_sexe == 'M' %}Masculin{% elif filtre_sexe == 'F' %}Féminin{% else %}Tous{% endif %}
+            </td>
+        </tr>
+        <tr>
+            <td style="padding:3px 0;">
+                <strong>Grade :</strong> {{ filtre_grade_nom|default:"Tous" }}
+            </td>
+            <td style="padding:3px 0; text-align:right;">
+                {% if filtre_recherche %}<strong>Recherche :</strong> « {{ filtre_recherche }} »{% endif %}
+            </td>
+        </tr>
+        <tr>
+            <td colspan="2" style="padding:3px 0;"><strong>Total :</strong> {{ pratiquants|length }} pratiquant(s)</td>
+        </tr>
+    </table>
+</div>
+
+<div class="no-print">
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center gap-3">
     <a href="{% url 'accounts:dashboard_club' %}" class="btn-action btn-action-edit flex-shrink-0" title="Tableau de bord" data-bs-toggle="tooltip">
@@ -26,9 +79,14 @@
         <small class="text-muted">{{ club.nom_club }}</small>
         </div>
     </div>
-    <a href="{% url 'practitioners:ajouter' %}" class="btn btn-success">
-    <i class="bi bi-person-plus me-1"></i>Inscrire un pratiquant
-    </a>
+    <div class="d-flex gap-2">
+        <button onclick="window.print()" class="btn btn-outline-secondary" title="Imprimer la liste affichée">
+            <i class="bi bi-printer me-1"></i>Imprimer
+        </button>
+        <a href="{% url 'practitioners:ajouter' %}" class="btn btn-success">
+        <i class="bi bi-person-plus me-1"></i>Inscrire un pratiquant
+        </a>
+    </div>
 </div>
 
 {% if messages %}
@@ -41,62 +99,49 @@
 
 <!-- Filtres -->
 <div class="card p-3 mb-3">
-    <div class="row g-2 align-items-center">
-
-        <!-- Statut -->
-        <div class="col-auto">
-            <span class="text-muted small fw-semibold me-1">Statut :</span>
-            <a href="?statut=actif&grade={{ filtre_grade }}&sexe={{ filtre_sexe }}"
-               class="btn btn-sm {% if filtre != 'inactif' %}btn-success{% else %}btn-outline-success{% endif %}">
-                Actifs
-            </a>
-            <a href="?statut=inactif&grade={{ filtre_grade }}&sexe={{ filtre_sexe }}"
-               class="btn btn-sm {% if filtre == 'inactif' %}btn-secondary{% else %}btn-outline-secondary{% endif %}">
-                Inactifs
-            </a>
+    <form method="get" class="row g-2 align-items-center" id="form-filtres">
+        <div class="col-12 col-md-4">
+            <div class="input-group input-group-sm">
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                <input type="text" name="q" id="id_recherche_live" value="{{ filtre_recherche }}" class="form-control"
+                       placeholder="Rechercher un nom ou prénom…" autocomplete="off">
+            </div>
         </div>
-
-        <div class="col-auto"><div class="vr" style="height:28px;"></div></div>
-
-        <!-- Sexe -->
-        <div class="col-auto">
-            <span class="text-muted small fw-semibold me-1">Sexe :</span>
-            <a href="?statut={{ filtre }}&grade={{ filtre_grade }}&sexe="
-               class="btn btn-sm {% if not filtre_sexe %}btn-primary{% else %}btn-outline-primary{% endif %}">
-                Tous
-            </a>
-            <a href="?statut={{ filtre }}&grade={{ filtre_grade }}&sexe=M"
-               class="btn btn-sm {% if filtre_sexe == 'M' %}btn-primary{% else %}btn-outline-primary{% endif %}">
-                <i class="bi bi-gender-male me-1"></i>Masculin
-            </a>
-            <a href="?statut={{ filtre }}&grade={{ filtre_grade }}&sexe=F"
-               class="btn btn-sm {% if filtre_sexe == 'F' %}btn-primary{% else %}btn-outline-primary{% endif %}">
-                <i class="bi bi-gender-female me-1"></i>Féminin
-            </a>
+        <div class="col-6 col-md-2">
+            <select name="statut" class="form-select form-select-sm" onchange="document.getElementById('form-filtres').submit()">
+                <option value="actif" {% if filtre != 'inactif' %}selected{% endif %}>Actifs</option>
+                <option value="inactif" {% if filtre == 'inactif' %}selected{% endif %}>Inactifs</option>
+            </select>
         </div>
-
-        <div class="col-auto"><div class="vr" style="height:28px;"></div></div>
-
-        <!-- Grade -->
-        <div class="col-auto flex-wrap d-flex align-items-center gap-1">
-            <span class="text-muted small fw-semibold me-1">Grade :</span>
-            <a href="?statut={{ filtre }}&grade=&sexe={{ filtre_sexe }}"
-               class="btn btn-sm {% if not filtre_grade %}btn-warning{% else %}btn-outline-warning{% endif %} text-dark">
-                Tous
-            </a>
-            {% for g in grades %}
-            <a href="?statut={{ filtre }}&grade={{ g.pk }}&sexe={{ filtre_sexe }}"
-               class="btn btn-sm {% if filtre_grade == g.pk|stringformat:'s' %}btn-warning{% else %}btn-outline-warning{% endif %} text-dark">
-                {{ g.nom }}
-            </a>
-            {% endfor %}
-            <a href="?statut={{ filtre }}&grade=sans&sexe={{ filtre_sexe }}"
-               class="btn btn-sm {% if filtre_grade == 'sans' %}btn-warning{% else %}btn-outline-warning{% endif %} text-dark">
-                Sans grade
-            </a>
+        <div class="col-6 col-md-2">
+            <select name="sexe" class="form-select form-select-sm" onchange="document.getElementById('form-filtres').submit()">
+                <option value="" {% if not filtre_sexe %}selected{% endif %}>Tous les sexes</option>
+                <option value="M" {% if filtre_sexe == 'M' %}selected{% endif %}>Masculin</option>
+                <option value="F" {% if filtre_sexe == 'F' %}selected{% endif %}>Féminin</option>
+            </select>
         </div>
-
+        <div class="col-8 col-md-3">
+            <select name="grade" class="form-select form-select-sm" onchange="document.getElementById('form-filtres').submit()">
+                <option value="" {% if not filtre_grade %}selected{% endif %}>Tous les grades</option>
+                {% for g in grades %}
+                <option value="{{ g.pk }}" {% if filtre_grade == g.pk|stringformat:'s' %}selected{% endif %}>{{ g.nom }}</option>
+                {% endfor %}
+                <option value="sans" {% if filtre_grade == 'sans' %}selected{% endif %}>Sans grade</option>
+            </select>
+        </div>
+        <div class="col-4 col-md-1 text-end">
+            <button type="submit" class="btn btn-sm btn-outline-secondary" title="Filtrer">
+                <i class="bi bi-search"></i>
+            </button>
+        </div>
+    </form>
+    {% if filtre_recherche or filtre_grade or filtre_sexe or filtre == 'inactif' %}
+    <div class="mt-2">
+        <a href="{% url 'practitioners:liste' %}" class="small text-muted text-decoration-none">
+            <i class="bi bi-x-circle me-1"></i>Réinitialiser les filtres
+        </a>
     </div>
+    {% endif %}
 </div>
 
 <div class="card">
@@ -115,9 +160,9 @@
                         <th class="text-end pe-3">Actions</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="corps-pratiquants">
                     {% for p in pratiquants %}
-                    <tr>
+                    <tr data-recherche="{{ p.nom|lower }} {{ p.prenom|lower }}">
                         <td class="ps-3">
                             <div class="fw-semibold">{{ p.prenom }} {{ p.nom }}</div>
                             <div class="text-muted small">{{ p.date_naissance|date:"d/m/Y" }}</div>
@@ -146,26 +191,32 @@
                             {% endif %}
                         </td>
                         <td class="text-end pe-3">
-                            <a href="{% url 'practitioners:detail' p.pk %}"
-                               class="btn btn-sm btn-outline-info" title="Voir la fiche">
-                                <i class="bi bi-person-lines-fill"></i>
-                            </a>
-                            <a href="{% url 'practitioners:modifier' p.pk %}"
-                               class="btn btn-sm btn-outline-secondary ms-1" title="Modifier">
-                                <i class="bi bi-pencil"></i>
-                            </a>
-                            <form method="post" action="{% url 'practitioners:toggle_actif' p.pk %}" class="d-inline ms-1">
-                                {% csrf_token %}
-                                <button type="submit"
-                                        class="btn btn-sm {% if p.actif %}btn-outline-warning{% else %}btn-outline-success{% endif %}"
-                                        title="{% if p.actif %}Désactiver{% else %}Activer{% endif %}">
-                                    <i class="bi {% if p.actif %}bi-toggle-on{% else %}bi-toggle-off{% endif %}"></i>
-                                </button>
-                            </form>
-                            <a href="{% url 'practitioners:supprimer' p.pk %}"
-                               class="btn btn-sm btn-outline-danger ms-1" title="Supprimer">
-                                <i class="bi bi-trash"></i>
-                            </a>
+                            <div class="d-flex justify-content-end gap-1">
+                                <a href="{% url 'practitioners:detail' p.pk %}"
+                                   class="btn-action btn-action-edit" title="Voir la fiche"
+                                   data-bs-toggle="tooltip" data-bs-placement="top">
+                                    <i class="bi bi-person-lines-fill"></i>
+                                </a>
+                                <a href="{% url 'practitioners:modifier' p.pk %}"
+                                   class="btn-action btn-action-edit" title="Modifier"
+                                   data-bs-toggle="tooltip" data-bs-placement="top">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form method="post" action="{% url 'practitioners:toggle_actif' p.pk %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit"
+                                            class="btn-action {% if p.actif %}btn-action-on{% else %}btn-action-off{% endif %}"
+                                            title="{% if p.actif %}Désactiver{% else %}Activer{% endif %}"
+                                            data-bs-toggle="tooltip" data-bs-placement="top">
+                                        <i class="bi {% if p.actif %}bi-toggle-on{% else %}bi-toggle-off{% endif %}"></i>
+                                    </button>
+                                </form>
+                                <a href="{% url 'practitioners:supprimer' p.pk %}"
+                                   class="btn-action btn-action-delete" title="Supprimer"
+                                   data-bs-toggle="tooltip" data-bs-placement="top">
+                                    <i class="bi bi-trash"></i>
+                                </a>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}
@@ -174,18 +225,18 @@
         </div>
 
         <div class="p-2 border-top text-muted small text-end pe-3">
-            {{ pratiquants|length }} pratiquant(s) affiché(s)
+            <span id="compteur-affiches">{{ pratiquants|length }}</span> pratiquant(s) affiché(s)
+        </div>
+        <div id="aucun-resultat-recherche" class="text-center py-5 text-muted" style="display:none;">
+            <i class="bi bi-search fs-1 opacity-25 d-block mb-2"></i>
+            Aucun pratiquant ne correspond à cette recherche.
         </div>
 
         {% else %}
         <div class="text-center py-5 text-muted">
             <i class="bi bi-people fs-1 opacity-25 d-block mb-2"></i>
             Aucun pratiquant trouvé avec ces filtres.
-            {% if not filtre_grade and not filtre_sexe and filtre != 'inactif' %}
-            <a href="{% url 'practitioners:ajouter' %}" class="d-block mt-2 btn btn-success btn-sm">
-                <i class="bi bi-person-plus me-1"></i>Inscrire le premier pratiquant
-            </a>
-            {% else %}
+            {% if filtre_grade or filtre_sexe or filtre_recherche or filtre == 'inactif' %}
             <a href="{% url 'practitioners:liste' %}" class="d-block mt-2 small">
                 Effacer les filtres
             </a>
@@ -194,4 +245,28 @@
         {% endif %}
     </div>
 </div>
+
+</div><!-- /.no-print -->
+
+<script>
+(function () {
+    const input   = document.getElementById('id_recherche_live');
+    const lignes  = document.querySelectorAll('#corps-pratiquants tr');
+    const compteur = document.getElementById('compteur-affiches');
+    const aucunResultat = document.getElementById('aucun-resultat-recherche');
+    if (!input || !lignes.length) return;
+
+    input.addEventListener('input', function () {
+        const terme = input.value.trim().toLowerCase();
+        let visibles = 0;
+        lignes.forEach(function (ligne) {
+            const correspond = !terme || ligne.dataset.recherche.includes(terme);
+            ligne.style.display = correspond ? '' : 'none';
+            if (correspond) visibles++;
+        });
+        if (compteur) compteur.textContent = visibles;
+        if (aucunResultat) aucunResultat.style.display = visibles === 0 ? '' : 'none';
+    });
+})();
+</script>
 {% endblock %}

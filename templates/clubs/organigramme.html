@@ -90,13 +90,13 @@
                     data-bs-target="#modalAjouterMembre{{ volet.pk }}">
                 <i class="bi bi-person-plus me-1"></i>Ajouter un membre
             </button>
-            <button class="btn btn-sm btn-warning"
+            <button class="btn-action btn-action-edit"
                     data-bs-toggle="modal"
                     data-bs-target="#modalModifierVolet{{ volet.pk }}"
                     title="Renommer ce volet">
                 <i class="bi bi-pencil"></i>
             </button>
-            <button class="btn btn-sm btn-danger"
+            <button class="btn-action btn-action-delete"
                     data-bs-toggle="modal"
                     data-bs-target="#modalSupprimerVolet{{ volet.pk }}"
                     title="Supprimer ce volet">
@@ -141,27 +141,31 @@
                         </td>
                         {% if peut_modifier %}
                         <td class="text-end">
-                            <button class="btn btn-sm btn-outline-secondary"
-                                    data-bs-toggle="modal"
-                                    data-bs-target="#modalModifierMembre{{ membre.pk }}"
-                                    title="Modifier">
-                                <i class="bi bi-pencil"></i>
-                            </button>
-                            <form method="post" action="{% url 'clubs:toggle_actif_membre_club' membre.pk %}" class="d-inline">
-                                {% csrf_token %}
-                                <button type="submit"
-                                        class="btn btn-sm {% if membre.actif %}btn-outline-warning{% else %}btn-outline-success{% endif %}"
-                                        title="{% if membre.actif %}Désactiver{% else %}Activer{% endif %}">
-                                    <i class="bi {% if membre.actif %}bi-toggle-on{% else %}bi-toggle-off{% endif %}"></i>
+                            <div class="d-flex justify-content-end gap-1">
+                                <button class="btn-action btn-action-edit"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#modalModifierMembre{{ membre.pk }}"
+                                        title="Modifier">
+                                    <i class="bi bi-pencil"></i>
                                 </button>
-                            </form>
-                            <form method="post" action="{% url 'clubs:supprimer_membre_club' membre.pk %}" class="d-inline"
-                                  onsubmit="return confirm('Supprimer {{ membre.prenom }} {{ membre.nom }} ?')">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Supprimer">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </form>
+                                <form method="post" action="{% url 'clubs:toggle_actif_membre_club' membre.pk %}" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit"
+                                            class="btn-action {% if membre.actif %}btn-action-on{% else %}btn-action-off{% endif %}"
+                                            title="{% if membre.actif %}Désactiver{% else %}Activer{% endif %}"
+                                            data-bs-toggle="tooltip" data-bs-placement="top">
+                                        <i class="bi {% if membre.actif %}bi-toggle-on{% else %}bi-toggle-off{% endif %}"></i>
+                                    </button>
+                                </form>
+                                <form method="post" action="{% url 'clubs:supprimer_membre_club' membre.pk %}" class="d-inline"
+                                      onsubmit="return confirm('Supprimer {{ membre.prenom }} {{ membre.nom }} ?')">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-action btn-action-delete" title="Supprimer"
+                                            data-bs-toggle="tooltip" data-bs-placement="top">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                         {% endif %}
                     </tr>

@@ -72,7 +72,8 @@
                         <form method="post" action="{% url 'exams:retirer_jury' aff.pk %}"
                               onsubmit="return confirm('Retirer {{ aff.jury.get_full_name|default:aff.jury.username }} du jury ?')">
                             {% csrf_token %}
-                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                            <button type="submit" class="btn-action btn-action-delete" title="Retirer du jury"
+                                    data-bs-toggle="tooltip" data-bs-placement="top">
                                 <i class="bi bi-x"></i>
                             </button>
                         </form>

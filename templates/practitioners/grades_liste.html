@@ -103,27 +103,32 @@
                     {% endif %}
                 </td>
                 <td class="text-end pe-3">
-                    <a href="{% url 'practitioners:modifier_grade' grade.pk %}"
-                       class="btn btn-sm btn-outline-secondary me-1" title="Modifier">
-                        <i class="bi bi-pencil"></i>
-                    </a>
-                    <form method="post" action="{% url 'practitioners:toggle_actif_grade' grade.pk %}"
-                          class="d-inline">
-                        {% csrf_token %}
-                        <button type="submit"
-                                class="btn btn-sm {% if grade.actif %}btn-outline-warning{% else %}btn-outline-success{% endif %} me-1"
-                                title="{% if grade.actif %}Désactiver{% else %}Activer{% endif %}">
-                            {% if grade.actif %}
-                                <i class="bi bi-eye-slash"></i>
-                            {% else %}
-                                <i class="bi bi-eye"></i>
-                            {% endif %}
-                        </button>
-                    </form>
-                    <a href="{% url 'practitioners:supprimer_grade' grade.pk %}"
-                       class="btn btn-sm btn-outline-danger" title="Supprimer">
-                        <i class="bi bi-trash"></i>
-                    </a>
+                    <div class="d-flex justify-content-end gap-1">
+                        <a href="{% url 'practitioners:modifier_grade' grade.pk %}"
+                           class="btn-action btn-action-edit" title="Modifier"
+                           data-bs-toggle="tooltip" data-bs-placement="top">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        <form method="post" action="{% url 'practitioners:toggle_actif_grade' grade.pk %}"
+                              class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit"
+                                    class="btn-action {% if grade.actif %}btn-action-on{% else %}btn-action-off{% endif %}"
+                                    title="{% if grade.actif %}Désactiver{% else %}Activer{% endif %}"
+                                    data-bs-toggle="tooltip" data-bs-placement="top">
+                                {% if grade.actif %}
+                                    <i class="bi bi-eye-slash"></i>
+                                {% else %}
+                                    <i class="bi bi-eye"></i>
+                                {% endif %}
+                            </button>
+                        </form>
+                        <a href="{% url 'practitioners:supprimer_grade' grade.pk %}"
+                           class="btn-action btn-action-delete" title="Supprimer"
+                           data-bs-toggle="tooltip" data-bs-placement="top">
+                            <i class="bi bi-trash"></i>
+                        </a>
+                    </div>
                 </td>
             </tr>
             {% endfor %}

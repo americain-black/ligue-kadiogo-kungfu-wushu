@@ -155,7 +155,8 @@
                             <form method="post" action="{% url 'clubs:supprimer_piece_affiliation' piece.pk %}"
                                   onsubmit="return confirm('Supprimer cette pièce ?');">
                                 {% csrf_token %}
-                                <button type="submit" class="btn btn-sm btn-outline-danger py-0">
+                                <button type="submit" class="btn-action btn-action-delete" title="Supprimer"
+                                        data-bs-toggle="tooltip" data-bs-placement="top">
                                     <i class="bi bi-trash"></i>
                                 </button>
                             </form>

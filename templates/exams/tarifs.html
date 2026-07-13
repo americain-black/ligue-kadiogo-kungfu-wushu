@@ -91,18 +91,22 @@
                         <td class="ps-3"><strong>{{ t.grade }}</strong></td>
                         <td class="fw-semibold text-success">{{ t.montant|floatformat:"0" }} FCFA</td>
                         <td class="text-end pe-3">
-                            <a href="{% url 'exams:modifier_tarif' t.pk %}"
-                               class="btn btn-sm btn-outline-primary me-1" title="Modifier">
-                                <i class="bi bi-pencil"></i>
-                            </a>
-                            <form method="post" action="{% url 'exams:supprimer_tarif' t.pk %}"
-                                  class="d-inline"
-                                  onsubmit="return confirm('Supprimer le tarif pour {{ t.grade.nom }} ?')">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Supprimer">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </form>
+                            <div class="d-flex justify-content-end gap-1">
+                                <a href="{% url 'exams:modifier_tarif' t.pk %}"
+                                   class="btn-action btn-action-edit" title="Modifier"
+                                   data-bs-toggle="tooltip" data-bs-placement="top">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form method="post" action="{% url 'exams:supprimer_tarif' t.pk %}"
+                                      class="d-inline"
+                                      onsubmit="return confirm('Supprimer le tarif pour {{ t.grade.nom }} ?')">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-action btn-action-delete" title="Supprimer"
+                                            data-bs-toggle="tooltip" data-bs-placement="top">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}

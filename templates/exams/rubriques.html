@@ -102,31 +102,37 @@
                             {% endif %}
                         </td>
                         <td class="text-end pe-3">
-                            <a href="{% url 'exams:config_rubrique_grades' r.pk %}"
-                               class="btn btn-sm btn-outline-primary me-1" title="Configurer grades">
-                                <i class="bi bi-gear"></i>
-                            </a>
-                            <a href="{% url 'exams:modifier_rubrique' r.pk %}"
-                               class="btn btn-sm btn-outline-warning me-1" title="Modifier">
-                                <i class="bi bi-pencil"></i>
-                            </a>
-                            <form method="post" action="{% url 'exams:toggle_actif_rubrique' r.pk %}"
-                                  class="d-inline">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-sm btn-outline-secondary me-1"
-                                        title="{% if r.actif %}Désactiver{% else %}Activer{% endif %}">
-                                    <i class="bi bi-{% if r.actif %}eye-slash{% else %}eye{% endif %}"></i>
-                                </button>
-                            </form>
-                            <form method="post" action="{% url 'exams:supprimer_rubrique' r.pk %}"
-                                  class="d-inline"
-                                  onsubmit="return confirm('Supprimer la rubrique « {{ r.nom }} » ?')">
-                                {% csrf_token %}
-                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Supprimer"
-                                        {% if r.rubrique_grades.count > 0 %}disabled title="Déconfigurez tous les grades d'abord"{% endif %}>
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </form>
+                            <div class="d-flex justify-content-end gap-1">
+                                <a href="{% url 'exams:config_rubrique_grades' r.pk %}"
+                                   class="btn-action btn-action-edit" title="Configurer grades"
+                                   data-bs-toggle="tooltip" data-bs-placement="top">
+                                    <i class="bi bi-gear"></i>
+                                </a>
+                                <a href="{% url 'exams:modifier_rubrique' r.pk %}"
+                                   class="btn-action btn-action-edit" title="Modifier"
+                                   data-bs-toggle="tooltip" data-bs-placement="top">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form method="post" action="{% url 'exams:toggle_actif_rubrique' r.pk %}"
+                                      class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-action {% if r.actif %}btn-action-on{% else %}btn-action-off{% endif %}"
+                                            title="{% if r.actif %}Désactiver{% else %}Activer{% endif %}"
+                                            data-bs-toggle="tooltip" data-bs-placement="top">
+                                        <i class="bi bi-{% if r.actif %}eye-slash{% else %}eye{% endif %}"></i>
+                                    </button>
+                                </form>
+                                <form method="post" action="{% url 'exams:supprimer_rubrique' r.pk %}"
+                                      class="d-inline"
+                                      onsubmit="return confirm('Supprimer la rubrique « {{ r.nom }} » ?')">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-action btn-action-delete" title="Supprimer"
+                                            data-bs-toggle="tooltip" data-bs-placement="top"
+                                            {% if r.rubrique_grades.count > 0 %}disabled title="Déconfigurez tous les grades d'abord"{% endif %}>
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
                         </td>
                     </tr>
                     {% endfor %}

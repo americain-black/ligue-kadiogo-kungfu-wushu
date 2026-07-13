@@ -339,6 +339,7 @@ def toggle_statut_utilisateur(request, pk):
 
 @super_admin_requis
 def supprimer_utilisateur(request, pk):
+    from apps.exams.models import AffectationJury
     utilisateur = get_object_or_404(Utilisateur, pk=pk)
     if utilisateur.is_superuser:
         messages.error(request, "Impossible de supprimer un super administrateur système.")
@@ -351,7 +352,19 @@ def supprimer_utilisateur(request, pk):
     except Exception:
         pass
 
+    # Affectations jury : bloquent la suppression (AffectationJury.jury est PROTECT)
+    affectations_jury = AffectationJury.objects.filter(jury=utilisateur).select_related('session')
+
     if request.method == 'POST':
+        if affectations_jury.exists():
+            sessions = ', '.join(a.session.titre for a in affectations_jury)
+            messages.error(
+                request,
+                f"Impossible de supprimer « {utilisateur.get_full_name() or utilisateur.username} » : "
+                f"encore affecté(e) comme jury sur : {sessions}. Retirez d'abord ces affectations."
+            )
+            return redirect('accounts:supprimer_utilisateur', pk=pk)
+
         nom = utilisateur.get_full_name() or utilisateur.username
         # Détacher du club avant suppression pour éviter ProtectedError
         if club_gere:
@@ -361,6 +374,7 @@ def supprimer_utilisateur(request, pk):
         messages.success(request, f"Utilisateur « {nom} » supprimé.")
         return redirect('accounts:liste_utilisateurs')
     return render(request, 'super_admin/confirmer_suppression_utilisateur.html', {
-        'utilisateur': utilisateur,
-        'club_gere':   club_gere,
+        'utilisateur':       utilisateur,
+        'club_gere':         club_gere,
+        'affectations_jury': affectations_jury,
     })

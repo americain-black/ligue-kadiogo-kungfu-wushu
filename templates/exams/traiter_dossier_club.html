@@ -164,7 +164,7 @@
                             <td class="text-end">
                                 {% if insc.statut == 'EN_ATTENTE_PAIEMENT' or insc.statut == 'PAIEMENT_VALIDE' %}
                                 <button type="button"
-                                        class="btn btn-outline-danger btn-sm"
+                                        class="btn-action btn-action-delete"
                                         data-bs-toggle="modal"
                                         data-bs-target="#modalExclure{{ insc.pk }}"
                                         title="Exclure">
@@ -172,7 +172,7 @@
                                 </button>
                                 {% elif insc.statut == 'EXCLU' %}
                                 <button type="button"
-                                        class="btn btn-outline-success btn-sm"
+                                        class="btn-action btn-action-off"
                                         data-bs-toggle="modal"
                                         data-bs-target="#modalReintegrer{{ insc.pk }}"
                                         title="Réintégrer">

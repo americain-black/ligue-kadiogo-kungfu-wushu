@@ -87,20 +87,25 @@
                 {% endif %}
             </td>
             <td class="text-end">
-                <a href="{% url 'payments:detail_paiement_examen' p.pk %}"
-                   class="btn btn-sm btn-outline-secondary" title="Voir le détail">
-                    <i class="bi bi-eye"></i>
-                </a>
-                {% if p.statut == 'EN_ATTENTE' %}
-                <a href="{% url 'payments:valider_paiement_examen' p.pk %}"
-                   class="btn btn-sm btn-outline-success ms-1" title="Valider">
-                    <i class="bi bi-check-lg"></i>
-                </a>
-                <a href="{% url 'payments:rejeter_paiement_examen' p.pk %}"
-                   class="btn btn-sm btn-outline-danger ms-1" title="Rejeter">
-                    <i class="bi bi-x-lg"></i>
-                </a>
-                {% endif %}
+                <div class="d-flex justify-content-end gap-1">
+                    <a href="{% url 'payments:detail_paiement_examen' p.pk %}"
+                       class="btn-action btn-action-edit" title="Voir le détail"
+                       data-bs-toggle="tooltip" data-bs-placement="top">
+                        <i class="bi bi-eye"></i>
+                    </a>
+                    {% if p.statut == 'EN_ATTENTE' %}
+                    <a href="{% url 'payments:valider_paiement_examen' p.pk %}"
+                       class="btn-action btn-action-off" title="Valider"
+                       data-bs-toggle="tooltip" data-bs-placement="top">
+                        <i class="bi bi-check-lg"></i>
+                    </a>
+                    <a href="{% url 'payments:rejeter_paiement_examen' p.pk %}"
+                       class="btn-action btn-action-delete" title="Rejeter"
+                       data-bs-toggle="tooltip" data-bs-placement="top">
+                        <i class="bi bi-x-lg"></i>
+                    </a>
+                    {% endif %}
+                </div>
             </td>
         </tr>
         {% endfor %}

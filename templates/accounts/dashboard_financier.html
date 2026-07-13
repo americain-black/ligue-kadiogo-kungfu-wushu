@@ -117,7 +117,8 @@
             <td class="small text-muted">{{ p.date_soumission|date:"d/m/Y H:i" }}</td>
             <td class="text-end">
                 <a href="{% url 'payments:detail_paiement_examen' p.pk %}"
-                   class="btn btn-sm btn-outline-secondary">
+                   class="btn-action btn-action-edit" title="Voir le détail"
+                   data-bs-toggle="tooltip" data-bs-placement="top">
                     <i class="bi bi-eye"></i>
                 </a>
             </td>
@@ -223,7 +224,8 @@
             <td class="small text-muted">{{ p.date_soumission|date:"d/m/Y H:i" }}</td>
             <td class="text-end">
                 <a href="{% url 'payments:detail_paiement_affiliation' p.pk %}"
-                   class="btn btn-sm btn-outline-secondary">
+                   class="btn-action btn-action-edit" title="Voir le détail"
+                   data-bs-toggle="tooltip" data-bs-placement="top">
                     <i class="bi bi-eye"></i>
                 </a>
             </td>

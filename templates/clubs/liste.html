@@ -116,37 +116,44 @@
                 {% endif %}
             </td>
             <td class="text-end pe-3">
-                <a href="{% url 'clubs:detail' club.pk %}"
-                   class="btn btn-sm btn-outline-secondary me-1" title="Voir la fiche">
-                    <i class="bi bi-eye"></i>
-                </a>
-                <a href="{% url 'clubs:organigramme' club.pk %}"
-                   class="btn btn-sm btn-outline-success me-1" title="Organigramme">
-                    <i class="bi bi-diagram-3"></i>
-                </a>
-                <a href="{% url 'clubs:modifier' club.pk %}"
-                   class="btn btn-sm btn-outline-primary me-1" title="Modifier">
-                    <i class="bi bi-pencil"></i>
-                </a>
-                {% if club.statut_club in 'AFFILIE,SUSPENDU' %}
-                <form method="post" action="{% url 'clubs:toggle_statut' club.pk %}" class="d-inline">
-                    {% csrf_token %}
-                    <button type="submit"
-                            class="btn btn-sm {% if club.statut_club == 'AFFILIE' %}btn-outline-warning{% else %}btn-outline-success{% endif %} me-1"
-                            onclick="return confirm('{% if club.statut_club == 'AFFILIE' %}Suspendre{% else %}Réactiver{% endif %} le club {{ club.nom_club }} ?')"
-                            title="{% if club.statut_club == 'AFFILIE' %}Suspendre{% else %}Réactiver{% endif %}">
-                        {% if club.statut_club == 'AFFILIE' %}
-                            <i class="bi bi-pause-circle"></i>
-                        {% else %}
-                            <i class="bi bi-play-circle"></i>
-                        {% endif %}
-                    </button>
-                </form>
-                {% endif %}
-                <a href="{% url 'clubs:supprimer' club.pk %}"
-                   class="btn btn-sm btn-outline-danger" title="Supprimer">
-                    <i class="bi bi-trash"></i>
-                </a>
+                <div class="d-flex justify-content-end gap-1">
+                    <a href="{% url 'clubs:detail' club.pk %}"
+                       class="btn-action btn-action-edit" title="Voir la fiche"
+                       data-bs-toggle="tooltip" data-bs-placement="top">
+                        <i class="bi bi-eye"></i>
+                    </a>
+                    <a href="{% url 'clubs:organigramme' club.pk %}"
+                       class="btn-action btn-action-edit" title="Organigramme"
+                       data-bs-toggle="tooltip" data-bs-placement="top">
+                        <i class="bi bi-diagram-3"></i>
+                    </a>
+                    <a href="{% url 'clubs:modifier' club.pk %}"
+                       class="btn-action btn-action-edit" title="Modifier"
+                       data-bs-toggle="tooltip" data-bs-placement="top">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    {% if club.statut_club in 'AFFILIE,SUSPENDU' %}
+                    <form method="post" action="{% url 'clubs:toggle_statut' club.pk %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit"
+                                class="btn-action {% if club.statut_club == 'AFFILIE' %}btn-action-on{% else %}btn-action-off{% endif %}"
+                                onclick="return confirm('{% if club.statut_club == 'AFFILIE' %}Suspendre{% else %}Réactiver{% endif %} le club {{ club.nom_club }} ?')"
+                                title="{% if club.statut_club == 'AFFILIE' %}Suspendre{% else %}Réactiver{% endif %}"
+                                data-bs-toggle="tooltip" data-bs-placement="top">
+                            {% if club.statut_club == 'AFFILIE' %}
+                                <i class="bi bi-pause-circle"></i>
+                            {% else %}
+                                <i class="bi bi-play-circle"></i>
+                            {% endif %}
+                        </button>
+                    </form>
+                    {% endif %}
+                    <a href="{% url 'clubs:supprimer' club.pk %}"
+                       class="btn-action btn-action-delete" title="Supprimer"
+                       data-bs-toggle="tooltip" data-bs-placement="top">
+                        <i class="bi bi-trash"></i>
+                    </a>
+                </div>
             </td>
         </tr>
         {% endfor %}

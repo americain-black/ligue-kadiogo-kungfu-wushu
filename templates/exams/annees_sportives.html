@@ -80,28 +80,34 @@
                 {% endif %}
             </td>
             <td class="text-end">
-                <a href="{% url 'exams:tarifs' annee.pk %}"
-                   class="btn btn-sm btn-outline-success me-1" title="Tarifs">
-                    <i class="bi bi-cash-coin"></i>
-                </a>
-                <a href="{% url 'exams:modifier_annee_sportive' annee.pk %}"
-                   class="btn btn-sm btn-outline-primary" title="Modifier">
-                    <i class="bi bi-pencil"></i>
-                </a>
-                {% if annee.statut == 'ACTIVE' %}
-                <form method="post" action="{% url 'exams:cloturer_annee_sportive' annee.pk %}"
-                      class="d-inline"
-                      onsubmit="return confirm('Clôturer l\'année sportive {{ annee.libelle }} ?')">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-sm btn-outline-warning ms-1" title="Clôturer">
-                        <i class="bi bi-lock"></i>
-                    </button>
-                </form>
-                {% endif %}
-                <a href="{% url 'exams:supprimer_annee_sportive' annee.pk %}"
-                   class="btn btn-sm btn-outline-danger ms-1" title="Supprimer">
-                    <i class="bi bi-trash"></i>
-                </a>
+                <div class="d-flex justify-content-end gap-1">
+                    <a href="{% url 'exams:tarifs' annee.pk %}"
+                       class="btn-action btn-action-edit" title="Tarifs"
+                       data-bs-toggle="tooltip" data-bs-placement="top">
+                        <i class="bi bi-cash-coin"></i>
+                    </a>
+                    <a href="{% url 'exams:modifier_annee_sportive' annee.pk %}"
+                       class="btn-action btn-action-edit" title="Modifier"
+                       data-bs-toggle="tooltip" data-bs-placement="top">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    {% if annee.statut == 'ACTIVE' %}
+                    <form method="post" action="{% url 'exams:cloturer_annee_sportive' annee.pk %}"
+                          class="d-inline"
+                          onsubmit="return confirm('Clôturer l\'année sportive {{ annee.libelle }} ?')">
+                        {% csrf_token %}
+                        <button type="submit" class="btn-action btn-action-on" title="Clôturer"
+                                data-bs-toggle="tooltip" data-bs-placement="top">
+                            <i class="bi bi-lock"></i>
+                        </button>
+                    </form>
+                    {% endif %}
+                    <a href="{% url 'exams:supprimer_annee_sportive' annee.pk %}"
+                       class="btn-action btn-action-delete" title="Supprimer"
+                       data-bs-toggle="tooltip" data-bs-placement="top">
+                        <i class="bi bi-trash"></i>
+                    </a>
+                </div>
             </td>
         </tr>
         {% endfor %}

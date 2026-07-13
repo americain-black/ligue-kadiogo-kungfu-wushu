@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Bulletin — {{ inscription.pratiquant }}</title>
+<style>
+    @page { size: A4; margin: 2cm; }
+    body { font-family: 'DejaVu Sans', Arial, sans-serif; font-size: 12pt; color: #222; }
+    .entete { text-align: center; margin-bottom: 24px; border-bottom: 2px solid #333; padding-bottom: 12px; }
+    .entete h1 { font-size: 16pt; text-transform: uppercase; margin: 0; }
+    .entete .sigle { color: #555; font-size: 10pt; }
+    .titre-bulletin { text-align: center; font-size: 14pt; font-weight: bold; margin: 20px 0; text-decoration: underline; }
+    table.infos { width: 100%; margin-bottom: 20px; border-collapse: collapse; }
+    table.infos td { padding: 4px 0; font-size: 11pt; }
+    table.notes { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    table.notes th, table.notes td { border: 1px solid #999; padding: 6px 8px; font-size: 11pt; text-align: center; }
+    table.notes th { background-color: #333; color: #fff; }
+    table.notes td:first-child { text-align: left; }
+    .decision { text-align: center; font-size: 13pt; font-weight: bold; margin: 20px 0; padding: 10px; border: 2px solid #333; }
+    .decision.admis { color: #1e7e34; border-color: #1e7e34; }
+    .decision.ajourne { color: #b8860b; border-color: #b8860b; }
+    .signatures { margin-top: 60px; display: flex; justify-content: space-between; }
+    .signatures div { text-align: center; width: 45%; border-top: 1px solid #333; padding-top: 6px; font-size: 10pt; }
+</style>
+</head>
+<body>
+    <div class="entete">
+        <h1>{{ inscription.session.annee_sportive.ligue.nom_ligue }}</h1>
+        <div class="sigle">{{ inscription.session.annee_sportive.ligue.sigle }}</div>
+    </div>
+
+    <div class="titre-bulletin">Bulletin de résultat d'examen de grade</div>
+
+    <table class="infos">
+        <tr>
+            <td><strong>Candidat :</strong> {{ inscription.pratiquant.nom }} {{ inscription.pratiquant.prenom }}</td>
+            <td><strong>Club :</strong> {{ inscription.pratiquant.club.nom_club }}</td>
+        </tr>
+        <tr>
+            <td><strong>Session :</strong> {{ inscription.session.titre }}</td>
+            <td><strong>Date :</strong> {{ inscription.session.date_examen|date:"d/m/Y" }}</td>
+        </tr>
+        <tr>
+            <td><strong>Grade visé :</strong> {{ inscription.grade_vise }}</td>
+            <td><strong>Année sportive :</strong> {{ inscription.session.annee_sportive.libelle }}</td>
+        </tr>
+    </table>
+
+    <table class="notes">
+        <thead>
+            <tr>
+                <th>Rubrique / Épreuve</th>
+                <th>Coefficient</th>
+                <th>Note min.</th>
+                <th>Note /5</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ligne in lignes %}
+            <tr>
+                <td>{{ ligne.rubrique_grade.rubrique.nom }}</td>
+                <td>×{{ ligne.rubrique_grade.coefficient }}</td>
+                <td>{{ ligne.rubrique_grade.note_minimale }}/5</td>
+                <td>{% if ligne.note %}{{ ligne.note.note }}/5{% else %}—{% endif %}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="decision {% if resultat.decision == 'ADMIS' %}admis{% else %}ajourne{% endif %}">
+        Moyenne pondérée : {{ resultat.moyenne }}/5 — {{ resultat.get_decision_display }}
+    </div>
+
+    <div class="signatures">
+        <div>Le Président du Jury</div>
+        <div>Le Gestionnaire de Ligue</div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+{% block title %}{{ inscription.pratiquant }} — Résultat{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+{% if user.est_gest_club %}
+<a href="{% url 'accounts:dashboard_club' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<a href="{% url 'results:resultats_session_club' inscription.session.pk %}" class="nav-link">
+    <i class="bi bi-arrow-left me-2"></i>Résultats de la session
+</a>
+{% else %}
+<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<a href="{% url 'evaluations:tableau_resultats' inscription.session.pk %}" class="nav-link">
+    <i class="bi bi-arrow-left me-2"></i>Résultats de la session
+</a>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+    <div>
+        <h4 class="fw-bold mb-1">
+            {{ inscription.pratiquant.nom }} {{ inscription.pratiquant.prenom }}
+        </h4>
+        <div class="d-flex gap-3 flex-wrap">
+            <span class="text-muted small">
+                <i class="bi bi-building me-1"></i>{{ inscription.pratiquant.club.nom_club }}
+            </span>
+            <span class="badge bg-primary">Grade visé : {{ inscription.grade_vise }}</span>
+        </div>
+    </div>
+    <a href="{% url 'results:bulletin_pdf' resultat.pk %}" class="btn btn-primary btn-sm">
+        <i class="bi bi-file-earmark-pdf me-1"></i>Télécharger le bulletin
+    </a>
+</div>
+
+<div class="alert {% if resultat.decision == 'ADMIS' %}alert-success{% else %}alert-warning{% endif %} mb-4">
+    <strong><i class="bi bi-trophy me-2"></i>Résultat :</strong>
+    {{ resultat.get_decision_display }} — Moyenne {{ resultat.moyenne }}/5
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h6 class="fw-bold mb-0">
+            <i class="bi bi-list-check me-2"></i>Détail des notes — {{ inscription.grade_vise }}
+        </h6>
+    </div>
+    <div class="card-body p-0">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th class="ps-3">Rubrique / Épreuve</th>
+                    <th class="text-center">Coefficient</th>
+                    <th class="text-center">Note min.</th>
+                    <th class="text-center">Note /5</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ligne in lignes %}
+                {% with rg=ligne.rubrique_grade note_obj=ligne.note %}
+                <tr>
+                    <td class="ps-3 fw-semibold">{{ rg.rubrique.nom }}</td>
+                    <td class="text-center">
+                        <span class="badge bg-secondary">×{{ rg.coefficient }}</span>
+                    </td>
+                    <td class="text-center text-muted small">{{ rg.note_minimale }}/5</td>
+                    <td class="text-center">
+                        {% if note_obj %}
+                        <span class="badge {% if note_obj.note >= rg.note_minimale %}bg-success{% else %}bg-danger{% endif %}">
+                            {{ note_obj.note }}/5
+                        </span>
+                        {% else %}
+                        <span class="text-muted">—</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endwith %}
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

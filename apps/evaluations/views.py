@@ -289,13 +289,26 @@ def tableau_resultats(request, session_id):
 
     inscriptions = (
         Inscription.objects.filter(session=session, statut='AUTORISE')
-        .select_related('pratiquant', 'grade_vise')
-        .prefetch_related('notes', 'resultat')
+        .select_related('pratiquant', 'grade_vise', 'resultat')
+        .prefetch_related('notes')
         .order_by('pratiquant__nom')
     )
+
+    nb_admis    = 0
+    nb_ajournes = 0
+    for insc in inscriptions:
+        insc.nb_notes_validees = insc.notes.filter(validee=True).count()
+        if hasattr(insc, 'resultat'):
+            if insc.resultat.decision == 'ADMIS':
+                nb_admis += 1
+            else:
+                nb_ajournes += 1
 
     return render(request, 'evaluations/tableau_resultats.html', {
         'session': session,
         'inscriptions': inscriptions,
+        'nb_admis': nb_admis,
+        'nb_ajournes': nb_ajournes,
+        'nb_en_cours': len(inscriptions) - nb_admis - nb_ajournes,
         'ws_url': f'ws/evaluations/session/{session_id}/notation/',
     })

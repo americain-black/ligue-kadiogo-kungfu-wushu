@@ -1,4 +1,5 @@
 from django import forms as django_forms
+from django.db.models import Q
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -25,9 +26,10 @@ def liste_pratiquants(request):
     club  = request.user.club
     ligue = club.ligue
 
-    filtre_statut = request.GET.get('statut', 'actif')
-    filtre_grade  = request.GET.get('grade', '')
-    filtre_sexe   = request.GET.get('sexe', '')
+    filtre_statut     = request.GET.get('statut', 'actif')
+    filtre_grade      = request.GET.get('grade', '')
+    filtre_sexe       = request.GET.get('sexe', '')
+    filtre_recherche  = request.GET.get('q', '').strip()
 
     pratiquants = Pratiquant.objects.filter(club=club).select_related('grade_actuel')
 
@@ -44,15 +46,29 @@ def liste_pratiquants(request):
     if filtre_sexe:
         pratiquants = pratiquants.filter(sexe=filtre_sexe)
 
+    if filtre_recherche:
+        pratiquants = pratiquants.filter(
+            Q(nom__icontains=filtre_recherche) | Q(prenom__icontains=filtre_recherche)
+        )
+
     grades = Grade.objects.filter(ligue=ligue).order_by('id_grade')
 
+    filtre_grade_nom = ''
+    if filtre_grade == 'sans':
+        filtre_grade_nom = 'Sans grade'
+    elif filtre_grade:
+        grade_obj = grades.filter(pk=filtre_grade).first()
+        filtre_grade_nom = grade_obj.nom if grade_obj else ''
+
     return render(request, 'practitioners/liste.html', {
-        'pratiquants':  pratiquants,
-        'club':         club,
-        'filtre':       filtre_statut,
-        'filtre_grade': filtre_grade,
-        'filtre_sexe':  filtre_sexe,
-        'grades':       grades,
+        'pratiquants':       pratiquants,
+        'club':              club,
+        'filtre':            filtre_statut,
+        'filtre_grade':      filtre_grade,
+        'filtre_grade_nom':  filtre_grade_nom,
+        'filtre_sexe':       filtre_sexe,
+        'filtre_recherche':  filtre_recherche,
+        'grades':            grades,
     })
 
 
@@ -112,9 +128,16 @@ def modifier_pratiquant(request, pk):
 def detail_pratiquant(request, pk):
     club       = request.user.club
     pratiquant = get_object_or_404(Pratiquant, pk=pk, club=club)
+    resultats  = (
+        pratiquant.inscriptions
+        .filter(resultat__publie=True)
+        .select_related('session', 'grade_vise', 'resultat')
+        .order_by('-session__date_examen')
+    )
     return render(request, 'practitioners/detail.html', {
         'pratiquant': pratiquant,
         'club':       club,
+        'resultats':  resultats,
     })
 
 

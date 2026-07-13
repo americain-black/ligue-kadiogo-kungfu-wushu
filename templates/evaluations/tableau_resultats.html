@@ -81,19 +81,19 @@
     <div class="col-6 col-md-3">
         <div class="card p-3" style="border-left:4px solid #27ae60;">
             <div class="text-muted small">Admis</div>
-            <div class="fw-bold fs-4 text-success" id="cpt-admis">0</div>
+            <div class="fw-bold fs-4 text-success" id="cpt-admis">{{ nb_admis }}</div>
         </div>
     </div>
     <div class="col-6 col-md-3">
         <div class="card p-3" style="border-left:4px solid #e67e22;">
             <div class="text-muted small">Ajournés</div>
-            <div class="fw-bold fs-4 text-warning" id="cpt-ajournes">0</div>
+            <div class="fw-bold fs-4 text-warning" id="cpt-ajournes">{{ nb_ajournes }}</div>
         </div>
     </div>
     <div class="col-6 col-md-3">
         <div class="card p-3" style="border-left:4px solid #95a5a6;">
             <div class="text-muted small">En cours</div>
-            <div class="fw-bold fs-4 text-secondary" id="cpt-en-cours">{{ inscriptions|length }}</div>
+            <div class="fw-bold fs-4 text-secondary" id="cpt-en-cours">{{ nb_en_cours }}</div>
         </div>
     </div>
 </div>
@@ -130,17 +130,26 @@
                         <span class="badge bg-primary">{{ insc.grade_vise }}</span>
                     </td>
                     <td class="text-center" id="notes-{{ insc.pk }}">
-                        <span class="badge bg-light text-dark border">0</span>
+                        <span class="badge bg-primary">{{ insc.nb_notes_validees }}</span>
                     </td>
                     <td class="text-center fw-bold" id="moy-{{ insc.pk }}">
+                        {% if insc.resultat %}
+                        <span class="{% if insc.resultat.decision == 'ADMIS' %}admis{% else %}ajourne{% endif %}">{{ insc.resultat.moyenne }}/5</span>
+                        {% else %}
                         <span class="text-muted">—</span>
+                        {% endif %}
                     </td>
                     <td class="text-center" id="dec-{{ insc.pk }}">
+                        {% if insc.resultat %}
+                        <span class="badge {% if insc.resultat.decision == 'ADMIS' %}bg-success{% else %}bg-warning text-dark{% endif %}">{{ insc.resultat.get_decision_display }}</span>
+                        {% else %}
                         <span class="badge bg-light text-dark border en-cours">En cours</span>
+                        {% endif %}
                     </td>
                     <td class="text-center">
                         <a href="{% url 'evaluations:detail_candidat' session.pk insc.pk %}"
-                           class="btn btn-sm btn-outline-secondary">
+                           class="btn-action btn-action-edit" title="Voir le détail"
+                           data-bs-toggle="tooltip" data-bs-placement="top">
                             <i class="bi bi-eye"></i>
                         </a>
                     </td>
@@ -170,8 +179,8 @@
 const SESSION_ID = {{ session.pk }};
 const WS_URL     = `ws://${window.location.host}/{{ ws_url }}`;
 
-let nbAdmis    = 0;
-let nbAjournes = 0;
+let nbAdmis    = {{ nb_admis }};
+let nbAjournes = {{ nb_ajournes }};
 let nbTotal    = {{ inscriptions|length }};
 
 // ── Compteurs ────────────────────────────────────────────────────────────────

@@ -288,6 +288,9 @@ class SessionExamen(models.Model):
     def publier_resultats(self):
         if self.statut != 'CLOTUREE':
             raise ValidationError("La session n'est pas clôturée.")
+        from apps.results.models import Resultat
+        for resultat in Resultat.objects.filter(inscription__session=self, publie=False):
+            resultat.publier()
         self.statut = 'RESULTATS_PUBLIES'
         self.save()
 

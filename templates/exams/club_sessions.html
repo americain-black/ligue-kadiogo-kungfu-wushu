@@ -30,7 +30,7 @@
 <div class="row g-3 mb-4">
     {% for session in sessions_actives %}
     <div class="col-12 col-md-6">
-        <div class="card border h-100">
+        <div class="card h-100">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-start mb-2">
                     <h6 class="fw-bold mb-0">{{ session.titre }}</h6>
@@ -112,9 +112,17 @@
             </td>
             <td>
                 <a href="{% url 'exams:club_inscriptions' session.pk %}"
-                   class="btn btn-sm btn-outline-secondary" title="Voir les inscriptions">
+                   class="btn-action btn-action-edit" title="Voir les inscriptions"
+                   data-bs-toggle="tooltip" data-bs-placement="top">
                     <i class="bi bi-eye"></i>
                 </a>
+                {% if session.statut == 'RESULTATS_PUBLIES' %}
+                <a href="{% url 'results:resultats_session_club' session.pk %}"
+                   class="btn-action btn-action-edit" title="Voir les résultats"
+                   data-bs-toggle="tooltip" data-bs-placement="top">
+                    <i class="bi bi-graph-up"></i>
+                </a>
+                {% endif %}
             </td>
         </tr>
         {% endfor %}

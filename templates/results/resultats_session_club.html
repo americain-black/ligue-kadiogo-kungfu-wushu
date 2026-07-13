@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% block title %}Résultats — {{ session.titre }}{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_club' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Mon club</span>
+<a href="{% url 'practitioners:liste' %}" class="nav-link">
+    <i class="bi bi-people me-2"></i>Pratiquants
+</a>
+<a href="{% url 'exams:club_sessions' %}" class="nav-link">
+    <i class="bi bi-journal-check me-2"></i>Sessions d'examen
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+    <div>
+        <small class="text-muted">
+            <a href="{% url 'exams:club_sessions' %}">Sessions</a> › Résultats
+        </small>
+        <h4 class="fw-bold mt-1 mb-0">
+            <i class="bi bi-graph-up me-2 text-primary"></i>Résultats — {{ session.titre }}
+        </h4>
+        <small class="text-muted">{{ club.nom_club }} — {{ session.date_examen|date:"d/m/Y" }}</small>
+    </div>
+</div>
+
+{% if inscriptions %}
+<div class="card">
+    <div class="card-body p-0">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th class="ps-3">Candidat</th>
+                    <th class="text-center">Grade visé</th>
+                    <th class="text-center">Moyenne</th>
+                    <th class="text-center">Décision</th>
+                    <th class="text-end pe-3">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for insc in inscriptions %}
+                <tr>
+                    <td class="ps-3 fw-semibold">{{ insc.pratiquant.nom }} {{ insc.pratiquant.prenom }}</td>
+                    <td class="text-center">
+                        <span class="badge bg-primary">{{ insc.grade_vise.nom }}</span>
+                    </td>
+                    <td class="text-center fw-bold">
+                        <span class="{% if insc.resultat.decision == 'ADMIS' %}text-success{% else %}text-warning{% endif %}">
+                            {{ insc.resultat.moyenne }}/5
+                        </span>
+                    </td>
+                    <td class="text-center">
+                        <span class="badge {% if insc.resultat.decision == 'ADMIS' %}bg-success{% else %}bg-warning text-dark{% endif %}">
+                            {{ insc.resultat.get_decision_display }}
+                        </span>
+                    </td>
+                    <td class="text-end pe-3">
+                        <a href="{% url 'results:detail' insc.resultat.pk %}" class="btn btn-sm btn-outline-secondary">
+                            <i class="bi bi-eye me-1"></i>Détail
+                        </a>
+                        <a href="{% url 'results:bulletin_pdf' insc.resultat.pk %}" class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-file-earmark-pdf me-1"></i>Bulletin
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% else %}
+<div class="card p-5 text-center text-muted">
+    <i class="bi bi-graph-up fs-1 opacity-25 d-block mb-2"></i>
+    Aucun résultat publié pour cette session pour l'instant.
+</div>
+{% endif %}
+{% endblock %}

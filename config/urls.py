@@ -12,6 +12,7 @@ urlpatterns = [
     path('examens/',     include('apps.exams.urls',         namespace='exams')),
     path('paiements/',    include('apps.payments.urls',      namespace='payments')),
     path('evaluations/',  include('apps.evaluations.urls',   namespace='evaluations')),
+    path('resultats/',    include('apps.results.urls',       namespace='results')),
 ]
 
 if settings.DEBUG:

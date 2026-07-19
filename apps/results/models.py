@@ -85,6 +85,27 @@ class Resultat(models.Model):
         )
         return resultat
 
+    def rang(self):
+        """
+        Position du candidat parmi les ADMIS de son groupe (même session,
+        même grade visé, même option). Classement par moyenne décroissante ;
+        les ex-aequo partagent le même rang.
+        Retourne (rang, total) ou (None, None) si le résultat n'est pas ADMIS.
+        """
+        if self.decision != 'ADMIS':
+            return None, None
+
+        inscription = self.inscription
+        admis = Resultat.objects.filter(
+            decision='ADMIS',
+            inscription__session_id=inscription.session_id,
+            inscription__grade_vise_id=inscription.grade_vise_id,
+            inscription__option_id=inscription.option_id,
+        )
+        total = admis.count()
+        mieux_classes = admis.filter(moyenne__gt=self.moyenne).count()
+        return mieux_classes + 1, total
+
     def publier(self):
         from django.utils import timezone
         self.publie           = True

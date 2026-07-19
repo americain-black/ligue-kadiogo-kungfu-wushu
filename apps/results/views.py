@@ -60,11 +60,14 @@ def detail_resultat(request, pk):
         return redirect('accounts:tableau_de_bord')
 
     inscription = resultat.inscription
+    rang, total_rang = resultat.rang()
 
     return render(request, 'results/detail_resultat.html', {
         'resultat': resultat,
         'inscription': inscription,
         'lignes': _lignes_notation(inscription),
+        'rang': rang,
+        'total_rang': total_rang,
     })
 
 
@@ -81,6 +84,8 @@ def resultats_session_club(request, session_pk):
         .select_related('pratiquant', 'grade_vise', 'resultat')
         .order_by('pratiquant__nom')
     )
+    for insc in inscriptions:
+        insc.rang, insc.total_rang = insc.resultat.rang()
 
     return render(request, 'results/resultats_session_club.html', {
         'session': session,
@@ -106,11 +111,14 @@ def telecharger_bulletin(request, pk):
     from weasyprint import HTML
 
     inscription = resultat.inscription
+    rang, total_rang = resultat.rang()
 
     html_string = render(request, 'results/bulletin_pdf.html', {
         'resultat': resultat,
         'inscription': inscription,
         'lignes': _lignes_notation(inscription),
+        'rang': rang,
+        'total_rang': total_rang,
     }).content.decode('utf-8')
 
     pdf_bytes = HTML(string=html_string).write_pdf()

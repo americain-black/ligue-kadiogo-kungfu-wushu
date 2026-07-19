@@ -69,6 +69,7 @@
 
     <div class="decision {% if resultat.decision == 'ADMIS' %}admis{% else %}ajourne{% endif %}">
         Moyenne pondérée : {{ resultat.moyenne }}/5 — {{ resultat.get_decision_display }}
+        {% if rang %}<br>Rang : {{ rang }}<sup>e</sup> / {{ total_rang }} ({{ inscription.option }}){% endif %}
     </div>
 
     <div class="signatures">

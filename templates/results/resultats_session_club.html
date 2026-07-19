@@ -38,6 +38,7 @@
                     <th class="text-center">Grade visé</th>
                     <th class="text-center">Moyenne</th>
                     <th class="text-center">Décision</th>
+                    <th class="text-center">Rang</th>
                     <th class="text-end pe-3">Actions</th>
                 </tr>
             </thead>
@@ -57,6 +58,11 @@
                         <span class="badge {% if insc.resultat.decision == 'ADMIS' %}bg-success{% else %}bg-warning text-dark{% endif %}">
                             {{ insc.resultat.get_decision_display }}
                         </span>
+                    </td>
+                    <td class="text-center">
+                        {% if insc.rang %}
+                        <span class="badge bg-primary">{{ insc.rang }}<sup>e</sup>/{{ insc.total_rang }}</span>
+                        {% else %}<span class="text-muted">—</span>{% endif %}
                     </td>
                     <td class="text-end pe-3">
                         <a href="{% url 'results:detail' insc.resultat.pk %}" class="btn btn-sm btn-outline-secondary">

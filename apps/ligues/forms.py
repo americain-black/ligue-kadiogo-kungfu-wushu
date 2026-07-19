@@ -41,7 +41,7 @@ class MembreOrganigrammeForm(forms.ModelForm):
             'nom':                 forms.TextInput(attrs={'class': 'form-control'}),
             'prenom':              forms.TextInput(attrs={'class': 'form-control'}),
             'contact':             forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Téléphone ou email'}),
-            'fonction':            forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Président, Trésorier...'}),
+            'fonction':            forms.Select(attrs={'class': 'form-select'}),
             'date_debut_fonction': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'actif':               forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }

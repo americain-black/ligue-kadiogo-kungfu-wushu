@@ -44,11 +44,29 @@ class VoletOrganigramme(models.Model):
 
 
 class MembreOrganigramme(models.Model):
+    FONCTION_CHOICES = [
+        ('PDT', 'Présidente'),
+        ('VPT', 'Vice-Président'),
+        ('SG',  'Secrétaire Général'),
+        ('SGA', 'Secrétaire Général Adjoint'),
+        ('TG',  'Trésorière Générale'),
+        ('TA',  'Trésorière Adjointe'),
+        ('SO',  "Secrétaire à l'Organisation"),
+        ('SAO', "Secrétaire Adjoint à l'Organisation"),
+        ('SIC', "Secrétaire à l'Information et à la Communication"),
+        ('CC1', '1er Commissaire aux Comptes'),
+        ('CC2', '2e Commissaire aux Comptes'),
+        ('CJ',  'Conseiller Juridique'),
+        ('DT',  'Directeur Technique'),
+        ('DTA', 'Directeur Technique Adjoint'),
+        ('ENT', "Entraîneur de l'Équipe de la Ligue"),
+    ]
+
     volet      = models.ForeignKey(VoletOrganigramme, on_delete=models.CASCADE, related_name='membres')
     nom                = models.CharField(max_length=100)
     prenom             = models.CharField(max_length=100)
     contact            = models.CharField(max_length=50, blank=True)
-    fonction           = models.CharField(max_length=200)
+    fonction           = models.CharField(max_length=200, choices=FONCTION_CHOICES)
     date_debut_fonction = models.DateField(null=True, blank=True)
     actif              = models.BooleanField(default=True)
     date_ajout         = models.DateTimeField(auto_now_add=True)
@@ -59,4 +77,4 @@ class MembreOrganigramme(models.Model):
         ordering            = ['-actif', 'nom', 'prenom']
 
     def __str__(self):
-        return f"{self.prenom} {self.nom} — {self.fonction}"
+        return f"{self.prenom} {self.nom} — {self.get_fonction_display()}"

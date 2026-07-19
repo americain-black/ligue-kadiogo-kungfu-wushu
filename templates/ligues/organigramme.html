@@ -102,7 +102,10 @@
                             <span class="badge bg-secondary ms-1">Inactif</span>
                             {% endif %}
                         </td>
-                        <td>{{ membre.fonction }}</td>
+                        <td>
+                            <span class="badge bg-secondary">{{ membre.fonction }}</span>
+                            {{ membre.get_fonction_display }}
+                        </td>
                         <td class="small text-muted">{{ membre.date_debut_fonction|date:"d/m/Y"|default:"—" }}</td>
                         <td>{{ membre.contact|default:"—" }}</td>
                         <td>
@@ -174,8 +177,12 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Fonction</label>
-                            <input type="text" name="fonction" class="form-control"
-                                   placeholder="Ex: Président, Trésorier..." required>
+                            <select name="fonction" class="form-select" required>
+                                <option value="" disabled selected>Choisir...</option>
+                                {% for code, libelle in fonction_choices %}
+                                <option value="{{ code }}">{{ code }} — {{ libelle }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Date de début de fonction</label>
@@ -291,8 +298,11 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Fonction</label>
-                            <input type="text" name="fonction" class="form-control"
-                                   value="{{ membre.fonction }}" required>
+                            <select name="fonction" class="form-select" required>
+                                {% for code, libelle in fonction_choices %}
+                                <option value="{{ code }}" {% if membre.fonction == code %}selected{% endif %}>{{ code }} — {{ libelle }}</option>
+                                {% endfor %}
+                            </select>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Date de début de fonction</label>

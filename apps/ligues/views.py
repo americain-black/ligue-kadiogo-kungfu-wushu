@@ -124,9 +124,10 @@ def organigramme(request):
     volets = ligue.volets.prefetch_related('membres').all()
     form_volet = VoletOrganigrammeForm()
     return render(request, 'ligues/organigramme.html', {
-        'ligue':       ligue,
-        'volets':      volets,
-        'form_volet':  form_volet,
+        'ligue':            ligue,
+        'volets':           volets,
+        'form_volet':       form_volet,
+        'fonction_choices': MembreOrganigramme.FONCTION_CHOICES,
     })
 
 

@@ -192,6 +192,13 @@
                     {% else %}<span class="text-muted">—</span>{% endif %}
                 </td>
                 <td class="text-end pe-3">
+                    {% if item.session.statut == 'EN_COURS' or item.session.statut == 'CLOTUREE' or item.session.statut == 'RESULTATS_PUBLIES' %}
+                    <a href="{% url 'evaluations:tableau_resultats' item.session.pk %}"
+                       class="btn-action btn-action-edit"
+                       title="Notes et résultats en direct" data-bs-toggle="tooltip">
+                        <i class="bi bi-graph-up"></i>
+                    </a>
+                    {% endif %}
                     <a href="{% url 'exams:licencies_gl' item.session.pk %}"
                        class="btn-action btn-action-edit"
                        title="Liste des licenciés" data-bs-toggle="tooltip">

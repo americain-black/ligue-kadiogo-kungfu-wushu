@@ -12,6 +12,7 @@ urlpatterns = [
 
     # Organigramme
     path('organigramme/',                              views.organigramme,        name='organigramme'),
+    path('organigramme/visuel/',                        views.organigramme_visuel, name='organigramme_visuel'),
     path('organigramme/volet/creer/',                  views.creer_volet,         name='creer_volet'),
     path('organigramme/volet/<int:pk>/modifier/',      views.modifier_volet,      name='modifier_volet'),
     path('organigramme/volet/<int:pk>/supprimer/',     views.supprimer_volet,     name='supprimer_volet'),

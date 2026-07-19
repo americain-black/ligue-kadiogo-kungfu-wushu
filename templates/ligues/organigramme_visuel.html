@@ -1,0 +1,178 @@
+{% extends 'base.html' %}
+
+{% block title %}Organigramme (vue graphique) — {{ ligue.nom_ligue }}{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<a href="{% url 'ligues:organigramme' %}" class="nav-link">
+    <i class="bi bi-diagram-3 me-2"></i>Organigramme
+</a>
+<a href="{% url 'ligues:organigramme_visuel' %}" class="nav-link active">
+    <i class="bi bi-diagram-2 me-2"></i>Vue graphique
+</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    .tree, .tree ul, .tree li {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        position: relative;
+    }
+    .tree {
+        margin: 2em 0 1em;
+        text-align: center;
+    }
+    .tree, .tree ul {
+        display: table;
+        width: 100%;
+    }
+    .tree ul {
+        margin-top: 1.5em;
+    }
+    .tree li {
+        display: table-cell;
+        padding: 0 .5em;
+        vertical-align: top;
+    }
+    /* Lignes horizontales reliant les frères */
+    .tree li:before {
+        outline: solid 1px #333;
+        content: "";
+        left: 0;
+        position: absolute;
+        right: 0;
+        top: -0.75em;
+    }
+    .tree li:first-child:before { left: 50%; }
+    .tree li:last-child:before  { right: 50%; }
+    .tree li:only-child:before  { display: none; }
+
+    /* Trait vertical descendant vers chaque enfant */
+    .tree li > .noeud:before {
+        outline: solid 1px #333;
+        content: "";
+        height: .75em;
+        left: 50%;
+        position: absolute;
+        top: -0.75em;
+    }
+    .tree > li:before,
+    .tree > li > .noeud:before {
+        outline: none;
+    }
+
+    .tree .noeud {
+        border: 2px solid #333;
+        border-radius: .3em;
+        display: inline-block;
+        margin: 0 .3em 1em;
+        padding: .5em .9em;
+        position: relative;
+        background: #fff;
+        font-weight: 600;
+        min-width: 9em;
+    }
+    .tree .noeud-ligue {
+        background: #c0392b;
+        color: #fff;
+        border-color: #c0392b;
+        text-transform: uppercase;
+        font-size: 1.05em;
+    }
+    .tree .noeud-volet {
+        background: #f8f9fa;
+        border-color: #2980b9;
+        color: #2980b9;
+        text-transform: uppercase;
+        font-size: .9em;
+    }
+    .tree .noeud-membre .code {
+        display: block;
+        font-size: .75em;
+        letter-spacing: .05em;
+        color: #c0392b;
+    }
+    .tree .noeud-membre .nom {
+        display: block;
+        font-weight: 600;
+    }
+
+    @media print {
+        .no-print { display: none !important; }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 no-print">
+    <div class="d-flex align-items-center gap-3">
+        <a href="{% url 'ligues:organigramme' %}" class="btn-action btn-action-edit flex-shrink-0" title="Retour à la gestion" data-bs-toggle="tooltip">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+            <h4 class="fw-bold mb-0">Organigramme — vue graphique</h4>
+            <small class="text-muted">{{ ligue.nom_ligue }} ({{ ligue.sigle }})</small>
+        </div>
+    </div>
+    <button class="btn btn-outline-secondary" onclick="window.print()">
+        <i class="bi bi-printer me-1"></i>Imprimer
+    </button>
+</div>
+
+{% if not volets %}
+<div class="text-center py-5 text-muted">
+    <i class="bi bi-diagram-2 fs-1"></i>
+    <p class="mt-2">Aucun volet créé pour l'instant.</p>
+</div>
+{% else %}
+<h5 class="text-center fw-bold text-uppercase mb-0">Organigramme de {{ ligue.nom_ligue }}</h5>
+
+<div class="table-responsive">
+    <ul class="tree">
+        <li>
+            <span class="noeud noeud-ligue">{{ ligue.sigle }}</span>
+            <ul>
+                {% for volet in volets %}
+                <li>
+                    <span class="noeud noeud-volet">{{ volet.nom_volet }}</span>
+                    {% if volet.membres_actifs %}
+                    <ul>
+                        {% for membre in volet.membres_actifs %}
+                        <li>
+                            <span class="noeud noeud-membre">
+                                <span class="code">{{ membre.fonction }}</span>
+                                <span class="nom">{{ membre.prenom }} {{ membre.nom }}</span>
+                            </span>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+        </li>
+    </ul>
+</div>
+
+<!-- Légende des abréviations -->
+<div class="card mt-4 no-print">
+    <div class="card-header py-2">
+        <h6 class="fw-bold mb-0"><i class="bi bi-list-ul me-2"></i>Légende</h6>
+    </div>
+    <div class="card-body">
+        <div class="row row-cols-2 row-cols-md-4 g-2 small">
+            {% for code, libelle in fonction_choices %}
+            <div class="col">
+                <span class="badge bg-secondary">{{ code }}</span> {{ libelle }}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -132,6 +132,23 @@ def organigramme(request):
 
 
 @gest_ligue_requis
+def organigramme_visuel(request):
+    ligue = request.user.ligue
+    ordre_fonctions = [code for code, _ in MembreOrganigramme.FONCTION_CHOICES]
+    volets = ligue.volets.prefetch_related('membres').all()
+    for volet in volets:
+        volet.membres_actifs = sorted(
+            volet.membres.filter(actif=True),
+            key=lambda m: ordre_fonctions.index(m.fonction) if m.fonction in ordre_fonctions else 999
+        )
+    return render(request, 'ligues/organigramme_visuel.html', {
+        'ligue':            ligue,
+        'volets':           volets,
+        'fonction_choices': MembreOrganigramme.FONCTION_CHOICES,
+    })
+
+
+@gest_ligue_requis
 def creer_volet(request):
     if request.method == 'POST':
         form = VoletOrganigrammeForm(request.POST)

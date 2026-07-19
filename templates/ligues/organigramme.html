@@ -30,9 +30,14 @@
             <small class="text-muted">{{ ligue.nom_ligue }} ({{ ligue.sigle }})</small>
         </div>
     </div>
-    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAjouterVolet">
-        <i class="bi bi-plus-circle me-1"></i>Ajouter un volet
-    </button>
+    <div class="d-flex gap-2">
+        <a href="{% url 'ligues:organigramme_visuel' %}" class="btn btn-outline-primary">
+            <i class="bi bi-diagram-2 me-1"></i>Vue graphique
+        </a>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAjouterVolet">
+            <i class="bi bi-plus-circle me-1"></i>Ajouter un volet
+        </button>
+    </div>
 </div>
 
 {% if messages %}

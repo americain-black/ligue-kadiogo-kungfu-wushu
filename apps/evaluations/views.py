@@ -298,11 +298,13 @@ def tableau_resultats(request, session_id):
     nb_ajournes = 0
     for insc in inscriptions:
         insc.nb_notes_validees = insc.notes.filter(validee=True).count()
+        insc.rang = insc.total_rang = None
         if hasattr(insc, 'resultat'):
             if insc.resultat.decision == 'ADMIS':
                 nb_admis += 1
             else:
                 nb_ajournes += 1
+            insc.rang, insc.total_rang = insc.resultat.rang()
 
     return render(request, 'evaluations/tableau_resultats.html', {
         'session': session,

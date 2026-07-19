@@ -116,6 +116,7 @@
                     <th class="text-center">Notes validées</th>
                     <th class="text-center">Moyenne</th>
                     <th class="text-center">Décision</th>
+                    <th class="text-center" title="Calculé au chargement de la page ; rechargez pour un rang à jour après de nouveaux résultats." data-bs-toggle="tooltip">Rang</th>
                     <th class="text-center">Fiche</th>
                 </tr>
             </thead>
@@ -145,6 +146,11 @@
                         {% else %}
                         <span class="badge bg-light text-dark border en-cours">En cours</span>
                         {% endif %}
+                    </td>
+                    <td class="text-center" id="rang-{{ insc.pk }}">
+                        {% if insc.rang %}
+                        <span class="badge bg-primary">{{ insc.rang }}<sup>e</sup>/{{ insc.total_rang }}</span>
+                        {% else %}<span class="text-muted">—</span>{% endif %}
                     </td>
                     <td class="text-center">
                         <a href="{% url 'evaluations:detail_candidat' session.pk insc.pk %}"

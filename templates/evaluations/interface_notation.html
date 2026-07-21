@@ -4,9 +4,8 @@
 {% block extra_css %}
 <style>
     .ws-badge { transition: all 0.3s ease; }
-    .candidat-card { transition: box-shadow 0.2s; cursor: pointer; }
-    .candidat-card:hover { box-shadow: 0 4px 16px rgba(192,57,43,0.15); }
-    .progress-notes { height: 6px; border-radius: 3px; }
+    .ligne-candidat:hover { background-color: rgba(192,57,43,0.05); }
+    .progress-notes { height: 6px; border-radius: 3px; min-width: 100px; }
     .flash-update {
         animation: flashVert 1s ease;
     }
@@ -88,56 +87,76 @@
     <div class="col-6 col-md-3">
         <div class="card p-3" style="border-left:4px solid #27ae60;">
             <div class="text-muted small">Notes validées</div>
-            <div class="fw-bold fs-4 text-success" id="compteur-valides">0</div>
+            <div class="fw-bold fs-4 text-success" id="compteur-valides">{{ nb_notes_validees }}</div>
         </div>
     </div>
     <div class="col-6 col-md-3">
         <div class="card p-3" style="border-left:4px solid #f39c12;">
             <div class="text-muted small">En attente</div>
-            <div class="fw-bold fs-4 text-warning" id="compteur-attente">{{ inscriptions|length }}</div>
+            <div class="fw-bold fs-4 text-warning" id="compteur-attente">{{ nb_en_attente }}</div>
         </div>
     </div>
     <div class="col-6 col-md-3">
         <div class="card p-3" style="border-left:4px solid #2980b9;">
             <div class="text-muted small">Résultats calculés</div>
-            <div class="fw-bold fs-4 text-primary" id="compteur-resultats">0</div>
+            <div class="fw-bold fs-4 text-primary" id="compteur-resultats">{{ nb_resultats }}</div>
         </div>
     </div>
 </div>
 
 <!-- Liste des candidats -->
 {% if inscriptions %}
-<div class="row g-3" id="liste-candidats">
-    {% for insc in inscriptions %}
-    <div class="col-12 col-md-6 col-lg-4" id="candidat-{{ insc.pk }}">
-        <a href="{% url 'evaluations:detail_candidat' session.pk insc.pk %}"
-           class="text-decoration-none">
-            <div class="card p-3 candidat-card h-100">
-                <div class="d-flex justify-content-between align-items-start mb-2">
-                    <div>
-                        <div class="fw-bold">{{ insc.pratiquant.nom }} {{ insc.pratiquant.prenom }}</div>
-                        <small class="text-muted">{{ insc.pratiquant.club.nom_club }}</small>
-                    </div>
-                    <span class="badge bg-primary">{{ insc.grade_vise }}</span>
-                </div>
-                <!-- Progression des notes -->
-                <div class="mb-1">
-                    <div class="d-flex justify-content-between mb-1">
-                        <small class="text-muted">Progression notes</small>
-                        <small class="fw-semibold" id="prog-texte-{{ insc.pk }}">—</small>
-                    </div>
-                    <div class="progress progress-notes">
+<div class="card p-0">
+    <table class="table table-hover align-middle mb-0" id="liste-candidats">
+        <thead class="table-light">
+            <tr>
+                <th class="ps-3">Candidat</th>
+                <th>Club</th>
+                <th class="text-center">Grade visé</th>
+                <th>Progression notes</th>
+                <th class="text-center">Résultat</th>
+                <th class="text-center">Action</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for insc in inscriptions %}
+        <tr class="ligne-candidat" id="candidat-{{ insc.pk }}">
+            <td class="ps-3 fw-bold">{{ insc.pratiquant.nom }} {{ insc.pratiquant.prenom }}</td>
+            <td class="text-muted small">{{ insc.pratiquant.club.nom_club }}</td>
+            <td class="text-center">
+                <span class="badge bg-primary">{{ insc.grade_vise }}</span>
+            </td>
+            <td>
+                <div class="d-flex align-items-center gap-2">
+                    <div class="progress progress-notes flex-grow-1">
                         <div class="progress-bar bg-success" id="prog-bar-{{ insc.pk }}"
-                             role="progressbar" style="width:0%"></div>
+                             role="progressbar" style="width:{{ insc.pct_notes }}%"></div>
                     </div>
+                    <small class="fw-semibold text-nowrap" id="prog-texte-{{ insc.pk }}">
+                        {% if insc.rubriques_validees %}{{ insc.rubriques_validees|length }} validée(s){% else %}—{% endif %}
+                    </small>
                 </div>
-                <!-- Résultat si calculé -->
-                <div id="resultat-{{ insc.pk }}" class="mt-2 d-none">
-                </div>
-            </div>
-        </a>
-    </div>
-    {% endfor %}
+            </td>
+            <td class="text-center">
+                <span id="resultat-{{ insc.pk }}" class="d-none"></span>
+            </td>
+            <td class="text-center" id="action-{{ insc.pk }}">
+                {% if insc.deja_note %}
+                <a href="{% url 'evaluations:detail_candidat' session.pk insc.pk %}"
+                   class="btn btn-sm btn-outline-warning">
+                    <i class="bi bi-arrow-repeat me-1"></i>Demander correction
+                </a>
+                {% else %}
+                <a href="{% url 'evaluations:detail_candidat' session.pk insc.pk %}"
+                   class="btn btn-sm btn-outline-primary">
+                    <i class="bi bi-pencil-square me-1"></i>Noter
+                </a>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
 </div>
 {% else %}
 <div class="card p-5 text-center text-muted">
@@ -145,6 +164,8 @@
     Aucun candidat autorisé pour cette session.
 </div>
 {% endif %}
+
+{{ progressions_initiales|json_script:"progressions-data" }}
 
 {% endblock %}
 
@@ -155,8 +176,8 @@ const WS_URL      = `ws://${window.location.host}/{{ ws_url }}`;
 const CSRF_TOKEN  = '{{ csrf_token }}';
 
 // ── Compteurs ────────────────────────────────────────────────────────────────
-let nbValides   = 0;
-let nbResultats = 0;
+let nbValides   = {{ nb_notes_validees }};
+let nbResultats = {{ nb_resultats }};
 const nbTotal   = {{ inscriptions|length }};
 
 function mettreAJourCompteurs() {
@@ -177,7 +198,15 @@ function afficherToast(message, couleur = 'bg-success text-white') {
 }
 
 // ── Barre de progression ─────────────────────────────────────────────────────
-const progressions = {};   // inscription_id → { validees: Set, total: ? }
+// Amorcée avec l'état réel en base (rubriques déjà validées avant le chargement
+// de la page), pour que les compteurs ne repartent pas de zéro à chaque rechargement.
+const progressionsInitiales = JSON.parse(
+    document.getElementById('progressions-data').textContent
+);
+const progressions = {};   // inscription_id → { validees: Set(noms de rubriques) }
+for (const [id, rubriques] of Object.entries(progressionsInitiales)) {
+    progressions[id] = { validees: new Set(rubriques) };
+}
 
 function mettreAJourBarre(inscriptionId, rubrique, valide) {
     if (!progressions[inscriptionId]) {
@@ -185,6 +214,8 @@ function mettreAJourBarre(inscriptionId, rubrique, valide) {
     }
     if (valide) {
         progressions[inscriptionId].validees.add(rubrique);
+    } else {
+        progressions[inscriptionId].validees.delete(rubrique);
     }
     const nb    = progressions[inscriptionId].validees.size;
     const barre = document.getElementById(`prog-bar-${inscriptionId}`);
@@ -193,7 +224,7 @@ function mettreAJourBarre(inscriptionId, rubrique, valide) {
         // On estime sur 5 rubriques max si on ne connaît pas le total
         const pct = Math.min(nb * 20, 100);
         barre.style.width = pct + '%';
-        texte.textContent = `${nb} validée(s)`;
+        texte.textContent = nb > 0 ? `${nb} validée(s)` : '—';
         nbValides = Object.values(progressions)
             .reduce((acc, p) => acc + p.validees.size, 0);
         mettreAJourCompteurs();
@@ -201,18 +232,38 @@ function mettreAJourBarre(inscriptionId, rubrique, valide) {
 }
 
 // ── Résultat ─────────────────────────────────────────────────────────────────
+// Amorcé avec les candidats déjà notés au chargement de la page, pour éviter
+// de compter deux fois un résultat recalculé (ex : après correction d'une note).
+const resultatsComptabilises = new Set(
+    [{% for insc in inscriptions %}{% if insc.deja_note %}{{ insc.pk }},{% endif %}{% endfor %}]
+);
+
 function afficherResultat(inscriptionId, decision, moyenne) {
     const div = document.getElementById(`resultat-${inscriptionId}`);
     if (!div) return;
     const couleur = decision === 'ADMIS' ? 'success' : 'warning';
     div.innerHTML = `
         <span class="badge bg-${couleur} me-1">${decision}</span>
-        <small class="text-muted">Moy. ${moyenne}/5</small>`;
+        <small class="text-muted">Moy. ${moyenne}/20</small>`;
     div.classList.remove('d-none');
     const carte = document.getElementById(`candidat-${inscriptionId}`);
     if (carte) carte.classList.add('flash-update');
-    nbResultats++;
-    mettreAJourCompteurs();
+
+    // La notation est verrouillée : l'action passe de "Noter" à "Demander correction"
+    const action = document.getElementById(`action-${inscriptionId}`);
+    if (action) {
+        const lien = action.querySelector('a');
+        if (lien) {
+            lien.className = 'btn btn-sm btn-outline-warning';
+            lien.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i>Demander correction';
+        }
+    }
+
+    if (!resultatsComptabilises.has(inscriptionId)) {
+        resultatsComptabilises.add(inscriptionId);
+        nbResultats++;
+        mettreAJourCompteurs();
+    }
 }
 
 // ── WebSocket ─────────────────────────────────────────────────────────────────
@@ -258,7 +309,7 @@ ws.onmessage = function(event) {
         afficherResultat(d.inscription_id, d.decision, d.moyenne);
         const couleur = d.decision === 'ADMIS' ? 'bg-success' : 'bg-warning';
         afficherToast(
-            `Résultat ${d.pratiquant} : ${d.decision} (${d.moyenne}/5)`,
+            `Résultat ${d.pratiquant} : ${d.decision} (${d.moyenne}/20)`,
             `${couleur} text-white`
         );
     }

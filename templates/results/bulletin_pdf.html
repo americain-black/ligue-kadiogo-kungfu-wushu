@@ -4,77 +4,292 @@
 <meta charset="utf-8">
 <title>Bulletin — {{ inscription.pratiquant }}</title>
 <style>
-    @page { size: A4; margin: 2cm; }
-    body { font-family: 'DejaVu Sans', Arial, sans-serif; font-size: 12pt; color: #222; }
-    .entete { text-align: center; margin-bottom: 24px; border-bottom: 2px solid #333; padding-bottom: 12px; }
-    .entete h1 { font-size: 16pt; text-transform: uppercase; margin: 0; }
-    .entete .sigle { color: #555; font-size: 10pt; }
-    .titre-bulletin { text-align: center; font-size: 14pt; font-weight: bold; margin: 20px 0; text-decoration: underline; }
-    table.infos { width: 100%; margin-bottom: 20px; border-collapse: collapse; }
-    table.infos td { padding: 4px 0; font-size: 11pt; }
-    table.notes { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-    table.notes th, table.notes td { border: 1px solid #999; padding: 6px 8px; font-size: 11pt; text-align: center; }
-    table.notes th { background-color: #333; color: #fff; }
-    table.notes td:first-child { text-align: left; }
-    .decision { text-align: center; font-size: 13pt; font-weight: bold; margin: 20px 0; padding: 10px; border: 2px solid #333; }
-    .decision.admis { color: #1e7e34; border-color: #1e7e34; }
-    .decision.ajourne { color: #b8860b; border-color: #b8860b; }
-    .signatures { margin-top: 60px; display: flex; justify-content: space-between; }
-    .signatures div { text-align: center; width: 45%; border-top: 1px solid #333; padding-top: 6px; font-size: 10pt; }
+    @page { size: A4; margin: 1.6cm 1.8cm; }
+    * { box-sizing: border-box; }
+    body {
+        font-family: 'DejaVu Sans', Arial, sans-serif;
+        font-size: 10pt;
+        color: #1a1a1a;
+        line-height: 1.35;
+    }
+
+    /* ── En-tête ──────────────────────────────────────────────────────── */
+    .entete {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 2px solid #333;
+        padding-bottom: 8px;
+        margin-bottom: 4px;
+    }
+    .entete .bloc { width: 32%; font-size: 8pt; font-weight: bold; text-transform: uppercase; }
+    .entete .bloc.droite { text-align: right; }
+    .entete .bloc .trait { border-top: 1px solid #333; margin: 3px 0; width: 60%; }
+    .entete .bloc.droite .trait { margin-left: auto; }
+    .entete .bloc .devise { font-size: 7.5pt; font-weight: normal; font-style: italic; text-transform: none; }
+    .entete .logo {
+        width: 32%;
+        text-align: center;
+    }
+    .entete .logo img { max-height: 60px; max-width: 60px; }
+    .entete .logo .sigle-badge {
+        display: inline-block;
+        width: 56px; height: 56px;
+        border-radius: 50%;
+        border: 2px solid #333;
+        line-height: 52px;
+        font-weight: bold;
+        font-size: 9pt;
+    }
+
+    .titre-bulletin {
+        text-align: center;
+        font-size: 15pt;
+        font-weight: bold;
+        letter-spacing: 1px;
+        margin: 10px 0 14px;
+    }
+
+    .ligne-session {
+        font-size: 9.5pt;
+        margin-bottom: 12px;
+    }
+    .ligne-session .pointille {
+        border-bottom: 1px dotted #555;
+        padding: 0 4px;
+        font-weight: bold;
+    }
+
+    /* ── Identité du candidat ─────────────────────────────────────────── */
+    table.identite {
+        width: 100%;
+        border: 1px solid #333;
+        border-collapse: collapse;
+        margin-bottom: 14px;
+        font-size: 9.5pt;
+    }
+    table.identite td {
+        padding: 5px 10px;
+        vertical-align: top;
+    }
+    table.identite .label { color: #555; }
+    table.identite .valeur { font-weight: bold; }
+    table.identite tr:not(:last-child) td { border-bottom: 1px solid #ddd; }
+
+    /* ── Tableau des notes ────────────────────────────────────────────── */
+    table.notes { width: 100%; border-collapse: collapse; margin-bottom: 0; font-size: 9.5pt; }
+    table.notes th, table.notes td { border: 1px solid #999; padding: 5px 8px; text-align: center; }
+    table.notes thead th { background-color: #2c2c2c; color: #fff; font-size: 9pt; }
+    table.notes td:first-child, table.notes th:first-child { text-align: left; }
+    table.notes tbody tr:nth-child(even) { background-color: #f7f7f7; }
+    table.notes tfoot td { font-weight: bold; background-color: #eaeaea; }
+
+    /* ── Bloc résultat (table à 3 colonnes, comme le modèle papier) ──────── */
+    table.bloc-resultat {
+        width: 100%;
+        border-collapse: collapse;
+        border: 2px solid #333;
+        margin-bottom: 16px;
+    }
+    table.bloc-resultat > tbody > tr > td { vertical-align: top; border: none; }
+    table.bloc-resultat .col-stats   { width: 33%; border-right: 1px solid #333; padding: 0; }
+    table.bloc-resultat .col-decision{ width: 34%; border-right: 1px solid #333; text-align: center; padding: 12px 6px; }
+    table.bloc-resultat .col-rappel  { width: 33%; padding: 6px 8px; }
+
+    table.stats { width: 100%; border-collapse: collapse; font-size: 9pt; }
+    table.stats td { padding: 5px 8px; border-bottom: 1px solid #ddd; border-left: none; border-right: none; border-top: none; }
+    table.stats td:first-child { color: #555; }
+    table.stats td:last-child { font-weight: bold; text-align: right; }
+    table.stats tr:last-child td { border-bottom: none; }
+
+    .col-decision .mention { font-size: 10.5pt; font-weight: bold; margin-bottom: 8px; }
+    .col-decision .decision {
+        font-size: 13pt;
+        font-weight: bold;
+        text-transform: uppercase;
+        padding: 4px 14px;
+        border-radius: 4px;
+        display: inline-block;
+    }
+    .decision.admis   { color: #1e7e34; background: #e6f4ea; }
+    .decision.ajourne { color: #b8860b; background: #fdf3dd; }
+
+    .col-rappel .titre-rappel { font-size: 8pt; font-weight: bold; text-align: center; margin-bottom: 4px; color: #555; }
+    table.rappel-tab { width: 100%; border-collapse: collapse; font-size: 7.5pt; }
+    table.rappel-tab th, table.rappel-tab td { border: 1px solid #ccc; padding: 3px 4px; text-align: center; }
+    table.rappel-tab th { background: #f0f0f0; }
+    .col-rappel .vide { font-size: 8pt; color: #999; text-align: center; padding: 10px 0; }
+
+    /* ── Signature ────────────────────────────────────────────────────── */
+    .signature-zone {
+        text-align: right;
+        font-size: 9.5pt;
+        margin-top: 26px;
+        margin-bottom: 50px;
+    }
+    .signature-zone .titre-fonction { margin-top: 34px; font-weight: bold; }
+
+    /* ── Pied de page ─────────────────────────────────────────────────── */
+    .pied {
+        border-top: 1px solid #999;
+        padding-top: 6px;
+        text-align: center;
+        font-size: 7.5pt;
+        color: #555;
+    }
+    .pied .avertissement { font-style: italic; margin-top: 2px; }
 </style>
 </head>
 <body>
+
     <div class="entete">
-        <h1>{{ inscription.session.annee_sportive.ligue.nom_ligue }}</h1>
-        <div class="sigle">{{ inscription.session.annee_sportive.ligue.sigle }}</div>
+        <div class="bloc">
+            Fédération Burkinabè de Kung Fu Wushu
+            <div class="trait"></div>
+            {{ ligue.nom_ligue }}
+            <div class="trait"></div>
+        </div>
+        <div class="logo">
+            {% if ligue.logo %}
+            <img src="{{ ligue.logo.url }}" alt="{{ ligue.sigle }}">
+            {% else %}
+            <span class="sigle-badge">{{ ligue.sigle }}</span>
+            {% endif %}
+        </div>
+        <div class="bloc droite">
+            Burkina Faso
+            <div class="trait"></div>
+            <span class="devise">La Patrie ou la Mort, nous Vaincrons</span>
+        </div>
     </div>
 
-    <div class="titre-bulletin">Bulletin de résultat d'examen de grade</div>
+    <div class="titre-bulletin">BULLETIN DE NOTE</div>
 
-    <table class="infos">
+    <div class="ligne-session">
+        Date de passage de grade :
+        <span class="pointille">{{ inscription.session.date_examen|date:"d/m/Y" }}</span>
+        &nbsp;&nbsp;Session de :
+        <span class="pointille">{{ inscription.session.titre }}</span>
+    </div>
+
+    <table class="identite">
         <tr>
-            <td><strong>Candidat :</strong> {{ inscription.pratiquant.nom }} {{ inscription.pratiquant.prenom }}</td>
-            <td><strong>Club :</strong> {{ inscription.pratiquant.club.nom_club }}</td>
+            <td style="width:16%" class="label">Matricule</td>
+            <td style="width:34%" class="valeur">{{ inscription.pratiquant.matricule|default:"—" }}</td>
+            <td style="width:16%" class="label">Sexe</td>
+            <td style="width:34%" class="valeur">{{ inscription.pratiquant.get_sexe_display }}</td>
         </tr>
         <tr>
-            <td><strong>Session :</strong> {{ inscription.session.titre }}</td>
-            <td><strong>Date :</strong> {{ inscription.session.date_examen|date:"d/m/Y" }}</td>
+            <td class="label">Nom</td>
+            <td class="valeur">{{ inscription.pratiquant.nom }}</td>
+            <td class="label">Prénom(s)</td>
+            <td class="valeur">{{ inscription.pratiquant.prenom }}</td>
         </tr>
         <tr>
-            <td><strong>Grade visé :</strong> {{ inscription.grade_vise }}</td>
-            <td><strong>Année sportive :</strong> {{ inscription.session.annee_sportive.libelle }}</td>
+            <td class="label">Date de naissance</td>
+            <td class="valeur">{{ inscription.pratiquant.date_naissance|date:"d/m/Y" }}</td>
+            <td class="label">Lieu de naissance</td>
+            <td class="valeur">{{ inscription.pratiquant.lieu_naissance|default:"—" }}</td>
+        </tr>
+        <tr>
+            <td class="label">Club</td>
+            <td class="valeur" colspan="3">{{ inscription.pratiquant.club.nom_club }}</td>
+        </tr>
+        <tr>
+            <td class="label">Grade détenu</td>
+            <td class="valeur">{{ inscription.pratiquant.grade_actuel|default:"Sans grade" }}</td>
+            <td class="label">Grade postulé</td>
+            <td class="valeur">{{ inscription.grade_vise }}</td>
+        </tr>
+        <tr>
+            <td class="label">Option</td>
+            <td class="valeur" colspan="3">{{ inscription.option }}</td>
         </tr>
     </table>
 
     <table class="notes">
         <thead>
             <tr>
-                <th>Rubrique / Épreuve</th>
-                <th>Coefficient</th>
-                <th>Note min.</th>
-                <th>Note /5</th>
+                <th>Rubrique</th>
+                <th style="width:12%">Note /5</th>
+                <th style="width:14%">Coefficient</th>
+                <th style="width:16%">Pondérée</th>
             </tr>
         </thead>
         <tbody>
             {% for ligne in lignes %}
             <tr>
                 <td>{{ ligne.rubrique_grade.rubrique.nom }}</td>
-                <td>×{{ ligne.rubrique_grade.coefficient }}</td>
-                <td>{{ ligne.rubrique_grade.note_minimale }}/5</td>
-                <td>{% if ligne.note %}{{ ligne.note.note }}/5{% else %}—{% endif %}</td>
+                <td>{% if ligne.note %}{{ ligne.note.note }}{% else %}—{% endif %}</td>
+                <td>{{ ligne.rubrique_grade.coefficient }}</td>
+                <td>{% if ligne.pondere is not None %}{{ ligne.pondere }}{% else %}—{% endif %}</td>
             </tr>
             {% endfor %}
         </tbody>
+        <tfoot>
+            <tr>
+                <td>Total</td>
+                <td></td>
+                <td>{{ total_coeff }}</td>
+                <td>{{ total_pondere }}</td>
+            </tr>
+        </tfoot>
     </table>
 
-    <div class="decision {% if resultat.decision == 'ADMIS' %}admis{% else %}ajourne{% endif %}">
-        Moyenne pondérée : {{ resultat.moyenne }}/5 — {{ resultat.get_decision_display }}
-        {% if rang %}<br>Rang : {{ rang }}<sup>e</sup> / {{ total_rang }} ({{ inscription.option }}){% endif %}
+    <table class="bloc-resultat">
+        <tr>
+            <td class="col-stats">
+                <table class="stats">
+                    <tr><td>Moy.</td><td>{{ resultat.moyenne }}/20</td></tr>
+                    <tr><td>Rang</td><td>{% if rang %}{{ rang }}<sup>e</sup>/{{ total_rang }}{% else %}—{% endif %}</td></tr>
+                    <tr><td>Moy. grade</td><td>{{ stats.moyenne|floatformat:2 }}</td></tr>
+                    <tr><td>Moy. min</td><td>{{ stats.minimum|floatformat:2 }}</td></tr>
+                    <tr><td>Moy. max</td><td>{{ stats.maximum|floatformat:2 }}</td></tr>
+                </table>
+            </td>
+            <td class="col-decision">
+                <div class="mention">{{ resultat.mention }}</div>
+                <span class="decision {% if resultat.decision == 'ADMIS' %}admis{% else %}ajourne{% endif %}">
+                    {{ resultat.get_decision_display }}
+                </span>
+            </td>
+            <td class="col-rappel">
+                <div class="titre-rappel">Rappel moyenne</div>
+                {% if rappel %}
+                <table class="rappel-tab">
+                    <thead>
+                        <tr><th>Date</th><th>Grade</th><th>Moy.</th><th>Rang</th></tr>
+                    </thead>
+                    <tbody>
+                        {% for r in rappel %}
+                        <tr>
+                            <td>{{ r.date|date:"d/m/y" }}</td>
+                            <td>{{ r.grade }}</td>
+                            <td>{{ r.moyenne }}</td>
+                            <td>{% if r.rang %}{{ r.rang }}/{{ r.total }}{% else %}—{% endif %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% else %}
+                <div class="vide">Premier passage de grade</div>
+                {% endif %}
+            </td>
+        </tr>
+    </table>
+
+    <div class="signature-zone">
+        <div>Ouagadougou, le {% now "d/m/Y" %}</div>
+        <div class="titre-fonction">Le Directeur Technique</div>
     </div>
 
-    <div class="signatures">
-        <div>Le Président du Jury</div>
-        <div>Le Gestionnaire de Ligue</div>
+    <div class="pied">
+        {{ ligue.nom_ligue }} ({{ ligue.sigle }})
+        {% if ligue.adresse_siege %} — Siège social : {{ ligue.adresse_siege }}{% endif %}
+        {% if ligue.email_contact %} — Mail : {{ ligue.email_contact }}{% endif %}
+        {% if ligue.telephone %} — Tél : {{ ligue.telephone }}{% endif %}
+        <div class="avertissement">Ceci est un document original, il n'est délivré qu'en un seul exemplaire.</div>
     </div>
+
 </body>
 </html>

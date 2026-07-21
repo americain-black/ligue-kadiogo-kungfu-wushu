@@ -47,6 +47,7 @@
                 <th>Date examen</th>
                 <th>Lieu</th>
                 <th>Statut</th>
+                <th class="text-center">Action</th>
             </tr>
         </thead>
         <tbody>
@@ -69,6 +70,16 @@
                     <span class="badge bg-dark">Clôturée</span>
                 {% elif aff.session.statut == 'RESULTATS_PUBLIES' %}
                     <span class="badge bg-info">Résultats publiés</span>
+                {% endif %}
+            </td>
+            <td class="text-center">
+                {% if aff.session.statut == 'EN_COURS' %}
+                <a href="{% url 'evaluations:interface_notation' aff.session.pk %}"
+                   class="btn btn-sm btn-primary">
+                    <i class="bi bi-pencil-square me-1"></i>Noter
+                </a>
+                {% else %}
+                    <span class="text-muted small">—</span>
                 {% endif %}
             </td>
         </tr>

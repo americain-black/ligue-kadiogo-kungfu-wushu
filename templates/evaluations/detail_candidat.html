@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load evaluations_extras %}
 {% block title %}{{ inscription.pratiquant }} — Notation{% endblock %}
 
 {% block extra_css %}
@@ -132,7 +133,7 @@
                             <input type="number" class="form-control note-input"
                                    id="input-{{ rg.pk }}"
                                    value="{% if note_obj %}{{ note_obj.note }}{% endif %}"
-                                   min="0" max="20" step="0.5"
+                                   min="0" max="5" step="0.5"
                                    placeholder="—"
                                    {% if note_obj and note_obj.validee %}disabled{% endif %}>
                             {% else %}
@@ -248,8 +249,8 @@ async function postJSON(url, body = {}) {
 async function sauvegarderNote(rubriqueGradeId) {
     const input = document.getElementById(`input-${rubriqueGradeId}`);
     const valeur = parseFloat(input.value);
-    if (isNaN(valeur) || valeur < 0 || valeur > 20) {
-        afficherToast('La note doit être entre 0 et 20.', 'bg-danger text-white');
+    if (isNaN(valeur) || valeur < 0 || valeur > 5) {
+        afficherToast('La note doit être entre 0 et 5.', 'bg-danger text-white');
         return;
     }
     const url = `/evaluations/session/${SESSION_ID}/candidat/${INSCRIPTION_ID}/rubrique/${rubriqueGradeId}/saisir/`;
@@ -384,10 +385,10 @@ ws.onmessage = function(event) {
         bandeau.className = `alert ${couleur} mb-4`;
         bandeau.innerHTML = `
             <strong><i class="bi bi-trophy me-2"></i>Résultat calculé :</strong>
-            ${d.decision} — Moyenne ${d.moyenne}/5`;
+            ${d.decision} — Moyenne ${d.moyenne}/20`;
         bandeau.classList.remove('d-none');
         afficherToast(
-            `Résultat : ${d.decision} (${d.moyenne}/5)`,
+            `Résultat : ${d.decision} (${d.moyenne}/20)`,
             d.decision === 'ADMIS' ? 'bg-success text-white' : 'bg-warning text-dark'
         );
     }

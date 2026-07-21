@@ -99,10 +99,24 @@ def interface_notation(request, session_id):
 
     inscriptions = (
         Inscription.objects.filter(session=session, statut='AUTORISE')
-        .select_related('pratiquant', 'grade_vise')
-        .prefetch_related('notes')
+        .select_related('pratiquant', 'grade_vise', 'resultat')
+        .prefetch_related('notes__rubrique_grade__rubrique')
         .order_by('pratiquant__nom')
     )
+
+    nb_resultats = 0
+    nb_notes_validees = 0
+    progressions_initiales = {}
+    for insc in inscriptions:
+        insc.deja_note = hasattr(insc, 'resultat')
+        if insc.deja_note:
+            nb_resultats += 1
+        insc.rubriques_validees = [
+            n.rubrique_grade.rubrique.nom for n in insc.notes.all() if n.validee
+        ]
+        insc.pct_notes = min(len(insc.rubriques_validees) * 20, 100)
+        nb_notes_validees += len(insc.rubriques_validees)
+        progressions_initiales[insc.pk] = insc.rubriques_validees
 
     return render(request, 'evaluations/interface_notation.html', {
         'session': session,
@@ -110,6 +124,10 @@ def interface_notation(request, session_id):
         'est_jury': est_jury,
         'est_gl': est_gl,
         'ws_url': f'ws/evaluations/session/{session_id}/notation/',
+        'nb_notes_validees': nb_notes_validees,
+        'nb_resultats': nb_resultats,
+        'nb_en_attente': len(inscriptions) - nb_resultats,
+        'progressions_initiales': progressions_initiales,
     })
 
 
@@ -166,8 +184,8 @@ def saisir_note(request, session_id, inscription_id, rubrique_grade_id):
     except (KeyError, ValueError, json.JSONDecodeError):
         return JsonResponse({'erreur': 'Données invalides.'}, status=400)
 
-    if not (0 <= valeur <= 20):
-        return JsonResponse({'erreur': 'La note doit être comprise entre 0 et 20.'}, status=400)
+    if not (0 <= valeur <= 5):
+        return JsonResponse({'erreur': 'La note doit être comprise entre 0 et 5.'}, status=400)
 
     inscription = get_object_or_404(
         Inscription, pk=inscription_id, session_id=session_id, statut='AUTORISE'

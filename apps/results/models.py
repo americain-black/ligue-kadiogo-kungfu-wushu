@@ -20,7 +20,7 @@ class Resultat(models.Model):
     )
     moyenne        = models.DecimalField(
         max_digits=4, decimal_places=2,
-        help_text="Moyenne pondérée calculée automatiquement"
+        help_text="Moyenne pondérée calculée automatiquement, sur 20"
     )
     decision       = models.CharField(
         max_length=10,
@@ -47,14 +47,14 @@ class Resultat(models.Model):
         return (
             f"{self.inscription.pratiquant} — "
             f"{self.inscription.session.titre} : "
-            f"{self.moyenne}/5 ({self.get_decision_display()})"
+            f"{self.moyenne}/20 ({self.get_decision_display()})"
         )
 
     @classmethod
     def calculer(cls, inscription):
         """
-        Calcule la moyenne pondérée d'un candidat
-        à partir de ses notes et crée/met à jour le Résultat.
+        Calcule la moyenne pondérée d'un candidat sur 20
+        à partir de ses notes (sur 5) et crée/met à jour le Résultat.
         """
         from apps.evaluations.models import NoteRubrique
 
@@ -68,13 +68,10 @@ class Resultat(models.Model):
 
         total_points = sum(n.note * n.rubrique_grade.coefficient for n in notes)
         total_coeffs = sum(n.rubrique_grade.coefficient for n in notes)
-        moyenne      = total_points / total_coeffs if total_coeffs else 0
+        # Les notes sont sur 5 : on ramène la moyenne pondérée sur 20.
+        moyenne = (total_points / total_coeffs * 4) if total_coeffs else 0
 
-        # Vérifie si toutes les notes minimales sont atteintes
-        admis = all(
-            n.note >= n.rubrique_grade.note_minimale for n in notes
-        )
-        decision = 'ADMIS' if admis else 'AJOURNÉ'
+        decision = 'ADMIS' if moyenne >= 10 else 'AJOURNÉ'
 
         resultat, _ = cls.objects.update_or_create(
             inscription=inscription,
@@ -105,6 +102,19 @@ class Resultat(models.Model):
         total = admis.count()
         mieux_classes = admis.filter(moyenne__gt=self.moyenne).count()
         return mieux_classes + 1, total
+
+    def mention(self):
+        """Mention littérale correspondant à la moyenne sur 20."""
+        m = self.moyenne
+        if m < 10:
+            return 'Insuffisante'
+        if m < 12:
+            return 'Passable'
+        if m < 14:
+            return 'Assez-bien'
+        if m < 16:
+            return 'Bien'
+        return 'Très bien'
 
     def publier(self):
         from django.utils import timezone

@@ -1,5 +1,6 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db.models import Avg, Max, Min
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 
@@ -26,7 +27,59 @@ def _lignes_notation(inscription):
     rubriques = RubriqueGrade.objects.filter(
         grade=inscription.grade_vise, actif=True
     ).select_related('rubrique')
-    return [{'rubrique_grade': rg, 'note': notes.get(rg.pk)} for rg in rubriques]
+    lignes = []
+    for rg in rubriques:
+        note = notes.get(rg.pk)
+        lignes.append({
+            'rubrique_grade': rg,
+            'note': note,
+            'pondere': (note.note * rg.coefficient) if note else None,
+        })
+    return lignes
+
+
+def _rappel_moyennes(resultat):
+    """
+    Historique des résultats précédents du candidat (autres grades déjà
+    passés), du plus ancien au plus récent, pour la ligne « Rappel moyenne ».
+    """
+    pratiquant = resultat.inscription.pratiquant
+    precedents = (
+        Resultat.objects.filter(inscription__pratiquant=pratiquant, publie=True)
+        .exclude(pk=resultat.pk)
+        .select_related('inscription__session', 'inscription__grade_vise')
+        .order_by('-inscription__session__date_examen')
+    )
+    lignes = []
+    for r in precedents:
+        rang, total = r.rang()
+        lignes.append({
+            'date': r.inscription.session.date_examen,
+            'grade': r.inscription.grade_vise,
+            'moyenne': r.moyenne,
+            'rang': rang,
+            'total': total,
+            'mention': r.mention(),
+        })
+    return lignes
+
+
+def _stats_cohorte(resultat):
+    """
+    Moyenne, min et max de la moyenne parmi tous les candidats de la même
+    session visant le même grade (toutes options confondues), pour les
+    colonnes « Moy. grade / Moy. min / Moy. max » du bulletin.
+    """
+    inscription = resultat.inscription
+    stats = Resultat.objects.filter(
+        inscription__session=inscription.session,
+        inscription__grade_vise=inscription.grade_vise,
+    ).aggregate(moy_moyenne=Avg('moyenne'), moy_min=Min('moyenne'), moy_max=Max('moyenne'))
+    return {
+        'moyenne': stats['moy_moyenne'],
+        'minimum': stats['moy_min'],
+        'maximum': stats['moy_max'],
+    }
 
 
 def _peut_consulter(request, resultat):
@@ -112,16 +165,24 @@ def telecharger_bulletin(request, pk):
 
     inscription = resultat.inscription
     rang, total_rang = resultat.rang()
+    lignes = _lignes_notation(inscription)
+    total_coeff   = sum(l['rubrique_grade'].coefficient for l in lignes)
+    total_pondere = sum(l['pondere'] for l in lignes if l['pondere'] is not None)
 
     html_string = render(request, 'results/bulletin_pdf.html', {
         'resultat': resultat,
         'inscription': inscription,
-        'lignes': _lignes_notation(inscription),
+        'ligue': inscription.session.annee_sportive.ligue,
+        'lignes': lignes,
+        'total_coeff': total_coeff,
+        'total_pondere': total_pondere,
         'rang': rang,
         'total_rang': total_rang,
+        'rappel': _rappel_moyennes(resultat),
+        'stats': _stats_cohorte(resultat),
     }).content.decode('utf-8')
 
-    pdf_bytes = HTML(string=html_string).write_pdf()
+    pdf_bytes = HTML(string=html_string, base_url=request.build_absolute_uri('/')).write_pdf()
 
     nom_fichier = f"bulletin_{inscription.pratiquant.nom}_{inscription.pratiquant.prenom}.pdf".replace(' ', '_')
     response = HttpResponse(pdf_bytes, content_type='application/pdf')

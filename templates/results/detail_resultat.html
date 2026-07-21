@@ -40,7 +40,7 @@
 
 <div class="alert {% if resultat.decision == 'ADMIS' %}alert-success{% else %}alert-warning{% endif %} mb-4">
     <strong><i class="bi bi-trophy me-2"></i>Résultat :</strong>
-    {{ resultat.get_decision_display }} — Moyenne {{ resultat.moyenne }}/5
+    {{ resultat.get_decision_display }} — Moyenne {{ resultat.moyenne }}/20
     {% if rang %} — Rang {{ rang }}<sup>e</sup>/{{ total_rang }} ({{ inscription.option }}){% endif %}
 </div>
 

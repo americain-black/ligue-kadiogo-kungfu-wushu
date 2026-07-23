@@ -83,6 +83,29 @@
             left: -60px;
         }
 
+        .back-home {
+            position: fixed;
+            top: 1.2rem;
+            left: 1.2rem;
+            z-index: 10;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+            padding: 0.5rem 0.9rem;
+            border-radius: 50px;
+            background: rgba(0,0,0,0.25);
+            color: rgba(255,255,255,0.9);
+            text-decoration: none;
+            font-size: 0.85rem;
+            backdrop-filter: blur(4px);
+            transition: background 0.2s, color 0.2s;
+        }
+
+        .back-home:hover {
+            background: rgba(0,0,0,0.4);
+            color: #fff;
+        }
+
         .brand-icon {
             width: 90px;
             height: 90px;
@@ -277,12 +300,16 @@
 </head>
 <body>
 
+<a href="{% url 'accounts:accueil' %}" class="back-home">
+    <i class="bi bi-arrow-left"></i> Retour à l'accueil
+</a>
+
 <div class="login-wrapper">
 
     <!-- ══ Panneau gauche : branding ══ -->
     <div class="login-brand">
         <div class="brand-icon">
-            <i class="bi bi-trophy-fill"></i>
+            <i class="bi {% if profil %}{{ profil.icone }}{% else %}bi-trophy-fill{% endif %}"></i>
         </div>
         <div class="brand-title">Ligue du Kadiogo</div>
         <div class="brand-subtitle">Kung-Fu Wushu<br>Plateforme de gestion officielle</div>
@@ -295,7 +322,7 @@
 
     <!-- ══ Panneau droit : formulaire ══ -->
     <div class="login-form-panel">
-        <div class="form-title">Bon retour 👋</div>
+        <div class="form-title">{% if profil %}Connexion — {{ profil.nom }}{% else %}Connexion{% endif %}</div>
         <div class="form-subtitle">Connectez-vous à votre espace de gestion</div>
 
         <!-- Erreurs -->
@@ -361,6 +388,7 @@
             </div>
 
             <input type="hidden" name="next" value="{{ next }}">
+            {% if profil %}<input type="hidden" name="profil" value="{{ request.GET.profil }}">{% endif %}
 
             <button type="submit" class="btn btn-connexion" id="btnSubmit">
                 <span id="btnText"><i class="bi bi-box-arrow-in-right me-2"></i>Se connecter</span>

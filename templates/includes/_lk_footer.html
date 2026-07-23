@@ -1,0 +1,59 @@
+<footer class="lk-footer">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-12 col-md-4">
+                <div class="lk-footer-brand">
+                    <i class="bi bi-trophy-fill"></i>
+                    {% if ligue_site %}{{ ligue_site.nom_ligue }}{% else %}Ligue du Kadiogo{% endif %}
+                </div>
+                <p class="lk-footer-texte">
+                    Kung-Fu Wushu &mdash; Plateforme officielle de gestion des clubs,
+                    pratiquants et examens de la ligue.
+                </p>
+            </div>
+
+            <div class="col-6 col-md-4">
+                <div class="lk-footer-titre">Liens rapides</div>
+                <ul class="lk-footer-liens">
+                    <li><a href="{% url 'accounts:accueil' %}">Accueil</a></li>
+                    <li><a href="{% url 'accounts:accueil' %}#actualites">Actualités</a></li>
+                    <li><a href="{% url 'accounts:accueil' %}#documents">Documents</a></li>
+                    <li><a href="{% url 'results:consultation_publique' %}">Résultats</a></li>
+                </ul>
+            </div>
+
+            <div class="col-6 col-md-4">
+                <div class="lk-footer-titre">Contact</div>
+                <ul class="lk-footer-liens">
+                    {% if ligue_site.adresse_siege %}
+                    <li><i class="bi bi-geo-alt-fill me-2"></i>{{ ligue_site.adresse_siege }}</li>
+                    {% endif %}
+                    {% if ligue_site.telephone %}
+                    <li><i class="bi bi-telephone-fill me-2"></i><a href="tel:{{ ligue_site.telephone }}">{{ ligue_site.telephone }}</a></li>
+                    {% endif %}
+                    {% if ligue_site.email_contact %}
+                    <li><i class="bi bi-envelope-fill me-2"></i><a href="mailto:{{ ligue_site.email_contact }}">{{ ligue_site.email_contact }}</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+
+        <hr class="lk-footer-separateur">
+
+        <div class="lk-footer-bas">
+            &copy; {% now "Y" %} Ligue du Kadiogo de Kung-Fu Wushu &middot; <span id="lkFooterHeure"></span>
+        </div>
+    </div>
+</footer>
+
+<script>
+    (function () {
+        const el = document.getElementById('lkFooterHeure');
+        if (!el) return;
+        function majHeure() {
+            el.textContent = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        }
+        majHeure();
+        setInterval(majHeure, 1000);
+    })();
+</script>

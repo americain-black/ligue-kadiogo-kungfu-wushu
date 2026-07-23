@@ -17,9 +17,74 @@ def super_admin_requis(view_func):
     return wrapper
 
 
+def accueil(request):
+    """Page d'accueil publique de la ligue (accessible sans connexion)."""
+    if request.user.is_authenticated:
+        return redirect('accounts:tableau_de_bord')
+
+    from apps.ligues.models import Ligue
+    from apps.clubs.models import Club
+    from apps.exams.models import AnneeSportive, SessionExamen
+    from apps.communication.models import Actualite, Document
+
+    ligue = Ligue.objects.filter(sigle='LKKFW').first() or Ligue.objects.first()
+
+    contexte = {
+        'ligue': ligue,
+        'saison': None,
+        'nb_clubs': 0,
+        'nb_sessions': 0,
+        'sessions': [],
+        'actualites': [],
+        'documents': [],
+    }
+
+    if ligue:
+        contexte['saison'] = (
+            AnneeSportive.objects.filter(ligue=ligue, statut='ACTIVE')
+            .order_by('-date_debut').first()
+        )
+        contexte['nb_clubs'] = Club.objects.filter(
+            ligue=ligue, statut_club='AFFILIE'
+        ).count()
+        contexte['nb_sessions'] = SessionExamen.objects.filter(
+            annee_sportive__ligue=ligue
+        ).count()
+        contexte['sessions'] = (
+            SessionExamen.objects.filter(
+                annee_sportive__ligue=ligue,
+                statut__in=['INSCRIPTIONS_OUVERTES', 'EN_PREPARATION'],
+            )
+            .select_related('annee_sportive')
+            .order_by('date_examen')[:6]
+        )
+        contexte['actualites'] = (
+            Actualite.objects.filter(ligue=ligue, statut='PUBLIEE')
+            .order_by('-date_publication')[:3]
+        )
+        contexte['documents'] = (
+            Document.objects.filter(ligue=ligue, est_public=True)
+            .order_by('-date_publication')[:5]
+        )
+
+    return render(request, 'accounts/accueil.html', contexte)
+
+
+PROFILS_CONNEXION = {
+    'admin':     {'nom': 'Super Admin',            'icone': 'bi-gear-fill'},
+    'ligue':     {'nom': 'Gestionnaire Ligue',      'icone': 'bi-building'},
+    'club':      {'nom': 'Gestionnaire Club',       'icone': 'bi-people-fill'},
+    'financier': {'nom': 'Gestionnaire Financier',  'icone': 'bi-coin'},
+    'jury':      {'nom': 'Jury',                    'icone': 'bi-pencil-square'},
+}
+
+
 def connexion(request):
     if request.user.is_authenticated:
         return redirect('accounts:tableau_de_bord')
+
+    profil = request.POST.get('profil') or request.GET.get('profil')
+    contexte = {'profil': PROFILS_CONNEXION.get(profil)}
 
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -29,14 +94,15 @@ def connexion(request):
         if user is not None:
             if not user.statut_compte:
                 messages.error(request, "Votre compte est désactivé. Contactez l'administrateur.")
-                return render(request, 'accounts/login.html')
+                return render(request, 'accounts/login.html', contexte)
 
             login(request, user)
             return redirect('accounts:tableau_de_bord')
         else:
-            return render(request, 'accounts/login.html', {'form': {'errors': True}})
+            contexte['form'] = {'errors': True}
+            return render(request, 'accounts/login.html', contexte)
 
-    return render(request, 'accounts/login.html')
+    return render(request, 'accounts/login.html', contexte)
 
 
 def deconnexion(request):

@@ -1,0 +1,291 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Ligue du Kadiogo · Kung-Fu Wushu{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/lk_public.css' %}" rel="stylesheet">
+<style>
+    /* ── Hero ────────────────────────────────────────────────────────── */
+    .lk-hero {
+        background: linear-gradient(160deg, var(--lk-rouge) 0%, var(--lk-rouge-fonce) 100%);
+        color: #fff;
+        padding: 5rem 1rem 4.5rem;
+        text-align: center;
+    }
+    .lk-hero h1 {
+        font-size: 2.3rem;
+        font-weight: 800;
+        color: #fff;
+        max-width: 900px;
+        margin: 0 auto 1rem;
+    }
+    .lk-hero p.lead {
+        font-size: 1.1rem;
+        opacity: 0.92;
+        max-width: 700px;
+        margin: 0 auto 2rem;
+    }
+    .lk-hero .btn-or {
+        background-color: var(--lk-or);
+        color: #3a2a00;
+        font-weight: 700;
+        border: none;
+        padding: 0.7rem 1.6rem;
+        border-radius: 8px;
+    }
+    .lk-hero .btn-or:hover { background-color: #e6c200; color: #3a2a00; }
+    .lk-hero .btn-outline-blanc {
+        border: 2px solid #fff;
+        color: #fff;
+        font-weight: 700;
+        padding: 0.65rem 1.6rem;
+        border-radius: 8px;
+        background: transparent;
+    }
+    .lk-hero .btn-outline-blanc:hover { background-color: #fff; color: var(--lk-rouge); }
+
+    /* ── Barre de statistiques ───────────────────────────────────────── */
+    .lk-stats {
+        background-color: #f7f2ec;
+        padding: 1.8rem 1rem;
+        border-bottom: 1px solid #ece3d8;
+    }
+    .lk-stats .lk-stats-label {
+        text-align: center;
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #9a8a78;
+        margin-bottom: 1rem;
+    }
+    .lk-stats .chiffre {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--lk-rouge);
+    }
+    .lk-stats .libelle {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: #6b5d4f;
+    }
+
+    /* ── Sessions ────────────────────────────────────────────────────── */
+    .lk-card-session {
+        border: 1px solid #eee;
+        border-radius: 12px;
+        padding: 1.3rem;
+        height: 100%;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        border-top: 4px solid var(--lk-rouge);
+    }
+    .lk-card-session h5 { font-weight: 700; }
+
+    /* ── Actualités ──────────────────────────────────────────────────── */
+    .lk-card-actu {
+        border-radius: 12px;
+        overflow: hidden;
+        height: 100%;
+        background: #fff;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    }
+    .lk-card-actu .tag {
+        display: inline-block;
+        background-color: var(--lk-rouge);
+        color: #fff;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        padding: 0.2rem 0.7rem;
+        border-radius: 20px;
+        margin-bottom: 0.6rem;
+    }
+    .lk-card-actu .body { padding: 1.2rem; }
+
+    /* ── Documents ───────────────────────────────────────────────────── */
+    .lk-doc-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.9rem 1.1rem;
+        border: 1px solid #eee;
+        border-radius: 10px;
+        background: #fff;
+        margin-bottom: 0.7rem;
+    }
+    .lk-doc-item i { font-size: 1.4rem; color: var(--lk-rouge); }
+
+    /* ── Portail ─────────────────────────────────────────────────────── */
+    .lk-carte-role {
+        display: block;
+        text-align: center;
+        border: 1px solid #eee;
+        border-radius: 14px;
+        padding: 2rem 1rem;
+        height: 100%;
+        text-decoration: none;
+        color: #2a1a1a;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .lk-carte-role:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(139,26,26,0.18);
+        color: var(--lk-rouge);
+    }
+    .lk-carte-role .icone {
+        width: 64px; height: 64px;
+        border-radius: 50%;
+        background-color: var(--lk-rouge);
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.6rem;
+        margin: 0 auto 1rem;
+    }
+    .lk-carte-role .nom { font-weight: 700; font-size: 0.95rem; }
+</style>
+{% endblock %}
+
+{% block content_public %}
+
+{% include 'includes/_lk_navbar.html' %}
+
+<!-- ══ Hero ═════════════════════════════════════════════════════════════ -->
+<header class="lk-hero">
+    <h1>Gestion des passages de grades de la Ligue du Kadiogo</h1>
+    <p class="lead">Affiliations, inscriptions aux examens, évaluations et publication des résultats</p>
+    <div class="d-flex gap-3 justify-content-center flex-wrap">
+        <a href="{% url 'results:consultation_publique' %}" class="btn btn-or">
+            <i class="bi bi-award me-1"></i>Voir les résultats
+        </a>
+        <a href="#sessions" class="btn btn-outline-blanc">
+            <i class="bi bi-calendar-event me-1"></i>Sessions à venir
+        </a>
+    </div>
+</header>
+
+<!-- ══ Barre de statistiques ═══════════════════════════════════════════ -->
+<div class="lk-stats">
+    <div class="container">
+        <div class="lk-stats-label">
+            Chiffres clés {% if ligue %}&mdash; {{ ligue.nom_ligue }}{% endif %}
+        </div>
+        <div class="row text-center gy-3">
+            <div class="col-4">
+                <div class="chiffre">{{ nb_clubs }}</div>
+                <div class="libelle">Clubs affiliés</div>
+            </div>
+            <div class="col-4">
+                <div class="chiffre">{{ nb_sessions }}</div>
+                <div class="libelle">Sessions organisées</div>
+            </div>
+            <div class="col-4">
+                <div class="chiffre">{% if saison %}{{ saison.libelle }}{% else %}—{% endif %}</div>
+                <div class="libelle">Année sportive en cours</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ══ Sessions d'examen ═══════════════════════════════════════════════ -->
+<section class="lk-section" id="sessions">
+    <div class="container">
+        <h2>Sessions d'examen</h2>
+        <p class="lk-soustitre">Les prochains passages de grade organisés par la ligue</p>
+
+        {% if sessions %}
+        <div class="row g-4">
+            {% for session in sessions %}
+            <div class="col-md-6 col-lg-4">
+                <div class="lk-card-session">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <h5 class="mb-0">{{ session.titre }}</h5>
+                        {% if session.statut == 'INSCRIPTIONS_OUVERTES' %}
+                        <span class="badge bg-success">Inscriptions ouvertes</span>
+                        {% else %}
+                        <span class="badge bg-warning text-dark">Bientôt disponible</span>
+                        {% endif %}
+                    </div>
+                    <div class="text-muted small mb-1">
+                        <i class="bi bi-calendar-event me-1"></i>{{ session.date_examen|date:"d/m/Y" }}
+                    </div>
+                    <div class="text-muted small">
+                        <i class="bi bi-geo-alt me-1"></i>{{ session.lieu }}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="lk-vide">Aucune session d'examen ouverte pour le moment. Revenez bientôt !</div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- ══ Actualités ═══════════════════════════════════════════════════════ -->
+<section class="lk-section lk-alt" id="actualites">
+    <div class="container">
+        <h2>Actualités</h2>
+        <p class="lk-soustitre">Les dernières nouvelles de la ligue et des clubs</p>
+
+        {% if actualites %}
+        <div class="row g-4">
+            {% for actu in actualites %}
+            <div class="col-md-4">
+                <div class="lk-card-actu">
+                    {% if actu.image %}
+                    <img src="{{ actu.image.url }}" alt="" class="w-100" style="height:160px;object-fit:cover;">
+                    {% endif %}
+                    <div class="body">
+                        <span class="tag">{{ actu.get_source_display }}</span>
+                        <h5>{{ actu.titre }}</h5>
+                        <p class="text-muted small mb-2">{{ actu.contenu|truncatewords:20 }}</p>
+                        <div class="text-muted small">
+                            <i class="bi bi-calendar3 me-1"></i>{{ actu.date_publication|date:"d/m/Y" }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="lk-vide">Aucune actualité publiée pour le moment.</div>
+        {% endif %}
+    </div>
+</section>
+
+<!-- ══ Documents ═══════════════════════════════════════════════════════ -->
+<section class="lk-section" id="documents">
+    <div class="container">
+        <h2>Documents</h2>
+        <p class="lk-soustitre">Règlements, formulaires et circulaires officiels</p>
+
+        {% if documents %}
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                {% for doc in documents %}
+                <a href="{{ doc.fichier.url }}" target="_blank" class="lk-doc-item text-decoration-none text-reset">
+                    <i class="bi bi-file-earmark-text"></i>
+                    <div class="flex-grow-1">
+                        <div class="fw-bold">{{ doc.titre }}</div>
+                        <div class="text-muted small">{{ doc.get_type_document_display }} · {{ doc.date_publication|date:"d/m/Y" }}</div>
+                    </div>
+                    <i class="bi bi-download text-muted"></i>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+        {% else %}
+        <div class="lk-vide">Aucun document publié pour le moment.</div>
+        {% endif %}
+    </div>
+</section>
+
+{% include 'includes/_lk_footer.html' %}
+
+{% endblock %}

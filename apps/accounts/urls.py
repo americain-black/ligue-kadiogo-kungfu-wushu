@@ -5,6 +5,9 @@ from . import views
 app_name = 'accounts'
 
 urlpatterns = [
+    # Page d'accueil publique
+    path('',                 views.accueil,     name='accueil'),
+
     # Authentification
     path('connexion/',       views.connexion,   name='login'),
     path('deconnexion/',     views.deconnexion, name='logout'),

@@ -77,6 +77,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'apps.ligues.context_processors.ligue_active',
             ],
         },
     },
@@ -102,7 +103,7 @@ from decouple import config
 
 SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '172.23.223.186']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '172.23.223.186', '192.168.11.102']
 
 DATABASES = {
     'default': {

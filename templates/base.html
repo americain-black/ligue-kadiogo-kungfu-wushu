@@ -281,7 +281,9 @@
 </div>
 
 {% else %}
-    {% block content_public %}{% endblock %}
+    <div class="lk-public-page">
+        {% block content_public %}{% endblock %}
+    </div>
 {% endif %}
 
 <!-- Bootstrap 5 JS -->

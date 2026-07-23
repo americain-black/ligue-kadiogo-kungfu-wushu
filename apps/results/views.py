@@ -99,6 +99,61 @@ def _peut_consulter(request, resultat):
     return False
 
 
+def consultation_publique(request):
+    """
+    Recherche publique d'un résultat par matricule + date de naissance
+    (aucune connexion requise). La double vérification évite qu'un simple
+    numéro de matricule deviné permette de consulter le résultat d'un tiers.
+    """
+    from apps.practitioners.models import Pratiquant
+
+    matricule      = request.GET.get('matricule', '').strip()
+    date_naissance = request.GET.get('date_naissance', '').strip()
+    recherche_effectuee = bool(matricule or date_naissance)
+    pratiquant = None
+    resultats  = []
+    erreur     = None
+
+    if matricule and date_naissance:
+        pratiquant = Pratiquant.objects.select_related('club').filter(
+            matricule__iexact=matricule,
+            date_naissance=date_naissance,
+        ).first()
+
+        if pratiquant is None:
+            erreur = "Aucun candidat ne correspond à ce matricule et cette date de naissance."
+        else:
+            resultats_qs = (
+                Resultat.objects.filter(inscription__pratiquant=pratiquant, publie=True)
+                .select_related('inscription__session', 'inscription__grade_vise')
+                .order_by('-inscription__session__date_examen')
+            )
+            for r in resultats_qs:
+                rang, total = r.rang()
+                resultats.append({
+                    'resultat': r,
+                    'session': r.inscription.session,
+                    'grade_vise': r.inscription.grade_vise,
+                    'rang': rang,
+                    'total': total,
+                    'mention': r.mention(),
+                })
+            if not resultats:
+                erreur = "Aucun résultat publié pour ce candidat pour le moment."
+                pratiquant = None
+    elif recherche_effectuee:
+        erreur = "Veuillez renseigner le matricule et la date de naissance."
+
+    return render(request, 'results/consultation_publique.html', {
+        'matricule': matricule,
+        'date_naissance': date_naissance,
+        'recherche_effectuee': recherche_effectuee,
+        'pratiquant': pratiquant,
+        'resultats': resultats,
+        'erreur': erreur,
+    })
+
+
 @login_required
 def detail_resultat(request, pk):
     resultat = get_object_or_404(

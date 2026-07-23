@@ -1,0 +1,134 @@
+/* ── Palette partagée des pages publiques (accueil, résultats...) ────── */
+:root {
+    --lk-rouge:       #8B1A1A;
+    --lk-rouge-fonce: #6E1414;
+    --lk-or:          #FFD700;
+}
+
+/* ── Navbar publique ─────────────────────────────────────────────────── */
+.lk-navbar {
+    background-color: var(--lk-rouge);
+    padding: 0.7rem 0;
+}
+.lk-navbar .navbar-brand {
+    color: #fff !important;
+    font-weight: 700;
+    font-size: 1.05rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+.lk-navbar .navbar-brand i { font-size: 1.4rem; color: var(--lk-or); }
+.lk-navbar .nav-link {
+    color: rgba(255,255,255,0.9) !important;
+    font-weight: 600;
+    font-size: 0.92rem;
+    padding: 0.5rem 0.9rem !important;
+}
+.lk-navbar .nav-link:hover { color: var(--lk-or) !important; }
+.lk-navbar .btn-portail {
+    background-color: var(--lk-or);
+    color: #3a2a00;
+    font-weight: 700;
+    border: none;
+    padding: 0.45rem 1.3rem;
+    border-radius: 8px;
+}
+.lk-navbar .btn-portail:hover { background-color: #e6c200; color: #3a2a00; }
+
+/* ── Sections génériques ───────────────────────────────────────────────── */
+.lk-section { padding: 3.5rem 1rem; }
+.lk-section.lk-alt { background-color: #f7f2ec; }
+.lk-section h2 {
+    font-size: 1.7rem;
+    font-weight: 800;
+    color: #2a1a1a;
+    text-align: center;
+    margin-bottom: 0.4rem;
+}
+.lk-section .lk-soustitre {
+    text-align: center;
+    color: #6c757d;
+    margin-bottom: 2.2rem;
+}
+.lk-vide {
+    text-align: center;
+    color: #999;
+    font-style: italic;
+    padding: 1.5rem 0;
+}
+
+/* ── Page publique en hauteur pleine (footer collé en bas) ─────────────── */
+.lk-public-page {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* ── Footer ──────────────────────────────────────────────────────────── */
+.lk-footer {
+    margin-top: auto;
+    background-color: var(--lk-rouge);
+    color: rgba(255,255,255,0.85);
+    padding: 3rem 1rem 1.4rem;
+    font-size: 0.9rem;
+}
+
+.lk-footer-brand {
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.8rem;
+}
+
+.lk-footer-brand i { color: var(--lk-or); font-size: 1.3rem; }
+
+.lk-footer-texte {
+    color: rgba(255,255,255,0.7);
+    font-size: 0.85rem;
+    line-height: 1.6;
+    max-width: 320px;
+}
+
+.lk-footer-titre {
+    color: #fff;
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin-bottom: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.lk-footer-liens {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.lk-footer-liens li {
+    margin-bottom: 0.6rem;
+    color: rgba(255,255,255,0.75);
+    font-size: 0.87rem;
+}
+
+.lk-footer-liens a {
+    color: rgba(255,255,255,0.75);
+    text-decoration: none;
+    transition: color 0.2s;
+}
+
+.lk-footer-liens a:hover { color: var(--lk-or); }
+
+.lk-footer-separateur {
+    border-color: rgba(255,255,255,0.15);
+    margin: 2rem 0 1.2rem;
+}
+
+.lk-footer-bas {
+    text-align: center;
+    color: rgba(255,255,255,0.6);
+    font-size: 0.8rem;
+}

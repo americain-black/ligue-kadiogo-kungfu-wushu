@@ -24,6 +24,7 @@ def accueil(request):
 
     from apps.ligues.models import Ligue
     from apps.clubs.models import Club
+    from apps.practitioners.models import Pratiquant
     from apps.exams.models import AnneeSportive, SessionExamen
     from apps.communication.models import Actualite, Document
 
@@ -31,24 +32,23 @@ def accueil(request):
 
     contexte = {
         'ligue': ligue,
-        'saison': None,
-        'nb_clubs': 0,
-        'nb_sessions': 0,
+        'nb_clubs_affilies': 0,
+        'nb_pratiquants': 0,
+        'nb_total_clubs': 0,
         'sessions': [],
         'actualites': [],
         'documents': [],
     }
 
     if ligue:
-        contexte['saison'] = (
-            AnneeSportive.objects.filter(ligue=ligue, statut='ACTIVE')
-            .order_by('-date_debut').first()
-        )
-        contexte['nb_clubs'] = Club.objects.filter(
+        contexte['nb_clubs_affilies'] = Club.objects.filter(
             ligue=ligue, statut_club='AFFILIE'
         ).count()
-        contexte['nb_sessions'] = SessionExamen.objects.filter(
-            annee_sportive__ligue=ligue
+        contexte['nb_pratiquants'] = Pratiquant.objects.filter(
+            club__ligue=ligue
+        ).count()
+        contexte['nb_total_clubs'] = Club.objects.filter(
+            ligue=ligue
         ).count()
         contexte['sessions'] = (
             SessionExamen.objects.filter(
@@ -59,7 +59,7 @@ def accueil(request):
             .order_by('date_examen')[:6]
         )
         contexte['actualites'] = (
-            Actualite.objects.filter(ligue=ligue, statut='PUBLIEE')
+            Actualite.objects.filter(ligue=ligue, statut='PUBLIEE', est_public=True)
             .order_by('-date_publication')[:3]
         )
         contexte['documents'] = (

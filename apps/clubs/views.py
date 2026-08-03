@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
+from django.db.models import Q, Count
 from .models import (
     Club, DemandeAffiliation, PieceJustificativeAffiliation, ParametresAffiliation,
     VoletOrganigrammeClub, MembreOrganigrammeClub,
@@ -425,3 +426,76 @@ def supprimer_membre_club(request, pk):
         membre.delete()
         messages.success(request, f"{nom} supprimé de l'organigramme.")
     return redirect('clubs:organigramme', club_pk=club_pk)
+
+
+def annuaire_clubs(request):
+    """
+    Annuaire public des clubs (accessible à tous les visiteurs).
+    Affiche tous les clubs à l'exclusion de ceux ayant le statut SUSPENDU.
+    Permet la recherche par nom, sigle ou localité.
+    """
+    query = request.GET.get('q', '').strip()
+    clubs_qs = Club.objects.exclude(statut_club='SUSPENDU').select_related('ligue')
+
+    if query:
+        clubs_qs = clubs_qs.filter(
+            Q(nom_club__icontains=query) |
+            Q(sigle_club__icontains=query) |
+            Q(localite__icontains=query)
+        )
+
+    if request.method == 'POST' and 'envoyer_message' in request.POST:
+        club_id = request.POST.get('club_id')
+        nom_expediteur = request.POST.get('nom_expediteur', '').strip()
+        email_expediteur = request.POST.get('email_expediteur', '').strip()
+        telephone_expediteur = request.POST.get('telephone_expediteur', '').strip()
+        message_contenu = request.POST.get('message', '').strip()
+
+        club_cible = Club.objects.filter(pk=club_id).exclude(statut_club='SUSPENDU').first()
+        if club_cible and nom_expediteur and (email_expediteur or telephone_expediteur) and message_contenu:
+            from django.core.mail import send_mail
+            from django.conf import settings
+
+            sujet = f"[Ligue Kung-Fu Wushu] Message de {nom_expediteur} pour {club_cible.nom_club}"
+            corps = (
+                f"Bonjour {club_cible.nom_club},\n\n"
+                f"Vous avez reçu un nouveau message depuis l'annuaire public des clubs :\n\n"
+                f"• Nom : {nom_expediteur}\n"
+                f"• Email : {email_expediteur or 'Non renseigné'}\n"
+                f"• Téléphone : {telephone_expediteur or 'Non renseigné'}\n\n"
+                f"Contenu du message :\n{message_contenu}\n\n"
+                f"---\nPlateforme de la Ligue du Kadiogo de Kung-Fu Wushu"
+            )
+            if club_cible.email:
+                try:
+                    send_mail(
+                        sujet,
+                        corps,
+                        getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@ligue-kungfu.org'),
+                        [club_cible.email],
+                        fail_silently=True,
+                    )
+                except Exception:
+                    pass
+
+            messages.success(
+                request,
+                f"Votre message pour le club « {club_cible.nom_club} » a été transmis avec succès !"
+            )
+        else:
+            messages.error(request, "Veuillez remplir tous les champs obligatoires du formulaire de contact.")
+        return redirect(f"{request.path}?q={query}")
+
+    clubs = clubs_qs.annotate(nb_pratiquants=Count('pratiquants'))
+
+    from apps.ligues.models import Ligue
+    ligue = Ligue.objects.filter(sigle='LKKFW').first() or Ligue.objects.first()
+
+    context = {
+        'clubs': clubs,
+        'query': query,
+        'nb_total_clubs': clubs.count(),
+        'ligue': ligue,
+    }
+    return render(request, 'clubs/annuaire.html', context)
+

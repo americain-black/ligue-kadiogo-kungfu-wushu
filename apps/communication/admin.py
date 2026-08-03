@@ -4,8 +4,8 @@ from .models import Actualite, Document
 
 @admin.register(Actualite)
 class ActualiteAdmin(admin.ModelAdmin):
-    list_display   = ('titre', 'ligue', 'source', 'statut', 'date_creation')
-    list_filter    = ('statut', 'source', 'ligue')
+    list_display   = ('titre', 'ligue', 'source', 'statut', 'est_public', 'date_creation')
+    list_filter    = ('statut', 'source', 'est_public', 'ligue')
     search_fields  = ('titre', 'contenu')
     readonly_fields = ('date_creation', 'date_publication', 'validee_par')
 

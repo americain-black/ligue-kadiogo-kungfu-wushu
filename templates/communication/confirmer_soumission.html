@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}Soumettre l'actualité — {{ club.nom_club|default:"Club" }}{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_club' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Communication</span>
+<a href="{% url 'communication:mes_actualites' %}" class="nav-link active">
+    <i class="bi bi-newspaper me-2"></i>Mes actualités
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <small class="text-muted">
+        <a href="{% url 'communication:detail_actualite_club' actualite.pk %}">{{ actualite.titre }}</a> › Soumettre
+    </small>
+    <h4 class="fw-bold mt-1 mb-0">Soumettre à la ligue</h4>
+</div>
+
+<div class="card p-4" style="max-width: 600px;">
+    <div class="alert alert-primary mb-4">
+        <i class="bi bi-info-circle me-2"></i>
+        Une fois soumise, l'actualité <strong>{{ actualite.titre }}</strong> ne sera plus modifiable
+        tant que la ligue ne l'aura pas publiée ou rejetée.
+    </div>
+    <form method="post" class="d-flex gap-2">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary">
+            <i class="bi bi-send me-1"></i>Confirmer la soumission
+        </button>
+        <a href="{% url 'communication:detail_actualite_club' actualite.pk %}" class="btn btn-outline-secondary">Annuler</a>
+    </form>
+</div>
+{% endblock %}

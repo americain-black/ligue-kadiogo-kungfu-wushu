@@ -4,6 +4,9 @@ from . import views
 app_name = 'clubs'
 
 urlpatterns = [
+    # Annuaire public des clubs
+    path('annuaire/',                     views.annuaire_clubs,       name='annuaire'),
+
     path('',                              views.liste_clubs,          name='liste'),
     path('creer/',                        views.creer_club,           name='creer'),
     path('<int:pk>/',                     views.detail_club,          name='detail'),

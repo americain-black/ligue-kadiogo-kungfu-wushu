@@ -13,6 +13,10 @@
 <a href="{% url 'accounts:liste_utilisateurs' %}" class="nav-link">
     <i class="bi bi-people me-2"></i>Utilisateurs
 </a>
+<span class="sidebar-title mt-2">Administration</span>
+<a href="/admin/" target="_blank" class="nav-link text-warning">
+    <i class="bi bi-gear-fill me-2"></i>Paramètres
+</a>
 {% endblock %}
 
 {% block extra_css %}
@@ -20,8 +24,8 @@
     /* ── En-tête ── */
     .dash-header {
         background: linear-gradient(135deg, #7b1010 0%, #c0392b 100%);
-        border-radius: 16px;
-        padding: 1.6rem 2rem;
+        border-radius: 14px;
+        padding: 1.1rem 1.6rem;
         color: #fff;
         margin-bottom: 1.5rem;
         display: flex;
@@ -29,19 +33,39 @@
         justify-content: space-between;
         flex-wrap: wrap;
         gap: 1rem;
-        box-shadow: 0 4px 20px rgba(192,57,43,0.3);
+        box-shadow: 0 4px 16px rgba(192,57,43,0.25);
     }
-    .dash-header .welcome { font-size: 1.4rem; font-weight: 700; }
-    .dash-header .date    { font-size: 0.85rem; opacity: 0.8; margin-top: 0.2rem; }
-    .dash-header .badge-role {
+    .dash-header .welcome { font-size: 1.25rem; font-weight: 700; }
+    .dash-header .date    { font-size: 0.85rem; opacity: 0.9; margin-top: 0.2rem; }
+    .btn-dash-action {
         background: rgba(255,255,255,0.2);
         color: #fff;
-        border: 1px solid rgba(255,255,255,0.3);
-        padding: 0.5rem 1.1rem;
+        border: 1px solid rgba(255,255,255,0.35);
+        padding: 0.45rem 1.1rem;
         border-radius: 30px;
-        font-size: 0.85rem;
+        font-size: 0.83rem;
         font-weight: 600;
-        letter-spacing: 0.5px;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        transition: all 0.2s ease;
+    }
+    .btn-dash-action:hover {
+        background: rgba(255,255,255,0.35);
+        color: #fff;
+        border-color: #fff;
+        transform: translateY(-1px);
+    }
+    .dash-header .badge-role {
+        background: rgba(0,0,0,0.18);
+        color: #fff;
+        border: 1px solid rgba(255,255,255,0.3);
+        padding: 0.45rem 1.1rem;
+        border-radius: 30px;
+        font-size: 0.83rem;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
     }
 
     /* ── Stat cards ── */
@@ -178,16 +202,23 @@
 <div class="dash-header">
     <div>
         <div class="welcome">
-            Bonjour, {{ user.get_full_name|default:user.username }} 👋
+            {% now "H" as heure_actuelle %}
+            {% if heure_actuelle|add:"0" >= 18 %}Bonsoir{% else %}Bonjour{% endif %} 
+            {% if user.sexe == 'F' %}Madame{% else %}Monsieur{% endif %} 
+            <strong>{{ user.first_name }} {{ user.last_name }}</strong> 👋
         </div>
         <div class="date">
-            <i class="bi bi-calendar3 me-1"></i>
-            {% now "l d F Y" %}
+            <i class="bi bi-calendar3 me-1"></i>{% now "l d F Y" %} à <span id="dashClockHeure">{% now "H:i:s" %}</span>
         </div>
     </div>
-    <span class="badge-role">
-        <i class="bi bi-shield-fill-check me-1"></i> Super Administrateur
-    </span>
+    <div class="d-flex align-items-center gap-2">
+        <a href="/admin/" target="_blank" rel="noopener noreferrer" class="btn-dash-action" title="Administration avancée Django">
+            <i class="bi bi-gear-fill me-1"></i> Paramètres
+        </a>
+        <span class="badge-role">
+            <i class="bi bi-shield-fill-check me-1"></i> Super Administrateur
+        </span>
+    </div>
 </div>
 
 <!-- ══ Stat cards ══ -->
@@ -355,4 +386,20 @@
     </div>
 
 </div>
+
+<script>
+    (function () {
+        function majHeureDashboard() {
+            const el = document.getElementById('dashClockHeure');
+            if (!el) return;
+            const maintenant = new Date();
+            const h = String(maintenant.getHours()).padStart(2, '0');
+            const m = String(maintenant.getMinutes()).padStart(2, '0');
+            const s = String(maintenant.getSeconds()).padStart(2, '0');
+            el.textContent = `${h}:${m}:${s}`;
+        }
+        majHeureDashboard();
+        setInterval(majHeureDashboard, 1000);
+    })();
+</script>
 {% endblock %}

@@ -8,24 +8,103 @@
 <style>
     /* ── Hero ────────────────────────────────────────────────────────── */
     .lk-hero {
-        background: linear-gradient(160deg, var(--lk-rouge) 0%, var(--lk-rouge-fonce) 100%);
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(160deg, var(--lk-rouge) 0%, var(--lk-rouge-fonce) 60%, var(--lk-rouge) 100%);
+        background-size: 220% 220%;
+        animation: lk-hero-gradient 14s ease-in-out infinite;
         color: #fff;
-        padding: 5rem 1rem 4.5rem;
+        padding: 5.5rem 1rem 4.5rem;
         text-align: center;
     }
+    @keyframes lk-hero-gradient {
+        0%   { background-position: 0% 50%; }
+        50%  { background-position: 100% 50%; }
+        100% { background-position: 0% 50%; }
+    }
+
+    .lk-hero-deco {
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        z-index: 0;
+    }
+    .lk-hero-deco i {
+        position: absolute;
+        color: var(--lk-or);
+        opacity: 0.16;
+        animation: lk-flotter 6s ease-in-out infinite;
+    }
+    .lk-hero-deco .d1 { top: 12%;  left: 6%;  font-size: 3.4rem; animation-delay: 0s;    }
+    .lk-hero-deco .d2 { top: 62%;  left: 12%; font-size: 2.2rem; animation-delay: 1.2s; }
+    .lk-hero-deco .d3 { top: 18%;  right: 8%; font-size: 2.8rem; animation-delay: 0.6s; }
+    .lk-hero-deco .d4 { top: 68%;  right: 14%; font-size: 3.6rem; animation-delay: 1.8s; }
+    .lk-hero-deco .d5 { top: 40%;  left: 48%; font-size: 1.8rem; animation-delay: 2.4s; opacity: 0.1; }
+    @keyframes lk-flotter {
+        0%, 100% { transform: translateY(0) rotate(0deg); }
+        50%      { transform: translateY(-18px) rotate(6deg); }
+    }
+
+    .lk-hero > .container { position: relative; z-index: 1; }
+
     .lk-hero h1 {
         font-size: 2.3rem;
         font-weight: 800;
         color: #fff;
         max-width: 900px;
         margin: 0 auto 1rem;
+        opacity: 0;
+        min-height: 2.9rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        animation: lk-apparition 0.8s ease-out 0.1s forwards;
+        transition: opacity 0.5s ease, transform 0.5s ease;
     }
-    .lk-hero p.lead {
-        font-size: 1.1rem;
-        opacity: 0.92;
+    .lk-hero-tagline {
+        min-height: 2.6rem;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         max-width: 700px;
         margin: 0 auto 2rem;
     }
+    .lk-hero-tagline p {
+        font-size: 1.1rem;
+        opacity: 0.92;
+        margin: 0;
+        transition: opacity 0.5s ease, transform 0.5s ease;
+    }
+    .lk-rotation-sortie {
+        opacity: 0 !important;
+        transform: translateY(10px) !important;
+    }
+    .lk-hero .btn-or,
+    .lk-hero .btn-outline-blanc {
+        opacity: 0;
+        animation: lk-rebond 0.7s ease-out forwards;
+    }
+    .lk-hero .btn-or { animation-delay: 0.5s; }
+    .lk-hero .btn-outline-blanc { animation-delay: 0.7s; }
+
+    @keyframes lk-apparition {
+        from { opacity: 0; transform: translateY(18px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes lk-rebond {
+        0%   { opacity: 0; transform: translateY(16px) scale(0.9); }
+        60%  { opacity: 1; transform: translateY(-4px) scale(1.03); }
+        100% { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .lk-hero, .lk-hero-deco i, .lk-hero h1, .lk-hero .btn-or, .lk-hero .btn-outline-blanc {
+            animation: none !important;
+            opacity: 1 !important;
+            transform: none !important;
+        }
+    }
+
     .lk-hero .btn-or {
         background-color: var(--lk-or);
         color: #3a2a00;
@@ -65,16 +144,43 @@
         font-weight: 800;
         color: var(--lk-rouge);
     }
+    .lk-stats .chiffre-ok,
+    .lk-stats .chiffre-off {
+        font-size: 1.4rem;
+    }
+    .lk-stats .chiffre-ok  { color: #1a7a3c; }
+    .lk-stats .chiffre-off { color: #6c757d; }
     .lk-stats .libelle {
         font-size: 0.85rem;
         text-transform: uppercase;
         letter-spacing: 0.05em;
         color: #6b5d4f;
     }
+    .lk-stats .row > div {
+        opacity: 0;
+        transform: translateY(16px) scale(0.92);
+        transition: opacity 0.55s ease, transform 0.55s ease;
+    }
+    .lk-stats.lk-stats-visible .row > div {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    .lk-stats.lk-stats-visible .row > div:nth-child(1) { transition-delay: 0s;    }
+    .lk-stats.lk-stats-visible .row > div:nth-child(2) { transition-delay: 0.12s; }
+    .lk-stats.lk-stats-visible .row > div:nth-child(3) { transition-delay: 0.24s; }
+    .lk-stats.lk-stats-visible .row > div:nth-child(4) { transition-delay: 0.36s; }
+
+    @media (prefers-reduced-motion: reduce) {
+        .lk-stats .row > div {
+            opacity: 1 !important;
+            transform: none !important;
+            transition: none !important;
+        }
+    }
 
     /* ── Sessions ────────────────────────────────────────────────────── */
     .lk-card-session {
-        border: 1px solid #eee;
+        border: 1px solid #dc0707;
         border-radius: 12px;
         padding: 1.3rem;
         height: 100%;
@@ -157,36 +263,53 @@
 
 <!-- ══ Hero ═════════════════════════════════════════════════════════════ -->
 <header class="lk-hero">
-    <h1>Gestion des passages de grades de la Ligue du Kadiogo</h1>
-    <p class="lead">Affiliations, inscriptions aux examens, évaluations et publication des résultats</p>
-    <div class="d-flex gap-3 justify-content-center flex-wrap">
-        <a href="{% url 'results:consultation_publique' %}" class="btn btn-or">
-            <i class="bi bi-award me-1"></i>Voir les résultats
-        </a>
-        <a href="#sessions" class="btn btn-outline-blanc">
-            <i class="bi bi-calendar-event me-1"></i>Sessions à venir
-        </a>
+    <div class="lk-hero-deco" aria-hidden="true">
+        <i class="bi bi-trophy-fill d1"></i>
+        <i class="bi bi-lightning-charge-fill d2"></i>
+        <i class="bi bi-shield-fill-check d3"></i>
+        <i class="bi bi-star-fill d4"></i>
+        <i class="bi bi-fire d5"></i>
+    </div>
+    <div class="container">
+        <h1 id="heroTitre">Gestion des passages de grades sportifs</h1>
+        <div class="lk-hero-tagline">
+            <p class="lead" id="heroTagline">Affiliations, inscriptions aux examens, évaluations et publication des résultats</p>
+        </div>
+        <div class="d-flex gap-3 justify-content-center flex-wrap">
+            <a href="{% url 'results:consultation_publique' %}" class="btn btn-or">
+                <i class="bi bi-award me-1"></i>Voir les résultats
+            </a>
+            <a href="#sessions" class="btn btn-outline-blanc">
+                <i class="bi bi-calendar-event me-1"></i>Sessions à venir
+            </a>
+        </div>
     </div>
 </header>
 
 <!-- ══ Barre de statistiques ═══════════════════════════════════════════ -->
-<div class="lk-stats">
+<div class="lk-stats" id="lkStats">
     <div class="container">
         <div class="lk-stats-label">
             Chiffres clés {% if ligue %}&mdash; {{ ligue.nom_ligue }}{% endif %}
         </div>
         <div class="row text-center gy-3">
-            <div class="col-4">
-                <div class="chiffre">{{ nb_clubs }}</div>
+            <div class="col-6 col-md-3">
+                <div class="chiffre {% if ligue.statut == 'ACTIVE' %}chiffre-ok{% else %}chiffre-off{% endif %}">
+                    {% if ligue %}{{ ligue.get_statut_display }}{% else %}—{% endif %}
+                </div>
+                <div class="libelle">Statut de la ligue</div>
+            </div>
+            <div class="col-6 col-md-3">
+                <div class="chiffre lk-compteur" data-cible="{{ nb_clubs_affilies }}">0</div>
                 <div class="libelle">Clubs affiliés</div>
             </div>
-            <div class="col-4">
-                <div class="chiffre">{{ nb_sessions }}</div>
-                <div class="libelle">Sessions organisées</div>
+            <div class="col-6 col-md-3">
+                <div class="chiffre lk-compteur" data-cible="{{ nb_pratiquants }}">0</div>
+                <div class="libelle">Pratiquants</div>
             </div>
-            <div class="col-4">
-                <div class="chiffre">{% if saison %}{{ saison.libelle }}{% else %}—{% endif %}</div>
-                <div class="libelle">Année sportive en cours</div>
+            <div class="col-6 col-md-3">
+                <div class="chiffre lk-compteur" data-cible="{{ nb_total_clubs }}">0</div>
+                <div class="libelle">Nombre de clubs</div>
             </div>
         </div>
     </div>
@@ -236,15 +359,15 @@
         {% if actualites %}
         <div class="row g-4">
             {% for actu in actualites %}
-            <div class="col-md-4">
+            <div class="col-md-6">
                 <div class="lk-card-actu">
                     {% if actu.image %}
-                    <img src="{{ actu.image.url }}" alt="" class="w-100" style="height:160px;object-fit:cover;">
+                    <img src="{{ actu.image.url }}" alt="" class="w-100" style="height:240px;object-fit:cover;">
                     {% endif %}
                     <div class="body">
                         <span class="tag">{{ actu.get_source_display }}</span>
                         <h5>{{ actu.titre }}</h5>
-                        <p class="text-muted small mb-2">{{ actu.contenu|truncatewords:20 }}</p>
+                        <p class="text-muted small mb-2">{{ actu.contenu|truncatewords:25 }}</p>
                         <div class="text-muted small">
                             <i class="bi bi-calendar3 me-1"></i>{{ actu.date_publication|date:"d/m/Y" }}
                         </div>
@@ -256,6 +379,11 @@
         {% else %}
         <div class="lk-vide">Aucune actualité publiée pour le moment.</div>
         {% endif %}
+        <div class="text-center mt-4">
+            <a href="{% url 'communication:actualites_publiques' %}" class="btn btn-outline-secondary btn-sm">
+                Voir toutes les actualités <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
     </div>
 </section>
 
@@ -283,9 +411,78 @@
         {% else %}
         <div class="lk-vide">Aucun document publié pour le moment.</div>
         {% endif %}
+        <div class="text-center mt-3">
+            <a href="{% url 'communication:documents_publics' %}" class="btn btn-outline-secondary btn-sm">
+                Voir tous les documents <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
     </div>
 </section>
 
 {% include 'includes/_lk_footer.html' %}
 
+<script>
+    (function () {
+        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+        function demarrerRotation(element, phrases, intervalMs) {
+            if (!element) return;
+            let index = 0;
+            setInterval(function () {
+                element.classList.add('lk-rotation-sortie');
+                setTimeout(function () {
+                    index = (index + 1) % phrases.length;
+                    element.textContent = phrases[index];
+                    element.classList.remove('lk-rotation-sortie');
+                }, 500);
+            }, intervalMs);
+        }
+
+        demarrerRotation(document.getElementById('heroTitre'), [
+            "Gestion des passages de grades sportifs",
+            "Une seule plateforme pour toutes les ligues et fédérations",
+            "Affiliations, examens et résultats, ligue par ligue",
+            "La gestion sportive, simplifiée et centralisée",
+        ], 4500);
+
+        demarrerRotation(document.getElementById('heroTagline'), [
+            "Affiliations, inscriptions aux examens, évaluations et publication des résultats",
+            "Une plateforme complète pour la gestion des ligues et fédérations sportives",
+            "Suivez chaque parcours, du club jusqu'au grade obtenu, en toute transparence",
+            "Rigueur, discipline et excellence au service du sport",
+        ], 4000);
+    })();
+
+    (function () {
+        const stats = document.getElementById('lkStats');
+        if (!stats) return;
+        const reduitMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+        function compter(el) {
+            const cible = parseInt(el.dataset.cible, 10) || 0;
+            if (reduitMotion || cible === 0) {
+                el.textContent = cible;
+                return;
+            }
+            const duree = 900;
+            const depart = performance.now();
+            function etape(maintenant) {
+                const progres = Math.min((maintenant - depart) / duree, 1);
+                el.textContent = Math.round(progres * cible);
+                if (progres < 1) requestAnimationFrame(etape);
+            }
+            requestAnimationFrame(etape);
+        }
+
+        const observateur = new IntersectionObserver(function (entrees) {
+            entrees.forEach(function (entree) {
+                if (!entree.isIntersecting) return;
+                stats.classList.add('lk-stats-visible');
+                stats.querySelectorAll('.lk-compteur').forEach(compter);
+                observateur.unobserve(stats);
+            });
+        }, { threshold: 0.4 });
+        observateur.observe(stats);
+    })();
+</script>
 {% endblock %}

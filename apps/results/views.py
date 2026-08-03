@@ -101,32 +101,31 @@ def _peut_consulter(request, resultat):
 
 def consultation_publique(request):
     """
-    Recherche publique d'un résultat par matricule + date de naissance
-    (aucune connexion requise). La double vérification évite qu'un simple
-    numéro de matricule deviné permette de consulter le résultat d'un tiers.
+    Recherche publique d'un résultat par matricule (aucune connexion requise).
+    Volontairement pas de recherche dynamique (suggestions à la saisie) sur
+    cette page : le matricule complet doit être saisi et validé, pour éviter
+    qu'on découvre des noms de candidats en essayant des matricules au hasard.
     """
     from apps.practitioners.models import Pratiquant
 
-    matricule      = request.GET.get('matricule', '').strip()
-    date_naissance = request.GET.get('date_naissance', '').strip()
-    recherche_effectuee = bool(matricule or date_naissance)
+    matricule = request.GET.get('matricule', '').strip()
+    recherche_effectuee = bool(matricule)
     pratiquant = None
     resultats  = []
     erreur     = None
 
-    if matricule and date_naissance:
+    if matricule:
         pratiquant = Pratiquant.objects.select_related('club').filter(
             matricule__iexact=matricule,
-            date_naissance=date_naissance,
         ).first()
 
         if pratiquant is None:
-            erreur = "Aucun candidat ne correspond à ce matricule et cette date de naissance."
+            erreur = "Aucun candidat ne correspond à ce matricule."
         else:
             resultats_qs = (
                 Resultat.objects.filter(inscription__pratiquant=pratiquant, publie=True)
                 .select_related('inscription__session', 'inscription__grade_vise')
-                .order_by('-inscription__session__date_examen')
+                .order_by('inscription__session__date_examen')
             )
             for r in resultats_qs:
                 rang, total = r.rang()
@@ -141,12 +140,9 @@ def consultation_publique(request):
             if not resultats:
                 erreur = "Aucun résultat publié pour ce candidat pour le moment."
                 pratiquant = None
-    elif recherche_effectuee:
-        erreur = "Veuillez renseigner le matricule et la date de naissance."
 
     return render(request, 'results/consultation_publique.html', {
         'matricule': matricule,
-        'date_naissance': date_naissance,
         'recherche_effectuee': recherche_effectuee,
         'pratiquant': pratiquant,
         'resultats': resultats,

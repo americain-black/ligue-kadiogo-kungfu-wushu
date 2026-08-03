@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ actualite.titre }} — Ligue du Kadiogo{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/lk_public.css' %}" rel="stylesheet">
+<style>
+    .lk-actu-detail { max-width: 760px; margin: 0 auto; }
+    .lk-actu-detail .tag {
+        display: inline-block;
+        background-color: var(--lk-rouge);
+        color: #fff;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        padding: 0.2rem 0.7rem;
+        border-radius: 20px;
+        margin-bottom: 0.8rem;
+    }
+</style>
+{% endblock %}
+
+{% block content_public %}
+{% include 'includes/_lk_navbar.html' %}
+
+<section class="lk-section">
+    <div class="container">
+        <div class="lk-actu-detail">
+            <a href="{% url 'communication:actualites_publiques' %}" class="text-muted small d-inline-block mb-3">
+                <i class="bi bi-arrow-left me-1"></i>Toutes les actualités
+            </a>
+            <span class="tag">{{ actualite.get_source_display }}</span>
+            <h1 class="fw-bold" style="font-size:1.8rem;">{{ actualite.titre }}</h1>
+            <div class="text-muted small mb-4">
+                <i class="bi bi-calendar3 me-1"></i>{{ actualite.date_publication|date:"d/m/Y" }}
+            </div>
+            {% if actualite.image %}
+            <img src="{{ actualite.image.url }}" alt="" class="img-fluid rounded mb-4">
+            {% endif %}
+            <p style="white-space: pre-line;">{{ actualite.contenu }}</p>
+        </div>
+    </div>
+</section>
+
+{% include 'includes/_lk_footer.html' %}
+{% endblock %}

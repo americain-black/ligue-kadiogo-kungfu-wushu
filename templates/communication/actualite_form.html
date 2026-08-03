@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ titre }} — Ligue du Kadiogo{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Communication</span>
+<a href="{% url 'communication:liste_actualites' %}" class="nav-link active">
+    <i class="bi bi-newspaper me-2"></i>Actualités
+</a>
+<a href="{% url 'communication:liste_documents' %}" class="nav-link">
+    <i class="bi bi-file-earmark-text me-2"></i>Documents
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold mb-0">{{ titre }}</h4>
+        <small class="text-muted">{% if actualite %}Modification{% else %}Nouvelle actualité de la ligue{% endif %}</small>
+    </div>
+    <a href="{% url 'communication:liste_actualites' %}" class="btn btn-outline-secondary btn-sm">
+        <i class="bi bi-arrow-left me-1"></i>Retour à la liste
+    </a>
+</div>
+
+<div class="card p-4" style="max-width: 720px;">
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label class="form-label fw-semibold">{{ form.titre.label }} <span class="text-danger">*</span></label>
+            {{ form.titre }}
+            {% if form.titre.errors %}<div class="text-danger small mt-1">{{ form.titre.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-semibold">{{ form.contenu.label }} <span class="text-danger">*</span></label>
+            {{ form.contenu }}
+            {% if form.contenu.errors %}<div class="text-danger small mt-1">{{ form.contenu.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="mb-3">
+            <label class="form-label fw-semibold">{{ form.image.label }}</label>
+            {% if actualite.image %}
+            <div class="mb-2"><img src="{{ actualite.image.url }}" alt="" style="max-height:120px;" class="rounded"></div>
+            {% endif %}
+            {{ form.image }}
+        </div>
+
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-ligue">
+                <i class="bi bi-check-lg me-1"></i>Enregistrer
+            </button>
+            <a href="{% url 'communication:liste_actualites' %}" class="btn btn-outline-secondary">Annuler</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -103,7 +103,7 @@ from decouple import config
 
 SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '172.23.223.186', '192.168.11.102']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '192.168.11.103', '192.168.11.101', '192.168.11.102']
 
 DATABASES = {
     'default': {

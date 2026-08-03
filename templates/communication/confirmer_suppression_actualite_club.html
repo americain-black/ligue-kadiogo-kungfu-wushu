@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}Supprimer {{ actualite.titre }} — {{ club.nom_club|default:"Club" }}{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_club' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Communication</span>
+<a href="{% url 'communication:mes_actualites' %}" class="nav-link active">
+    <i class="bi bi-newspaper me-2"></i>Mes actualités
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <small class="text-muted">
+        <a href="{% url 'communication:mes_actualites' %}">Mes actualités</a> › Supprimer
+    </small>
+    <h4 class="fw-bold mt-1 text-danger">Supprimer l'actualité</h4>
+</div>
+
+<div class="card p-4" style="max-width: 540px;">
+    <div class="alert alert-danger mb-4">
+        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+        <strong>Cette action est irréversible.</strong>
+        L'actualité « {{ actualite.titre }} » sera définitivement supprimée.
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-danger">
+                <i class="bi bi-trash me-1"></i>Oui, supprimer
+            </button>
+            <a href="{% url 'communication:mes_actualites' %}" class="btn btn-outline-secondary">Annuler</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

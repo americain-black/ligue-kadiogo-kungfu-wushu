@@ -90,9 +90,18 @@ class Utilisateur(AbstractUser):
     """
 
     # Champs supplémentaires
+    SEXE_CHOICES = [
+        ('M', 'Masculin / Monsieur'),
+        ('F', 'Féminin / Madame'),
+    ]
+    sexe         = models.CharField(max_length=1, choices=SEXE_CHOICES, default='M', blank=True)
     telephone    = models.CharField(max_length=20, blank=True)
     photo        = models.ImageField(upload_to='profils/', null=True, blank=True)
     statut_compte = models.BooleanField(default=True)
+
+    @property
+    def civilite(self):
+        return "Madame" if self.sexe == 'F' else "Monsieur"
 
     # Sécurité
     tentatives_connexion     = models.PositiveSmallIntegerField(default=0)

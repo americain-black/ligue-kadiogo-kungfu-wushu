@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+
+{% block title %}Actualités — Ligue du Kadiogo{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Gestion</span>
+<a href="{% url 'clubs:liste' %}" class="nav-link">
+    <i class="bi bi-building me-2"></i>Clubs
+</a>
+<a href="{% url 'exams:liste' %}" class="nav-link">
+    <i class="bi bi-journal-check me-2"></i>Sessions d'examen
+</a>
+<a href="{% url 'clubs:demandes_affiliation' %}" class="nav-link">
+    <i class="bi bi-file-earmark-check me-2"></i>Affiliations
+</a>
+<span class="sidebar-title mt-2">Communication</span>
+<a href="{% url 'communication:liste_actualites' %}" class="nav-link active">
+    <i class="bi bi-newspaper me-2"></i>Actualités
+</a>
+<a href="{% url 'communication:liste_documents' %}" class="nav-link">
+    <i class="bi bi-file-earmark-text me-2"></i>Documents
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h4 class="fw-bold mb-0">Actualités</h4>
+        <small class="text-muted">Actualités de la ligue et propositions des clubs</small>
+    </div>
+    <a href="{% url 'communication:creer_actualite' %}" class="btn btn-ligue">
+        <i class="bi bi-plus-lg me-1"></i>Nouvelle actualité
+    </a>
+</div>
+
+<form method="get" class="row g-2 align-items-end mb-3">
+    <div class="col-auto">
+        <label class="form-label small fw-semibold mb-1">Statut</label>
+        <select name="statut" class="form-select form-select-sm" onchange="this.form.submit()">
+            <option value="">Tous</option>
+            {% for valeur, libelle in statut_choices %}
+            <option value="{{ valeur }}" {% if valeur == statut_filtre %}selected{% endif %}>{{ libelle }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-auto">
+        <label class="form-label small fw-semibold mb-1">Source</label>
+        <select name="source" class="form-select form-select-sm" onchange="this.form.submit()">
+            <option value="">Toutes</option>
+            {% for valeur, libelle in source_choices %}
+            <option value="{{ valeur }}" {% if valeur == source_filtre %}selected{% endif %}>{{ libelle }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="col-auto flex-grow-1" style="min-width:220px;">
+        <label class="form-label small fw-semibold mb-1">Recherche</label>
+        <div class="input-group input-group-sm">
+            <input type="search" id="rechercheActuLigue" name="q" value="{{ q }}" class="form-control" placeholder="Titre ou contenu..." autocomplete="off">
+            <button type="submit" class="btn btn-outline-secondary"><i class="bi bi-search"></i></button>
+        </div>
+    </div>
+</form>
+
+<div class="card p-3">
+    {% if actualites %}
+    <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+            <tr>
+                <th>Titre</th>
+                <th>Source</th>
+                <th>Statut</th>
+                <th>Date</th>
+                <th class="text-end">Actions</th>
+            </tr>
+        </thead>
+        <tbody id="tableauActualites">
+        {% for actu in actualites %}
+        <tr class="lk-actu-row" data-recherche="{{ actu.titre|lower }} {{ actu.contenu|lower }}">
+            <td>
+                <a href="{% url 'communication:detail_actualite' actu.pk %}" class="fw-semibold text-decoration-none">{{ actu.titre }}</a>
+            </td>
+            <td>
+                {% if actu.source == 'CLUB' %}{{ actu.club.nom_club|default:"Club" }}{% else %}Ligue{% endif %}
+            </td>
+            <td>
+                {% if actu.statut == 'PUBLIEE' %}<span class="badge bg-success">Publiée</span>
+                {% elif actu.statut == 'EN_ATTENTE' %}<span class="badge bg-primary">En attente</span>
+                {% elif actu.statut == 'REJETEE' %}<span class="badge bg-danger">Rejetée</span>
+                {% else %}<span class="badge bg-secondary">Brouillon</span>
+                {% endif %}
+                {% if actu.statut == 'PUBLIEE' %}
+                {% if actu.est_public %}<span class="badge bg-info text-dark">Publique</span>
+                {% else %}<span class="badge bg-secondary">Privée</span>
+                {% endif %}
+                {% endif %}
+            </td>
+            <td class="text-muted small">{{ actu.date_creation|date:"d/m/Y" }}</td>
+            <td class="text-end">
+                <a href="{% url 'communication:detail_actualite' actu.pk %}" class="btn-action btn-action-edit" title="Voir" data-bs-toggle="tooltip">
+                    <i class="bi bi-eye"></i>
+                </a>
+                {% if actu.source == 'LIGUE' and actu.statut != 'PUBLIEE' %}
+                <a href="{% url 'communication:modifier_actualite' actu.pk %}" class="btn-action btn-action-edit" title="Modifier" data-bs-toggle="tooltip">
+                    <i class="bi bi-pencil"></i>
+                </a>
+                {% endif %}
+                {% if actu.statut == 'BROUILLON' or actu.statut == 'EN_ATTENTE' %}
+                <a href="{% url 'communication:publier_actualite' actu.pk %}" class="btn-action btn-action-off" title="Publier" data-bs-toggle="tooltip">
+                    <i class="bi bi-check-lg"></i>
+                </a>
+                {% endif %}
+                {% if actu.source == 'CLUB' and actu.statut == 'EN_ATTENTE' %}
+                <a href="{% url 'communication:rejeter_actualite' actu.pk %}" class="btn-action btn-action-on" title="Rejeter" data-bs-toggle="tooltip">
+                    <i class="bi bi-x-lg"></i>
+                </a>
+                {% endif %}
+                <a href="{% url 'communication:supprimer_actualite' actu.pk %}" class="btn-action btn-action-delete"
+                   title="{% if actu.statut == 'PUBLIEE' %}Retirer (motif requis){% else %}Supprimer{% endif %}" data-bs-toggle="tooltip">
+                    <i class="bi bi-trash"></i>
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <div class="text-center py-4 text-muted d-none" id="actualitesLigueAucunResultat">
+        Aucune actualité ne correspond à cette recherche.
+    </div>
+    {% else %}
+    <div class="text-center py-5 text-muted">
+        <i class="bi bi-newspaper fs-1 opacity-25 d-block mb-2"></i>
+        {% if q or statut_filtre or source_filtre %}Aucune actualité ne correspond à ces critères.{% else %}Aucune actualité pour le moment.{% endif %}
+    </div>
+    {% endif %}
+</div>
+
+<script>
+    (function () {
+        const champ = document.getElementById('rechercheActuLigue');
+        const lignes = document.querySelectorAll('#tableauActualites .lk-actu-row');
+        const videMessage = document.getElementById('actualitesLigueAucunResultat');
+        if (!champ || !lignes.length) return;
+
+        champ.addEventListener('input', function () {
+            const recherche = champ.value.trim().toLowerCase();
+            let visibles = 0;
+            lignes.forEach(function (ligne) {
+                const correspond = ligne.dataset.recherche.includes(recherche);
+                ligne.classList.toggle('d-none', !correspond);
+                if (correspond) visibles++;
+            });
+            if (videMessage) videMessage.classList.toggle('d-none', visibles > 0);
+        });
+    })();
+</script>
+{% endblock %}

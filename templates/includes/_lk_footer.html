@@ -16,8 +16,9 @@
                 <div class="lk-footer-titre">Liens rapides</div>
                 <ul class="lk-footer-liens">
                     <li><a href="{% url 'accounts:accueil' %}">Accueil</a></li>
-                    <li><a href="{% url 'accounts:accueil' %}#actualites">Actualités</a></li>
-                    <li><a href="{% url 'accounts:accueil' %}#documents">Documents</a></li>
+                    <li><a href="{% url 'clubs:annuaire' %}">Annuaire des clubs</a></li>
+                    <li><a href="{% url 'communication:actualites_publiques' %}">Actualités</a></li>
+                    <li><a href="{% url 'communication:documents_publics' %}">Documents</a></li>
                     <li><a href="{% url 'results:consultation_publique' %}">Résultats</a></li>
                 </ul>
             </div>
@@ -34,14 +35,26 @@
                     {% if ligue_site.email_contact %}
                     <li><i class="bi bi-envelope-fill me-2"></i><a href="mailto:{{ ligue_site.email_contact }}">{{ ligue_site.email_contact }}</a></li>
                     {% endif %}
+                    {% if not ligue_site.adresse_siege and not ligue_site.telephone and not ligue_site.email_contact %}
+                    <li class="text-muted small">Informations de contact en cours d'actualisation.</li>
+                    {% endif %}
                 </ul>
             </div>
         </div>
 
         <hr class="lk-footer-separateur">
 
+        <div class="lk-footer-devise">
+            <svg class="lk-drapeau" viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Drapeau du Burkina Faso">
+                <rect width="900" height="300" fill="#EF2B2D"/>
+                <rect y="300" width="900" height="300" fill="#009E49"/>
+                <polygon fill="#FCD116" points="450,210 469.98,272.49 535.6,272.19 482.34,310.51 502.9,372.81 450,334 397.1,372.81 417.66,310.51 364.4,272.19 430.02,272.49"/>
+            </svg>
+            La Patrie ou la Mort, nous vaincrons !
+        </div>
+
         <div class="lk-footer-bas">
-            &copy; {% now "Y" %} Ligue du Kadiogo de Kung-Fu Wushu &middot; <span id="lkFooterHeure"></span>
+            &copy; {% now "Y" %} {% if ligue_site %}{{ ligue_site.nom_ligue }}{% else %}Ligue du Kadiogo de Kung-Fu Wushu{% endif %} &middot; <span id="lkFooterHeure"></span>
         </div>
     </div>
 </footer>

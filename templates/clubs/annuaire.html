@@ -1,0 +1,308 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Annuaire des clubs — Ligue du Kadiogo{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/lk_public.css' %}" rel="stylesheet">
+<style>
+    .lk-recherche {
+        max-width: 540px;
+        margin: 0 auto 2.2rem;
+    }
+    .lk-recherche .form-control {
+        border-radius: 10px 0 0 10px;
+        border-color: #ece3d8;
+        padding: 0.75rem 1rem;
+        font-size: 0.95rem;
+    }
+    .lk-recherche .btn {
+        border-radius: 0 10px 10px 0;
+        background-color: var(--lk-rouge, #8b1a1a);
+        color: #fff;
+        border-color: var(--lk-rouge, #8b1a1a);
+        padding: 0 1.25rem;
+    }
+    .lk-recherche .btn:hover {
+        background-color: var(--lk-rouge-fonce, #661010);
+    }
+    .lk-card-club-item {
+        border-radius: 14px;
+        overflow: hidden;
+        height: 100%;
+        background: #fff;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+        border: 1px solid #eee;
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .lk-card-club-item:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 22px rgba(139,26,26,0.12);
+        border-color: #f0dede;
+    }
+    .lk-card-club-item .head {
+        background: #fdfbf7;
+        padding: 1.1rem 1.3rem;
+        border-bottom: 1px solid #f0e6da;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    .lk-card-club-item .sigle-badge {
+        display: inline-block;
+        background-color: var(--lk-rouge, #8b1a1a);
+        color: #fff;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        padding: 0.25rem 0.7rem;
+        border-radius: 20px;
+    }
+    .lk-card-club-item .body {
+        padding: 1.3rem;
+        flex-grow: 1;
+    }
+    .lk-info-ligne {
+        display: flex;
+        align-items: flex-start;
+        gap: 0.6rem;
+        font-size: 0.9rem;
+        margin-bottom: 0.6rem;
+        color: #495057;
+    }
+    .lk-info-ligne i {
+        color: var(--lk-rouge, #8b1a1a);
+        font-size: 1.05rem;
+        margin-top: 1px;
+    }
+    .lk-card-club-item .foot {
+        padding: 0.9rem 1.3rem;
+        background: #fafafa;
+        border-top: 1px solid #f0e6da;
+        display: flex;
+        gap: 0.6rem;
+    }
+</style>
+{% endblock %}
+
+{% block content_public %}
+
+{% include 'includes/_lk_navbar.html' %}
+
+<section class="lk-section" id="annuaireClubs">
+    <div class="container">
+        <h2>Annuaire des clubs</h2>
+        <p class="lk-soustitre">
+            Retrouvez la liste et les coordonnées de tous les clubs affiliés à la Ligue du Kadiogo de Kung-Fu Wushu
+        </p>
+
+        {% if messages %}
+        <div class="max-w-700 mx-auto mb-4">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>{{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Barre de recherche automatique / instantanée -->
+        <form method="get" action="{% url 'clubs:annuaire' %}" class="lk-recherche" id="formRecherche">
+            <div class="d-flex">
+                <input type="search" 
+                       id="rechercheClub" 
+                       name="q" 
+                       value="{{ query }}" 
+                       class="form-control" 
+                       placeholder="Recherche automatique par nom, sigle ou localité..." 
+                       autocomplete="off">
+                <button type="submit" class="btn" title="Rechercher">
+                    <i class="bi bi-search"></i>
+                </button>
+            </div>
+            <div class="form-text text-center text-muted mt-2">
+                <i class="bi bi-lightning-charge-fill text-warning me-1"></i>
+                La recherche se fait automatiquement dès que vous tapez au clavier.
+            </div>
+        </form>
+
+        {% if clubs %}
+        <div class="row g-4" id="grilleClubs">
+            {% for club in clubs %}
+            <div class="col-md-6 col-lg-4 lk-club-item" 
+                 data-recherche="{{ club.nom_club|lower }} {{ club.sigle_club|lower }} {{ club.localite|lower }} {{ club.adresse|lower }}">
+                <div class="lk-card-club-item">
+                    <div class="head">
+                        <div>
+                            {% if club.sigle_club %}
+                            <span class="sigle-badge">{{ club.sigle_club }}</span>
+                            {% else %}
+                            <span class="fw-bold text-muted small">CLUB</span>
+                            {% endif %}
+                        </div>
+                        <div>
+                            {% if club.statut_club == 'AFFILIE' %}
+                            <span class="badge bg-success"><i class="bi bi-shield-check me-1"></i>Affilié</span>
+                            {% elif club.statut_club == 'EN_ATTENTE' %}
+                            <span class="badge bg-warning text-dark"><i class="bi bi-clock me-1"></i>En attente</span>
+                            {% else %}
+                            <span class="badge bg-secondary">{{ club.get_statut_club_display }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <div class="body">
+                        <h5 class="fw-bold mb-3 text-dark">{{ club.nom_club }}</h5>
+
+                        <div class="lk-info-ligne">
+                            <i class="bi bi-geo-alt-fill"></i>
+                            <div>
+                                <strong>Localité :</strong> {{ club.localite }}
+                                {% if club.adresse %}
+                                <br><span class="text-muted small">{{ club.adresse }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        {% if club.telephone %}
+                        <div class="lk-info-ligne">
+                            <i class="bi bi-telephone-fill"></i>
+                            <div>
+                                <strong>Téléphone :</strong> 
+                                <a href="tel:{{ club.telephone }}" class="text-decoration-none text-dark">{{ club.telephone }}</a>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        {% if club.email %}
+                        <div class="lk-info-ligne">
+                            <i class="bi bi-envelope-fill"></i>
+                            <div>
+                                <strong>Email :</strong> 
+                                <a href="mailto:{{ club.email }}" class="text-decoration-none text-dark">{{ club.email }}</a>
+                            </div>
+                        </div>
+                        {% endif %}
+
+                        <div class="lk-info-ligne mt-3 pt-2 border-top">
+                            <i class="bi bi-people-fill"></i>
+                            <div>
+                                <strong>Pratiquants :</strong> {{ club.nb_pratiquants }} inscrit{{ club.nb_pratiquants|pluralize }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="foot">
+                        <!-- Localisation Google Maps -->
+                        <a href="https://www.google.com/maps/search/?api=1&query={{ club.nom_club|urlencode }}+{{ club.localite|urlencode }}{% if club.adresse %}+{{ club.adresse|urlencode }}{% endif %}" 
+                           target="_blank" 
+                           rel="noopener noreferrer" 
+                           class="btn btn-outline-danger btn-sm flex-fill fw-semibold">
+                            <i class="bi bi-geo-fill me-1"></i>Itinéraire
+                        </a>
+
+                        <!-- Modal Formulaire de contact -->
+                        <button type="button" 
+                                class="btn btn-danger btn-sm flex-fill fw-semibold" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#modalContactClub{{ club.pk }}">
+                            <i class="bi bi-envelope-paper-fill me-1"></i>Contacter
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Formulaire de contact pour chaque club -->
+            <div class="modal fade" id="modalContactClub{{ club.pk }}" tabindex="-1" aria-labelledby="labelContact{{ club.pk }}" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header bg-danger text-white">
+                            <h5 class="modal-title fw-bold" id="labelContact{{ club.pk }}">
+                                <i class="bi bi-envelope-fill me-2"></i>Contacter {{ club.nom_club }}
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                        </div>
+                        <form method="post" action="{% url 'clubs:annuaire' %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="envoyer_message" value="1">
+                            <input type="hidden" name="club_id" value="{{ club.pk }}">
+                            <div class="modal-body">
+                                <p class="text-muted small">
+                                    Remplissez ce formulaire pour envoyer un message direct au club <strong>{{ club.nom_club }}</strong>.
+                                </p>
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Votre nom complet <span class="text-danger">*</span></label>
+                                    <input type="text" name="nom_expediteur" class="form-control" placeholder="Ex: Jean Zongo" required>
+                                </div>
+                                <div class="row g-2 mb-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Adresse Email</label>
+                                        <input type="email" name="email_expediteur" class="form-control" placeholder="exemple@mail.com">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label fw-semibold">Téléphone</label>
+                                        <input type="tel" name="telephone_expediteur" class="form-control" placeholder="+226 ...">
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">Votre message <span class="text-danger">*</span></label>
+                                    <textarea name="message" rows="4" class="form-control" placeholder="Bonjour, je souhaite m'inscrire dans votre club..." required></textarea>
+                                </div>
+                            </div>
+                            <div class="modal-footer bg-light">
+                                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Annuler</button>
+                                <button type="submit" class="btn btn-danger btn-sm fw-bold">
+                                    <i class="bi bi-send-fill me-1"></i>Envoyer le message
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <div class="lk-vide d-none" id="clubsAucunResultat">
+            Aucun club ne correspond à cette recherche.
+        </div>
+
+        {% else %}
+        <div class="lk-vide">
+            Aucun club n'est disponible dans l'annuaire pour le moment.
+        </div>
+        {% endif %}
+    </div>
+</section>
+
+{% include 'includes/_lk_footer.html' %}
+
+<script>
+    (function () {
+        const champ = document.getElementById('rechercheClub');
+        const items = document.querySelectorAll('#grilleClubs .lk-club-item');
+        const videMessage = document.getElementById('clubsAucunResultat');
+        if (!champ || !items.length) return;
+
+        // Recherche instantanée automatique à la saisie au clavier
+        champ.addEventListener('input', function () {
+            const recherche = champ.value.trim().toLowerCase();
+            let visibles = 0;
+
+            items.forEach(function (item) {
+                const texteCard = item.dataset.recherche || '';
+                const correspond = texteCard.includes(recherche);
+                item.classList.toggle('d-none', !correspond);
+                if (correspond) visibles++;
+            });
+
+            if (videMessage) {
+                videMessage.classList.toggle('d-none', visibles > 0);
+            }
+        });
+    })();
+</script>
+{% endblock %}

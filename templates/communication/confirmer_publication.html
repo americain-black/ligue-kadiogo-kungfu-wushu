@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+
+{% block title %}Publier l'actualité — Ligue du Kadiogo{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Communication</span>
+<a href="{% url 'communication:liste_actualites' %}" class="nav-link active">
+    <i class="bi bi-newspaper me-2"></i>Actualités
+</a>
+<a href="{% url 'communication:liste_documents' %}" class="nav-link">
+    <i class="bi bi-file-earmark-text me-2"></i>Documents
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <small class="text-muted">
+        <a href="{% url 'communication:detail_actualite' actualite.pk %}">{{ actualite.titre }}</a> › Publier
+    </small>
+    <h4 class="fw-bold mt-1 mb-0">Publier l'actualité</h4>
+</div>
+
+<div class="card p-4" style="max-width: 600px;">
+    <div class="alert alert-success mb-4">
+        <i class="bi bi-check-circle me-2"></i>
+        Vous êtes sur le point de publier <strong>{{ actualite.titre }}</strong>.
+    </div>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-4">
+            <label class="form-label fw-semibold d-block">Visibilité</label>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="visibilite" id="visPublic" value="public" checked>
+                <label class="form-check-label" for="visPublic">
+                    <strong>Publique</strong> — visible par tous, sans connexion
+                </label>
+            </div>
+            <div class="form-check">
+                <input class="form-check-input" type="radio" name="visibilite" id="visPrive" value="prive">
+                <label class="form-check-label" for="visPrive">
+                    <strong>Privée</strong> — visible uniquement par les clubs et comptes connectés
+                </label>
+            </div>
+        </div>
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-success">
+                <i class="bi bi-check-lg me-1"></i>Confirmer la publication
+            </button>
+            <a href="{% url 'communication:detail_actualite' actualite.pk %}" class="btn btn-outline-secondary">Annuler</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

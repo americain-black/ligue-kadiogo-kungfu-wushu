@@ -2,7 +2,12 @@
     <div class="container">
         <a class="navbar-brand" href="{% url 'accounts:accueil' %}">
             <i class="bi bi-trophy-fill"></i>
-            Ligue du Kadiogo · Kung-Fu Wushu
+            Administration
+            <svg class="lk-drapeau" width="32" height="21" viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Drapeau du Burkina Faso">
+                <rect width="900" height="300" fill="#EF2B2D"/>
+                <rect y="300" width="900" height="300" fill="#009E49"/>
+                <polygon fill="#FCD116" points="450,210 469.98,272.49 535.6,272.19 482.34,310.51 502.9,372.81 450,334 397.1,372.81 417.66,310.51 364.4,272.19 430.02,272.49"/>
+            </svg>
         </a>
         <button class="navbar-toggler bg-white" type="button" data-bs-toggle="collapse" data-bs-target="#lkNavContent">
             <span class="navbar-toggler-icon"></span>
@@ -10,15 +15,15 @@
         <div class="collapse navbar-collapse" id="lkNavContent">
             <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-1 mb-2 mb-lg-0">
                 <li class="nav-item"><a class="nav-link" href="{% url 'accounts:accueil' %}">Accueil</a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'accounts:accueil' %}#actualites">Actualités</a></li>
-                <li class="nav-item"><a class="nav-link" href="{% url 'accounts:accueil' %}#documents">Documents</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'clubs:annuaire' %}">Annuaire des clubs</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'communication:actualites_publiques' %}">Actualités</a></li>
+                <li class="nav-item"><a class="nav-link" href="{% url 'communication:documents_publics' %}">Documents</a></li>
                 <li class="nav-item"><a class="nav-link" href="{% url 'results:consultation_publique' %}">Résultats</a></li>
                 <li class="nav-item ms-lg-2 dropdown">
                     <a class="btn btn-portail dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <i class="bi bi-box-arrow-in-right me-1"></i>Se connecter
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end">
-                        <li><a class="dropdown-item" href="{% url 'accounts:login' %}?profil=admin"><i class="bi bi-gear-fill me-2"></i>Super Admin</a></li>
                         <li><a class="dropdown-item" href="{% url 'accounts:login' %}?profil=ligue"><i class="bi bi-building me-2"></i>Gestionnaire Ligue</a></li>
                         <li><a class="dropdown-item" href="{% url 'accounts:login' %}?profil=club"><i class="bi bi-people-fill me-2"></i>Gestionnaire Club</a></li>
                         <li><a class="dropdown-item" href="{% url 'accounts:login' %}?profil=financier"><i class="bi bi-coin me-2"></i>Gestionnaire Financier</a></li>

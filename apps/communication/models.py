@@ -50,6 +50,10 @@ class Actualite(models.Model):
         choices=STATUT_CHOICES,
         default='BROUILLON'
     )
+    est_public     = models.BooleanField(
+        default=True,
+        help_text="Public = visible sans connexion. Privé = visible uniquement par les clubs et comptes connectés."
+    )
     motif_rejet    = models.TextField(blank=True)
     date_creation  = models.DateTimeField(auto_now_add=True)
     date_publication = models.DateTimeField(null=True, blank=True)

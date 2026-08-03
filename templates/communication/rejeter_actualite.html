@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block title %}Rejeter l'actualité — Ligue du Kadiogo{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Communication</span>
+<a href="{% url 'communication:liste_actualites' %}" class="nav-link active">
+    <i class="bi bi-newspaper me-2"></i>Actualités
+</a>
+<a href="{% url 'communication:liste_documents' %}" class="nav-link">
+    <i class="bi bi-file-earmark-text me-2"></i>Documents
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex align-items-start gap-3 mb-4">
+    <a href="{% url 'communication:detail_actualite' actualite.pk %}" class="btn-action btn-action-edit flex-shrink-0" title="Retour" data-bs-toggle="tooltip">
+        <i class="bi bi-arrow-left"></i>
+    </a>
+    <div>
+        <small class="text-muted">
+            <a href="{% url 'communication:detail_actualite' actualite.pk %}">{{ actualite.titre }}</a> › Rejeter
+        </small>
+        <h4 class="fw-bold mt-1 mb-0">Rejeter l'actualité</h4>
+        <small class="text-muted">Proposée par {{ actualite.club.nom_club }}</small>
+    </div>
+</div>
+
+<div class="card p-4" style="max-width: 600px;">
+    <div class="alert alert-warning mb-4">
+        <i class="bi bi-exclamation-triangle me-2"></i>
+        Le club pourra modifier et resoumettre cette actualité après le rejet.
+    </div>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label class="form-label fw-semibold">{{ form.motif.label }} <span class="text-danger">*</span></label>
+            {{ form.motif }}
+            {% if form.motif.errors %}<div class="text-danger small mt-1">{{ form.motif.errors.0 }}</div>{% endif %}
+        </div>
+        <div class="d-flex gap-2">
+            <button type="submit" class="btn btn-danger">
+                <i class="bi bi-x-lg me-1"></i>Confirmer le rejet
+            </button>
+            <a href="{% url 'communication:detail_actualite' actualite.pk %}" class="btn btn-outline-secondary">Annuler</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

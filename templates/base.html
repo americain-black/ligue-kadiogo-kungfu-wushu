@@ -240,7 +240,7 @@
         </button>
         <a class="navbar-brand fw-bold" href="/tableau-de-bord/">
             <i class="bi bi-trophy-fill me-2"></i>
-            {% if user.ligue %}{{ user.ligue.nom_ligue }}{% else %}Plateforme FKWBF{% endif %}
+            Plateforme de gestion — {% if user.ligue %}{{ user.ligue.nom_ligue }}{% elif ligue_site %}{{ ligue_site.nom_ligue }}{% else %}Ligue du Kadiogo{% endif %}
         </a>
         <div class="ms-auto d-flex align-items-center gap-3">
             <span class="text-white-50 small d-none d-sm-inline">

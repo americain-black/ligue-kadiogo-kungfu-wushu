@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Documents — Ligue du Kadiogo{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/lk_public.css' %}" rel="stylesheet">
+<style>
+    .lk-doc-item {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        padding: 0.9rem 1.1rem;
+        border: 1px solid #eee;
+        border-radius: 10px;
+        background: #fff;
+        margin-bottom: 0.7rem;
+    }
+    .lk-doc-item i { font-size: 1.4rem; color: var(--lk-rouge); }
+    .lk-recherche {
+        max-width: 480px;
+        margin: 0 auto 2.2rem;
+    }
+    .lk-recherche .form-control {
+        border-radius: 10px 0 0 10px;
+        border-color: #ece3d8;
+    }
+    .lk-recherche .btn {
+        border-radius: 0 10px 10px 0;
+        background-color: var(--lk-rouge);
+        color: #fff;
+        border-color: var(--lk-rouge);
+    }
+    .lk-recherche .btn:hover { background-color: var(--lk-rouge-fonce); }
+</style>
+{% endblock %}
+
+{% block content_public %}
+{% include 'includes/_lk_navbar.html' %}
+
+<section class="lk-section" id="documents">
+    <div class="container">
+        <h2>Documents</h2>
+        <p class="lk-soustitre">
+            Règlements, formulaires d'inscription et circulaires officielles mis à disposition
+            par la ligue.
+        </p>
+
+        <form method="get" class="lk-recherche d-flex">
+            <input type="search" id="rechercheDoc" name="q" value="{{ q }}" class="form-control"
+                   placeholder="Rechercher un document..." autocomplete="off">
+            <button type="submit" class="btn"><i class="bi bi-search"></i></button>
+        </form>
+
+        {% if documents %}
+        <div class="row">
+            <div class="col-lg-8 mx-auto" id="listeDocuments">
+                {% for doc in documents %}
+                <a href="{{ doc.fichier.url }}" target="_blank" class="lk-doc-item text-decoration-none text-reset lk-doc-search-item"
+                   data-recherche="{{ doc.titre|lower }} {{ doc.get_type_document_display|lower }}">
+                    <i class="bi bi-file-earmark-text"></i>
+                    <div class="flex-grow-1">
+                        <div class="fw-bold">{{ doc.titre }}</div>
+                        <div class="text-muted small">{{ doc.get_type_document_display }} · {{ doc.date_publication|date:"d/m/Y" }}</div>
+                    </div>
+                    <i class="bi bi-download text-muted"></i>
+                </a>
+                {% endfor %}
+                <div class="lk-vide d-none" id="documentsAucunResultat">Aucun document ne correspond à cette recherche.</div>
+            </div>
+        </div>
+        {% elif q %}
+        <div class="lk-vide">Aucun document ne correspond à « {{ q }} ».</div>
+        {% else %}
+        <div class="lk-vide">Aucun document publié pour le moment.</div>
+        {% endif %}
+    </div>
+</section>
+
+{% include 'includes/_lk_footer.html' %}
+
+<script>
+    (function () {
+        const champ = document.getElementById('rechercheDoc');
+        const items = document.querySelectorAll('#listeDocuments .lk-doc-search-item');
+        const videMessage = document.getElementById('documentsAucunResultat');
+        if (!champ || !items.length) return;
+
+        champ.addEventListener('input', function () {
+            const recherche = champ.value.trim().toLowerCase();
+            let visibles = 0;
+            items.forEach(function (item) {
+                const correspond = item.dataset.recherche.includes(recherche);
+                item.classList.toggle('d-none', !correspond);
+                if (correspond) visibles++;
+            });
+            if (videMessage) videMessage.classList.toggle('d-none', visibles > 0);
+        });
+    })();
+</script>
+{% endblock %}

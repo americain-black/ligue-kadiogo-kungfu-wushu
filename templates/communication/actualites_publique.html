@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Actualités — Ligue du Kadiogo{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/lk_public.css' %}" rel="stylesheet">
+<style>
+    .lk-card-actu {
+        border-radius: 12px;
+        overflow: hidden;
+        height: 100%;
+        background: #fff;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.06);
+    }
+    .lk-card-actu .tag {
+        display: inline-block;
+        background-color: var(--lk-rouge);
+        color: #fff;
+        font-size: 0.7rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        padding: 0.2rem 0.7rem;
+        border-radius: 20px;
+        margin-bottom: 0.6rem;
+    }
+    .lk-card-actu .body { padding: 1.2rem; }
+    .lk-recherche {
+        max-width: 480px;
+        margin: 0 auto 2.2rem;
+    }
+    .lk-recherche .form-control {
+        border-radius: 10px 0 0 10px;
+        border-color: #ece3d8;
+    }
+    .lk-recherche .btn {
+        border-radius: 0 10px 10px 0;
+        background-color: var(--lk-rouge);
+        color: #fff;
+        border-color: var(--lk-rouge);
+    }
+    .lk-recherche .btn:hover { background-color: var(--lk-rouge-fonce); }
+</style>
+{% endblock %}
+
+{% block content_public %}
+{% include 'includes/_lk_navbar.html' %}
+
+<section class="lk-section" id="actualites">
+    <div class="container">
+        <h2>Actualités</h2>
+        <p class="lk-soustitre">
+            Retrouvez ici toutes les annonces officielles de la ligue ainsi que les nouvelles
+            partagées par les clubs affiliés.
+        </p>
+
+        <form method="get" class="lk-recherche d-flex">
+            <input type="search" id="rechercheActu" name="q" value="{{ q }}" class="form-control"
+                   placeholder="Rechercher une actualité..." autocomplete="off">
+            <button type="submit" class="btn"><i class="bi bi-search"></i></button>
+        </form>
+
+        {% if actualites %}
+        <div class="row g-4" id="grilleActualites">
+            {% for actu in actualites %}
+            <div class="col-md-6 lk-actu-item" data-recherche="{{ actu.titre|lower }} {{ actu.contenu|lower }}">
+                <a href="{% url 'communication:detail_actualite_publique' actu.pk %}" class="text-decoration-none text-reset">
+                <div class="lk-card-actu">
+                    {% if actu.image %}
+                    <img src="{{ actu.image.url }}" alt="" class="w-100" style="height:240px;object-fit:cover;">
+                    {% endif %}
+                    <div class="body">
+                        <span class="tag">{{ actu.get_source_display }}</span>
+                        <h5>{{ actu.titre }}</h5>
+                        <p class="text-muted small mb-2">{{ actu.contenu|truncatewords:25 }}</p>
+                        <div class="text-muted small">
+                            <i class="bi bi-calendar3 me-1"></i>{{ actu.date_publication|date:"d/m/Y" }}
+                        </div>
+                    </div>
+                </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        <div class="lk-vide d-none" id="actualitesAucunResultat">Aucune actualité ne correspond à cette recherche.</div>
+        {% elif q %}
+        <div class="lk-vide">Aucune actualité ne correspond à « {{ q }} ».</div>
+        {% else %}
+        <div class="lk-vide">Aucune actualité publiée pour le moment.</div>
+        {% endif %}
+    </div>
+</section>
+
+{% include 'includes/_lk_footer.html' %}
+
+<script>
+    (function () {
+        const champ = document.getElementById('rechercheActu');
+        const items = document.querySelectorAll('#grilleActualites .lk-actu-item');
+        const videMessage = document.getElementById('actualitesAucunResultat');
+        if (!champ || !items.length) return;
+
+        champ.addEventListener('input', function () {
+            const recherche = champ.value.trim().toLowerCase();
+            let visibles = 0;
+            items.forEach(function (item) {
+                const correspond = item.dataset.recherche.includes(recherche);
+                item.classList.toggle('d-none', !correspond);
+                if (correspond) visibles++;
+            });
+            if (videMessage) videMessage.classList.toggle('d-none', visibles > 0);
+        });
+    })();
+</script>
+{% endblock %}

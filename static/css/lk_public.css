@@ -36,6 +36,34 @@
 }
 .lk-navbar .btn-portail:hover { background-color: #e6c200; color: #3a2a00; }
 
+/* ── Drapeau flottant (Burkina Faso) ──────────────────────────────────── */
+.lk-drapeau {
+    display: inline-block;
+    transform-origin: 0% 50%;
+    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.25));
+    animation: lk-drapeau-flotte 1.6s ease-in-out infinite;
+}
+@keyframes lk-drapeau-flotte {
+    0%   { transform: rotate(0deg) skewY(0deg); }
+    20%  { transform: rotate(-10deg) skewY(8deg); }
+    40%  { transform: rotate(4deg) skewY(-6deg); }
+    60%  { transform: rotate(-8deg) skewY(7deg); }
+    80%  { transform: rotate(6deg) skewY(-5deg); }
+    100% { transform: rotate(0deg) skewY(0deg); }
+}
+@media (prefers-reduced-motion: reduce) {
+    .lk-drapeau { animation: none; }
+}
+.lk-footer-devise {
+    text-align: center;
+    font-weight: 700;
+    font-style: italic;
+    letter-spacing: 0.03em;
+    color: #fff;
+    margin: 0.4rem 0 1.4rem;
+}
+.lk-footer-devise .lk-drapeau { width: 30px; margin-right: 0.5rem; vertical-align: middle; }
+
 /* ── Sections génériques ───────────────────────────────────────────────── */
 .lk-section { padding: 3.5rem 1rem; }
 .lk-section.lk-alt { background-color: #f7f2ec; }

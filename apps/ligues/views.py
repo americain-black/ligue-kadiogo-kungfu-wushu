@@ -1,8 +1,11 @@
+# pyrefly: ignore [missing-import]
 from django.shortcuts import render, redirect, get_object_or_404
+# pyrefly: ignore [missing-import]
 from django.contrib.auth.decorators import login_required
+# pyrefly: ignore [missing-import]
 from django.contrib import messages
 from .models import Ligue, VoletOrganigramme, MembreOrganigramme
-from .forms import LigueForm, VoletOrganigrammeForm, MembreOrganigrammeForm
+from .forms import LigueForm, VoletOrganigrammeForm, MembreOrganigrammeForm, EditerInfosLigueForm
 
 
 def super_admin_requis(view_func):
@@ -78,6 +81,7 @@ def toggle_statut_ligue(request, pk):
 
 @super_admin_requis
 def supprimer_ligue(request, pk):
+    # pyrefly: ignore [missing-import]
     from django.db import transaction
     ligue  = get_object_or_404(Ligue, pk=pk)
     clubs  = list(ligue.clubs.all().order_by('nom_club'))
@@ -121,21 +125,30 @@ def supprimer_ligue(request, pk):
 @gest_ligue_requis
 def organigramme(request):
     ligue = request.user.ligue
-    volets = ligue.volets.prefetch_related('membres').all()
+    volets = ligue.volets.prefetch_related('membres__club').all()
     form_volet = VoletOrganigrammeForm()
+    clubs = ligue.clubs.all().order_by('nom_club')
     return render(request, 'ligues/organigramme.html', {
         'ligue':            ligue,
         'volets':           volets,
         'form_volet':       form_volet,
         'fonction_choices': MembreOrganigramme.FONCTION_CHOICES,
+        'clubs':            clubs,
     })
 
 
-@gest_ligue_requis
 def organigramme_visuel(request):
-    ligue = request.user.ligue
+    if request.user.is_authenticated and getattr(request.user, 'ligue', None):
+        ligue = request.user.ligue
+    else:
+        ligue = Ligue.objects.filter(sigle='LKKFW').first() or Ligue.objects.first()
+
+    if not ligue:
+        messages.error(request, "Aucune ligue trouvée.")
+        return redirect('accounts:accueil')
+
     ordre_fonctions = [code for code, _ in MembreOrganigramme.FONCTION_CHOICES]
-    volets = ligue.volets.prefetch_related('membres').all()
+    volets = ligue.volets.prefetch_related('membres__club').all()
     for volet in volets:
         volet.membres_actifs = sorted(
             volet.membres.filter(actif=True),
@@ -192,6 +205,10 @@ def ajouter_membre(request, volet_pk):
         if form.is_valid():
             membre = form.save(commit=False)
             membre.volet = volet
+            club_id = request.POST.get('club')
+            if club_id:
+                from apps.clubs.models import Club
+                membre.club = Club.objects.filter(pk=club_id, ligue=request.user.ligue).first()
             membre.save()
             messages.success(request, f"{membre.prenom} {membre.nom} ajouté.")
     return redirect('ligues:organigramme')
@@ -203,7 +220,14 @@ def modifier_membre(request, pk):
     if request.method == 'POST':
         form = MembreOrganigrammeForm(request.POST, instance=membre)
         if form.is_valid():
-            form.save()
+            m = form.save(commit=False)
+            club_id = request.POST.get('club')
+            if club_id:
+                from apps.clubs.models import Club
+                m.club = Club.objects.filter(pk=club_id, ligue=request.user.ligue).first()
+            else:
+                m.club = None
+            m.save()
             messages.success(request, "Membre modifié.")
     return redirect('ligues:organigramme')
 
@@ -226,3 +250,29 @@ def supprimer_membre(request, pk):
         membre.delete()
         messages.success(request, f"{nom} supprimé de l'organigramme.")
     return redirect('ligues:organigramme')
+
+
+@gest_ligue_requis
+def editer_infos_ligue(request):
+    """Permet au gestionnaire de ligue de modifier le contenu À Propos, Présentation, Misions et Contact."""
+    ligue = request.user.ligue
+    if not ligue and request.user.is_superuser:
+        ligue = Ligue.objects.filter(sigle='LKKFW').first() or Ligue.objects.first()
+
+    if not ligue:
+        messages.error(request, "Aucune ligue associée à votre compte.")
+        return redirect('accounts:tableau_de_bord')
+
+    if request.method == 'POST':
+        form = EditerInfosLigueForm(request.POST, request.FILES, instance=ligue)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Les informations et présentations de la ligue ont été mises à jour avec succès.")
+            return redirect('ligues:editer_infos')
+    else:
+        form = EditerInfosLigueForm(instance=ligue)
+
+    return render(request, 'ligues/editer_infos.html', {
+        'ligue': ligue,
+        'form': form,
+    })

@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ ligue.get_titre_mot_president }} — Ligue du Kadiogo{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/lk_public.css' %}" rel="stylesheet">
+<style>
+    .lk-banner-header {
+        background: linear-gradient(135deg, #043e1d 0%, #009E49 100%);
+        color: #ffffff;
+        padding: 3.5rem 0 3rem 0;
+        position: relative;
+    }
+    .lk-page-title-accent {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-weight: 800;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        font-size: 2.25rem;
+    }
+    .lk-page-title-accent::before {
+        content: "";
+        display: inline-block;
+        width: 6px;
+        height: 2.2rem;
+        background-color: #FCD116;
+        border-radius: 3px;
+    }
+    .lk-breadcrumb {
+        font-size: 0.875rem;
+        color: #e0e0e0;
+        margin-top: 0.75rem;
+    }
+    .lk-breadcrumb a {
+        color: #ffffff;
+        text-decoration: none;
+    }
+    .lk-breadcrumb a:hover {
+        color: #FCD116;
+        text-decoration: underline;
+    }
+</style>
+{% endblock %}
+
+{% block content_public %}
+{% include 'includes/_lk_navbar.html' %}
+
+<section class="lk-banner-header shadow-sm">
+    <div class="container">
+        <div class="lk-page-title-accent">
+            {{ ligue.get_titre_mot_president|upper }}
+        </div>
+        <div class="lk-breadcrumb ms-3">
+            <a href="{% url 'accounts:accueil' %}">Home</a> &nbsp;.&nbsp; <a href="{% url 'accounts:presentation' %}">À propos</a> &nbsp;.&nbsp; <span>{{ ligue.get_titre_mot_president }}</span>
+        </div>
+    </div>
+</section>
+
+<section class="py-5 bg-light min-vh-50">
+    <div class="container">
+        <div class="max-w-900 mx-auto">
+            <div class="bg-white p-4 p-md-5 rounded-4 shadow-sm border mb-4">
+                <div class="row align-items-center mb-4">
+                    <div class="col-md-4 text-center mb-3 mb-md-0">
+                        <div class="p-3 bg-light rounded-4 border d-inline-block shadow-sm">
+                            {% if ligue.photo_president %}
+                            <img src="{{ ligue.photo_president.url }}" alt="{{ ligue.get_nom_president }}" class="rounded-3 img-fluid mb-2" style="max-height: 180px; object-fit: cover;">
+                            {% else %}
+                            <i class="bi bi-person-workspace text-danger display-1 mb-2"></i>
+                            {% endif %}
+                            <h5 class="fw-bold text-dark mb-1">{{ ligue.get_nom_president }}</h5>
+                            <span class="badge bg-dark">{{ ligue.sigle }}</span>
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <blockquote class="blockquote fst-italic text-secondary border-start border-danger border-4 ps-3">
+                            « Le Kung-Fu Wushu n'est pas uniquement un sport de combat ; c'est une école de la vie, de la discipline, et du dépassement de soi. »
+                        </blockquote>
+                    </div>
+                </div>
+
+                <div class="text-secondary space-y-3" style="font-size: 1.05rem; line-height: 1.8;">
+                    {{ ligue.get_mot_president|linebreaks }}
+                </div>
+
+                <div class="mt-5 pt-3 border-top d-flex justify-content-between align-items-center flex-wrap gap-2">
+                    <a href="{% url 'accounts:presentation' %}" class="btn btn-outline-dark btn-voir-plus">
+                        <i class="bi bi-arrow-left me-1"></i>Présentation de la ligue
+                    </a>
+                    <a href="{% url 'accounts:vision_missions' %}" class="btn btn-danger btn-voir-plus">
+                        Vision & Missions <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% include 'includes/_lk_footer.html' %}
+{% endblock %}

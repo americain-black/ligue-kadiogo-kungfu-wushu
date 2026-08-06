@@ -1,7 +1,11 @@
+# pyrefly: ignore [missing-import]
 from django.contrib import admin
-from django.urls import path, include
+# pyrefly: ignore [missing-import]
+from django.urls import path, include, re_path
+# pyrefly: ignore [missing-import]
 from django.conf import settings
-from django.conf.urls.static import static
+# pyrefly: ignore [missing-import]
+from django.views.static import serve
 
 urlpatterns = [
     path('admin/',   admin.site.urls),
@@ -14,7 +18,5 @@ urlpatterns = [
     path('evaluations/',  include('apps.evaluations.urls',   namespace='evaluations')),
     path('resultats/',    include('apps.results.urls',       namespace='results')),
     path('communication/', include('apps.communication.urls', namespace='communication')),
+    re_path(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
 ]
-
-if settings.DEBUG:
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

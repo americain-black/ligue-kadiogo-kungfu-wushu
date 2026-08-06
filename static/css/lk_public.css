@@ -1,46 +1,178 @@
+/* ── Masquer visuellement la barre de défilement (Scrollbar masquée) ──── */
+html, body {
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE / Edge */
+}
+html::-webkit-scrollbar, body::-webkit-scrollbar {
+    display: none !important; /* Chrome, Safari, Opera */
+    width: 0 !important;
+    height: 0 !important;
+}
+
 /* ── Palette partagée des pages publiques (accueil, résultats...) ────── */
 :root {
-    --lk-rouge:       #8B1A1A;
-    --lk-rouge-fonce: #6E1414;
-    --lk-or:          #FFD700;
+    --lk-navbar-bg:   #0F172A; /* Slate Navy Sombre */
+    --lk-footer-bg:   #0F172A;
+    --lk-slate-card:  #1E293B;
+    --lk-rouge:       #DC2626; /* Rouge Cramoisi Martial */
+    --lk-rouge-fonce: #991B1B;
+    --lk-or:          #F59E0B; /* Doré / Warm Gold */
 }
 
 /* ── Navbar publique ─────────────────────────────────────────────────── */
 .lk-navbar {
-    background-color: var(--lk-rouge);
-    padding: 0.7rem 0;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100% !important;
+    z-index: 1050 !important;
+    background-color: var(--lk-navbar-bg);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+    padding: 0.8rem 0;
+    border-bottom: 2px solid rgba(245, 158, 11, 0.3);
+    backdrop-filter: blur(10px);
 }
 .lk-navbar .navbar-brand {
     color: #fff !important;
-    font-weight: 700;
-    font-size: 1.05rem;
+    font-weight: 800;
+    font-size: 1.1rem;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 0.6rem;
+    letter-spacing: 0.02em;
 }
-.lk-navbar .navbar-brand i { font-size: 1.4rem; color: var(--lk-or); }
+.lk-navbar .navbar-brand i { font-size: 1.5rem; color: var(--lk-or); }
 .lk-navbar .nav-link {
-    color: rgba(255,255,255,0.9) !important;
+    color: rgba(255, 255, 255, 0.88) !important;
     font-weight: 600;
-    font-size: 0.92rem;
-    padding: 0.5rem 0.9rem !important;
+    font-size: 0.95rem;
+    padding: 0.5rem 1rem !important;
+    border-radius: 6px;
+    transition: all 0.2s ease;
 }
-.lk-navbar .nav-link:hover { color: var(--lk-or) !important; }
+.lk-navbar .nav-link:hover {
+    color: var(--lk-or) !important;
+    background-color: rgba(255, 255, 255, 0.08);
+}
+.lk-navbar .nav-link.active {
+    color: #FCD116 !important;
+    background-color: rgba(252, 209, 22, 0.18) !important;
+    font-weight: 800 !important;
+    border-bottom: 3px solid #FCD116 !important;
+    border-radius: 6px 6px 0 0;
+    box-shadow: 0 4px 12px rgba(252, 209, 22, 0.2);
+}
+
+/* ── Bannière Verte Institutionnelle (Modèle Standardisé sur toutes les pages) ── */
+.lk-banner-header {
+    background: linear-gradient(135deg, #043e1d 0%, #009E49 100%) !important;
+    color: #ffffff !important;
+    padding: 4rem 0 3.5rem 0 !important;
+    position: relative !important;
+    overflow: hidden !important;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+.lk-banner-header::before {
+    content: "";
+    position: absolute;
+    top: 0; right: 0; bottom: 0; left: 0;
+    background: radial-gradient(circle at 90% 20%, rgba(252, 209, 22, 0.18) 0%, transparent 55%);
+    pointer-events: none;
+}
+.lk-page-title-accent {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-size: 2.2rem;
+    color: #ffffff !important;
+}
+.lk-page-title-accent::before {
+    content: "";
+    display: inline-block;
+    width: 6px;
+    height: 2.2rem;
+    background-color: #FCD116 !important;
+    border-radius: 3px;
+    box-shadow: 0 0 10px rgba(252, 209, 22, 0.5);
+}
+.lk-breadcrumb {
+    font-size: 0.9rem;
+    color: #e0e0e0;
+    margin-top: 0.75rem;
+    font-weight: 500;
+}
+.lk-breadcrumb a {
+    color: #ffffff;
+    text-decoration: none;
+    transition: color 0.2s ease;
+}
+.lk-breadcrumb a:hover {
+    color: #FCD116;
+    text-decoration: underline;
+}
+
+/* ── Hover Dropdown sur Desktop & Compatibility Mobile ────────────────── */
+@media (min-width: 992px) {
+    .lk-dropdown-hover:hover .dropdown-menu {
+        display: block;
+        margin-top: 0.3rem;
+        animation: lkFadeInUp 0.25s cubic-bezier(0.165, 0.84, 0.44, 1) forwards;
+    }
+}
+@keyframes lkFadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+.btn-outline-blanc {
+    border: 2px solid #ffffff !important;
+    color: #ffffff !important;
+    font-weight: 700 !important;
+    padding: 0.55rem 1.4rem;
+    border-radius: 8px;
+    background: transparent !important;
+    transition: all 0.25s ease-in-out;
+    text-decoration: none !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+.btn-outline-blanc:hover, .btn-outline-blanc:focus {
+    background-color: #ffffff !important;
+    color: #0F172A !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(255, 255, 255, 0.25);
+}
 .lk-navbar .btn-portail {
-    background-color: var(--lk-or);
-    color: #3a2a00;
+    background: linear-gradient(135deg, var(--lk-or) 0%, #D97706 100%);
+    color: #0F172A;
     font-weight: 700;
     border: none;
-    padding: 0.45rem 1.3rem;
+    padding: 0.55rem 1.4rem;
     border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+    transition: all 0.2s ease;
 }
-.lk-navbar .btn-portail:hover { background-color: #e6c200; color: #3a2a00; }
+.lk-navbar .btn-portail:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(245, 158, 11, 0.45);
+    color: #0F172A;
+}
 
 /* ── Drapeau flottant (Burkina Faso) ──────────────────────────────────── */
 .lk-drapeau {
     display: inline-block;
     transform-origin: 0% 50%;
-    filter: drop-shadow(0 1px 2px rgba(0,0,0,0.25));
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
     animation: lk-drapeau-flotte 1.6s ease-in-out infinite;
 }
 @keyframes lk-drapeau-flotte {
@@ -59,75 +191,186 @@
     font-weight: 700;
     font-style: italic;
     letter-spacing: 0.03em;
-    color: #fff;
+    color: var(--lk-or);
     margin: 0.4rem 0 1.4rem;
 }
 .lk-footer-devise .lk-drapeau { width: 30px; margin-right: 0.5rem; vertical-align: middle; }
 
 /* ── Sections génériques ───────────────────────────────────────────────── */
-.lk-section { padding: 3.5rem 1rem; }
-.lk-section.lk-alt { background-color: #f7f2ec; }
+.lk-section { padding: 4rem 1rem; }
+.lk-section.lk-alt { background-color: #F8FAFC; }
 .lk-section h2 {
-    font-size: 1.7rem;
+    font-size: 1.85rem;
     font-weight: 800;
-    color: #2a1a1a;
+    color: #0F172A;
     text-align: center;
     margin-bottom: 0.4rem;
 }
 .lk-section .lk-soustitre {
     text-align: center;
-    color: #6c757d;
-    margin-bottom: 2.2rem;
+    color: #64748B;
+    margin-bottom: 2.5rem;
+    font-size: 1.05rem;
 }
 .lk-vide {
     text-align: center;
-    color: #999;
+    color: #94A3B8;
     font-style: italic;
-    padding: 1.5rem 0;
+    padding: 2rem 0;
 }
 
-/* ── Page publique en hauteur pleine (footer collé en bas) ─────────────── */
+/* ── Page publique en hauteur pleine ──────────────────────────────────── */
 .lk-public-page {
     display: flex;
     flex-direction: column;
     min-height: 100vh;
+    padding-top: 65px;
 }
 
-/* ── Footer ──────────────────────────────────────────────────────────── */
+/* ── Cartes d'Actualités en mouvement & Carousel ─────────────────────── */
+.lk-card-actu {
+    border-radius: 16px;
+    overflow: hidden;
+    height: 100%;
+    background: #ffffff;
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08);
+    transition: all 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    border: 1px solid rgba(226, 232, 240, 0.8);
+    position: relative;
+    display: flex;
+    flex-direction: column;
+}
+
+.lk-card-actu:hover {
+    transform: translateY(-8px) scale(1.015);
+    box-shadow: 0 20px 35px rgba(15, 23, 42, 0.16);
+    border-color: var(--lk-or);
+}
+
+.lk-card-actu .img-wrapper {
+    position: relative;
+    overflow: hidden;
+    height: 220px;
+    background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.lk-card-actu .img-wrapper img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+
+.lk-card-actu:hover .img-wrapper img {
+    transform: scale(1.08);
+}
+
+.lk-card-actu .tag {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    background: linear-gradient(135deg, var(--lk-rouge) 0%, #991B1B 100%);
+    color: #ffffff;
+    font-size: 0.72rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 0.35rem 0.85rem;
+    border-radius: 20px;
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+    z-index: 2;
+}
+
+.lk-card-actu .body {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+}
+
+.lk-card-actu .body h5 {
+    font-weight: 800;
+    font-size: 1.15rem;
+    color: #0F172A;
+    margin-bottom: 0.6rem;
+    transition: color 0.2s ease;
+}
+
+.lk-card-actu:hover .body h5 {
+    color: var(--lk-rouge);
+}
+
+.lk-actu-carousel-control {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: #0F172A;
+    color: var(--lk-or);
+    border: 2px solid var(--lk-or);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2rem;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    transition: all 0.25s ease;
+    opacity: 0.95;
+    cursor: pointer;
+}
+.lk-actu-carousel-control:hover {
+    background: var(--lk-or);
+    color: #0F172A;
+    transform: scale(1.1);
+}
+
+/* ── Footer Multi-colonnes Modernisé ─────────────────────────────────────── */
 .lk-footer {
     margin-top: auto;
-    background-color: var(--lk-rouge);
-    color: rgba(255,255,255,0.85);
-    padding: 3rem 1rem 1.4rem;
-    font-size: 0.9rem;
+    background-color: var(--lk-footer-bg);
+    color: rgba(255, 255, 255, 0.85);
+    padding: 3.5rem 1rem 1.6rem;
+    font-size: 0.92rem;
+    border-top: 3px solid #ffffff;
 }
 
 .lk-footer-brand {
     color: #fff;
-    font-weight: 700;
-    font-size: 1.1rem;
+    font-weight: 800;
+    font-size: 1.2rem;
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    margin-bottom: 0.8rem;
+    gap: 0.6rem;
+    margin-bottom: 0.9rem;
 }
 
-.lk-footer-brand i { color: var(--lk-or); font-size: 1.3rem; }
+.lk-footer-brand i { color: var(--lk-or); font-size: 1.4rem; }
 
 .lk-footer-texte {
-    color: rgba(255,255,255,0.7);
-    font-size: 0.85rem;
-    line-height: 1.6;
-    max-width: 320px;
+    color: #94A3B8;
+    font-size: 0.88rem;
+    line-height: 1.65;
 }
 
 .lk-footer-titre {
     color: #fff;
     font-weight: 700;
-    font-size: 0.95rem;
-    margin-bottom: 0.9rem;
+    font-size: 0.98rem;
+    margin-bottom: 1.1rem;
     text-transform: uppercase;
-    letter-spacing: 0.04em;
+    letter-spacing: 0.05em;
+    position: relative;
+    padding-bottom: 0.4rem;
+}
+.lk-footer-titre::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 36px;
+    height: 2px;
+    background-color: #ffffff;
 }
 
 .lk-footer-liens {
@@ -137,26 +380,204 @@
 }
 
 .lk-footer-liens li {
-    margin-bottom: 0.6rem;
-    color: rgba(255,255,255,0.75);
-    font-size: 0.87rem;
+    margin-bottom: 0.65rem;
+    font-size: 0.89rem;
 }
 
 .lk-footer-liens a {
-    color: rgba(255,255,255,0.75);
+    color: #CBD5E1;
     text-decoration: none;
-    transition: color 0.2s;
+    transition: all 0.2s ease;
 }
 
-.lk-footer-liens a:hover { color: var(--lk-or); }
+.lk-footer-liens a:hover {
+    color: #ffffff;
+    padding-left: 4px;
+}
 
 .lk-footer-separateur {
-    border-color: rgba(255,255,255,0.15);
-    margin: 2rem 0 1.2rem;
+    border-color: rgba(255, 255, 255, 0.15);
+    margin: 2.2rem 0 1.2rem;
 }
 
 .lk-footer-bas {
     text-align: center;
-    color: rgba(255,255,255,0.6);
-    font-size: 0.8rem;
+    color: #94A3B8;
+    font-size: 0.82rem;
 }
+
+/* ── Offcanvas Panneau de Connexion Innovant ───────────────────────── */
+.lk-login-offcanvas {
+    background: linear-gradient(175deg, #0F172A 0%, #1E293B 100%) !important;
+    color: #ffffff !important;
+    border-left: 2px solid rgba(255, 255, 255, 0.15) !important;
+    box-shadow: -15px 0 50px rgba(0, 0, 0, 0.6) !important;
+    width: 100% !important;
+    max-width: 440px !important;
+    backdrop-filter: blur(16px);
+}
+.lk-login-offcanvas .offcanvas-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+    padding: 1.5rem 1.8rem;
+}
+.lk-login-offcanvas .offcanvas-title {
+    font-weight: 800;
+    font-size: 1.25rem;
+    color: #ffffff;
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+.lk-login-offcanvas .btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
+.lk-role-card {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 12px;
+    padding: 1rem 1.2rem;
+    color: #ffffff;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+    margin-bottom: 0.8rem;
+}
+.lk-role-card:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: #ffffff;
+    transform: translateX(6px);
+    color: #ffffff;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+}
+.lk-role-card .role-icon {
+    width: 42px;
+    height: 42px;
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.3rem;
+    color: #ffffff;
+    transition: all 0.3s ease;
+}
+.lk-role-card:hover .role-icon {
+    background: var(--lk-rouge);
+    color: #ffffff;
+}
+
+/* ── Boutons Modèle "Se Connecter" Harmonisés ──────────────────────────── */
+.btn-voir-plus, a.btn-voir-plus, .filter-btn-pill {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: fit-content !important;
+    max-width: max-content !important;
+    padding: 0.5rem 1.25rem !important;
+    font-size: 0.88rem !important;
+    font-weight: 700 !important;
+    border-radius: 8px !important;
+    transition: all 0.25s ease-in-out !important;
+    text-decoration: none !important;
+    white-space: nowrap !important;
+}
+
+.filter-btn-pill.btn-outline-secondary {
+    border: 2px solid #64748B !important;
+    color: #0F172A !important;
+    background: #ffffff !important;
+}
+.filter-btn-pill.btn-outline-secondary:hover, .filter-btn-pill.btn-outline-secondary.active {
+    background-color: #0F172A !important;
+    color: #ffffff !important;
+    border-color: #0F172A !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.2) !important;
+}
+
+.filter-btn-pill.btn-outline-dark {
+    border: 2px solid #0F172A !important;
+    color: #0F172A !important;
+    background: #ffffff !important;
+}
+.filter-btn-pill.btn-outline-dark:hover, .filter-btn-pill.btn-outline-dark.active {
+    background-color: #0F172A !important;
+    color: #ffffff !important;
+    border-color: #0F172A !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(15, 23, 42, 0.2) !important;
+}
+
+.filter-btn-pill.btn-outline-danger, .btn-danger.btn-voir-plus {
+    border: 2px solid var(--lk-rouge) !important;
+    color: var(--lk-rouge) !important;
+    background: #ffffff !important;
+}
+.filter-btn-pill.btn-outline-danger:hover, .filter-btn-pill.btn-outline-danger.active,
+.btn-danger.btn-voir-plus:hover, .btn-danger.btn-voir-plus.active {
+    background-color: var(--lk-rouge) !important;
+    color: #ffffff !important;
+    border-color: var(--lk-rouge) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(220, 38, 38, 0.3) !important;
+}
+
+/* ── Cartes d'Actualités Horizontales Modernes ───────────────────────── */
+.lk-card-actu-horiz {
+    background: #ffffff;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.07);
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    transition: all 0.35s cubic-bezier(0.165, 0.84, 0.44, 1);
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+@media (min-width: 768px) {
+    .lk-card-actu-horiz {
+        flex-direction: row;
+        min-height: 220px;
+    }
+    .lk-card-actu-horiz .img-container {
+        width: 40%;
+        min-width: 40%;
+        height: auto;
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+    }
+    .lk-card-actu-horiz .content-container {
+        width: 60%;
+        padding: 1.5rem 1.8rem;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+}
+.lk-card-actu-horiz:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 16px 35px rgba(15, 23, 42, 0.14);
+    border-color: rgba(220, 38, 38, 0.4);
+}
+.lk-card-actu-horiz .img-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s cubic-bezier(0.165, 0.84, 0.44, 1);
+}
+.lk-card-actu-horiz:hover .img-container img {
+    transform: scale(1.08);
+}
+.badge-source-ligue {
+    background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+.badge-source-club {
+    background: linear-gradient(135deg, #DC2626 0%, #991B1B 100%);
+    color: #ffffff;
+}
+

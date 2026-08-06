@@ -1,42 +1,64 @@
 <footer class="lk-footer">
     <div class="container">
         <div class="row g-4">
-            <div class="col-12 col-md-4">
+            <!-- Colonne 1 : Présentation -->
+            <div class="col-12 col-lg-4">
                 <div class="lk-footer-brand">
                     <i class="bi bi-trophy-fill"></i>
-                    {% if ligue_site %}{{ ligue_site.nom_ligue }}{% else %}Ligue du Kadiogo{% endif %}
+                    {% if ligue_site %}{{ ligue_site.nom_ligue }}{% else %}Ligue du Kadiogo de Kung-Fu Wushu{% endif %}
                 </div>
                 <p class="lk-footer-texte">
-                    Kung-Fu Wushu &mdash; Plateforme officielle de gestion des clubs,
-                    pratiquants et examens de la ligue.
+                    Plateforme officielle de gestion administrative, des affiliations de clubs, des inscriptions d'athlètes et du suivi des examens de ceinture.
                 </p>
+                <div class="d-flex gap-3 mt-3">
+                    <a href="#" class="text-white-50 fs-5"><i class="bi bi-facebook"></i></a>
+                    <a href="#" class="text-white-50 fs-5"><i class="bi bi-whatsapp"></i></a>
+                    <a href="#" class="text-white-50 fs-5"><i class="bi bi-youtube"></i></a>
+                </div>
             </div>
 
-            <div class="col-6 col-md-4">
-                <div class="lk-footer-titre">Liens rapides</div>
+            <!-- Colonne 2 : Navigation -->
+            <div class="col-6 col-lg-3">
+                <div class="lk-footer-titre">Navigation</div>
                 <ul class="lk-footer-liens">
-                    <li><a href="{% url 'accounts:accueil' %}">Accueil</a></li>
-                    <li><a href="{% url 'clubs:annuaire' %}">Annuaire des clubs</a></li>
-                    <li><a href="{% url 'communication:actualites_publiques' %}">Actualités</a></li>
-                    <li><a href="{% url 'communication:documents_publics' %}">Documents</a></li>
-                    <li><a href="{% url 'results:consultation_publique' %}">Résultats</a></li>
+                    <li><a href="{% url 'accounts:accueil' %}"><i class="bi bi-chevron-right me-1 small"></i>Accueil</a></li>
+                    <li><a href="{% url 'clubs:annuaire' %}"><i class="bi bi-chevron-right me-1 small"></i>Annuaire des clubs</a></li>
+                    <li><a href="{% url 'communication:actualites_publiques' %}"><i class="bi bi-chevron-right me-1 small"></i>Actualités</a></li>
+                    <li><a href="{% url 'communication:documents_publics' %}"><i class="bi bi-chevron-right me-1 small"></i>Documents officiels</a></li>
+                    <li><a href="{% url 'results:consultation_publique' %}"><i class="bi bi-chevron-right me-1 small"></i>Résultats des examens</a></li>
                 </ul>
             </div>
 
-            <div class="col-6 col-md-4">
-                <div class="lk-footer-titre">Contact</div>
+            <!-- Colonne 3 : Espace membres -->
+            <div class="col-6 col-lg-2">
+                <div class="lk-footer-titre">Accès Rapide</div>
+                <ul class="lk-footer-liens">
+                    <li><a href="#" data-bs-toggle="offcanvas" data-bs-target="#loginPanel"><i class="bi bi-lock me-1 small"></i>Connexion</a></li>
+                    {% if user.is_authenticated %}
+                    <li><a href="{% url 'accounts:tableau_de_bord' %}"><i class="bi bi-speedometer2 me-1 small"></i>Tableau de bord</a></li>
+                    <li><a href="{% url 'accounts:mon_profil' %}"><i class="bi bi-person-gear me-1 small"></i>Mon Profil</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+
+            <!-- Colonne 4 : Contact -->
+            <div class="col-12 col-lg-3">
+                <div class="lk-footer-titre">Contact Officiel</div>
                 <ul class="lk-footer-liens">
                     {% if ligue_site.adresse_siege %}
-                    <li><i class="bi bi-geo-alt-fill me-2"></i>{{ ligue_site.adresse_siege }}</li>
+                    <li><i class="bi bi-geo-alt-fill me-2 text-warning"></i>{{ ligue_site.adresse_siege }}</li>
+                    {% else %}
+                    <li><i class="bi bi-geo-alt-fill me-2 text-warning"></i>Ouagadougou, Burkina Faso</li>
                     {% endif %}
+
                     {% if ligue_site.telephone %}
-                    <li><i class="bi bi-telephone-fill me-2"></i><a href="tel:{{ ligue_site.telephone }}">{{ ligue_site.telephone }}</a></li>
+                    <li><i class="bi bi-telephone-fill me-2 text-warning"></i><a href="tel:{{ ligue_site.telephone }}">{{ ligue_site.telephone }}</a></li>
                     {% endif %}
+
                     {% if ligue_site.email_contact %}
-                    <li><i class="bi bi-envelope-fill me-2"></i><a href="mailto:{{ ligue_site.email_contact }}">{{ ligue_site.email_contact }}</a></li>
-                    {% endif %}
-                    {% if not ligue_site.adresse_siege and not ligue_site.telephone and not ligue_site.email_contact %}
-                    <li class="text-muted small">Informations de contact en cours d'actualisation.</li>
+                    <li><i class="bi bi-envelope-fill me-2 text-warning"></i><a href="mailto:{{ ligue_site.email_contact }}">{{ ligue_site.email_contact }}</a></li>
+                    {% else %}
+                    <li><i class="bi bi-envelope-fill me-2 text-warning"></i>contact@kadiogo-wushu.bf</li>
                     {% endif %}
                 </ul>
             </div>
@@ -58,6 +80,82 @@
         </div>
     </div>
 </footer>
+
+<!-- Offcanvas Panneau de Connexion Innovant -->
+<div class="offcanvas offcanvas-end lk-login-offcanvas" tabindex="-1" id="loginPanel" aria-labelledby="loginPanelLabel">
+    <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="loginPanelLabel">
+            <i class="bi bi-shield-lock-fill text-danger me-2"></i>Espace de Connexion
+        </h5>
+        <button type="button" class="btn-close text-reset" data-bs-dismiss="offcanvas" aria-label="Fermer"></button>
+    </div>
+    <div class="offcanvas-body d-flex flex-column justify-content-between p-4">
+        <div>
+            <p class="text-white-50 small mb-4">
+                Sélectionnez votre profil d'utilisateur pour accéder à votre espace de gestion sécurisé.
+            </p>
+
+            <div class="d-flex flex-column gap-2 mb-4">
+                <a href="{% url 'accounts:login' %}?profil=ligue" class="lk-role-card">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="role-icon"><i class="bi bi-building"></i></div>
+                        <div>
+                            <div class="fw-bold">Gestionnaire Ligue</div>
+                            <small class="text-white-50">Administration centrale & Ligues</small>
+                        </div>
+                    </div>
+                    <i class="bi bi-chevron-right text-white-50"></i>
+                </a>
+
+                <a href="{% url 'accounts:login' %}?profil=club" class="lk-role-card">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="role-icon"><i class="bi bi-people-fill"></i></div>
+                        <div>
+                            <div class="fw-bold">Gestionnaire Club</div>
+                            <small class="text-white-50">Présidents & Coachs de club</small>
+                        </div>
+                    </div>
+                    <i class="bi bi-chevron-right text-white-50"></i>
+                </a>
+
+                <a href="{% url 'accounts:login' %}?profil=financier" class="lk-role-card">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="role-icon"><i class="bi bi-coin"></i></div>
+                        <div>
+                            <div class="fw-bold">Gestionnaire Financier</div>
+                            <small class="text-white-50">Comptabilité, cotisations & reçus</small>
+                        </div>
+                    </div>
+                    <i class="bi bi-chevron-right text-white-50"></i>
+                </a>
+
+                <a href="{% url 'accounts:login' %}?profil=jury" class="lk-role-card">
+                    <div class="d-flex align-items-center gap-3">
+                        <div class="role-icon"><i class="bi bi-pencil-square"></i></div>
+                        <div>
+                            <div class="fw-bold">Membre du Jury</div>
+                            <small class="text-white-50">Notation en direct des examens</small>
+                        </div>
+                    </div>
+                    <i class="bi bi-chevron-right text-white-50"></i>
+                </a>
+            </div>
+
+            <div class="p-3 rounded-3" style="background: rgba(255, 255, 255, 0.04); border: 1px dashed rgba(255,255,255,0.15);">
+                <div class="d-flex align-items-center justify-content-between">
+                    <span class="small text-white-50">Connexion directe ?</span>
+                    <a href="{% url 'accounts:login' %}" class="btn btn-sm btn-outline-light rounded-pill px-3">Accès Général</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="pt-4 border-top border-secondary border-opacity-25 text-center">
+            <small class="text-white-50" style="font-size: 0.78rem;">
+                <i class="bi bi-lock-fill me-1"></i>Connexion sécurisée SSL/TLS — Ligue Kadiogo Wushu
+            </small>
+        </div>
+    </div>
+</div>
 
 <script>
     (function () {

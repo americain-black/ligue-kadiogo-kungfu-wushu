@@ -55,9 +55,26 @@
         <small class="text-muted">Liste des clubs de la ligue</small>
         </div>
     </div>
-    <a href="{% url 'clubs:creer' %}" class="btn btn-ligue btn-sm">
-    <i class="bi bi-plus me-1"></i>Enregistrer un club
-    </a>
+    <div class="d-flex gap-2 flex-wrap">
+        <!-- Dropdown Exportation globale -->
+        <div class="dropdown">
+            <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                <i class="bi bi-download me-1"></i>Exporter
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="{% url 'practitioners:exporter' %}?format=csv"><i class="bi bi-filetype-csv me-2 text-primary"></i>Exporter en CSV</a></li>
+                <li><a class="dropdown-item" href="{% url 'practitioners:exporter' %}?format=excel"><i class="bi bi-file-earmark-excel me-2 text-success"></i>Exporter pour Excel (.csv)</a></li>
+                <li><a class="dropdown-item" href="{% url 'practitioners:exporter' %}?format=json"><i class="bi bi-filetype-json me-2 text-warning"></i>Exporter en JSON</a></li>
+            </ul>
+        </div>
+        <!-- Bouton Importation globale -->
+        <button class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalImportPratiquants">
+            <i class="bi bi-upload me-1"></i>Importer
+        </button>
+        <a href="{% url 'clubs:creer' %}" class="btn btn-ligue btn-sm">
+            <i class="bi bi-plus me-1"></i>Enregistrer un club
+        </a>
+    </div>
 </div>
 
 <!-- Filtre par statut -->
@@ -83,6 +100,7 @@
         <thead class="table-light">
             <tr>
                 <th class="ps-3">Club</th>
+                <th>Code / Sigle</th>
                 <th>Localité</th>
                 <th>Gestionnaire</th>
                 <th>Statut</th>
@@ -94,7 +112,10 @@
         <tr>
             <td class="ps-3">
                 <strong>{{ club.nom_club }}</strong>
-                {% if club.sigle_club %}<span class="text-muted small ms-1">({{ club.sigle_club }})</span>{% endif %}
+            </td>
+            <td>
+                <span class="badge bg-primary font-monospace me-1" title="Code unique du club">{{ club.code_club }}</span>
+                {% if club.sigle_club %}<span class="badge bg-secondary font-monospace">{{ club.sigle_club }}</span>{% endif %}
             </td>
             <td class="small">{{ club.localite }}</td>
             <td class="small">
@@ -117,6 +138,18 @@
             </td>
             <td class="text-end pe-3">
                 <div class="d-flex justify-content-end gap-1">
+                    <a href="{% url 'practitioners:exporter' %}?club_id={{ club.pk }}&format=excel"
+                       class="btn-action btn-action-edit text-success" title="Exporter les pratiquants de ce club"
+                       data-bs-toggle="tooltip" data-bs-placement="top">
+                        <i class="bi bi-download"></i>
+                    </a>
+                    <button class="btn-action btn-action-edit text-primary btn-import-club"
+                            data-bs-toggle="modal" data-bs-target="#modalImportPratiquants"
+                            data-club-id="{{ club.pk }}"
+                            title="Importer des pratiquants dans {{ club.nom_club }}"
+                            data-bs-placement="top">
+                        <i class="bi bi-upload"></i>
+                    </button>
                     <a href="{% url 'clubs:detail' club.pk %}"
                        class="btn-action btn-action-edit" title="Voir la fiche"
                        data-bs-toggle="tooltip" data-bs-placement="top">
@@ -137,7 +170,8 @@
                         {% csrf_token %}
                         <button type="submit"
                                 class="btn-action {% if club.statut_club == 'AFFILIE' %}btn-action-on{% else %}btn-action-off{% endif %}"
-                                onclick="return confirm('{% if club.statut_club == 'AFFILIE' %}Suspendre{% else %}Réactiver{% endif %} le club {{ club.nom_club }} ?')"
+                                data-confirm="{% if club.statut_club == 'AFFILIE' %}Suspendre{% else %}Réactiver{% endif %} le club {{ club.nom_club }} ?"
+                                onclick="return confirm(this.dataset.confirm)"
                                 title="{% if club.statut_club == 'AFFILIE' %}Suspendre{% else %}Réactiver{% endif %}"
                                 data-bs-toggle="tooltip" data-bs-placement="top">
                             {% if club.statut_club == 'AFFILIE' %}
@@ -168,4 +202,68 @@
     {% endif %}
     </div>
 </div>
+
+<!-- Modal Importation des pratiquants -->
+<div class="modal fade" id="modalImportPratiquants" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url 'practitioners:importer' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title"><i class="bi bi-file-earmark-arrow-up me-2"></i>Importer des pratiquants / athlètes</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="small text-muted">
+                        Téléversez un fichier au format <strong>CSV, Excel (.csv/.xlsx) ou JSON</strong> contenant la liste des pratiquants à inscrire ou mettre à jour.
+                    </p>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Club de destination (Optionnel)</label>
+                        <select name="club_id" id="select_import_club" class="form-select">
+                            <option value="">-- Utiliser le code/nom du club du fichier (ou 1er club) --</option>
+                            {% for c in clubs %}
+                            <option value="{{ c.pk }}">{{ c.nom_club }} {% if c.sigle_club %}({{ c.sigle_club }}){% endif %}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">Si sélectionné, tous les pratiquants importés seront rattachés à ce club.</div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Fichier d'import</label>
+                        <input type="file" name="fichier" class="form-control" accept=".csv,.json,.txt,.xlsx,.xls" required>
+                        <div class="form-text">Formats supportés : Excel (.xlsx), CSV, TSV, JSON</div>
+                    </div>
+                    <div class="p-3 bg-light rounded border">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-semibold small"><i class="bi bi-info-circle me-1"></i>Besoin d'un exemple ?</span>
+                            <a href="{% url 'practitioners:telecharger_modele' %}" class="btn btn-sm btn-link p-0 text-decoration-none">
+                                <i class="bi bi-download me-1"></i>Télécharger le modèle CSV
+                            </a>
+                        </div>
+                        <small class="text-muted d-block">
+                            Colonnes acceptées : <code>Nom</code>, <code>Prénom</code>, <code>Date de naissance</code>, <code>Sexe</code>, <code>Grade</code>, <code>Club</code> ou <code>Code_Club</code>
+                        </small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-upload me-1"></i>Lancer l'importation
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.querySelectorAll('.btn-import-club').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+        const clubId = btn.getAttribute('data-club-id');
+        const select = document.getElementById('select_import_club');
+        if (select && clubId) {
+            select.value = clubId;
+        }
+    });
+});
+</script>
 {% endblock %}

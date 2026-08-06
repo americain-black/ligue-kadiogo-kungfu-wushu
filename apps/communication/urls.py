@@ -8,6 +8,7 @@ urlpatterns = [
     path('actualites/',            views.liste_actualites_publique,  name='actualites_publiques'),
     path('actualites/<int:pk>/',   views.detail_actualite_publique,  name='detail_actualite_publique'),
     path('documents/',             views.liste_documents_publique,   name='documents_publics'),
+    path('documents/<int:pk>/apercu/', views.apercu_document,        name='apercu_document'),
 
     # Gestion — Ligue : actualités
     path('gestion/actualites/',                       views.liste_actualites,     name='liste_actualites'),

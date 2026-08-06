@@ -43,26 +43,102 @@ def _ligue_site():
 # ═══════════════════════════════════════════════════════════════════════
 
 def liste_actualites_publique(request):
+    from apps.clubs.models import Club
     ligue = _ligue_site()
     q = request.GET.get('q', '').strip()
+    source_filtre = request.GET.get('source', '').strip()
+    club_id_filtre = request.GET.get('club', '').strip()
+
     actualites = (
         Actualite.objects.filter(ligue=ligue, statut='PUBLIEE', est_public=True)
+        .select_related('club', 'auteur')
         .order_by('-date_publication')
         if ligue else Actualite.objects.none()
     )
+
+    if source_filtre:
+        actualites = actualites.filter(source=source_filtre)
+    if club_id_filtre:
+        actualites = actualites.filter(club_id=club_id_filtre)
     if q:
         actualites = actualites.filter(Q(titre__icontains=q) | Q(contenu__icontains=q))
+
+    clubs = Club.objects.filter(ligue=ligue, statut_club='AFFILIE').order_by('nom_club') if ligue else []
+
     return render(request, 'communication/actualites_publique.html', {
-        'actualites': actualites, 'q': q,
+        'actualites': actualites,
+        'q': q,
+        'clubs': clubs,
+        'source_filtre': source_filtre,
+        'club_id_filtre': club_id_filtre,
     })
 
+
+import re
 
 def detail_actualite_publique(request, pk):
     ligue = _ligue_site()
     actualite = get_object_or_404(Actualite, pk=pk, ligue=ligue, statut='PUBLIEE', est_public=True)
+
+    content = (actualite.contenu or '').replace('\r\n', '\n').strip()
+    
+    # 1. Découpage par double saut de ligne (vrais paragraphes)
+    paragraphs = [p.strip() for p in content.split('\n\n') if p.strip()]
+
+    # 2. Si un seul bloc, essayer par saut de ligne simple
+    if len(paragraphs) <= 1:
+        paragraphs = [p.strip() for p in content.split('\n') if p.strip()]
+
+    # 3. Si toujours un seul paragraphe, découper STRICTEMENT aux fins de phrases (.!?)
+    if len(paragraphs) <= 1 and content:
+        sentences = re.split(r'(?<=[.!?])\s+', content)
+        if len(sentences) > 1:
+            mid = max(1, len(sentences) // 2)
+            intro_text = " ".join(sentences[:mid]).strip()
+            reste_text = " ".join(sentences[mid:]).strip()
+        else:
+            intro_text = content
+            reste_text = ""
+    elif len(paragraphs) > 1:
+        nb_intro = max(1, len(paragraphs) // 2)
+        intro_text = "\n\n".join(paragraphs[:nb_intro])
+        reste_text = "\n\n".join(paragraphs[nb_intro:])
+    else:
+        intro_text = content
+        reste_text = ""
+
     return render(request, 'communication/detail_actualite_publique.html', {
         'actualite': actualite,
+        'intro_text': intro_text,
+        'reste_text': reste_text,
     })
+
+
+from django.views.decorators.clickjacking import xframe_options_sameorigin
+from django.http import FileResponse, Http404
+import os
+import mimetypes
+
+@xframe_options_sameorigin
+def apercu_document(request, pk):
+    doc = get_object_or_404(Document, pk=pk)
+    if not doc.est_public and not request.user.is_authenticated:
+        messages.error(request, "Accès réservé aux membres.")
+        return redirect('accounts:login')
+
+    try:
+        file_path = doc.fichier.path
+        if not os.path.exists(file_path):
+            raise Http404("Fichier introuvable.")
+    except Exception:
+        raise Http404("Fichier introuvable.")
+
+    content_type, _ = mimetypes.guess_type(file_path)
+    response = FileResponse(open(file_path, 'rb'))
+    if content_type:
+        response['Content-Type'] = content_type
+    response['Content-Disposition'] = f'inline; filename="{os.path.basename(file_path)}"'
+    return response
 
 
 def liste_documents_publique(request):
@@ -74,7 +150,7 @@ def liste_documents_publique(request):
         if ligue else Document.objects.none()
     )
     if q:
-        documents = documents.filter(titre__icontains=q)
+        documents = documents.filter(Q(titre__icontains=q))
     return render(request, 'communication/documents_publique.html', {
         'documents': documents, 'q': q,
     })

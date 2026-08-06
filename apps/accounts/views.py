@@ -1,10 +1,10 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 
 from .models import Utilisateur, Role, UtilisateurRole
-from .forms import UtilisateurCreationForm, UtilisateurModificationForm, RolesForm
+from .forms import UtilisateurCreationForm, UtilisateurModificationForm, RolesForm, MonProfilForm
 
 
 def super_admin_requis(view_func):
@@ -25,7 +25,7 @@ def accueil(request):
     from apps.ligues.models import Ligue
     from apps.clubs.models import Club
     from apps.practitioners.models import Pratiquant
-    from apps.exams.models import AnneeSportive, SessionExamen
+    from apps.exams.models import AnneeSportive, SessionExamen, AnnonceExamenPrevisionnelle
     from apps.communication.models import Actualite, Document
 
     ligue = Ligue.objects.filter(sigle='LKKFW').first() or Ligue.objects.first()
@@ -38,6 +38,7 @@ def accueil(request):
         'sessions': [],
         'actualites': [],
         'documents': [],
+        'annonce_previsionnelle': None,
     }
 
     if ligue:
@@ -50,6 +51,11 @@ def accueil(request):
         contexte['nb_total_clubs'] = Club.objects.filter(
             ligue=ligue
         ).count()
+        contexte['annonce_previsionnelle'] = (
+            AnnonceExamenPrevisionnelle.objects.filter(ligue=ligue, est_actif=True)
+            .order_by('-date_creation')
+            .first()
+        )
         contexte['sessions'] = (
             SessionExamen.objects.filter(
                 annee_sportive__ligue=ligue,
@@ -444,3 +450,57 @@ def supprimer_utilisateur(request, pk):
         'club_gere':         club_gere,
         'affectations_jury': affectations_jury,
     })
+
+
+@login_required
+def mon_profil(request):
+    user = request.user
+    if request.method == 'POST':
+        form = MonProfilForm(request.POST, request.FILES, instance=user)
+        if form.is_valid():
+            saved_user = form.save(commit=False)
+            new_pwd = form.cleaned_data.get('nouveau_mot_de_passe')
+            if new_pwd:
+                saved_user.set_password(new_pwd)
+            saved_user.save()
+            if new_pwd:
+                update_session_auth_hash(request, saved_user)
+            messages.success(request, "Votre profil a été mis à jour avec succès.")
+            return redirect('accounts:mon_profil')
+        else:
+            messages.error(request, "Veuillez corriger les erreurs ci-dessous.")
+    else:
+        form = MonProfilForm(instance=user)
+
+    return render(request, 'accounts/mon_profil.html', {
+        'form': form,
+        'user_obj': user,
+    })
+
+
+def presentation(request):
+    """Page publique : Présentation de la Ligue du Kadiogo de Kung-Fu Wushu."""
+    from apps.ligues.models import Ligue
+    ligue = Ligue.objects.filter(sigle='LKKFW').first() or Ligue.objects.first()
+    return render(request, 'accounts/presentation.html', {'ligue': ligue})
+
+
+def mot_president(request):
+    """Page publique : Mot du Président de la Ligue."""
+    from apps.ligues.models import Ligue
+    ligue = Ligue.objects.filter(sigle='LKKFW').first() or Ligue.objects.first()
+    return render(request, 'accounts/mot_president.html', {'ligue': ligue})
+
+
+def vision_missions(request):
+    """Page publique : Vision & Missions de la Ligue."""
+    from apps.ligues.models import Ligue
+    ligue = Ligue.objects.filter(sigle='LKKFW').first() or Ligue.objects.first()
+    return render(request, 'accounts/vision_missions.html', {'ligue': ligue})
+
+
+def contact(request):
+    """Page publique : Contact & Localisation."""
+    from apps.ligues.models import Ligue
+    ligue = Ligue.objects.filter(sigle='LKKFW').first() or Ligue.objects.first()
+    return render(request, 'accounts/contact.html', {'ligue': ligue})

@@ -1,3 +1,4 @@
+# pyrefly: ignore [missing-import]
 from django import forms
 from .models import (
     Club, DemandeAffiliation, PieceJustificativeAffiliation,
@@ -10,13 +11,14 @@ class ClubForm(forms.ModelForm):
     class Meta:
         model = Club
         fields = [
-            'nom_club', 'sigle_club', 'localite',
+            'nom_club', 'sigle_club', 'code_club', 'localite',
             'adresse', 'telephone', 'email', 'statut_club',
             'utilisateur',
         ]
         widgets = {
             'nom_club':    forms.TextInput(attrs={'class': 'form-control'}),
-            'sigle_club':  forms.TextInput(attrs={'class': 'form-control'}),
+            'sigle_club':  forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: CKW'}),
+            'code_club':   forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: CL01 (Généré auto si vide)'}),
             'localite':    forms.TextInput(attrs={'class': 'form-control'}),
             'adresse':     forms.TextInput(attrs={'class': 'form-control'}),
             'telephone':   forms.TextInput(attrs={'class': 'form-control'}),
@@ -25,14 +27,19 @@ class ClubForm(forms.ModelForm):
             'utilisateur': forms.Select(attrs={'class': 'form-select'}),
         }
         labels = {
-            'nom_club':    'Nom du club',
-            'sigle_club':  'Sigle',
+            'nom_club':    'Nom complet du club',
+            'sigle_club':  'Sigle du club (ex: CKW)',
+            'code_club':   'Code unique du club (ex: CL01)',
             'localite':    'Localité',
             'adresse':     'Adresse',
             'telephone':   'Téléphone',
             'email':       'Email',
             'statut_club': 'Statut',
             'utilisateur': 'Gestionnaire du club',
+        }
+        help_texts = {
+            'code_club':  "Code unique du club (ex : CL01, CL02...). Généré automatiquement si vous le laissez vide.",
+            'sigle_club': "Sigle court du club.",
         }
 
     def __init__(self, *args, ligue=None, **kwargs):

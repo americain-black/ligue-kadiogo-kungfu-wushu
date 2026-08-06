@@ -10,12 +10,18 @@
     .lk-hero {
         position: relative;
         overflow: hidden;
-        background: linear-gradient(160deg, var(--lk-rouge) 0%, var(--lk-rouge-fonce) 60%, var(--lk-rouge) 100%);
-        background-size: 220% 220%;
-        animation: lk-hero-gradient 14s ease-in-out infinite;
+        background: linear-gradient(135deg, #043e1d 0%, #009E49 100%);
         color: #fff;
-        padding: 5.5rem 1rem 4.5rem;
+        padding: 4.5rem 1rem 3.5rem;
         text-align: center;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+    .lk-hero::before {
+        content: "";
+        position: absolute;
+        top: 0; right: 0; bottom: 0; left: 0;
+        background: radial-gradient(circle at 90% 20%, rgba(252, 209, 22, 0.18) 0%, transparent 55%);
+        pointer-events: none;
     }
     @keyframes lk-hero-gradient {
         0%   { background-position: 0% 50%; }
@@ -262,7 +268,7 @@
 {% include 'includes/_lk_navbar.html' %}
 
 <!-- ══ Hero ═════════════════════════════════════════════════════════════ -->
-<header class="lk-hero">
+<header class="lk-hero text-start">
     <div class="lk-hero-deco" aria-hidden="true">
         <i class="bi bi-trophy-fill d1"></i>
         <i class="bi bi-lightning-charge-fill d2"></i>
@@ -271,17 +277,26 @@
         <i class="bi bi-fire d5"></i>
     </div>
     <div class="container">
-        <h1 id="heroTitre">Gestion des passages de grades sportifs</h1>
-        <div class="lk-hero-tagline">
-            <p class="lead" id="heroTagline">Affiliations, inscriptions aux examens, évaluations et publication des résultats</p>
+        <div class="lk-page-title-accent">
+            ACCUEIL
         </div>
-        <div class="d-flex gap-3 justify-content-center flex-wrap">
-            <a href="{% url 'results:consultation_publique' %}" class="btn btn-or">
-                <i class="bi bi-award me-1"></i>Voir les résultats
-            </a>
-            <a href="#sessions" class="btn btn-outline-blanc">
-                <i class="bi bi-calendar-event me-1"></i>Sessions à venir
-            </a>
+        <div class="lk-breadcrumb ms-3 mb-4">
+            <a href="{% url 'accounts:accueil' %}">Home</a> &nbsp;.&nbsp; <span>Accueil</span>
+        </div>
+
+        <div class="text-center pt-2">
+            <h1 id="heroTitre">Gestion des passages de grades sportifs</h1>
+            <div class="lk-hero-tagline">
+                <p class="lead" id="heroTagline">Affiliations, inscriptions aux examens, évaluations et publication des résultats</p>
+            </div>
+            <div class="d-flex gap-3 justify-content-center flex-wrap mt-3">
+                <a href="{% url 'results:consultation_publique' %}" class="btn btn-outline-blanc">
+                    <i class="bi bi-award me-1"></i>Voir les résultats
+                </a>
+                <a href="#sessions" class="btn btn-outline-blanc">
+                    <i class="bi bi-calendar-event me-1"></i>Sessions à venir
+                </a>
+            </div>
         </div>
     </div>
 </header>
@@ -316,10 +331,52 @@
 </div>
 
 <!-- ══ Sessions d'examen ═══════════════════════════════════════════════ -->
-<section class="lk-section" id="sessions">
+<section class="lk-section" id="examens">
     <div class="container">
         <h2>Sessions d'examen</h2>
         <p class="lk-soustitre">Les prochains passages de grade organisés par la ligue</p>
+
+        <!-- Annonce Prévisionnelle d'Examen (Calendrier indicatif) -->
+        {% if annonce_previsionnelle %}
+        <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden" style="background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%); color: #ffffff;">
+            <div class="card-body p-4">
+                <div class="row align-items-center g-3">
+                    <div class="col-12 col-md-8">
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <span class="badge bg-danger text-uppercase px-3 py-1 rounded-pill" style="font-size: 0.72rem; letter-spacing: 0.06em;">
+                                <i class="bi bi-megaphone-fill me-1"></i>Annonce Prévisionnelle
+                            </span>
+                            <span class="badge bg-warning text-dark px-3 py-1 rounded-pill" style="font-size: 0.72rem;">
+                                <i class="bi bi-clock-history me-1"></i>Session à Venir
+                            </span>
+                        </div>
+                        <h4 class="fw-extrabold text-white mb-2">{{ annonce_previsionnelle.titre }}</h4>
+                        <p class="text-white-50 small mb-3">{{ annonce_previsionnelle.description|default:"Retrouvez ci-dessous les dates estimées et le lieu prévu pour la prochaine session." }}</p>
+                        
+                        <div class="d-flex flex-wrap gap-4 text-white-50 small">
+                            <div>
+                                <i class="bi bi-calendar-check text-warning me-1"></i>
+                                <strong class="text-white">Période prévue :</strong> {{ annonce_previsionnelle.periode_prevue }}
+                            </div>
+                            <div>
+                                <i class="bi bi-geo-alt-fill text-danger me-1"></i>
+                                <strong class="text-white">Lieu :</strong> {{ annonce_previsionnelle.lieu_prevu }}
+                            </div>
+                            <div>
+                                <i class="bi bi-journal-text text-info me-1"></i>
+                                <strong class="text-white">Inscriptions :</strong> {{ annonce_previsionnelle.periode_inscriptions }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4 text-md-end">
+                        <a href="{% url 'communication:actualites_publiques' %}" class="btn btn-danger btn-voir-plus">
+                            En savoir plus <i class="bi bi-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
 
         {% if sessions %}
         <div class="row g-4">
@@ -344,32 +401,59 @@
             </div>
             {% endfor %}
         </div>
-        {% else %}
+        {% elif not annonce_previsionnelle %}
         <div class="lk-vide">Aucune session d'examen ouverte pour le moment. Revenez bientôt !</div>
         {% endif %}
     </div>
 </section>
 
-<!-- ══ Actualités ═══════════════════════════════════════════════════════ -->
-<section class="lk-section lk-alt" id="actualites">
+<!-- ══ Actualités & Événements ═══════════════════════════════════════════ -->
+<section class="lk-section lk-alt position-relative" id="actualites">
     <div class="container">
-        <h2>Actualités</h2>
-        <p class="lk-soustitre">Les dernières nouvelles de la ligue et des clubs</p>
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+                <span class="badge bg-danger bg-gradient px-3 py-2 text-uppercase mb-2" style="letter-spacing: 0.08em; font-size: 0.75rem;">
+                    <i class="bi bi-newspaper me-1"></i>Informations Officielles
+                </span>
+                <h2 class="fw-extrabold text-dark mb-1">Actualités & Événements</h2>
+                <p class="lk-soustitre mb-0">Les dernières nouvelles, stages et compétitions de la ligue et des clubs</p>
+            </div>
+            <a href="{% url 'communication:actualites_publiques' %}" class="btn btn-outline-dark btn-voir-plus">
+                Toutes les actualités <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
 
         {% if actualites %}
         <div class="row g-4">
-            {% for actu in actualites %}
-            <div class="col-md-6">
-                <div class="lk-card-actu">
-                    {% if actu.image %}
-                    <img src="{{ actu.image.url }}" alt="" class="w-100" style="height:240px;object-fit:cover;">
-                    {% endif %}
-                    <div class="body">
-                        <span class="tag">{{ actu.get_source_display }}</span>
-                        <h5>{{ actu.titre }}</h5>
-                        <p class="text-muted small mb-2">{{ actu.contenu|truncatewords:25 }}</p>
-                        <div class="text-muted small">
-                            <i class="bi bi-calendar3 me-1"></i>{{ actu.date_publication|date:"d/m/Y" }}
+            {% for actu in actualites|slice:":3" %}
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="lk-card-actu-horiz h-100 shadow-sm border rounded-4 bg-white overflow-hidden d-flex flex-column">
+                    <div class="position-relative overflow-hidden" style="height: 200px;">
+                        {% if actu.image %}
+                            <img src="{{ actu.image.url }}" alt="{{ actu.titre }}" class="w-100 h-100 object-fit-cover">
+                        {% else %}
+                            <div class="w-100 h-100 bg-dark d-flex align-items-center justify-content-center text-white-50 fs-1">
+                                <i class="bi bi-newspaper"></i>
+                            </div>
+                        {% endif %}
+                        <span class="position-absolute top-0 start-0 m-3 badge px-3 py-2 rounded-pill {% if actu.source == 'LIGUE' %}badge-source-ligue{% else %}badge-source-club{% endif %}" style="font-size: 0.75rem;">
+                            {% if actu.source == 'LIGUE' %}
+                            <i class="bi bi-shield-fill-check me-1 text-warning"></i>Officiel Ligue
+                            {% else %}
+                            <i class="bi bi-building me-1"></i>{% if actu.club %}{{ actu.club.sigle_club|default:actu.club.nom_club }}{% else %}Club{% endif %}
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="p-3 p-md-4 d-flex flex-column flex-grow-1">
+                        <div class="text-muted small mb-2">
+                            <i class="bi bi-calendar3 me-1 text-danger"></i>{{ actu.date_publication|date:"d F Y" }}
+                        </div>
+                        <h5 class="fw-bold text-dark mb-2 fs-6" style="line-height: 1.4;">{{ actu.titre }}</h5>
+                        <p class="text-secondary small mb-3 flex-grow-1" style="line-height: 1.6;">{{ actu.contenu|truncatewords:20 }}</p>
+                        <div class="mt-auto">
+                            <a href="{% url 'communication:detail_actualite_publique' actu.pk %}" class="btn btn-danger btn-voir-plus w-100">
+                                Lire la suite <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -377,45 +461,155 @@
             {% endfor %}
         </div>
         {% else %}
-        <div class="lk-vide">Aucune actualité publiée pour le moment.</div>
-        {% endif %}
-        <div class="text-center mt-4">
-            <a href="{% url 'communication:actualites_publiques' %}" class="btn btn-outline-secondary btn-sm">
-                Voir toutes les actualités <i class="bi bi-arrow-right ms-1"></i>
-            </a>
+        <div class="row g-4">
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="lk-card-actu-horiz h-100 shadow-sm border rounded-4 bg-white overflow-hidden d-flex flex-column">
+                    <div class="position-relative overflow-hidden bg-dark p-4 text-center text-white" style="height: 200px;">
+                        <i class="bi bi-award fs-1 text-warning mb-2 d-block"></i>
+                        <span class="fw-bold fs-6">Examens de Grade</span>
+                        <span class="position-absolute top-0 start-0 m-3 badge bg-danger rounded-pill">Officiel</span>
+                    </div>
+                    <div class="p-3 p-md-4 d-flex flex-column flex-grow-1">
+                        <div class="text-muted small mb-2"><i class="bi bi-calendar3 me-1 text-danger"></i>Saison 2026</div>
+                        <h5 class="fw-bold text-dark mb-2 fs-6">Inscriptions aux Examens de Ceinture</h5>
+                        <p class="text-secondary small mb-3 flex-grow-1">Consultez le calendrier des examens officiels et inscrivez les athlètes de votre club.</p>
+                        <div class="mt-auto">
+                            <a href="{% url 'communication:actualites_publiques' %}" class="btn btn-danger btn-voir-plus w-100">
+                                En savoir plus <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="lk-card-actu-horiz h-100 shadow-sm border rounded-4 bg-white overflow-hidden d-flex flex-column">
+                    <div class="position-relative overflow-hidden bg-dark p-4 text-center text-white" style="height: 200px;">
+                        <i class="bi bi-shield-check fs-1 text-warning mb-2 d-block"></i>
+                        <span class="fw-bold fs-6">Affiliation des Clubs</span>
+                        <span class="position-absolute top-0 start-0 m-3 badge bg-primary rounded-pill">Clubs</span>
+                    </div>
+                    <div class="p-3 p-md-4 d-flex flex-column flex-grow-1">
+                        <div class="text-muted small mb-2"><i class="bi bi-calendar3 me-1 text-danger"></i>Province du Kadiogo</div>
+                        <h5 class="fw-bold text-dark mb-2 fs-6">Campagne d'Affiliation des Clubs</h5>
+                        <p class="text-secondary small mb-3 flex-grow-1">Les responsables de clubs peuvent mettre à jour l'organigramme et les pratiquants en ligne.</p>
+                        <div class="mt-auto">
+                            <a href="{% url 'clubs:annuaire' %}" class="btn btn-danger btn-voir-plus w-100">
+                                Voir l'annuaire <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-12 col-md-6 col-lg-4">
+                <div class="lk-card-actu-horiz h-100 shadow-sm border rounded-4 bg-white overflow-hidden d-flex flex-column">
+                    <div class="position-relative overflow-hidden bg-dark p-4 text-center text-white" style="height: 200px;">
+                        <i class="bi bi-trophy fs-1 text-warning mb-2 d-block"></i>
+                        <span class="fw-bold fs-6">Championnat Régional</span>
+                        <span class="position-absolute top-0 start-0 m-3 badge bg-success rounded-pill">Compétition</span>
+                    </div>
+                    <div class="p-3 p-md-4 d-flex flex-column flex-grow-1">
+                        <div class="text-muted small mb-2"><i class="bi bi-calendar3 me-1 text-danger"></i>Ligue du Kadiogo</div>
+                        <h5 class="fw-bold text-dark mb-2 fs-6">Résultats des Compétitions Wushu</h5>
+                        <p class="text-secondary small mb-3 flex-grow-1">Découvrez le classement général des clubs et le palmarès des meilleurs pratiquants.</p>
+                        <div class="mt-auto">
+                            <a href="{% url 'results:consultation_publique' %}" class="btn btn-danger btn-voir-plus w-100">
+                                Consulter les résultats <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
+        {% endif %}
     </div>
 </section>
 
-<!-- ══ Documents ═══════════════════════════════════════════════════════ -->
+<!-- ══ Documents Officiels ═══════════════════════════════════════════════ -->
 <section class="lk-section" id="documents">
     <div class="container">
-        <h2>Documents</h2>
-        <p class="lk-soustitre">Règlements, formulaires et circulaires officiels</p>
-
-        {% if documents %}
-        <div class="row">
-            <div class="col-lg-8 mx-auto">
-                {% for doc in documents %}
-                <a href="{{ doc.fichier.url }}" target="_blank" class="lk-doc-item text-decoration-none text-reset">
-                    <i class="bi bi-file-earmark-text"></i>
-                    <div class="flex-grow-1">
-                        <div class="fw-bold">{{ doc.titre }}</div>
-                        <div class="text-muted small">{{ doc.get_type_document_display }} · {{ doc.date_publication|date:"d/m/Y" }}</div>
-                    </div>
-                    <i class="bi bi-download text-muted"></i>
-                </a>
-                {% endfor %}
+        <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+            <div>
+                <span class="badge bg-danger bg-gradient px-3 py-2 text-uppercase mb-2" style="letter-spacing: 0.08em; font-size: 0.75rem;">
+                    <i class="bi bi-file-earmark-pdf me-1"></i>Textes & Circulaires
+                </span>
+                <h2 class="fw-extrabold text-dark mb-1">Documents Officiels</h2>
+                <p class="lk-soustitre mb-0">Règlements, formulaires de passage de grade et circulaires administratives</p>
             </div>
-        </div>
-        {% else %}
-        <div class="lk-vide">Aucun document publié pour le moment.</div>
-        {% endif %}
-        <div class="text-center mt-3">
-            <a href="{% url 'communication:documents_publics' %}" class="btn btn-outline-secondary btn-sm">
-                Voir tous les documents <i class="bi bi-arrow-right ms-1"></i>
+            <a href="{% url 'communication:documents_publics' %}" class="btn btn-outline-dark btn-voir-plus">
+                Tous les documents <i class="bi bi-arrow-right ms-1"></i>
             </a>
         </div>
+
+        {% if documents %}
+        <div class="row g-3">
+            {% for doc in documents|slice:":4" %}
+            <div class="col-12 col-md-6">
+                <div class="p-3 bg-white border rounded-4 shadow-sm h-100 d-flex align-items-center justify-content-between gap-3">
+                    <div class="d-flex align-items-center gap-3 min-w-0">
+                        <div class="bg-danger bg-opacity-10 text-danger p-3 rounded-3 fs-3 flex-shrink-0">
+                            <i class="bi bi-file-earmark-pdf-fill"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <h6 class="fw-bold text-dark mb-1 text-truncate">{{ doc.titre }}</h6>
+                            <div class="text-muted small">
+                                <span class="badge bg-light text-dark border me-2">{{ doc.get_type_document_display }}</span>
+                                <i class="bi bi-calendar3 me-1"></i>{{ doc.date_publication|date:"d/m/Y" }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center gap-2 flex-shrink-0">
+                        <a href="{{ doc.fichier.url }}" download class="btn btn-danger btn-voir-plus">
+                            <i class="bi bi-download me-1"></i>Télécharger
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="row g-3">
+            <div class="col-12 col-md-6">
+                <div class="p-3 bg-white border rounded-4 shadow-sm h-100 d-flex align-items-center justify-content-between gap-3">
+                    <div class="d-flex align-items-center gap-3 min-w-0">
+                        <div class="bg-danger bg-opacity-10 text-danger p-3 rounded-3 fs-3 flex-shrink-0">
+                            <i class="bi bi-file-earmark-text-fill"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <h6 class="fw-bold text-dark mb-1 text-truncate">Fiche d'Inscription - Examen de Grade 2026</h6>
+                            <div class="text-muted small">
+                                <span class="badge bg-light text-dark border me-2">Formulaire</span>
+                                <i class="bi bi-calendar3 me-1"></i>Officiel
+                            </div>
+                        </div>
+                    </div>
+                    <a href="{% url 'communication:documents_publics' %}" class="btn btn-outline-dark btn-voir-plus flex-shrink-0">
+                        <i class="bi bi-eye-fill me-1"></i>Consulter
+                    </a>
+                </div>
+            </div>
+            <div class="col-12 col-md-6">
+                <div class="p-3 bg-white border rounded-4 shadow-sm h-100 d-flex align-items-center justify-content-between gap-3">
+                    <div class="d-flex align-items-center gap-3 min-w-0">
+                        <div class="bg-danger bg-opacity-10 text-danger p-3 rounded-3 fs-3 flex-shrink-0">
+                            <i class="bi bi-journal-text"></i>
+                        </div>
+                        <div class="min-w-0">
+                            <h6 class="fw-bold text-dark mb-1 text-truncate">Règlement Général des Examens et Jurys</h6>
+                            <div class="text-muted small">
+                                <span class="badge bg-light text-dark border me-2">Règlement</span>
+                                <i class="bi bi-calendar3 me-1"></i>Officiel
+                            </div>
+                        </div>
+                    </div>
+                    <a href="{% url 'communication:documents_publics' %}" class="btn btn-outline-dark btn-voir-plus flex-shrink-0">
+                        <i class="bi bi-eye-fill me-1"></i>Consulter
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</section>
     </div>
 </section>
 

@@ -52,13 +52,13 @@
     }
     .lk-card-club-item .sigle-badge {
         display: inline-block;
-        background-color: var(--lk-rouge, #8b1a1a);
+        background-color: var(--lk-footer-bg, #0F172A);
         color: #fff;
         font-size: 0.75rem;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.05em;
-        padding: 0.25rem 0.7rem;
+        padding: 0.3rem 0.85rem;
         border-radius: 20px;
     }
     .lk-card-club-item .body {
@@ -92,12 +92,19 @@
 
 {% include 'includes/_lk_navbar.html' %}
 
-<section class="lk-section" id="annuaireClubs">
+<section class="lk-banner-header shadow-sm">
     <div class="container">
-        <h2>Annuaire des clubs</h2>
-        <p class="lk-soustitre">
-            Retrouvez la liste et les coordonnées de tous les clubs affiliés à la Ligue du Kadiogo de Kung-Fu Wushu
-        </p>
+        <div class="lk-page-title-accent">
+            ANNUAIRE DES CLUBS
+        </div>
+        <div class="lk-breadcrumb ms-3">
+            <a href="{% url 'accounts:accueil' %}">Home</a> &nbsp;.&nbsp; <span>Annuaire des clubs</span>
+        </div>
+    </div>
+</section>
+
+<section class="py-4 bg-light min-vh-50" id="annuaireClubs">
+    <div class="container">
 
         {% if messages %}
         <div class="max-w-700 mx-auto mb-4">
@@ -201,16 +208,16 @@
                         <a href="https://www.google.com/maps/search/?api=1&query={{ club.nom_club|urlencode }}+{{ club.localite|urlencode }}{% if club.adresse %}+{{ club.adresse|urlencode }}{% endif %}" 
                            target="_blank" 
                            rel="noopener noreferrer" 
-                           class="btn btn-outline-danger btn-sm flex-fill fw-semibold">
-                            <i class="bi bi-geo-fill me-1"></i>Itinéraire
+                           class="btn btn-outline-dark btn-voir-plus flex-fill">
+                            <i class="bi bi-geo-fill me-1 text-danger"></i>Itinéraire
                         </a>
 
                         <!-- Modal Formulaire de contact -->
                         <button type="button" 
-                                class="btn btn-danger btn-sm flex-fill fw-semibold" 
+                                class="btn btn-dark btn-voir-plus flex-fill" 
                                 data-bs-toggle="modal" 
                                 data-bs-target="#modalContactClub{{ club.pk }}">
-                            <i class="bi bi-envelope-paper-fill me-1"></i>Contacter
+                            <i class="bi bi-envelope-paper-fill me-1 text-warning"></i>Contacter
                         </button>
                     </div>
                 </div>

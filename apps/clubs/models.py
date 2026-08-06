@@ -1,4 +1,6 @@
+# pyrefly: ignore [missing-import]
 from django.db import models
+# pyrefly: ignore [missing-import]
 from django.core.exceptions import ValidationError
 
 
@@ -25,6 +27,14 @@ class Club(models.Model):
 
     nom_club   = models.CharField(max_length=200)
     sigle_club = models.CharField(max_length=20,  blank=True)
+    nom_fondateur = models.CharField(max_length=200, blank=True, verbose_name="Maître / Fondateur du club", help_text="Nom du Maître principal / Fondateur du club")
+    code_club  = models.CharField(
+        max_length=20,
+        blank=True,
+        null=True,
+        verbose_name="Code unique du club",
+        help_text="Généré automatiquement (ex : CL01, CL02...) si laissé vide."
+    )
     localite   = models.CharField(max_length=100)
     adresse    = models.CharField(max_length=200, blank=True)
     telephone  = models.CharField(max_length=20,  blank=True)
@@ -42,7 +52,22 @@ class Club(models.Model):
         ordering            = ['nom_club']
 
     def __str__(self):
-        return f"{self.nom_club} ({self.ligue.sigle})"
+        return f"{self.nom_club} ({self.code_club or self.sigle_club or self.ligue.sigle})"
+
+    def save(self, *args, **kwargs):
+        if not self.code_club:
+            # pyrefly: ignore [missing-import]
+            from django.db.models import Q
+            qs = Club.objects.all()
+            if self.ligue_id:
+                qs = qs.filter(ligue_id=self.ligue_id)
+            count = qs.count() + 1
+            proposed_code = f"CL{count:02d}"
+            while qs.filter(code_club__iexact=proposed_code).exclude(pk=self.pk).exists():
+                count += 1
+                proposed_code = f"CL{count:02d}"
+            self.code_club = proposed_code
+        super().save(*args, **kwargs)
 
     def est_affilie(self):
         return self.statut_club == 'AFFILIE'

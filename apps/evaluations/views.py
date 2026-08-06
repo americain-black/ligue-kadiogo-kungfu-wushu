@@ -1,10 +1,18 @@
+# pyrefly: ig   nore [missing-import]
 import json
+# pyrefly: ignore [missing-import]
 from asgiref.sync import async_to_sync
+# pyrefly: ignore [missing-import]
 from channels.layers import get_channel_layer
+# pyrefly: ignore [missing-import]
 from django.contrib.auth.decorators import login_required
+# pyrefly: ignore [missing-import]
 from django.core.exceptions import ValidationError
+# pyrefly: ignore [missing-import]
 from django.http import JsonResponse
+# pyrefly: ignore [missing-import]
 from django.shortcuts import get_object_or_404, redirect, render
+# pyrefly: ignore [missing-import]
 from django.views.decorators.http import require_POST
 
 from apps.exams.models import AffectationJury, Inscription, RubriqueGrade, SessionExamen
@@ -101,7 +109,7 @@ def interface_notation(request, session_id):
         Inscription.objects.filter(session=session, statut='AUTORISE')
         .select_related('pratiquant', 'grade_vise', 'resultat')
         .prefetch_related('notes__rubrique_grade__rubrique')
-        .order_by('pratiquant__nom')
+        .order_by('grade_vise__id_grade', 'pratiquant__nom', 'pratiquant__prenom')
     )
 
     nb_resultats = 0

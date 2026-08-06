@@ -91,6 +91,7 @@
                 <thead class="table-light">
                     <tr>
                         <th>Nom & Prénom</th>
+                        <th>Structure / Rattachement</th>
                         <th>Fonction</th>
                         <th>Depuis</th>
                         <th>Contact</th>
@@ -105,6 +106,13 @@
                             {{ membre.prenom }} {{ membre.nom }}
                             {% if not membre.actif %}
                             <span class="badge bg-secondary ms-1">Inactif</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if membre.club %}
+                            <span class="badge bg-info text-dark"><i class="bi bi-building me-1"></i>{{ membre.club.nom_club }}</span>
+                            {% else %}
+                            <span class="badge bg-primary"><i class="bi bi-diagram-3 me-1"></i>Ligue</span>
                             {% endif %}
                         </td>
                         <td>
@@ -182,10 +190,14 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Fonction</label>
-                            <select name="fonction" class="form-select" required>
-                                <option value="" disabled selected>Choisir...</option>
-                                {% for code, libelle in fonction_choices %}
-                                <option value="{{ code }}">{{ code }} — {{ libelle }}</option>
+                            <input type="text" name="fonction" class="form-control" placeholder="Ex: Présidente, DT..." required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold">Structure / Club</label>
+                            <select name="club" class="form-select">
+                                <option value="">— Siège de la Ligue —</option>
+                                {% for club in clubs %}
+                                <option value="{{ club.pk }}">{{ club.nom_club }}</option>
                                 {% endfor %}
                             </select>
                         </div>

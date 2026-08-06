@@ -71,31 +71,102 @@
 <div class="no-print">
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center gap-3">
+    {% if user.est_gest_club %}
     <a href="{% url 'accounts:dashboard_club' %}" class="btn-action btn-action-edit flex-shrink-0" title="Tableau de bord" data-bs-toggle="tooltip">
         <i class="bi bi-arrow-left"></i>
     </a>
+    {% else %}
+    <a href="{% url 'accounts:dashboard_ligue' %}" class="btn-action btn-action-edit flex-shrink-0" title="Tableau de bord" data-bs-toggle="tooltip">
+        <i class="bi bi-arrow-left"></i>
+    </a>
+    {% endif %}
         <div>
         <h4 class="fw-bold mb-0">Pratiquants</h4>
-        <small class="text-muted">{{ club.nom_club }}</small>
+        <small class="text-muted">{% if club %}{{ club.nom_club }}{% else %}{{ ligue.nom_ligue }} (Tous les clubs){% endif %}</small>
         </div>
     </div>
-    <div class="d-flex gap-2">
-        <button onclick="window.print()" class="btn btn-outline-secondary" title="Imprimer la liste affichée">
+    <div class="d-flex gap-2 flex-wrap">
+        <button onclick="window.print()" class="btn btn-outline-secondary btn-sm" title="Imprimer la liste affichée">
             <i class="bi bi-printer me-1"></i>Imprimer
         </button>
-        <a href="{% url 'practitioners:ajouter' %}" class="btn btn-success">
-        <i class="bi bi-person-plus me-1"></i>Inscrire un pratiquant
+        <!-- Dropdown Exportation -->
+        <div class="dropdown">
+            <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                <i class="bi bi-download me-1"></i>Exporter
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="{% url 'practitioners:exporter' %}?format=csv{% if filtre_club %}&club={{ filtre_club }}{% endif %}{% if filtre %}&statut={{ filtre }}{% endif %}{% if filtre_grade %}&grade={{ filtre_grade }}{% endif %}{% if filtre_sexe %}&sexe={{ filtre_sexe }}{% endif %}{% if filtre_recherche %}&q={{ filtre_recherche }}{% endif %}"><i class="bi bi-filetype-csv me-2 text-primary"></i>Exporter en CSV</a></li>
+                <li><a class="dropdown-item" href="{% url 'practitioners:exporter' %}?format=excel{% if filtre_club %}&club={{ filtre_club }}{% endif %}{% if filtre %}&statut={{ filtre }}{% endif %}{% if filtre_grade %}&grade={{ filtre_grade }}{% endif %}{% if filtre_sexe %}&sexe={{ filtre_sexe }}{% endif %}{% if filtre_recherche %}&q={{ filtre_recherche }}{% endif %}"><i class="bi bi-file-earmark-excel me-2 text-success"></i>Exporter pour Excel (.csv)</a></li>
+                <li><a class="dropdown-item" href="{% url 'practitioners:exporter' %}?format=json{% if filtre_club %}&club={{ filtre_club }}{% endif %}{% if filtre %}&statut={{ filtre }}{% endif %}{% if filtre_grade %}&grade={{ filtre_grade }}{% endif %}{% if filtre_sexe %}&sexe={{ filtre_sexe }}{% endif %}{% if filtre_recherche %}&q={{ filtre_recherche }}{% endif %}"><i class="bi bi-filetype-json me-2 text-warning"></i>Exporter en JSON</a></li>
+            </ul>
+        </div>
+        <!-- Bouton Importation -->
+        <button class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalImportPratiquants">
+            <i class="bi bi-upload me-1"></i>Importer
+        </button>
+        {% if user.est_gest_club %}
+        <a href="{% url 'practitioners:ajouter' %}" class="btn btn-success btn-sm">
+            <i class="bi bi-person-plus me-1"></i>Inscrire un pratiquant
         </a>
+        {% endif %}
     </div>
 </div>
 
-{% if messages %}
-    {% for msg in messages %}
-    <div class="alert alert-{{ msg.tags }} alert-dismissible fade show">
-        {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+
+
+<!-- Modal Importation -->
+<div class="modal fade" id="modalImportPratiquants" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url 'practitioners:importer' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-header bg-success text-white">
+                    <h5 class="modal-title"><i class="bi bi-file-earmark-arrow-up me-2"></i>Importer des pratiquants / athlètes</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="small text-muted">
+                        Téléversez un fichier au format <strong>CSV, Excel (.csv/.xlsx) ou JSON</strong> contenant la liste des pratiquants à inscrire ou mettre à jour.
+                    </p>
+                    {% if user.est_gest_ligue or user.is_superuser %}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Club de destination (Optionnel)</label>
+                        <select name="club_id" class="form-select">
+                            <option value="">-- Utiliser le club indiqué dans le fichier (ou le 1er club) --</option>
+                            {% for c in clubs %}
+                            <option value="{{ c.pk }}">{{ c.nom_club }} {% if c.sigle_club %}({{ c.sigle_club }}){% endif %}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="form-text">Si sélectionné, tous les pratiquants importés seront attribués à ce club.</div>
+                    </div>
+                    {% endif %}
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Fichier d'import</label>
+                        <input type="file" name="fichier" class="form-control" accept=".csv,.json,.txt,.xlsx,.xls" required>
+                        <div class="form-text">Formats supportés : Excel (.xlsx), CSV, TSV, JSON</div>
+                    </div>
+                    <div class="p-3 bg-light rounded border">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="fw-semibold small"><i class="bi bi-info-circle me-1"></i>Besoin d'un exemple ?</span>
+                            <a href="{% url 'practitioners:telecharger_modele' %}" class="btn btn-sm btn-link p-0 text-decoration-none">
+                                <i class="bi bi-download me-1"></i>Télécharger le modèle CSV
+                            </a>
+                        </div>
+                        <small class="text-muted d-block">
+                            Colonnes recommandées : <code>Nom</code>, <code>Prénom</code>, <code>Date de naissance</code>, <code>Sexe</code>, <code>Lieu de naissance</code>, <code>Téléphone</code>, <code>Grade</code>, <code>Club</code>
+                        </small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="bi bi-upload me-1"></i>Lancer l'importation
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
-    {% endfor %}
-{% endif %}
+</div>
 
 <!-- Filtres -->
 <div class="card p-3 mb-3">
@@ -107,6 +178,25 @@
                        placeholder="Rechercher un nom ou prénom…" autocomplete="off">
             </div>
         </div>
+        {% if not club %}
+        <div class="col-6 col-md-4">
+            <select name="club" class="form-select form-select-sm" onchange="document.getElementById('form-filtres').submit()">
+                <option value="" {% if not filtre_club %}selected{% endif %}>Tous les clubs</option>
+                {% for c in clubs %}
+                <option value="{{ c.pk }}" {% if filtre_club == c.pk|stringformat:'s' %}selected{% endif %}>{{ c.nom_club }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-6 col-md-3">
+            <select name="grade" class="form-select form-select-sm" onchange="document.getElementById('form-filtres').submit()">
+                <option value="" {% if not filtre_grade %}selected{% endif %}>Tous les grades</option>
+                {% for g in grades %}
+                <option value="{{ g.pk }}" {% if filtre_grade == g.pk|stringformat:'s' %}selected{% endif %}>{{ g.nom }}</option>
+                {% endfor %}
+                <option value="sans" {% if filtre_grade == 'sans' %}selected{% endif %}>Sans grade</option>
+            </select>
+        </div>
+        {% else %}
         <div class="col-6 col-md-2">
             <select name="statut" class="form-select form-select-sm" onchange="document.getElementById('form-filtres').submit()">
                 <option value="actif" {% if filtre != 'inactif' %}selected{% endif %}>Actifs</option>
@@ -129,13 +219,14 @@
                 <option value="sans" {% if filtre_grade == 'sans' %}selected{% endif %}>Sans grade</option>
             </select>
         </div>
+        {% endif %}
         <div class="col-4 col-md-1 text-end">
             <button type="submit" class="btn btn-sm btn-outline-secondary" title="Filtrer">
                 <i class="bi bi-search"></i>
             </button>
         </div>
     </form>
-    {% if filtre_recherche or filtre_grade or filtre_sexe or filtre == 'inactif' %}
+    {% if filtre_recherche or filtre_grade or filtre_club or filtre_sexe or filtre == 'inactif' %}
     <div class="mt-2">
         <a href="{% url 'practitioners:liste' %}" class="small text-muted text-decoration-none">
             <i class="bi bi-x-circle me-1"></i>Réinitialiser les filtres
@@ -152,6 +243,7 @@
                 <thead class="table-light">
                     <tr>
                         <th class="ps-3">Pratiquant</th>
+                        {% if not club %}<th>Club</th>{% endif %}
                         <th>Sexe</th>
                         <th>Grade</th>
                         <th>Matricule</th>
@@ -164,9 +256,12 @@
                     {% for p in pratiquants %}
                     <tr data-recherche="{{ p.nom|lower }} {{ p.prenom|lower }}">
                         <td class="ps-3">
-                            <div class="fw-semibold">{{ p.prenom }} {{ p.nom }}</div>
+                            <div class="fw-semibold">{{ p.nom }} {{ p.prenom }}</div>
                             <div class="text-muted small">{{ p.date_naissance|date:"d/m/Y" }}</div>
                         </td>
+                        {% if not club %}
+                        <td class="small fw-semibold text-primary">{{ p.club.nom_club }}</td>
+                        {% endif %}
                         <td class="small">{{ p.get_sexe_display }}</td>
                         <td>
                             {% if p.grade_actuel %}
@@ -197,6 +292,7 @@
                                    data-bs-toggle="tooltip" data-bs-placement="top">
                                     <i class="bi bi-person-lines-fill"></i>
                                 </a>
+                                {% if user.est_gest_club or user.is_superuser %}
                                 <a href="{% url 'practitioners:modifier' p.pk %}"
                                    class="btn-action btn-action-edit" title="Modifier"
                                    data-bs-toggle="tooltip" data-bs-placement="top">
@@ -216,6 +312,7 @@
                                    data-bs-toggle="tooltip" data-bs-placement="top">
                                     <i class="bi bi-trash"></i>
                                 </a>
+                                {% endif %}
                             </div>
                         </td>
                     </tr>

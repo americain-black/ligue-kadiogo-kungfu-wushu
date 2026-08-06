@@ -1,93 +1,138 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Actualités — Ligue du Kadiogo{% endblock %}
+{% block title %}Actualités & Communiqués — Ligue du Kadiogo{% endblock %}
 
 {% block extra_css %}
 <link href="{% static 'css/lk_public.css' %}" rel="stylesheet">
-<style>
-    .lk-card-actu {
-        border-radius: 12px;
-        overflow: hidden;
-        height: 100%;
-        background: #fff;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.06);
-    }
-    .lk-card-actu .tag {
-        display: inline-block;
-        background-color: var(--lk-rouge);
-        color: #fff;
-        font-size: 0.7rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-        padding: 0.2rem 0.7rem;
-        border-radius: 20px;
-        margin-bottom: 0.6rem;
-    }
-    .lk-card-actu .body { padding: 1.2rem; }
-    .lk-recherche {
-        max-width: 480px;
-        margin: 0 auto 2.2rem;
-    }
-    .lk-recherche .form-control {
-        border-radius: 10px 0 0 10px;
-        border-color: #ece3d8;
-    }
-    .lk-recherche .btn {
-        border-radius: 0 10px 10px 0;
-        background-color: var(--lk-rouge);
-        color: #fff;
-        border-color: var(--lk-rouge);
-    }
-    .lk-recherche .btn:hover { background-color: var(--lk-rouge-fonce); }
-</style>
 {% endblock %}
 
 {% block content_public %}
 {% include 'includes/_lk_navbar.html' %}
 
-<section class="lk-section" id="actualites">
+<section class="lk-banner-header shadow-sm">
     <div class="container">
-        <h2>Actualités</h2>
-        <p class="lk-soustitre">
-            Retrouvez ici toutes les annonces officielles de la ligue ainsi que les nouvelles
-            partagées par les clubs affiliés.
-        </p>
+        <div class="lk-page-title-accent">
+            ACTUALITÉS DE LA LIGUE
+        </div>
+        <div class="lk-breadcrumb ms-3">
+            <a href="{% url 'accounts:accueil' %}">Home</a> &nbsp;.&nbsp; <span>Actualités</span>
+        </div>
+    </div>
+</section>
 
-        <form method="get" class="lk-recherche d-flex">
-            <input type="search" id="rechercheActu" name="q" value="{{ q }}" class="form-control"
-                   placeholder="Rechercher une actualité..." autocomplete="off">
-            <button type="submit" class="btn"><i class="bi bi-search"></i></button>
+<section class="py-4 bg-light min-vh-50" id="actualites">
+    <div class="container">
+
+        <!-- Barre de recherche et filtres par Source & Club -->
+        <form method="get" action="{% url 'communication:actualites_publiques' %}" class="bg-white p-3 rounded-4 shadow-sm border mb-4">
+            <div class="row g-3 align-items-center">
+                <!-- Filtre Source (Tous / Ligue / Clubs) -->
+                <div class="col-12 col-md-auto d-flex flex-wrap gap-2 justify-content-center">
+                    <a href="{% url 'communication:actualites_publiques' %}" 
+                       class="btn btn-outline-secondary filter-btn-pill {% if not source_filtre %}active{% endif %}">
+                        Tous
+                    </a>
+                    <a href="{% url 'communication:actualites_publiques' %}?source=LIGUE" 
+                       class="btn btn-outline-dark filter-btn-pill {% if source_filtre == 'LIGUE' %}active{% endif %}">
+                        <i class="bi bi-shield-check me-1 text-warning"></i>Ligue
+                    </a>
+                    <a href="{% url 'communication:actualites_publiques' %}?source=CLUB" 
+                       class="btn btn-outline-danger filter-btn-pill {% if source_filtre == 'CLUB' %}active{% endif %}">
+                        <i class="bi bi-people me-1"></i>Clubs
+                    </a>
+                </div>
+
+                <!-- Sélecteur de Club (si filtre par club ou visible) -->
+                <div class="col-12 col-sm-6 col-md-3">
+                    <select name="club" class="form-select form-select-sm rounded-pill px-3" onchange="this.form.submit()">
+                        <option value="">-- Filtrer par Club --</option>
+                        {% for club in clubs %}
+                        <option value="{{ club.id }}" {% if club_id_filtre == club.id|stringformat:"s" %}selected{% endif %}>
+                            {{ club.nom_club }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Champ de Recherche Textuelle -->
+                <div class="col-12 col-sm-6 col-md">
+                    <div class="input-group">
+                        <input type="search" id="rechercheActu" name="q" value="{{ q }}" class="form-control form-control-sm rounded-start-pill ps-3"
+                               placeholder="Rechercher un mot-clé..." autocomplete="off">
+                        <button type="submit" class="btn btn-danger btn-sm rounded-end-pill px-3">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
         </form>
 
+        <!-- Liste des Actualités en Layout Horizontal Modernisé -->
         {% if actualites %}
         <div class="row g-4" id="grilleActualites">
             {% for actu in actualites %}
-            <div class="col-md-6 lk-actu-item" data-recherche="{{ actu.titre|lower }} {{ actu.contenu|lower }}">
-                <a href="{% url 'communication:detail_actualite_publique' actu.pk %}" class="text-decoration-none text-reset">
-                <div class="lk-card-actu">
-                    {% if actu.image %}
-                    <img src="{{ actu.image.url }}" alt="" class="w-100" style="height:240px;object-fit:cover;">
-                    {% endif %}
-                    <div class="body">
-                        <span class="tag">{{ actu.get_source_display }}</span>
-                        <h5>{{ actu.titre }}</h5>
-                        <p class="text-muted small mb-2">{{ actu.contenu|truncatewords:25 }}</p>
-                        <div class="text-muted small">
-                            <i class="bi bi-calendar3 me-1"></i>{{ actu.date_publication|date:"d/m/Y" }}
+            <div class="col-12 col-lg-6 lk-actu-item" data-recherche="{{ actu.titre|lower }} {{ actu.contenu|lower }}">
+                <div class="lk-card-actu-horiz">
+                    <!-- Image sur le côté -->
+                    <div class="img-container">
+                        {% if actu.image %}
+                        <img src="{{ actu.image.url }}" alt="{{ actu.titre }}">
+                        {% else %}
+                        <div class="w-100 h-100 d-flex align-items-center justify-content-center bg-dark text-white-50 p-4 text-center">
+                            <div>
+                                <i class="bi bi-newspaper fs-1 text-warning"></i>
+                                <div class="small fw-semibold mt-1">Ligue Kung-Fu Wushu</div>
+                            </div>
+                        </div>
+                        {% endif %}
+                        <span class="badge position-absolute top-0 start-0 m-3 px-3 py-2 rounded-pill {% if actu.source == 'LIGUE' %}badge-source-ligue{% else %}badge-source-club{% endif %}" style="font-size: 0.72rem; letter-spacing: 0.05em;">
+                            {% if actu.source == 'LIGUE' %}
+                            <i class="bi bi-shield-fill-check me-1 text-warning"></i>Ligue
+                            {% else %}
+                            <i class="bi bi-building me-1"></i>{% if actu.club %}{{ actu.club.sigle_club|default:actu.club.nom_club }}{% else %}Club{% endif %}
+                            {% endif %}
+                        </span>
+                    </div>
+
+                    <!-- Contenu textuel -->
+                    <div class="content-container">
+                        <div>
+                            <h5 class="fw-extrabold text-dark mb-2 line-clamp-2" style="font-size: 1.1rem; line-height: 1.35;">
+                                {{ actu.titre }}
+                            </h5>
+                            <p class="text-muted small mb-3 text-secondary" style="line-height: 1.5; font-size: 0.88rem;">
+                                {{ actu.contenu|striptags|truncatewords:22 }}
+                            </p>
+                        </div>
+
+                        <div class="d-flex align-items-center justify-content-between pt-2 border-top">
+                            <span class="text-muted small" style="font-size: 0.8rem;">
+                                <i class="bi bi-calendar3 me-1 text-danger"></i>{{ actu.date_publication|date:"d/m/Y" }}
+                            </span>
+                            <a href="{% url 'communication:detail_actualite_publique' actu.pk %}" class="btn btn-danger btn-voir-plus">
+                                Lire la suite <i class="bi bi-arrow-right ms-1"></i>
+                            </a>
                         </div>
                     </div>
                 </div>
-                </a>
             </div>
             {% endfor %}
         </div>
         <div class="lk-vide d-none" id="actualitesAucunResultat">Aucune actualité ne correspond à cette recherche.</div>
-        {% elif q %}
-        <div class="lk-vide">Aucune actualité ne correspond à « {{ q }} ».</div>
+        {% elif q or source_filtre or club_id_filtre %}
+        <div class="lk-vide bg-white p-5 rounded-4 border text-center my-4">
+            <i class="bi bi-search fs-1 text-muted"></i>
+            <p class="mt-2 mb-0">Aucune actualité ne correspond aux critères sélectionnés.</p>
+            <a href="{% url 'communication:actualites_publiques' %}" class="btn btn-outline-danger btn-sm mt-3 rounded-pill px-4">
+                Réinitialiser les filtres
+            </a>
+        </div>
         {% else %}
-        <div class="lk-vide">Aucune actualité publiée pour le moment.</div>
+        <div class="lk-vide bg-white p-5 rounded-4 border text-center my-4">
+            <i class="bi bi-newspaper fs-1 text-muted"></i>
+            <p class="mt-2 mb-0">Aucune actualité publiée pour le moment.</p>
+        </div>
         {% endif %}
     </div>
 </section>

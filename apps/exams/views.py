@@ -1,12 +1,20 @@
 import csv
+# pyrefly: ignore [missing-import]
 from django.shortcuts import render, redirect, get_object_or_404
+# pyrefly: ignore [missing-import]
 from django.contrib.auth.decorators import login_required
+# pyrefly: ignore [missing-import]
 from django.contrib import messages
+# pyrefly: ignore [missing-import]
 from django.core.exceptions import ValidationError
+# pyrefly: ignore [missing-import]
 from django.http import HttpResponse
+# pyrefly: ignore [missing-import]
 from django.urls import reverse
+# pyrefly: ignore [missing-import]
 from django.db.models import Sum, Count, Q
 
+# pyrefly: ignore [missing-import]
 from django.db import transaction
 from .models import SessionExamen, AffectationJury, Inscription, AnneeSportive, TarifExamen, Rubrique, RubriqueGrade, OptionExamen, ModeleMatricule, ParametresExamen
 from .forms import SessionExamenForm, MultiInscriptionForm, AffectationJuryForm, AnneeSportiveForm, TarifExamenForm, RubriqueForm, RubriqueGradeForm, OptionExamenForm, ModeleMatriculeForm, ParametresExamenForm
@@ -986,6 +994,7 @@ def exclure_inscription(request, pk):
                 nouveau_attendu = (montant_brut * pourcentage / Decimal('100')).quantize(Decimal('1'))
 
                 if paiement.montant_paye >= nouveau_attendu:
+                    # pyrefly: ignore [missing-import]
                     from django.utils import timezone
                     from apps.payments.models import HistoriquePaiementExamen
                     paiement.montant_attendu = nouveau_attendu
@@ -1415,7 +1424,7 @@ def _qs_licencies(session, club_pk=None, grade_pk=None):
         Inscription.objects
         .filter(session=session, statut__in=STATUTS_LICENCIES)
         .select_related('pratiquant__club', 'pratiquant__grade_actuel', 'grade_vise')
-        .order_by('pratiquant__club__nom_club', 'pratiquant__nom', 'pratiquant__prenom')
+        .order_by('grade_vise__id_grade', 'pratiquant__nom', 'pratiquant__prenom')
     )
     if club_pk:
         qs = qs.filter(pratiquant__club_id=club_pk)
@@ -1435,7 +1444,7 @@ def _csv_licencies(qs, filename):
             i,
             p.nom,
             p.prenom,
-            p.get_sexe_display(),
+            p.sexe,
             p.matricule or '',
             p.grade_actuel.nom if p.grade_actuel else 'Sans grade',
             insc.grade_vise.nom,

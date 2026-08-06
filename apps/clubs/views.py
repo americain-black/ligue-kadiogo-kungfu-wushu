@@ -1,6 +1,10 @@
+# pyrefly: ignore [missing-import]
 from django.shortcuts import render, redirect, get_object_or_404
+# pyrefly: ignore [missing-import]
 from django.contrib.auth.decorators import login_required
+# pyrefly: ignore [missing-import]
 from django.contrib import messages
+# pyrefly: ignore [missing-import]
 from django.db.models import Q, Count
 from .models import (
     Club, DemandeAffiliation, PieceJustificativeAffiliation, ParametresAffiliation,
@@ -335,97 +339,83 @@ def organigramme_club_acces(view_func):
 @organigramme_club_acces
 def organigramme_club(request, club_pk):
     club   = get_object_or_404(Club, pk=club_pk, ligue=request.user.ligue)
-    volets = club.volets.prefetch_related('membres').all()
+    from apps.ligues.models import VoletOrganigramme, MembreOrganigramme
+    from apps.ligues.forms import MembreOrganigrammeForm
+    volets = VoletOrganigramme.objects.filter(ligue=club.ligue).prefetch_related('membres').all()
+    for v in volets:
+        v.membres_du_club = v.membres.filter(club=club)
     peut_modifier = request.user.is_superuser or request.user.est_gest_club()
+    form_membre = MembreOrganigrammeForm()
     return render(request, 'clubs/organigramme.html', {
         'club':          club,
         'volets':        volets,
         'peut_modifier': peut_modifier,
+        'form_membre':   form_membre,
     })
 
 
 @gest_club_requis
-def creer_volet_club(request, club_pk):
-    club = get_object_or_404(Club, pk=club_pk, ligue=request.user.ligue)
+def ajouter_membre_club(request, volet_pk):
+    from apps.ligues.models import VoletOrganigramme, MembreOrganigramme
+    from apps.ligues.forms import MembreOrganigrammeForm
+    club_id = request.POST.get('club_id') or request.GET.get('club_id')
+    if club_id:
+        club = get_object_or_404(Club, pk=club_id)
+    else:
+        club = getattr(request.user, 'club', None)
+
+    if not club:
+        messages.error(request, "Impossible de déterminer le club concerné.")
+        return redirect('accounts:tableau_de_bord')
+
+    volet = get_object_or_404(VoletOrganigramme, pk=volet_pk, ligue=club.ligue)
     if request.method == 'POST':
-        form = VoletOrganigrammeClubForm(request.POST)
+        form = MembreOrganigrammeForm(request.POST)
         if form.is_valid():
-            volet = form.save(commit=False)
-            volet.club  = club
-            volet.ordre = club.volets.count()
-            volet.save()
-            messages.success(request, f"Volet « {volet.nom_volet} » créé.")
+            membre = form.save(commit=False)
+            membre.volet = volet
+            membre.club  = club
+            membre.save()
+            messages.success(request, f"{membre.prenom} {membre.nom} ajouté au volet « {volet.nom_volet} ».")
     return redirect('clubs:organigramme', club_pk=club.pk)
 
 
 @gest_club_requis
-def modifier_volet_club(request, pk):
-    volet = get_object_or_404(VoletOrganigrammeClub, pk=pk, club__ligue=request.user.ligue)
-    if request.method == 'POST':
-        form = VoletOrganigrammeClubForm(request.POST, instance=volet)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Volet modifié.")
-    return redirect('clubs:organigramme', club_pk=volet.club.pk)
-
-
-@gest_club_requis
-def supprimer_volet_club(request, pk):
-    volet = get_object_or_404(VoletOrganigrammeClub, pk=pk, club__ligue=request.user.ligue)
-    club_pk = volet.club.pk
-    if request.method == 'POST':
-        if volet.membres.exists():
-            messages.error(request, "Impossible de supprimer un volet qui contient des membres.")
-        else:
-            volet.delete()
-            messages.success(request, "Volet supprimé.")
-    return redirect('clubs:organigramme', club_pk=club_pk)
-
-
-@gest_club_requis
-def ajouter_membre_club(request, volet_pk):
-    volet = get_object_or_404(VoletOrganigrammeClub, pk=volet_pk, club__ligue=request.user.ligue)
-    if request.method == 'POST':
-        form = MembreOrganigrammeClubForm(request.POST)
-        if form.is_valid():
-            membre = form.save(commit=False)
-            membre.volet = volet
-            membre.save()
-            messages.success(request, f"{membre.prenom} {membre.nom} ajouté.")
-    return redirect('clubs:organigramme', club_pk=volet.club.pk)
-
-
-@gest_club_requis
 def modifier_membre_club(request, pk):
-    membre = get_object_or_404(MembreOrganigrammeClub, pk=pk, volet__club__ligue=request.user.ligue)
+    from apps.ligues.models import MembreOrganigramme
+    from apps.ligues.forms import MembreOrganigrammeForm
+    membre = get_object_or_404(MembreOrganigramme, pk=pk)
+    club = membre.club or getattr(request.user, 'club', None)
     if request.method == 'POST':
-        form = MembreOrganigrammeClubForm(request.POST, instance=membre)
+        form = MembreOrganigrammeForm(request.POST, instance=membre)
         if form.is_valid():
             form.save()
             messages.success(request, "Membre modifié.")
-    return redirect('clubs:organigramme', club_pk=membre.volet.club.pk)
+    return redirect('clubs:organigramme', club_pk=club.pk if club else 1)
 
 
 @gest_club_requis
 def toggle_actif_membre_club(request, pk):
-    membre = get_object_or_404(MembreOrganigrammeClub, pk=pk, volet__club__ligue=request.user.ligue)
-    club_pk = membre.volet.club.pk
+    from apps.ligues.models import MembreOrganigramme
+    membre = get_object_or_404(MembreOrganigramme, pk=pk)
+    club = membre.club or getattr(request.user, 'club', None)
     membre.actif = not membre.actif
     membre.save()
     etat = "activé" if membre.actif else "désactivé"
     messages.success(request, f"{membre.prenom} {membre.nom} {etat}.")
-    return redirect('clubs:organigramme', club_pk=club_pk)
+    return redirect('clubs:organigramme', club_pk=club.pk if club else 1)
 
 
 @gest_club_requis
 def supprimer_membre_club(request, pk):
-    membre = get_object_or_404(MembreOrganigrammeClub, pk=pk, volet__club__ligue=request.user.ligue)
-    club_pk = membre.volet.club.pk
+    from apps.ligues.models import MembreOrganigramme
+    membre = get_object_or_404(MembreOrganigramme, pk=pk)
+    club = membre.club or getattr(request.user, 'club', None)
     if request.method == 'POST':
         nom = f"{membre.prenom} {membre.nom}"
         membre.delete()
         messages.success(request, f"{nom} supprimé de l'organigramme.")
-    return redirect('clubs:organigramme', club_pk=club_pk)
+    return redirect('clubs:organigramme', club_pk=club.pk if club else 1)
 
 
 def annuaire_clubs(request):
@@ -453,7 +443,9 @@ def annuaire_clubs(request):
 
         club_cible = Club.objects.filter(pk=club_id).exclude(statut_club='SUSPENDU').first()
         if club_cible and nom_expediteur and (email_expediteur or telephone_expediteur) and message_contenu:
+            # pyrefly: ignore [missing-import]
             from django.core.mail import send_mail
+            # pyrefly: ignore [missing-import]
             from django.conf import settings
 
             sujet = f"[Ligue Kung-Fu Wushu] Message de {nom_expediteur} pour {club_cible.nom_club}"

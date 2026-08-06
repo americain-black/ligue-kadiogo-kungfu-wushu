@@ -10,8 +10,14 @@
 <a href="{% url 'clubs:liste' %}" class="nav-link">
     <i class="bi bi-building me-2"></i>Clubs
 </a>
+<a href="{% url 'practitioners:liste' %}" class="nav-link">
+    <i class="bi bi-people me-2"></i>Pratiquants / Athlètes
+</a>
 <a href="{% url 'practitioners:grades' %}" class="nav-link">
     <i class="bi bi-award me-2"></i>Grades
+</a>
+<a href="{% url 'results:liste_resultats_ligue' %}" class="nav-link">
+    <i class="bi bi-award-fill me-2 text-warning"></i>Résultats & Bulletins
 </a>
 <a href="{% url 'exams:annees_sportives' %}" class="nav-link">
     <i class="bi bi-calendar2-range me-2"></i>Années sportives
@@ -52,6 +58,10 @@
 <a href="{% url 'ligues:organigramme' %}" class="nav-link">
     <i class="bi bi-diagram-3 me-2"></i>Organigramme ligue
 </a>
+<span class="sidebar-title mt-2">Institution & Présentation</span>
+<a href="{% url 'ligues:editer_infos' %}" class="nav-link">
+    <i class="bi bi-pencil-square me-2"></i>Présentation & À propos
+</a>
 {% endblock %}
 
 {% block content %}
@@ -69,7 +79,15 @@
         <h4 class="fw-bold mb-0">Tableau de bord</h4>
         <small class="text-muted">{{ ligue.nom_ligue }} ({{ ligue.sigle }})</small>
     </div>
-    <span class="badge bg-danger px-3 py-2">Gestionnaire Ligue</span>
+    <div class="d-flex gap-2 align-items-center">
+        <a href="{% url 'results:liste_resultats_ligue' %}" class="btn btn-warning btn-sm fw-bold">
+            <i class="bi bi-award-fill me-1"></i>Résultats & Bulletins
+        </a>
+        <a href="{% url 'ligues:editer_infos' %}" class="btn btn-outline-dark btn-sm">
+            <i class="bi bi-pencil-square me-1"></i>Modifier la présentation "À propos"
+        </a>
+        <span class="badge bg-danger px-3 py-2">Gestionnaire Ligue</span>
+    </div>
 </div>
 
 <!-- Statistiques globales -->

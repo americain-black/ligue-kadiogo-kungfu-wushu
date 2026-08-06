@@ -20,4 +20,7 @@ urlpatterns = [
     path('organigramme/membre/<int:pk>/modifier/',     views.modifier_membre,     name='modifier_membre'),
     path('organigramme/membre/<int:pk>/toggle/',     views.toggle_actif_membre, name='toggle_actif_membre'),
     path('organigramme/membre/<int:pk>/supprimer/', views.supprimer_membre,    name='supprimer_membre'),
+
+    # Édition des informations "À propos" et de la présentation
+    path('editer-infos/', views.editer_infos_ligue, name='editer_infos'),
 ]

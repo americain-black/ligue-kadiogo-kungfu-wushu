@@ -1,0 +1,186 @@
+{% extends 'base.html' %}
+{% block title %}Mon Profil — Ligue du Kadiogo{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:tableau_de_bord' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Mon compte</span>
+<a href="{% url 'accounts:mon_profil' %}" class="nav-link active">
+    <i class="bi bi-person-gear me-2"></i>Mon Profil
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <a href="{% url 'accounts:tableau_de_bord' %}" class="text-muted text-decoration-none small">
+            <i class="bi bi-arrow-left me-1"></i>Retour au tableau de bord
+        </a>
+        <h4 class="fw-bold mb-0 mt-1"><i class="bi bi-person-circle me-2 text-primary"></i>Mon Profil</h4>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Summary Sidebar Card -->
+    <div class="col-12 col-lg-4">
+        <div class="card border-0 shadow-sm text-center p-4">
+            <div class="mb-3 position-relative d-inline-block mx-auto">
+                {% if user_obj.photo %}
+                    <img src="{{ user_obj.photo.url }}" alt="{{ user_obj.username }}" class="rounded-circle img-thumbnail" style="width: 120px; height: 120px; object-fit: cover;" onerror="this.onerror=null; this.classList.add('d-none'); this.nextElementSibling.classList.remove('d-none');">
+                    <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-none align-items-center justify-content-center mx-auto fs-1 fw-bold" style="width: 120px; height: 120px;">
+                        <i class="bi bi-person"></i>
+                    </div>
+                {% else %}
+                    <div class="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center mx-auto fs-1 fw-bold" style="width: 120px; height: 120px;">
+                        <i class="bi bi-person"></i>
+                    </div>
+                {% endif %}
+            </div>
+            <h5 class="fw-bold mb-1">{{ user_obj.get_full_name|default:user_obj.username }}</h5>
+            <p class="text-muted small mb-3">@{{ user_obj.username }}</p>
+
+            <div class="d-flex flex-wrap gap-1 justify-content-center mb-3">
+                {% if user_obj.is_superuser or user_obj.est_super_admin %}
+                    <span class="badge bg-danger">Super Administrateur</span>
+                {% endif %}
+                {% if user_obj.est_gest_ligue %}
+                    <span class="badge bg-primary">Gestionnaire Ligue</span>
+                {% endif %}
+                {% if user_obj.est_gest_club %}
+                    <span class="badge bg-success">Gestionnaire Club</span>
+                {% endif %}
+                {% if user_obj.est_gest_financier %}
+                    <span class="badge bg-warning text-dark">Gestionnaire Financier</span>
+                {% endif %}
+                {% if user_obj.est_jury %}
+                    <span class="badge bg-info text-dark">Jury</span>
+                {% endif %}
+            </div>
+
+            <hr>
+
+            <div class="text-start small">
+                <div class="mb-2">
+                    <i class="bi bi-envelope text-muted me-2"></i>
+                    <strong>Email :</strong> {{ user_obj.email|default:"Non renseigné" }}
+                </div>
+                <div class="mb-2">
+                    <i class="bi bi-telephone text-muted me-2"></i>
+                    <strong>Téléphone :</strong> {{ user_obj.telephone|default:"Non renseigné" }}
+                </div>
+                {% if user_obj.club %}
+                <div class="mb-2">
+                    <i class="bi bi-building text-muted me-2"></i>
+                    <strong>Club :</strong> {{ user_obj.club.nom_club }}
+                </div>
+                {% endif %}
+                {% if user_obj.ligue %}
+                <div class="mb-2">
+                    <i class="bi bi-trophy text-muted me-2"></i>
+                    <strong>Ligue :</strong> {{ user_obj.ligue.nom_ligue }}
+                </div>
+                {% endif %}
+                <div>
+                    <i class="bi bi-clock-history text-muted me-2"></i>
+                    <strong>Membre depuis :</strong> {{ user_obj.date_joined|date:"d/m/Y" }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Form Card -->
+    <div class="col-12 col-lg-8">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="fw-bold mb-0 text-primary">
+                        <i class="bi bi-pencil-square me-2"></i>Informations personnelles
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for error in form.non_field_errors %}
+                                <div>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold">Prénom</label>
+                            {{ form.first_name }}
+                            {% if form.first_name.errors %}<div class="text-danger small mt-1">{{ form.first_name.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold">Nom</label>
+                            {{ form.last_name }}
+                            {% if form.last_name.errors %}<div class="text-danger small mt-1">{{ form.last_name.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold">Nom d'utilisateur (Identifiant)</label>
+                            {{ form.username }}
+                            {% if form.username.errors %}<div class="text-danger small mt-1">{{ form.username.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold">Genre / Civilité</label>
+                            {{ form.sexe }}
+                            {% if form.sexe.errors %}<div class="text-danger small mt-1">{{ form.sexe.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold">Adresse Email</label>
+                            {{ form.email }}
+                            {% if form.email.errors %}<div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold">Numéro de Téléphone</label>
+                            {{ form.telephone }}
+                            {% if form.telephone.errors %}<div class="text-danger small mt-1">{{ form.telephone.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-semibold">Photo de profil</label>
+                            {{ form.photo }}
+                            <div class="form-text">Format d'image accepté : JPG, PNG ou WEBP.</div>
+                            {% if form.photo.errors %}<div class="text-danger small mt-1">{{ form.photo.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Change Password Card -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white py-3">
+                    <h5 class="fw-bold mb-0 text-warning text-dark">
+                        <i class="bi bi-shield-lock me-2"></i>Sécurité (Changer de mot de passe)
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold">{{ form.nouveau_mot_de_passe.label }}</label>
+                            {{ form.nouveau_mot_de_passe }}
+                            {% if form.nouveau_mot_de_passe.errors %}<div class="text-danger small mt-1">{{ form.nouveau_mot_de_passe.errors.0 }}</div>{% endif %}
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold">{{ form.confirmer_mot_de_passe.label }}</label>
+                            {{ form.confirmer_mot_de_passe }}
+                            {% if form.confirmer_mot_de_passe.errors %}<div class="text-danger small mt-1">{{ form.confirmer_mot_de_passe.errors.0 }}</div>{% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-end gap-2">
+                <a href="{% url 'accounts:tableau_de_bord' %}" class="btn btn-secondary px-4">Annuler</a>
+                <button type="submit" class="btn btn-success px-4 fw-semibold">
+                    <i class="bi bi-check-circle me-1"></i>Enregistrer les modifications
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

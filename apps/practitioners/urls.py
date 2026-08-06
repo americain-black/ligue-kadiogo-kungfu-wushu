@@ -1,3 +1,4 @@
+# pyrefly: ignore [missing-import]
 from django.urls import path
 from . import views
 
@@ -5,12 +6,15 @@ app_name = 'practitioners'
 
 urlpatterns = [
     # Pratiquants
-    path('',                      views.liste_pratiquants,    name='liste'),
-    path('ajouter/',              views.ajouter_pratiquant,   name='ajouter'),
-    path('<int:pk>/',             views.detail_pratiquant,    name='detail'),
-    path('<int:pk>/modifier/',    views.modifier_pratiquant,  name='modifier'),
-    path('<int:pk>/toggle/',      views.toggle_actif_pratiquant, name='toggle_actif'),
-    path('<int:pk>/supprimer/',   views.supprimer_pratiquant,    name='supprimer'),
+    path('',                      views.liste_pratiquants,          name='liste'),
+    path('ajouter/',              views.ajouter_pratiquant,         name='ajouter'),
+    path('exporter/',             views.exporter_pratiquants,       name='exporter'),
+    path('importer/',             views.importer_pratiquants,       name='importer'),
+    path('importer/modele/',      views.telecharger_modele_import,  name='telecharger_modele'),
+    path('<int:pk>/',             views.detail_pratiquant,          name='detail'),
+    path('<int:pk>/modifier/',    views.modifier_pratiquant,        name='modifier'),
+    path('<int:pk>/toggle/',      views.toggle_actif_pratiquant,    name='toggle_actif'),
+    path('<int:pk>/supprimer/',   views.supprimer_pratiquant,       name='supprimer'),
 
     # Grades (GEST_LIGUE)
     path('grades/',                        views.liste_grades,       name='grades'),

@@ -1,3 +1,4 @@
+# pyrefly: ignore [missing-import]
 from django.db import models
 
 
@@ -31,6 +32,7 @@ class Grade(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.pk and self.id_grade == 0:
+            # pyrefly: ignore [missing-import]
             from django.db.models import Max
             max_id = Grade.objects.filter(ligue=self.ligue).aggregate(m=Max('id_grade'))['m'] or 0
             self.id_grade = max_id + 1
@@ -86,7 +88,7 @@ class Pratiquant(models.Model):
     class Meta:
         verbose_name        = 'Pratiquant'
         verbose_name_plural = 'Pratiquants'
-        ordering            = ['nom', 'prenom']
+        ordering            = ['grade_actuel__id_grade', 'nom', 'prenom']
 
     def __str__(self):
         return f"{self.nom} {self.prenom} — {self.club.nom_club}"

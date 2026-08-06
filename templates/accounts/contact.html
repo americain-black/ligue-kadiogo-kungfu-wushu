@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Contact & Localisation — Ligue du Kadiogo{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/lk_public.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content_public %}
+{% include 'includes/_lk_navbar.html' %}
+
+<!-- Bannière d'en-tête verte institutionnelle -->
+<section class="lk-banner-header shadow-sm">
+    <div class="container">
+        <div class="lk-page-title-accent">
+            {% if ligue %}{{ ligue.get_titre_contact|upper }}{% elif ligue_site %}{{ ligue_site.get_titre_contact|upper }}{% else %}CONTACT & LOCALISATION{% endif %}
+        </div>
+        <div class="lk-breadcrumb ms-3">
+            <a href="{% url 'accounts:accueil' %}">Home</a> &nbsp;.&nbsp; <span>{% if ligue %}{{ ligue.get_titre_contact }}{% elif ligue_site %}{{ ligue_site.get_titre_contact }}{% else %}Contact & Localisation{% endif %}</span>
+        </div>
+    </div>
+</section>
+
+<section class="py-5 bg-light min-vh-50">
+    <div class="container">
+        <div class="max-w-900 mx-auto">
+
+            <div class="row g-4 mb-4">
+                <div class="col-md-5">
+                    <div class="bg-white p-4 rounded-4 shadow-sm border h-100">
+                        <h4 class="fw-bold text-dark mb-4"><i class="bi bi-building text-danger me-2"></i>Coordonnées Officielles</h4>
+                        
+                        <div class="d-flex align-items-start gap-3 mb-3">
+                            <i class="bi bi-geo-alt-fill text-danger fs-4 mt-1"></i>
+                            <div>
+                                <strong class="d-block text-dark">Siège Social</strong>
+                                <span class="text-muted small">{{ ligue.adresse_siege|default:"Ouagadougou, Province du Kadiogo, Burkina Faso" }}</span>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-start gap-3 mb-3">
+                            <i class="bi bi-telephone-fill text-danger fs-4 mt-1"></i>
+                            <div>
+                                <strong class="d-block text-dark">Téléphone / WhatsApp</strong>
+                                <a href="tel:{{ ligue.telephone }}" class="text-decoration-none text-dark small">{{ ligue.telephone|default:"+226 70 00 00 00 / +226 78 00 00 00" }}</a>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-start gap-3 mb-3">
+                            <i class="bi bi-envelope-fill text-danger fs-4 mt-1"></i>
+                            <div>
+                                <strong class="d-block text-dark">Adresse Email</strong>
+                                <a href="mailto:{{ ligue.email_contact }}" class="text-decoration-none text-dark small">{{ ligue.email_contact|default:"contact@liguekadiogo-wushu.bf" }}</a>
+                            </div>
+                        </div>
+
+                        <div class="d-flex align-items-start gap-3">
+                            <i class="bi bi-clock-fill text-danger fs-4 mt-1"></i>
+                            <div>
+                                <strong class="d-block text-dark">Horaires de Permanence</strong>
+                                <span class="text-muted small">Du Lundi au Vendredi : 08h00 - 17h30<br>Samedi : 08h00 - 12h00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-7">
+                    <div class="bg-white p-4 rounded-4 shadow-sm border h-100">
+                        <h4 class="fw-bold text-dark mb-3"><i class="bi bi-envelope-paper-fill text-warning me-2"></i>Envoyer un message au Secrétariat</h4>
+                        <form method="post" action="#" onsubmit="alert('Votre message a été envoyé avec succès au secrétariat de la Ligue.'); return false;">
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">Nom & Prénom</label>
+                                <input type="text" class="form-control" placeholder="Votre nom complet" required>
+                            </div>
+                            <div class="row g-2 mb-3">
+                                <div class="col-6">
+                                    <label class="form-label small fw-bold">Téléphone</label>
+                                    <input type="tel" class="form-control" placeholder="+226..." required>
+                                </div>
+                                <div class="col-6">
+                                    <label class="form-label small fw-bold">Email</label>
+                                    <input type="email" class="form-control" placeholder="votre@email.com" required>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">Sujet</label>
+                                <select class="form-select" required>
+                                    <option value="">-- Sélectionner un motif --</option>
+                                    <option value="affiliation">Demande d'affiliation de club</option>
+                                    <option value="examen">Renseignements Examens & Ceintures</option>
+                                    <option value="autre">Autre demande</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label small fw-bold">Votre Message</label>
+                                <textarea class="form-control" rows="4" placeholder="Écrivez votre message ici..." required></textarea>
+                            </div>
+                            <button type="submit" class="btn btn-danger btn-voir-plus w-100">
+                                <i class="bi bi-send-fill me-1"></i>Envoyer le message
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% include 'includes/_lk_footer.html' %}
+{% endblock %}

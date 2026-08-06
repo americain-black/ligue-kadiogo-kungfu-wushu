@@ -239,3 +239,150 @@ def telecharger_bulletin(request, pk):
     response = HttpResponse(pdf_bytes, content_type='application/pdf')
     response['Content-Disposition'] = f'attachment; filename="{nom_fichier}"'
     return response
+
+
+def gest_ligue_requis(view_func):
+    @login_required
+    def wrapper(request, *args, **kwargs):
+        if not (request.user.is_superuser or request.user.est_gest_ligue()):
+            messages.error(request, "Accès réservé au Gestionnaire de Ligue.")
+            return redirect('accounts:tableau_de_bord')
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+
+@gest_ligue_requis
+def liste_resultats_ligue(request):
+    """
+    Interface du gestionnaire ligue pour consulter la liste de tous les résultats,
+    filtrer par Session, par Club ou par Décision, et lancer des impressions groupées.
+    """
+    from apps.clubs.models import Club
+    from django.db.models import Q
+
+    ligue = getattr(request.user, 'ligue', None)
+    if not ligue and request.user.is_superuser:
+        from apps.ligues.models import Ligue
+        ligue = Ligue.objects.first()
+
+    sessions = SessionExamen.objects.filter(annee_sportive__ligue=ligue).order_by('-date_examen')
+    clubs = Club.objects.filter(ligue=ligue).order_by('nom_club')
+
+    session_id = request.GET.get('session')
+    club_id    = request.GET.get('club')
+    decision   = request.GET.get('decision')
+    q          = request.GET.get('q', '').strip()
+
+    resultats_qs = Resultat.objects.filter(
+        inscription__session__annee_sportive__ligue=ligue
+    ).select_related(
+        'inscription__pratiquant',
+        'inscription__pratiquant__club',
+        'inscription__grade_vise',
+        'inscription__session'
+    ).order_by('inscription__grade_vise__id_grade', '-moyenne', 'inscription__pratiquant__nom', 'inscription__pratiquant__prenom')
+
+    if session_id:
+        resultats_qs = resultats_qs.filter(inscription__session_id=session_id)
+    if club_id:
+        resultats_qs = resultats_qs.filter(inscription__pratiquant__club_id=club_id)
+    if decision:
+        resultats_qs = resultats_qs.filter(decision=decision)
+    if q:
+        resultats_qs = resultats_qs.filter(
+            Q(inscription__pratiquant__nom__icontains=q) |
+            Q(inscription__pratiquant__prenom__icontains=q) |
+            Q(inscription__pratiquant__matricule__icontains=q)
+        )
+
+    resultats_data = []
+    for r in resultats_qs:
+        rang, total = r.rang()
+        resultats_data.append({
+            'resultat': r,
+            'rang': rang,
+            'total': total,
+        })
+
+    return render(request, 'results/liste_resultats_ligue.html', {
+        'sessions': sessions,
+        'clubs': clubs,
+        'session_id': session_id,
+        'club_id': club_id,
+        'decision': decision,
+        'q': q,
+        'resultats_data': resultats_data,
+        'total_count': len(resultats_data),
+    })
+
+
+@gest_ligue_requis
+def impression_groupee_bulletins(request):
+    """
+    Génère un document PDF unique contenant tous les bulletins sélectionnés
+    ou tous les bulletins correspondant aux filtres actifs (Session / Club).
+    """
+    from weasyprint import HTML
+    from django.db.models import Q
+
+    ligue = getattr(request.user, 'ligue', None)
+    if not ligue and request.user.is_superuser:
+        from apps.ligues.models import Ligue
+        ligue = Ligue.objects.first()
+
+    ids_selectionnes = request.POST.getlist('resultats_ids') or request.GET.getlist('ids')
+    session_id       = request.GET.get('session') or request.POST.get('session')
+    club_id          = request.GET.get('club') or request.POST.get('club')
+
+    resultats_qs = Resultat.objects.filter(
+        inscription__session__annee_sportive__ligue=ligue
+    ).select_related(
+        'inscription__pratiquant',
+        'inscription__pratiquant__club',
+        'inscription__grade_vise',
+        'inscription__session',
+        'inscription__session__annee_sportive__ligue'
+    ).order_by('inscription__pratiquant__club__nom_club', 'inscription__pratiquant__nom')
+
+    if ids_selectionnes:
+        resultats_qs = resultats_qs.filter(id__in=ids_selectionnes)
+    else:
+        if session_id:
+            resultats_qs = resultats_qs.filter(inscription__session_id=session_id)
+        if club_id:
+            resultats_qs = resultats_qs.filter(inscription__pratiquant__club_id=club_id)
+
+    if not resultats_qs.exists():
+        messages.error(request, "Aucun bulletin à imprimer pour la sélection ou le filtre actif.")
+        return redirect('results:liste_resultats_ligue')
+
+    bulletins_items = []
+    for r in resultats_qs:
+        insc = r.inscription
+        rang, total_rang = r.rang()
+        lignes = _lignes_notation(insc)
+        total_coeff   = sum(l['rubrique_grade'].coefficient for l in lignes)
+        total_pondere = sum(l['pondere'] for l in lignes if l['pondere'] is not None)
+        bulletins_items.append({
+            'resultat': r,
+            'inscription': insc,
+            'ligue': insc.session.annee_sportive.ligue,
+            'lignes': lignes,
+            'total_coeff': total_coeff,
+            'total_pondere': total_pondere,
+            'rang': rang,
+            'total_rang': total_rang,
+            'rappel': _rappel_moyennes(r),
+            'stats': _stats_cohorte(r),
+        })
+
+    html_string = render(request, 'results/bulletins_groupe_pdf.html', {
+        'bulletins_items': bulletins_items,
+        'ligue': ligue,
+    }).content.decode('utf-8')
+
+    pdf_bytes = HTML(string=html_string, base_url=request.build_absolute_uri('/')).write_pdf()
+
+    response = HttpResponse(pdf_bytes, content_type='application/pdf')
+    response['Content-Disposition'] = 'attachment; filename="bulletins_groupe_impression.pdf"'
+    return response

@@ -102,15 +102,24 @@
 
 {% include 'includes/_lk_navbar.html' %}
 
-<section class="lk-section" id="resultats">
+<section class="lk-banner-header shadow-sm">
     <div class="container">
-        <h2>Résultats</h2>
-        <p class="lk-soustitre">Consultez votre résultat officiel de passage de grade</p>
+        <div class="lk-page-title-accent">
+            RÉSULTATS DES EXAMENS
+        </div>
+        <div class="lk-breadcrumb ms-3">
+            <a href="{% url 'accounts:accueil' %}">Home</a> &nbsp;.&nbsp; <span>Résultats</span>
+        </div>
+    </div>
+</section>
+
+<section class="py-4 bg-light min-vh-50" id="resultats">
+    <div class="container">
 
         <form method="get" class="lk-recherche">
             <div class="d-flex">
                 <input type="text" id="matricule" name="matricule" value="{{ matricule }}" class="form-control"
-                       placeholder="Ex : LK260027" autocomplete="off" required>
+                       placeholder="" autocomplete="off" required>
                 <button type="submit" class="btn"><i class="bi bi-search"></i></button>
             </div>
             <div class="form-text text-center">
@@ -118,56 +127,158 @@
             </div>
         </form>
 
-        <div style="max-width:820px;margin-left:auto;margin-right:auto;">
+        <div class="max-w-1200 mx-auto">
 
             {% if erreur %}
-            <div class="alert alert-warning">
+            <div class="alert alert-warning shadow-sm rounded-3 max-w-700 mx-auto">
                 <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ erreur }}
             </div>
             {% endif %}
 
             {% if pratiquant %}
-            <div class="lk-fiche-candidat d-flex align-items-center gap-3">
-                <div class="avatar"><i class="bi bi-person-fill"></i></div>
-                <div>
-                    <div class="fw-bold fs-5">{{ pratiquant.nom }} {{ pratiquant.prenom }}</div>
-                    <div class="text-muted small">
-                        Matricule {{ pratiquant.matricule }} · {{ pratiquant.club.nom_club }}
+            <div class="row g-4 align-items-start">
+                
+                <!-- ══ COLONNE GAUCHE : Informations du Pratiquant ════════════════ -->
+                <div class="col-lg-3 col-md-4">
+                    <div class="bg-white p-4 rounded-4 shadow-sm border text-center h-100">
+                        {% if pratiquant.photo %}
+                        <img src="{{ pratiquant.photo.url }}" alt="{{ pratiquant.nom }}" class="rounded-circle border mb-3 shadow-sm" style="width: 100px; height: 100px; object-fit: cover;">
+                        {% else %}
+                        <div class="rounded-circle bg-danger bg-gradient text-white d-flex align-items-center justify-content-center mx-auto mb-3 shadow-sm" style="width: 85px; height: 85px; font-size: 2.2rem; font-weight: 800;">
+                            {{ pratiquant.nom|slice:":1" }}
+                        </div>
+                        {% endif %}
+
+                        <h5 class="fw-extrabold text-dark mb-1">{{ pratiquant.nom }} {{ pratiquant.prenom }}</h5>
+                        <div class="badge bg-dark px-3 py-2 text-uppercase mb-3">Matricule : {{ pratiquant.matricule }}</div>
+
+                        <div class="text-start border-top pt-3 mt-2">
+                            <div class="mb-2 text-muted small">
+                                <i class="bi bi-building text-danger me-2"></i><strong class="text-dark">Club :</strong> {{ pratiquant.club.nom_club }}
+                            </div>
+                            {% if pratiquant.club.nom_fondateur %}
+                            <div class="mb-2 text-muted small">
+                                <i class="bi bi-person-badge text-warning me-2"></i><strong class="text-dark">Maître :</strong> {{ pratiquant.club.nom_fondateur }}
+                            </div>
+                            {% endif %}
+                            <div class="mb-2 text-muted small">
+                                <i class="bi bi-gender-ambiguous text-info me-2"></i><strong class="text-dark">Sexe :</strong> {{ pratiquant.get_sexe_display }}
+                            </div>
+                            <div class="mb-2 text-muted small">
+                                <i class="bi bi-calendar3 text-success me-2"></i><strong class="text-dark">Né(e) le :</strong> {{ pratiquant.date_naissance|date:"d/m/Y" }}
+                            </div>
+                            <div class="mt-3 pt-2 border-top">
+                                <small class="text-uppercase text-muted fw-bold d-block mb-1">Grade Actuel Détenu</small>
+                                <span class="badge bg-success bg-gradient px-3 py-2 fs-6">{{ pratiquant.grade_actuel|default:"Sans grade" }}</span>
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <div class="lk-historique-titre">
-                <i class="bi bi-clock-history me-1"></i>Historique de progression
-            </div>
-            <div class="lk-timeline">
-                {% for r in resultats %}
-                <div class="lk-timeline-item {% if forloop.last %}lk-timeline-actuel{% endif %}">
-                    <div class="lk-timeline-contenu">
-                        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
-                            <div>
-                                <span class="fw-bold">{{ r.grade_vise }}</span>
-                                {% if forloop.last %}<span class="badge bg-primary ms-1">Résultat le plus récent</span>{% endif %}
-                                <div class="text-muted small">
-                                    {{ r.session.titre }} &middot; {{ r.session.date_examen|date:"d/m/Y" }}
+                <!-- ══ COLONNE MILIEU : Résultat du Passage de Grade Concerné ═════ -->
+                <div class="col-lg-5 col-md-8">
+                    {% with dernier=resultats|last %}
+                    {% if dernier %}
+                    <div class="bg-white p-4 rounded-4 shadow-sm border h-100 position-relative">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="badge bg-danger bg-gradient px-3 py-2 text-uppercase" style="letter-spacing: 0.05em;">
+                                <i class="bi bi-trophy-fill me-1"></i>Résultat Officiel
+                            </span>
+                            <small class="text-muted"><i class="bi bi-calendar-event me-1"></i>{{ dernier.session.date_examen|date:"d/m/Y" }}</small>
+                        </div>
+
+                        <h4 class="fw-extrabold text-dark mb-1">Grade Postulé : <span class="text-danger">{{ dernier.grade_vise }}</span></h4>
+                        <p class="text-muted small mb-4">{{ dernier.session.titre }}</p>
+
+                        <!-- Panneau central de synthèse de notes -->
+                        <div class="bg-light p-3 rounded-4 border text-center mb-4">
+                            <div class="row g-2 align-items-center">
+                                <div class="col-6 border-end">
+                                    <small class="text-muted text-uppercase fw-bold d-block">Moyenne Obtenue</small>
+                                    <div class="display-6 fw-extrabold text-dark my-1">{{ dernier.resultat.moyenne|floatformat:2 }}</div>
+                                    <small class="text-muted">sur 20</small>
+                                </div>
+                                <div class="col-6">
+                                    <small class="text-muted text-uppercase fw-bold d-block">Rang</small>
+                                    <div class="fs-2 fw-extrabold text-warning my-1">
+                                        {% if dernier.rang %}{{ dernier.rang }}<sup>e</sup> <small class="fs-6 text-muted">/ {{ dernier.total }}</small>{% else %}—{% endif %}
+                                    </div>
+                                    <small class="text-muted">Classement cohorte</small>
                                 </div>
                             </div>
-                            <span class="badge {% if r.resultat.decision == 'ADMIS' %}lk-badge-admis{% else %}lk-badge-ajourne{% endif %}">
-                                {{ r.resultat.get_decision_display }}
-                            </span>
                         </div>
-                        <div class="lk-timeline-details">
-                            <div>Moyenne : <strong>{{ r.resultat.moyenne }}/20</strong></div>
-                            <div>Mention : {{ r.mention }}</div>
-                            <div>Rang : {% if r.rang %}{{ r.rang }}<sup>e</sup>/{{ r.total }}{% else %}—{% endif %}</div>
+
+                        <div class="d-flex justify-content-between align-items-center bg-white p-3 rounded-3 border mb-4">
+                            <div>
+                                <small class="text-muted text-uppercase fw-bold d-block">Mention</small>
+                                <span class="fw-bold text-dark fs-5">{{ dernier.mention }}</span>
+                            </div>
+                            <div class="text-end">
+                                <small class="text-muted text-uppercase fw-bold d-block mb-1">Décision Finale</small>
+                                {% if dernier.resultat.decision == 'ADMIS' %}
+                                <span class="badge bg-success bg-gradient px-3 py-2 fs-6 text-uppercase">
+                                    <i class="bi bi-check-circle-fill me-1"></i>Admis (e)
+                                </span>
+                                {% else %}
+                                <span class="badge bg-danger bg-gradient px-3 py-2 fs-6 text-uppercase">
+                                    <i class="bi bi-x-circle-fill me-1"></i>Ajourné (e)
+                                </span>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="d-grid gap-2">
+                            <a href="{% url 'results:bulletin_pdf' dernier.resultat.id %}" target="_blank" class="btn btn-danger btn-lg fw-bold py-3 shadow-sm">
+                                <i class="bi bi-file-earmark-pdf-fill me-2"></i>Télécharger le Bulletin de Note Officiel (PDF)
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% endwith %}
+                </div>
+
+                <!-- ══ COLONNE DROITE : Historique de Progression de Grade ═════════ -->
+                <div class="col-lg-4 col-12">
+                    <div class="bg-white p-4 rounded-4 shadow-sm border h-100">
+                        <h5 class="fw-extrabold text-dark mb-3 border-bottom pb-2">
+                            <i class="bi bi-graph-up-arrow text-warning me-2"></i>Historique de Progression
+                        </h5>
+
+                        <div class="lk-timeline">
+                            {% for r in resultats %}
+                            <div class="lk-timeline-item {% if forloop.last %}lk-timeline-actuel{% endif %} mb-3 pb-3 border-bottom">
+                                <div class="lk-timeline-contenu">
+                                    <div class="d-flex justify-content-between align-items-start mb-1">
+                                        <span class="fw-bold text-dark fs-6">{{ r.grade_vise }}</span>
+                                        {% if r.resultat.decision == 'ADMIS' %}
+                                        <span class="badge bg-success small">Admis</span>
+                                        {% else %}
+                                        <span class="badge bg-danger small">Ajourné</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="text-muted extra-small mb-2">
+                                        <i class="bi bi-calendar-event me-1"></i>{{ r.session.date_examen|date:"d/m/Y" }} &middot; {{ r.session.titre }}
+                                    </div>
+                                    <div class="d-flex gap-3 text-dark small bg-light p-2 rounded">
+                                        <div>Moy : <strong>{{ r.resultat.moyenne|floatformat:2 }}</strong></div>
+                                        <div>Mention : <strong>{{ r.mention }}</strong></div>
+                                        {% if r.rang %}<div>Rang : <strong>{{ r.rang }}<sup>e</sup></strong></div>{% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="text-muted small text-center py-4">Aucun historique disponible.</div>
+                            {% endfor %}
                         </div>
                     </div>
                 </div>
-                {% endfor %}
+
             </div>
             {% elif not recherche_effectuee %}
-            <div class="lk-vide">
-                Renseignez votre matricule ci-dessus pour afficher votre résultat.
+            <div class="lk-vide text-center py-5 bg-white rounded-4 shadow-sm border max-w-700 mx-auto">
+                <i class="bi bi-search fs-1 text-danger d-block mb-3"></i>
+                <h5 class="fw-bold text-dark">Consulter votre résultat de passage de grade</h5>
+                <p class="text-muted mb-0">Veuillez saisir votre matricule officiel dans le champ ci-dessus pour afficher vos résultats.</p>
             </div>
             {% endif %}
 

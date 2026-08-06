@@ -1,5 +1,8 @@
+# pyrefly: ignore [missing-import]
 from django.db import models
+# pyrefly: ignore [missing-import]
 from django.db.models import F
+# pyrefly: ignore [missing-import]
 from django.core.exceptions import ValidationError
 
 
@@ -393,13 +396,33 @@ class Inscription(models.Model):
         verbose_name        = 'Inscription'
         verbose_name_plural = 'Inscriptions'
         unique_together     = ('session', 'pratiquant')
-        ordering            = ['pratiquant__nom']
+        ordering            = ['grade_vise__id_grade', 'pratiquant__nom', 'pratiquant__prenom']
 
     def __str__(self):
         return (
             f"{self.pratiquant} — {self.session.titre} "
             f"(vise : {self.grade_vise})"
         )
+
+    def get_grade_detenu(self):
+        """
+        Retourne le grade détenu par le pratiquant avant cet examen.
+        Si le grade_actuel est identique au grade visé (ex: résultat déjà publié),
+        on renvoie le grade inférieur le plus proche dans la hiérarchie.
+        """
+        grade_actuel = self.pratiquant.grade_actuel
+        if not grade_actuel:
+            return "Sans grade"
+        if grade_actuel == self.grade_vise:
+            from apps.practitioners.models import Grade
+            prev_grade = Grade.objects.filter(
+                ligue=self.session.annee_sportive.ligue,
+                id_grade__lt=self.grade_vise.id_grade
+            ).order_by('-id_grade').first()
+            if prev_grade:
+                return prev_grade.nom
+            return "Sans grade"
+        return grade_actuel.nom
 
     def save(self, *args, **kwargs):
         # Calcule automatiquement le montant depuis TarifExamen
@@ -413,3 +436,49 @@ class Inscription(models.Model):
             except TarifExamen.DoesNotExist:
                 pass
         super().save(*args, **kwargs)
+
+
+class AnnonceExamenPrevisionnelle(models.Model):
+    """
+    Permet à la ligue d'annoncer les périodes, lieux et dates d'ouverture des inscriptions
+    des futurs passages de grade prévisionnels avant même la création officielle de la session.
+    """
+    ligue = models.ForeignKey(
+        'ligues.Ligue',
+        on_delete=models.CASCADE,
+        related_name='annonces_examens'
+    )
+    titre = models.CharField(
+        max_length=200,
+        help_text="Ex: Prochain Passage de Grade — Ceintures & Duans"
+    )
+    periode_prevue = models.CharField(
+        max_length=150,
+        help_text="Ex: Mi-Novembre 2026"
+    )
+    lieu_prevu = models.CharField(
+        max_length=200,
+        help_text="Ex: Palais des Sports de Ouagadougou 2000"
+    )
+    periode_inscriptions = models.CharField(
+        max_length=200,
+        help_text="Ex: Du 1er au 31 Octobre 2026"
+    )
+    description = models.TextField(
+        blank=True,
+        help_text="Informations et consignes complémentaires pour les pratiquants et présidents de club."
+    )
+    est_actif = models.BooleanField(
+        default=True,
+        help_text="Cocher pour afficher cette annonce sur le site public."
+    )
+    date_creation = models.DateTimeField(auto_now_add=True)
+    date_mise_a_jour = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Annonce prévisionnelle d'examen"
+        verbose_name_plural = "Annonces prévisionnelles d'examens"
+        ordering = ['-date_creation']
+
+    def __str__(self):
+        return f"{self.titre} ({self.periode_prevue})"

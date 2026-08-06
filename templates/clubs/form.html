@@ -56,14 +56,19 @@
         <!-- Identification -->
         <h6 class="fw-bold text-danger mb-3 border-bottom pb-2">Identification du club</h6>
         <div class="row g-3 mb-4">
-            <div class="col-md-8">
+            <div class="col-md-6">
                 <label class="form-label fw-semibold">{{ form.nom_club.label }} <span class="text-danger">*</span></label>
                 {{ form.nom_club }}
                 {% if form.nom_club.errors %}<div class="text-danger small mt-1">{{ form.nom_club.errors.0 }}</div>{% endif %}
             </div>
-            <div class="col-md-4">
+            <div class="col-md-3">
                 <label class="form-label fw-semibold">{{ form.sigle_club.label }}</label>
                 {{ form.sigle_club }}
+            </div>
+            <div class="col-md-3">
+                <label class="form-label fw-semibold">{{ form.code_club.label }}</label>
+                {{ form.code_club }}
+                <div class="form-text small">Auto (ex: CL01) si vide</div>
             </div>
             <div class="col-md-6">
                 <label class="form-label fw-semibold">{{ form.localite.label }} <span class="text-danger">*</span></label>

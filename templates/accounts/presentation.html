@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Présentation — Ligue du Kadiogo de Kung-Fu Wushu{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/lk_public.css' %}" rel="stylesheet">
+<style>
+    /* Style d'en-tête selon la maquette institutionnelle */
+    .lk-banner-header {
+        background: linear-gradient(135deg, #043e1d 0%, #009E49 100%);
+        color: #ffffff;
+        padding: 3.5rem 0 3rem 0;
+        position: relative;
+        overflow: hidden;
+    }
+    .lk-banner-header::before {
+        content: "";
+        position: absolute;
+        top: 0; right: 0; bottom: 0; left: 0;
+        background: radial-gradient(circle at 90% 20%, rgba(252, 209, 22, 0.15) 0%, transparent 50%);
+        pointer-events: none;
+    }
+    .lk-page-title-accent {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-weight: 800;
+        letter-spacing: 0.05em;
+        text-transform: uppercase;
+        font-size: 2.25rem;
+    }
+    .lk-page-title-accent::before {
+        content: "";
+        display: inline-block;
+        width: 6px;
+        height: 2.2rem;
+        background-color: #FCD116; /* Jaune drapeau */
+        border-radius: 3px;
+    }
+    .lk-breadcrumb {
+        font-size: 0.875rem;
+        color: #e0e0e0;
+        margin-top: 0.75rem;
+    }
+    .lk-breadcrumb a {
+        color: #ffffff;
+        text-decoration: none;
+    }
+    .lk-breadcrumb a:hover {
+        color: #FCD116;
+        text-decoration: underline;
+    }
+
+    /* Style des titres de section avec la barre verticale jaune de la maquette */
+    .lk-section-heading {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        color: #1a1a1a;
+        font-size: 1.35rem;
+        margin-top: 2rem;
+        margin-bottom: 1.25rem;
+        letter-spacing: 0.03em;
+    }
+    .lk-section-heading::before {
+        content: "";
+        display: inline-block;
+        width: 4px;
+        height: 1.4rem;
+        background-color: #FCD116; /* Barre verticale jaune */
+        border-radius: 2px;
+    }
+
+    .lk-text-content {
+        color: #4a4a4a;
+        font-size: 1.05rem;
+        line-height: 1.8;
+    }
+    .lk-list-custom {
+        list-style: none;
+        padding-left: 0;
+    }
+    .lk-list-custom li {
+        position: relative;
+        padding-left: 1.5rem;
+        margin-bottom: 0.6rem;
+        color: #4a4a4a;
+        font-size: 1.02rem;
+    }
+    .lk-list-custom li::before {
+        content: "•";
+        position: absolute;
+        left: 0.3rem;
+        color: #1a1a1a;
+        font-weight: bold;
+        font-size: 1.2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content_public %}
+{% include 'includes/_lk_navbar.html' %}
+
+<!-- Bannière d'en-tête verte institutionnelle conforme à la maquette -->
+<section class="lk-banner-header shadow-sm">
+    <div class="container">
+        <div class="lk-page-title-accent">
+            PRÉSENTATION
+        </div>
+        <div class="lk-breadcrumb ms-3">
+            <a href="{% url 'accounts:accueil' %}">Home</a> &nbsp;.&nbsp; <span>Présentation</span>
+        </div>
+    </div>
+</section>
+
+<!-- Contenu principal de la présentation -->
+<section class="py-5 bg-light min-vh-50">
+    <div class="container">
+        <div class="bg-white p-4 p-md-5 rounded-4 shadow-sm border mx-auto max-w-1000">
+
+            <!-- 1. PRÉSENTATION GÉNÉRALE -->
+            <div class="mb-5">
+                <div class="lk-section-heading">
+                    PRÉSENTATION GÉNÉRALE
+                </div>
+                <div class="lk-text-content">
+                    <p class="lead text-dark fw-medium mb-0">
+                        {{ ligue.get_presentation_generale|linebreaksbr }}
+                    </p>
+                </div>
+            </div>
+
+            <!-- 2. HISTORIQUE DU WUSHU DANS LA RÉGION DU KADIOGO -->
+            <div class="mb-5">
+                <div class="lk-section-heading">
+                    HISTORIQUE DU WUSHU DANS LA RÉGION DU KADIOGO
+                </div>
+                <div class="lk-text-content">
+                    {{ ligue.get_historique|linebreaks }}
+                </div>
+            </div>
+
+            <!-- 3. MISSIONS ET OBJECTIFS -->
+            <div class="mb-5">
+                <div class="lk-section-heading">
+                    MISSIONS ET OBJECTIFS
+                </div>
+                <div class="lk-text-content">
+                    <p class="mb-3">
+                        <strong>Objectif général :</strong> {{ ligue.get_objectif_general }}
+                    </p>
+                    <p class="fw-bold mb-2">Objectifs spécifiques :</p>
+                    <ul class="lk-list-custom">
+                        {% for obj in ligue.get_objectifs_specifiques_list %}
+                        <li>{{ obj }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+
+            <!-- 4. VALEURS & ORIENTATIONS -->
+            {% if ligue.get_valeurs %}
+            <div class="mb-4 pt-3 border-top">
+                <div class="lk-section-heading">
+                    VALEURS FONDAMENTALES
+                </div>
+                <div class="lk-text-content">
+                    {{ ligue.get_valeurs|linebreaks }}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Raccourcis / Navigation footer de page -->
+            <div class="mt-5 pt-4 border-top d-flex justify-content-between align-items-center flex-wrap gap-2">
+                <a href="{% url 'accounts:mot_president' %}" class="btn btn-outline-dark btn-voir-plus">
+                    <i class="bi bi-person-badge me-1"></i> Mot du Président
+                </a>
+                <a href="{% url 'ligues:organigramme_visuel' %}" class="btn btn-outline-success btn-voir-plus">
+                    <i class="bi bi-diagram-3 me-1"></i> Organigramme & Direction
+                </a>
+                <a href="{% url 'accounts:contact' %}" class="btn btn-danger btn-voir-plus">
+                    Contact & Localisation <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+{% include 'includes/_lk_footer.html' %}
+{% endblock %}

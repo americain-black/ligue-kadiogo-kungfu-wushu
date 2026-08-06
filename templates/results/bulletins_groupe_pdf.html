@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Impression Groupée des Bulletins — {{ ligue.sigle }}</title>
+<style>
+    @page { size: A4 portrait; margin: 0.8cm 1.2cm 2.6cm 1.2cm; }
+    * { box-sizing: border-box; }
+    body {
+        font-family: 'DejaVu Sans', Arial, sans-serif;
+        font-size: 9.5pt;
+        color: #111;
+        line-height: 1.3;
+    }
+    .bulletin-page {
+        page-break-after: always;
+        position: relative;
+    }
+    .bulletin-page:last-child {
+        page-break-after: avoid;
+    }
+
+    /* ── En-tête ──────────────────────────────────────────────────────── */
+    .entete {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-bottom: 4px;
+        margin-bottom: 6px;
+    }
+    .entete .bloc { width: 36%; font-size: 8pt; font-weight: bold; text-transform: uppercase; text-align: center; }
+    .entete .bloc.droite { text-align: center; }
+    .entete .bloc .trait { border-top: 1px dashed #444; margin: 3px auto; width: 70%; }
+    .entete .bloc .devise { font-size: 7.5pt; font-weight: normal; font-style: italic; text-transform: none; display: block; }
+    .entete .logo { width: 24%; text-align: center; }
+    .entete .logo img { max-height: 70px; max-width: 70px; object-fit: contain; }
+    .entete .logo .sigle-badge {
+        display: inline-block;
+        width: 56px; height: 56px;
+        border-radius: 50%;
+        border: 2px solid #222;
+        line-height: 52px;
+        font-weight: bold;
+        font-size: 9.5pt;
+    }
+
+    .titre-bulletin { text-align: center; font-size: 15pt; font-weight: bold; letter-spacing: 1.5px; margin: 8px 0 10px; }
+    .ligne-session { font-size: 9pt; margin-bottom: 10px; }
+    .ligne-session .pointille { border-bottom: 1px dotted #333; padding: 0 4px; font-weight: bold; }
+
+    /* ── Identité du candidat (Encadré Arrondi) ────────────────────────── */
+    .identite-box {
+        border: 1.5px solid #333;
+        border-radius: 8px;
+        padding: 8px 12px;
+        margin-bottom: 12px;
+        background-color: #fff;
+    }
+    table.identite { width: 100%; border-collapse: collapse; font-size: 9pt; }
+    table.identite td { padding: 3.5px 4px; vertical-align: middle; }
+    table.identite .label { color: #333; }
+    table.identite .valeur { font-weight: bold; color: #000; }
+
+    /* ── Tableau des notes (Bleu acier officiel) ───────────────────────── */
+    table.notes { width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 9pt; }
+    table.notes th, table.notes td { border: 1px solid #666; padding: 5px 10px; }
+    table.notes thead th {
+        background-color: #547b9a;
+        color: #ffffff;
+        font-size: 9.5pt;
+        font-weight: bold;
+        text-align: center;
+    }
+    table.notes td.rubrique-title { text-align: left; }
+    table.notes td.col-note { text-align: right; }
+    table.notes td.col-coef { text-align: center; }
+    table.notes td.col-pond { text-align: right; }
+    
+    table.notes tbody tr:nth-child(even) { background-color: #fcfcfc; }
+    
+    table.notes tfoot td {
+        font-weight: bold;
+        font-size: 9.5pt;
+        background-color: #ffffff;
+        border-top: 2px solid #222;
+        border-bottom: 2px solid #222;
+    }
+
+    /* ── Bloc résultat ────────────────────────────────────────────────── */
+    table.bloc-resultat {
+        width: 100%;
+        border-collapse: collapse;
+        border: 2px solid #222;
+        border-radius: 8px;
+        margin-bottom: 14px;
+        overflow: hidden;
+    }
+    table.bloc-resultat > tbody > tr > td { vertical-align: top; border: none; }
+    table.bloc-resultat .col-stats   { width: 30%; border-right: 1.5px solid #222; padding: 0; }
+    table.bloc-resultat .col-decision{ width: 33%; border-right: 1.5px solid #222; text-align: center; padding: 8px 6px; }
+    table.bloc-resultat .col-rappel  { width: 37%; padding: 6px 8px; }
+
+    table.stats { width: 100%; border-collapse: collapse; font-size: 8.5pt; }
+    table.stats td { padding: 4px 8px; border-bottom: 1px solid #ccc; }
+    table.stats td:first-child { color: #444; }
+    table.stats td:last-child { font-weight: bold; text-align: right; }
+    table.stats tr:last-child td { border-bottom: none; }
+
+    .col-decision .label-sec { font-size: 8.5pt; color: #555; text-transform: uppercase; margin-bottom: 2px; }
+    .col-decision .mention { font-size: 12pt; font-weight: bold; margin-bottom: 14px; color: #111; }
+    .col-decision .decision { font-size: 13pt; font-weight: bold; color: #000; display: inline-block; }
+
+    .col-rappel .titre-rappel { font-size: 8pt; font-weight: bold; text-align: center; margin-bottom: 4px; color: #333; }
+    table.rappel-tab { width: 100%; border-collapse: collapse; font-size: 7.5pt; }
+    table.rappel-tab th, table.rappel-tab td { border: 1px solid #bbb; padding: 3px 4px; text-align: center; }
+    table.rappel-tab th { background: #f0f0f0; font-weight: bold; }
+    .col-rappel .vide { font-size: 8pt; color: #888; text-align: center; padding: 12px 0; }
+
+    /* ── Signature Zone ────────────────────────────────────────────────── */
+    .signature-zone {
+        text-align: right;
+        font-size: 9pt;
+        margin-top: 14px;
+        margin-bottom: 18px;
+    }
+    .signature-zone .titre-fonction { margin-top: 4px; font-weight: bold; }
+    .signature-zone .nom-signataire { margin-top: 40px; font-weight: bold; font-size: 9.5pt; }
+
+    /* ── Pied de page ─────────────────────────────────────────────────── */
+    .pied {
+        position: fixed;
+        bottom: -2.0cm;
+        left: 0;
+        right: 0;
+        width: 100%;
+        text-align: center;
+        font-size: 7.5pt;
+        color: #333;
+    }
+    .pied-box {
+        border: none;
+        padding: 2px 0;
+        font-size: 7.5pt;
+        line-height: 1.35;
+        text-align: center;
+        background: transparent;
+        margin-bottom: 3px;
+    }
+    .pied .avertissement { text-align: center; font-style: italic; font-size: 7pt; color: #555; }
+</style>
+</head>
+<body>
+
+    {% for item in items %}
+    <div class="bulletin-page">
+
+        <div class="entete">
+            <div class="bloc">
+                {{ ligue.get_bulletin_header_gauche_ligne1 }}
+                <div class="trait"></div>
+                {{ ligue.get_bulletin_header_gauche_ligne2 }}
+                <div class="trait"></div>
+            </div>
+            <div class="logo">
+                {% if ligue.logo %}
+                <img src="{{ ligue.logo.url }}" alt="{{ ligue.sigle }}">
+                {% else %}
+                <span class="sigle-badge">{{ ligue.sigle }}</span>
+                {% endif %}
+            </div>
+            <div class="bloc droite">
+                {{ ligue.get_bulletin_header_droite_ligne1 }}
+                <div class="trait"></div>
+                <span class="devise">{{ ligue.get_bulletin_header_droite_devise }}</span>
+            </div>
+        </div>
+
+        <div class="titre-bulletin">BULLETIN DE NOTE</div>
+
+        <div class="ligne-session">
+            Date de passage de grade :
+            <span class="pointille">&nbsp;&nbsp;{{ item.inscription.session.date_examen|date:"d/m/Y" }}&nbsp;&nbsp;</span>
+            &nbsp;&nbsp;&nbsp;&nbsp;Session de :
+            <span class="pointille">&nbsp;&nbsp;{{ item.inscription.session.titre }}....................................................................................&nbsp;&nbsp;</span>
+        </div>
+
+        <div class="identite-box">
+            <table class="identite">
+                <tr>
+                    <td style="width: 12%;" class="label">Matricule :</td>
+                    <td style="width: 88%;" colspan="5" class="valeur">{{ item.inscription.pratiquant.matricule|default:"—" }}</td>
+                </tr>
+                <tr>
+                    <td style="width: 12%;" class="label">Nom :</td>
+                    <td style="width: 38%;" class="valeur" style="text-transform: uppercase;">{{ item.inscription.pratiquant.nom }}</td>
+                    <td style="width: 14%;" class="label">Prénom (s) :</td>
+                    <td style="width: 36%;" colspan="3" class="valeur">{{ item.inscription.pratiquant.prenom }}</td>
+                </tr>
+                <tr>
+                    <td class="label">Date de naissance :</td>
+                    <td class="valeur">{{ item.inscription.pratiquant.date_naissance|date:"d/m/Y" }}</td>
+                    <td class="label">Lieu de naissance :</td>
+                    <td class="valeur">{{ item.inscription.pratiquant.lieu_naissance|default:"Ouagadougou" }}</td>
+                    <td style="width: 8%;" class="label">Sexe :</td>
+                    <td style="width: 14%;" class="valeur">{{ item.inscription.pratiquant.get_sexe_display }}</td>
+                </tr>
+                <tr>
+                    <td class="label">Club :</td>
+                    <td colspan="5" class="valeur">{{ item.inscription.pratiquant.club.nom_club }}</td>
+                </tr>
+                <tr>
+                    <td class="label">Maître :</td>
+                    <td colspan="5" class="valeur">{{ item.inscription.pratiquant.club.nom_fondateur|default:"—" }}</td>
+                </tr>
+                <tr>
+                    <td class="label">Grade détenue :</td>
+                    <td class="valeur">{{ item.inscription.get_grade_detenu }}</td>
+                    <td class="label">Grade Postulé :</td>
+                    <td class="valeur"><strong>{{ item.inscription.grade_vise }}</strong></td>
+                    {% if item.inscription.option %}
+                    <td class="label">Option :</td>
+                    <td class="valeur">{{ item.inscription.option }}</td>
+                    {% else %}
+                    <td colspan="2"></td>
+                    {% endif %}
+                </tr>
+            </table>
+        </div>
+
+        <table class="notes">
+            <thead>
+                <tr>
+                    <th style="width: 60%; text-align: center;">Rubrique</th>
+                    <th style="width: 13%;">Note/5</th>
+                    <th style="width: 13%;">Coefficient</th>
+                    <th style="width: 14%;">Pondérée</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ligne in item.lignes %}
+                <tr>
+                    <td class="rubrique-title">{{ ligne.rubrique_grade.rubrique.nom }}</td>
+                    <td class="col-note">{% if ligne.note %}{{ ligne.note.note|floatformat:2 }}{% else %}—{% endif %}</td>
+                    <td class="col-coef">{{ ligne.rubrique_grade.coefficient }}</td>
+                    <td class="col-pond">{% if ligne.pondere is not None %}{{ ligne.pondere|floatformat:2 }}{% else %}—{% endif %}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td style="text-align: right; padding-right: 15px;">Total</td>
+                    <td class="col-note"></td>
+                    <td class="col-coef">{{ item.total_coeff }}</td>
+                    <td class="col-pond">{{ item.total_pondere|floatformat:2 }}</td>
+                </tr>
+            </tfoot>
+        </table>
+
+        <table class="bloc-resultat">
+            <tr>
+                <td class="col-stats">
+                    <table class="stats">
+                        <tr><td>Moy.</td><td><strong>{{ item.resultat.moyenne|floatformat:2 }}</strong></td></tr>
+                        <tr><td>Rang</td><td>{% if item.rang %}<strong>{{ item.rang }} Ex</strong>{% else %}—{% endif %}</td></tr>
+                        <tr><td>Moy. grade</td><td>{{ item.stats.moyenne|floatformat:2 }}</td></tr>
+                        <tr><td>Moy. min</td><td>{{ item.stats.minimum|floatformat:2 }}</td></tr>
+                        <tr><td>Moy. max</td><td>{{ item.stats.maximum|floatformat:2 }}</td></tr>
+                    </table>
+                </td>
+                <td class="col-decision">
+                    <div class="label-sec">Mention</div>
+                    <div class="mention">{{ item.resultat.mention }}</div>
+                    <div class="label-sec">Décision</div>
+                    <div class="decision">
+                        {{ item.resultat.get_decision_display }} (e)
+                    </div>
+                </td>
+                <td class="col-rappel">
+                    <div class="titre-rappel">Rappel moyenne</div>
+                    {% if item.rappel %}
+                    <table class="rappel-tab">
+                        <thead>
+                            <tr><th>Date</th><th>Grade</th><th>Moy.</th><th>Rang</th><th>Mention</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for r in item.rappel %}
+                            <tr>
+                                <td>{{ r.date|date:"d/m/Y" }}</td>
+                                <td>{{ r.grade }}</td>
+                                <td>{{ r.moyenne }}</td>
+                                <td>{% if r.rang %}{{ r.rang }}{% else %}—{% endif %}</td>
+                                <td>{{ r.mention }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    {% else %}
+                    <div class="vide">Premier passage de grade</div>
+                    {% endif %}
+                </td>
+            </tr>
+        </table>
+
+        <div class="signature-zone">
+            <div>Ouagadougou, le <span style="border-bottom: 1px dotted #333;">&nbsp;&nbsp;{% now "d/m/Y" %}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></div>
+            <div class="titre-fonction">{{ ligue.get_bulletin_signataire_titre }}</div>
+            <div class="nom-signataire">
+                {{ ligue.get_bulletin_signataire_nom }}<br>
+                <span style="font-size: 8.5pt; font-weight: normal; color: #444;">{{ ligue.get_bulletin_signataire_grade }}</span>
+            </div>
+        </div>
+
+        <div class="pied">
+            <div class="pied-box">
+                {{ ligue.get_bulletin_pied_legal|linebreaksbr }}
+            </div>
+            <div class="avertissement">{{ ligue.get_bulletin_mention_exemplaire }}</div>
+        </div>
+
+    </div>
+    {% endfor %}
+
+</body>
+</html>

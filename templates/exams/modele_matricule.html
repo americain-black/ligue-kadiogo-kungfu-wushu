@@ -33,10 +33,11 @@
 
 {% block content %}
 <div class="d-flex align-items-start gap-3 mb-4">
-    <a href="{% url 'accounts:dashboard_ligue' %}" class="btn-action btn-action-edit flex-shrink-0" title="Tableau de bord" data-bs-toggle="tooltip">
+    <a href="{% url 'accounts:dashboard_ligue' %}" class="btn-action btn-action-edit flex-shrink-0"
+        title="Tableau de bord" data-bs-toggle="tooltip">
         <i class="bi bi-arrow-left"></i>
     </a>
-    <div>    
+    <div>
         <h4 class="fw-bold mb-0">
             <i class="bi bi-123 me-2 text-primary"></i>Modèle de matricule
         </h4>
@@ -76,6 +77,15 @@
                         {% endif %}
                         <div class="form-text">Généralement le sigle de votre ligue (ex : LK, LB…)</div>
                     </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">{{ form.derniere_sequence.label }}</label>
+                        {{ form.derniere_sequence }}
+                        {% if form.derniere_sequence.errors %}
+                        <div class="text-danger small">{{ form.derniere_sequence.errors.as_text }}</div>
+                        {% endif %}
+                        <div class="form-text">Dernier numéro de séquence attribué (ex : 26 pour LK260026). Vous pouvez
+                            ajuster ce chiffre ici.</div>
+                    </div>
                     <button type="submit" class="btn btn-primary">
                         <i class="bi bi-check-circle me-1"></i>
                         {% if modele %}Enregistrer{% else %}Créer le modèle{% endif %}
@@ -95,7 +105,7 @@
                     Seulement la génération automatique sera désactivée.
                 </p>
                 <form method="post" action="{% url 'exams:supprimer_modele_matricule' %}"
-                      onsubmit="return confirm('Supprimer le modèle de matricule ? Les matricules attribués sont conservés.')">
+                    onsubmit="return confirm('Supprimer le modèle de matricule ? Les matricules attribués sont conservés.')">
                     {% csrf_token %}
                     <button type="submit" class="btn btn-outline-danger btn-sm">
                         <i class="bi bi-trash me-1"></i>Supprimer le modèle
@@ -128,7 +138,8 @@
                         </tr>
                         <tr>
                             <td class="text-muted">Format</td>
-                            <td><span class="font-monospace">{{ modele.prefixe }}<span class="text-primary">AA</span><span class="text-success">NNNN</span></span></td>
+                            <td><span class="font-monospace">{{ modele.prefixe }}<span
+                                        class="text-primary">AA</span><span class="text-success">NNNN</span></span></td>
                         </tr>
                         <tr>
                             <td class="text-muted">Dernière séquence</td>
@@ -141,7 +152,8 @@
         {% endif %}
 
         <div class="card p-3 bg-light">
-            <h6 class="fw-semibold mb-2"><i class="bi bi-info-circle me-2 text-muted"></i>Comment fonctionne le matricule ?</h6>
+            <h6 class="fw-semibold mb-2"><i class="bi bi-info-circle me-2 text-muted"></i>Comment fonctionne le
+                matricule ?</h6>
             <p class="small text-muted mb-2">
                 Le matricule est généré automatiquement quand GEST_LIGUE autorise la liste d'un club.
                 Le format est : <strong class="font-monospace">{Préfixe}{2 chiffres année}{4 chiffres séquence}</strong>

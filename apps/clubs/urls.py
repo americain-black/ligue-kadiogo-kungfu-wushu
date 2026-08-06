@@ -1,3 +1,5 @@
+
+# pyrefly: ignore [missing-import]
 from django.urls import path
 from . import views
 
@@ -27,9 +29,6 @@ urlpatterns = [
 
     # Organigramme club
     path('<int:club_pk>/organigramme/',                              views.organigramme_club,        name='organigramme'),
-    path('<int:club_pk>/organigramme/volet/creer/',                  views.creer_volet_club,         name='creer_volet_club'),
-    path('organigramme/volet/<int:pk>/modifier/',                    views.modifier_volet_club,      name='modifier_volet_club'),
-    path('organigramme/volet/<int:pk>/supprimer/',                   views.supprimer_volet_club,     name='supprimer_volet_club'),
     path('organigramme/volet/<int:volet_pk>/membre/ajouter/',        views.ajouter_membre_club,      name='ajouter_membre_club'),
     path('organigramme/membre/<int:pk>/modifier/',                   views.modifier_membre_club,     name='modifier_membre_club'),
     path('organigramme/membre/<int:pk>/toggle/',     views.toggle_actif_membre_club, name='toggle_actif_membre_club'),

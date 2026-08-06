@@ -1,6 +1,10 @@
+# pyrefly: ignore [missing-import]
 from django import forms
 
-from .models import SessionExamen, Inscription, AffectationJury, AnneeSportive, TarifExamen, Rubrique, RubriqueGrade, OptionExamen, ModeleMatricule, ParametresExamen
+from .models import (
+    SessionExamen, Inscription, AffectationJury, AnneeSportive, TarifExamen,
+    Rubrique, RubriqueGrade, OptionExamen, ModeleMatricule, ParametresExamen, AnnonceExamenPrevisionnelle
+)
 from apps.practitioners.models import Grade
 
 
@@ -195,7 +199,7 @@ class ParametresExamenForm(forms.ModelForm):
 class ModeleMatriculeForm(forms.ModelForm):
     class Meta:
         model  = ModeleMatricule
-        fields = ['prefixe']
+        fields = ['prefixe', 'derniere_sequence']
         widgets = {
             'prefixe': forms.TextInput(attrs={
                 'class': 'form-control text-uppercase',
@@ -203,8 +207,16 @@ class ModeleMatriculeForm(forms.ModelForm):
                 'maxlength': '10',
                 'style': 'letter-spacing:2px; font-weight:bold;',
             }),
+            'derniere_sequence': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '0',
+                'placeholder': 'Ex : 0 (pour commencer à 1)',
+            }),
         }
-        labels = {'prefixe': 'Préfixe (sigle de la ligue)'}
+        labels = {
+            'prefixe': 'Préfixe (sigle de la ligue)',
+            'derniere_sequence': 'Dernière séquence attribuée',
+        }
 
     def clean_prefixe(self):
         return self.cleaned_data['prefixe'].upper().strip()
@@ -292,3 +304,25 @@ class AffectationJuryForm(forms.ModelForm):
             )
         else:
             self.fields['jury'].queryset = self.fields['jury'].queryset.none()
+
+
+class AnnonceExamenPrevisionnelleForm(forms.ModelForm):
+    class Meta:
+        model = AnnonceExamenPrevisionnelle
+        fields = ['titre', 'periode_prevue', 'lieu_prevu', 'periode_inscriptions', 'description', 'est_actif']
+        widgets = {
+            'titre': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Prochain Passage de Grade — Ceintures & Duans'}),
+            'periode_prevue': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Mi-Novembre 2026'}),
+            'lieu_prevu': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Palais des Sports de Ouagadougou 2000'}),
+            'periode_inscriptions': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Du 1er au 31 Octobre 2026'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 4, 'placeholder': 'Consignes ou critères de participation...'}),
+            'est_actif': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        }
+        labels = {
+            'titre': "Titre de l'annonce",
+            'periode_prevue': "Période prévue de l'examen",
+            'lieu_prevu': "Lieu prévu",
+            'periode_inscriptions': "Période d'ouverture des inscriptions",
+            'description': "Informations complémentaires",
+            'est_actif': "Annonce active (visible publiquement)",
+        }

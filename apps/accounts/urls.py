@@ -48,6 +48,15 @@ urlpatterns = [
     path('financier/',       views.dashboard_financier,   name='dashboard_financier'),
     path('jury/',            views.dashboard_jury,        name='dashboard_jury'),
 
+    # Profil utilisateur
+    path('mon-profil/',                            views.mon_profil,               name='mon_profil'),
+
+    # Pages d'information "À propos"
+    path('presentation/',     views.presentation,     name='presentation'),
+    path('mot-du-president/', views.mot_president,   name='mot_president'),
+    path('vision-missions/',  views.vision_missions,  name='vision_missions'),
+    path('contact/',          views.contact,          name='contact'),
+
     # Gestion des utilisateurs (Super Admin)
     path('utilisateurs/',                          views.liste_utilisateurs,       name='liste_utilisateurs'),
     path('utilisateurs/creer/',                    views.creer_utilisateur,        name='creer_utilisateur'),

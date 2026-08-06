@@ -102,3 +102,40 @@ class RolesForm(forms.Form):
                 )
 
         return roles
+
+
+class MonProfilForm(forms.ModelForm):
+    nouveau_mot_de_passe = forms.CharField(
+        label="Nouveau mot de passe (laisser vide pour ne pas modifier)",
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Nouveau mot de passe'}),
+        required=False
+    )
+    confirmer_mot_de_passe = forms.CharField(
+        label="Confirmer le nouveau mot de passe",
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Confirmer mot de passe'}),
+        required=False
+    )
+
+    class Meta:
+        model = Utilisateur
+        fields = ['first_name', 'last_name', 'username', 'email', 'telephone', 'sexe', 'photo']
+        widgets = {
+            'first_name': forms.TextInput(attrs={'class': 'form-control'}),
+            'last_name':  forms.TextInput(attrs={'class': 'form-control'}),
+            'username':   forms.TextInput(attrs={'class': 'form-control'}),
+            'email':      forms.EmailInput(attrs={'class': 'form-control'}),
+            'telephone':  forms.TextInput(attrs={'class': 'form-control'}),
+            'sexe':       forms.Select(attrs={'class': 'form-select'}),
+            'photo':      forms.FileInput(attrs={'class': 'form-control', 'accept': 'image/*'}),
+        }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        p1 = cleaned_data.get('nouveau_mot_de_passe')
+        p2 = cleaned_data.get('confirmer_mot_de_passe')
+        if p1 or p2:
+            if p1 != p2:
+                raise forms.ValidationError("Les nouveaux mots de passe ne correspondent pas.")
+            if p1:
+                validate_password(p1, self.instance)
+        return cleaned_data

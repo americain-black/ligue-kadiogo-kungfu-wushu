@@ -1,0 +1,397 @@
+{% extends 'base.html' %}
+
+{% block title %}Gestion des Informations & Présentation — {{ ligue.sigle }}{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Gestion Ligue</span>
+<a href="{% url 'ligues:editer_infos' %}" class="nav-link active">
+    <i class="bi bi-pencil-square me-2"></i>Présentation & À propos
+</a>
+<a href="{% url 'ligues:organigramme' %}" class="nav-link">
+    <i class="bi bi-diagram-3 me-2"></i>Organigramme ligue
+</a>
+<a href="{% url 'clubs:liste' %}" class="nav-link">
+    <i class="bi bi-building me-2"></i>Clubs
+</a>
+<a href="{% url 'practitioners:liste' %}" class="nav-link">
+    <i class="bi bi-people me-2"></i>Pratiquants / Athlètes
+</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* En-tête des onglets avec la couleur du footer Slate Navy (#0F172A) */
+    .lk-tabs-header {
+        background-color: #0F172A !important;
+        border-bottom: 2px solid rgba(245, 158, 11, 0.4);
+    }
+    
+    /* Boutons des onglets personnalisés avec contraste parfait */
+    .lk-tabs-header .nav-link {
+        color: #e2e8f0 !important;
+        font-weight: 700;
+        font-size: 0.95rem;
+        border: none !important;
+        border-radius: 8px 8px 0 0 !important;
+        padding: 0.85rem 1.25rem;
+        transition: all 0.2s ease-in-out;
+        background: transparent;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .lk-tabs-header .nav-link:hover {
+        color: #FCD116 !important;
+        background-color: rgba(255, 255, 255, 0.12) !important;
+    }
+    
+    .lk-tabs-header .nav-link.active {
+        color: #0F172A !important;
+        background-color: #ffffff !important;
+        border-top: 3px solid #FCD116 !important;
+        box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.15);
+    }
+
+    .lk-tabs-header .nav-link.active i {
+        opacity: 1 !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div class="d-flex align-items-center gap-3">
+        <a href="{% url 'accounts:dashboard_ligue' %}" class="btn-action btn-action-edit flex-shrink-0" title="Tableau de bord" data-bs-toggle="tooltip">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+            <h4 class="fw-bold mb-0">Édition des Informations & Présentation ("À Propos")</h4>
+            <small class="text-muted">Personnalisez tous les contenus et boutons publics de la Ligue du Kadiogo</small>
+        </div>
+    </div>
+    
+    <!-- Bouton d'aperçu des pages publiques (Menu déroulant pour tester chaque page) -->
+    <div class="dropdown">
+        <button class="btn btn-outline-dark dropdown-toggle fw-bold" type="button" id="dropdownApercu" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-eye me-1 text-primary"></i>Aperçu des pages publiques
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-3" aria-labelledby="dropdownApercu">
+            <li>
+                <a class="dropdown-item py-2" href="{% url 'accounts:presentation' %}" target="_blank">
+                    <i class="bi bi-building text-warning me-2"></i>Page Présentation
+                </a>
+            </li>
+            <li>
+                <a class="dropdown-item py-2" href="{% url 'accounts:mot_president' %}" target="_blank">
+                    <i class="bi bi-person-workspace text-danger me-2"></i>Page {{ ligue.get_titre_mot_president }}
+                </a>
+            </li>
+            <li>
+                <a class="dropdown-item py-2" href="{% url 'ligues:organigramme_visuel' %}" target="_blank">
+                    <i class="bi bi-diagram-3 text-info me-2"></i>Organigramme Visuel Public
+                </a>
+            </li>
+            <li>
+                <a class="dropdown-item py-2" href="{% url 'accounts:vision_missions' %}" target="_blank">
+                    <i class="bi bi-compass text-success me-2"></i>Page Vision & Missions
+                </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+                <a class="dropdown-item py-2" href="{% url 'accounts:contact' %}" target="_blank">
+                    <i class="bi bi-geo-alt text-primary me-2"></i>Page Contact & Localisation
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    <div class="card shadow-sm border-0 rounded-4 overflow-hidden mb-4">
+        <!-- En-tête avec la couleur du footer Slate Navy #0F172A -->
+        <div class="card-header lk-tabs-header p-3">
+            <ul class="nav nav-tabs card-header-tabs border-0" id="infoTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="pres-tab" data-bs-toggle="tab" data-bs-target="#tab-pres" type="button" role="tab">
+                        <i class="bi bi-building text-warning"></i>Présentation & Historique
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="missions-tab" data-bs-toggle="tab" data-bs-target="#tab-missions" type="button" role="tab">
+                        <i class="bi bi-bullseye text-danger"></i>Missions & Objectifs
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="president-tab" data-bs-toggle="tab" data-bs-target="#tab-president" type="button" role="tab">
+                        <i class="bi bi-person-badge text-info"></i>Mot du Président / Présidente
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="titles-tab" data-bs-toggle="tab" data-bs-target="#tab-titles" type="button" role="tab">
+                        <i class="bi bi-sliders text-warning"></i>Libellés des Boutons
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#tab-contact" type="button" role="tab">
+                        <i class="bi bi-geo-alt text-success"></i>Identité & Contact
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="bulletin-tab" data-bs-toggle="tab" data-bs-target="#tab-bulletin" type="button" role="tab">
+                        <i class="bi bi-file-earmark-pdf text-warning"></i>Configuration Bulletin
+                    </button>
+                </li>
+            </ul>
+        </div>
+
+        <div class="card-body p-4 bg-white">
+            <div class="tab-content" id="infoTabsContent">
+                
+                <!-- TAB 1 : Présentation & Historique -->
+                <div class="tab-pane fade show active" id="tab-pres" role="tabpanel">
+                    <div class="row g-4">
+                        <div class="col-12">
+                            <label class="form-label fw-bold text-dark">
+                                <i class="bi bi-info-circle text-warning me-1"></i> {{ form.presentation_generale.label }}
+                            </label>
+                            {{ form.presentation_generale }}
+                            <small class="text-muted">Résumé général du rôle institutionnel et de la structure de la Ligue.</small>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-bold text-dark">
+                                <i class="bi bi-hourglass-split text-danger me-1"></i> {{ form.historique.label }}
+                            </label>
+                            {{ form.historique }}
+                            <small class="text-muted">Historique de la création de la Ligue (ex: 2006, 36 clubs, 400+ athlètes, bureau exécutif & direction technique, mandats de 4 ans).</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 2 : Missions & Objectifs -->
+                <div class="tab-pane fade" id="tab-missions" role="tabpanel">
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-dark">
+                                <i class="bi bi-flag text-danger me-1"></i> {{ form.objectif_general.label }}
+                            </label>
+                            {{ form.objectif_general }}
+                            <small class="text-muted">Objectif principal de la Ligue dans la région.</small>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-dark">
+                                <i class="bi bi-list-check text-primary me-1"></i> {{ form.objectifs_specifiques.label }}
+                            </label>
+                            {{ form.objectifs_specifiques }}
+                            <small class="text-muted">Saisissez un objectif spécifique par ligne (avec des puces • ou tirets).</small>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-dark">
+                                <i class="bi bi-eye text-success me-1"></i> {{ form.vision.label }}
+                            </label>
+                            {{ form.vision }}
+                            <small class="text-muted">Vision à long terme (ex: Pôle d'excellence du Wushu...).</small>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-dark">
+                                <i class="bi bi-gem text-warning me-1"></i> {{ form.valeurs.label }}
+                            </label>
+                            {{ form.valeurs }}
+                            <small class="text-muted">Valeurs martiales & administratives prônées.</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 3 : Mot du Président / de la Présidente -->
+                <div class="tab-pane fade" id="tab-president" role="tabpanel">
+                    <div class="alert alert-info py-2 small">
+                        <i class="bi bi-info-circle me-1"></i>
+                        Si la ligue est dirigée par une présidente, vous pouvez adapter ici le nom et le titre du message (ex: "Mot de la Présidente").
+                    </div>
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-dark">
+                                <i class="bi bi-tag-fill text-warning me-1"></i> {{ form.titre_mot_president.label }}
+                            </label>
+                            {{ form.titre_mot_president }}
+                            <small class="text-muted">Nom affiché sur le bouton & le titre (ex: "Mot du Président" ou "Mot de la Présidente").</small>
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-dark">
+                                <i class="bi bi-person-fill text-dark me-1"></i> {{ form.nom_president.label }}
+                            </label>
+                            {{ form.nom_president }}
+                            <small class="text-muted">Ex: "Maître Mahamadi SANFO, Président" ou "Mme Fatoumata KABORE, Présidente".</small>
+                        </div>
+
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold text-dark">
+                                <i class="bi bi-image text-primary me-1"></i> {{ form.photo_president.label }}
+                            </label>
+                            {{ form.photo_president }}
+                            {% if ligue.photo_president %}
+                            <div class="mt-2">
+                                <img src="{{ ligue.photo_president.url }}" alt="Présidence" class="rounded border" style="height: 70px; object-fit: cover;">
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-bold text-dark">
+                                <i class="bi bi-chat-quote-fill text-danger me-1"></i> {{ form.mot_president.label }}
+                            </label>
+                            {{ form.mot_president }}
+                            <small class="text-muted">Message d'accueil et orientations de la présidence adressés à la communauté.</small>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 4 : Personnalisation des Titres des Boutons "À PROPOS" -->
+                <div class="tab-pane fade" id="tab-titles" role="tabpanel">
+                    <div class="alert alert-light border py-2 mb-4 small">
+                        <i class="bi bi-gear-fill text-primary me-1"></i>
+                        Vous pouvez personnaliser l'intitulé de tous les boutons du menu déroulant "À PROPOS" pour les adapter exactement à vos besoins.
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-dark"><i class="bi bi-building text-warning me-1"></i> {{ form.titre_presentation.label }}</label>
+                            {{ form.titre_presentation }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-dark"><i class="bi bi-person-workspace text-danger me-1"></i> {{ form.titre_mot_president.label }}</label>
+                            {{ form.titre_mot_president }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-dark"><i class="bi bi-diagram-3 text-info me-1"></i> {{ form.titre_organigramme.label }}</label>
+                            {{ form.titre_organigramme }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-dark"><i class="bi bi-compass text-success me-1"></i> {{ form.titre_vision_missions.label }}</label>
+                            {{ form.titre_vision_missions }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-dark"><i class="bi bi-envelope-paper text-primary me-1"></i> {{ form.titre_contact.label }}</label>
+                            {{ form.titre_contact }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 5 : Identité & Contact -->
+                <div class="tab-pane fade" id="tab-contact" role="tabpanel">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-dark">{{ form.nom_ligue.label }}</label>
+                            {{ form.nom_ligue }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold text-dark">{{ form.sigle.label }}</label>
+                            {{ form.sigle }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold text-dark">{{ form.region.label }}</label>
+                            {{ form.region }}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-dark"><i class="bi bi-geo-alt text-danger me-1"></i> {{ form.adresse_siege.label }}</label>
+                            {{ form.adresse_siege }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold text-dark"><i class="bi bi-envelope text-primary me-1"></i> {{ form.email_contact.label }}</label>
+                            {{ form.email_contact }}
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-bold text-dark"><i class="bi bi-telephone text-success me-1"></i> {{ form.telephone.label }}</label>
+                            {{ form.telephone }}
+                        </div>
+
+                        <div class="col-md-6 mt-3">
+                            <label class="form-label fw-bold text-dark"><i class="bi bi-shield text-dark me-1"></i> {{ form.logo.label }}</label>
+                            {{ form.logo }}
+                            {% if ligue.logo %}
+                            <div class="mt-2">
+                                <img src="{{ ligue.logo.url }}" alt="Logo" class="rounded border" style="height: 50px;">
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- TAB 6 : Configuration du Bulletin de Note -->
+                <div class="tab-pane fade" id="tab-bulletin" role="tabpanel">
+                    <div class="alert alert-info border-0 shadow-sm rounded-3 mb-4">
+                        <i class="bi bi-info-circle-fill me-2"></i>
+                        <strong>Textes & Mentions du Bulletin Officiel :</strong> Ces informations apparaissent sur tous les bulletins de note imprimés (PDF et Web). Modifiez le signataire, les en-têtes ou le pied de page à tout moment.
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-dark">{{ form.bulletin_header_gauche_ligne1.label }}</label>
+                            {{ form.bulletin_header_gauche_ligne1 }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-dark">{{ form.bulletin_header_gauche_ligne2.label }}</label>
+                            {{ form.bulletin_header_gauche_ligne2 }}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-dark">{{ form.bulletin_header_droite_ligne1.label }}</label>
+                            {{ form.bulletin_header_droite_ligne1 }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-dark">{{ form.bulletin_header_droite_devise.label }}</label>
+                            {{ form.bulletin_header_droite_devise }}
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold text-dark"><i class="bi bi-person-badge text-primary me-1"></i> {{ form.bulletin_signataire_titre.label }}</label>
+                            {{ form.bulletin_signataire_titre }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold text-dark"><i class="bi bi-person text-danger me-1"></i> {{ form.bulletin_signataire_nom.label }}</label>
+                            {{ form.bulletin_signataire_nom }}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold text-dark"><i class="bi bi-award text-warning me-1"></i> {{ form.bulletin_signataire_grade.label }}</label>
+                            {{ form.bulletin_signataire_grade }}
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="col-12">
+                            <label class="form-label fw-bold text-dark"><i class="bi bi-card-heading text-dark me-1"></i> {{ form.bulletin_pied_legal.label }}</label>
+                            {{ form.bulletin_pied_legal }}
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-bold text-dark"><i class="bi bi-exclamation-octagon text-danger me-1"></i> {{ form.bulletin_mention_exemplaire.label }}</label>
+                            {{ form.bulletin_mention_exemplaire }}
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="card-footer bg-light p-3 d-flex justify-content-between align-items-center">
+            <span class="text-muted small"><i class="bi bi-info-circle me-1"></i>Les modifications seront immédiatement répercutées sur les boutons et pages publiques.</span>
+            <button type="submit" class="btn btn-success px-4 fw-bold">
+                <i class="bi bi-check-circle me-1"></i>Enregistrer les modifications
+            </button>
+        </div>
+    </div>
+</form>
+{% endblock %}

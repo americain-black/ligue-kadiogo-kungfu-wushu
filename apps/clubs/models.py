@@ -39,6 +39,9 @@ class Club(models.Model):
     adresse    = models.CharField(max_length=200, blank=True)
     telephone  = models.CharField(max_length=20,  blank=True)
     email      = models.EmailField(blank=True)
+    description = models.TextField(blank=True, verbose_name="Description / Présentation du club", help_text="Présentation courte du club pour l'annuaire public")
+    latitude   = models.FloatField(null=True, blank=True, verbose_name="Latitude", help_text="Coordonnée latitude (ex: 12.3714)")
+    longitude  = models.FloatField(null=True, blank=True, verbose_name="Longitude", help_text="Coordonnée longitude (ex: -1.5197)")
     statut_club = models.CharField(
         max_length=20,
         choices=STATUT_CHOICES,

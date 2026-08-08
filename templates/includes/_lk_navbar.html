@@ -15,7 +15,11 @@
         <div class="collapse navbar-collapse" id="lkNavContent">
             <ul class="navbar-nav ms-auto align-items-lg-center gap-lg-1 mb-2 mb-lg-0">
                 <li class="nav-item"><a class="nav-link {% if request.path == '/' or request.resolver_match.url_name == 'accueil' %}active{% endif %}" href="{% url 'accounts:accueil' %}"><i class="bi bi-house-door me-1"></i>Accueil</a></li>
-                
+                <li class="nav-item"><a class="nav-link {% if '/clubs/' in request.path %}active{% endif %}" href="{% url 'clubs:annuaire' %}">Annuaire des clubs</a></li>
+                <li class="nav-item"><a class="nav-link {% if '/communication/actualites/' in request.path %}active{% endif %}" href="{% url 'communication:actualites_publiques' %}">Actualités</a></li>
+                <li class="nav-item"><a class="nav-link {% if '/communication/documents/' in request.path %}active{% endif %}" href="{% url 'communication:documents_publics' %}">Documents</a></li>
+                <li class="nav-item"><a class="nav-link {% if '/resultats/' in request.path %}active{% endif %}" href="{% url 'results:consultation_publique' %}">Résultats</a></li>
+
                 <!-- Menu Déroulant "À PROPOS" (Survol Desktop + Touch Mobile) -->
                 <li class="nav-item dropdown lk-dropdown-hover">
                     <a class="nav-link dropdown-toggle {% if '/presentation/' in request.path or '/mot-du-president/' in request.path or '/vision-missions/' in request.path or '/contact/' in request.path or '/organigramme/' in request.path %}active{% endif %}" 
@@ -46,16 +50,11 @@
                         <li><hr class="dropdown-divider opacity-20"></li>
                         <li>
                             <a class="dropdown-item py-2 px-3 fw-semibold" href="{% url 'accounts:contact' %}">
-                                <i class="bi bi-envelope-paper text-warning me-2"></i>{% if ligue %}{{ ligue.get_titre_contact }}{% elif ligue_site %}{{ ligue_site.get_titre_contact }}{% else %}Contact & Localisation{% endif %}
+                                <i class="bi bi-envelope-paper text-warning me-2"></i>{% if ligue %}{{ ligue.get_titre_contact }}{% elif ligue_site %}{{ ligue_site.get_titre_contact }}{% else %}Contact{% endif %}
                             </a>
                         </li>
                     </ul>
                 </li>
-
-                <li class="nav-item"><a class="nav-link {% if '/clubs/' in request.path %}active{% endif %}" href="{% url 'clubs:annuaire' %}">Annuaire des clubs</a></li>
-                <li class="nav-item"><a class="nav-link {% if '/communication/actualites/' in request.path %}active{% endif %}" href="{% url 'communication:actualites_publiques' %}">Actualités</a></li>
-                <li class="nav-item"><a class="nav-link {% if '/communication/documents/' in request.path %}active{% endif %}" href="{% url 'communication:documents_publics' %}">Documents</a></li>
-                <li class="nav-item"><a class="nav-link {% if '/resultats/' in request.path %}active{% endif %}" href="{% url 'results:consultation_publique' %}">Résultats</a></li>
 
                 {% if user.is_authenticated %}
                 <li class="nav-item ms-lg-2">

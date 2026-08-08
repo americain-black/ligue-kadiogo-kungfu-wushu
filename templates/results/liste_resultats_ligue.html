@@ -4,49 +4,7 @@
 {% block title %}Gestion des Résultats & Bulletins — Ligue du Kadiogo{% endblock %}
 
 {% block sidebar %}
-<span class="sidebar-title">Navigation</span>
-<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
-    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
-</a>
-<span class="sidebar-title mt-2">Gestion</span>
-<a href="{% url 'clubs:liste' %}" class="nav-link">
-    <i class="bi bi-building me-2"></i>Clubs
-</a>
-<a href="{% url 'practitioners:liste' %}" class="nav-link">
-    <i class="bi bi-people me-2"></i>Pratiquants / Athlètes
-</a>
-<a href="{% url 'practitioners:grades' %}" class="nav-link">
-    <i class="bi bi-award me-2"></i>Grades
-</a>
-<a href="{% url 'results:liste_resultats_ligue' %}" class="nav-link active">
-    <i class="bi bi-award-fill me-2 text-warning"></i>Résultats & Bulletins
-</a>
-<a href="{% url 'exams:annees_sportives' %}" class="nav-link">
-    <i class="bi bi-calendar2-range me-2"></i>Années sportives
-</a>
-<a href="{% url 'exams:liste' %}" class="nav-link">
-    <i class="bi bi-journal-check me-2"></i>Sessions d'examen
-</a>
-<a href="{% url 'exams:tarifs_accueil' %}" class="nav-link ps-4">
-    <i class="bi bi-cash-coin me-2"></i>Tarifs d'examen
-</a>
-<a href="{% url 'exams:rubriques' %}" class="nav-link">
-    <i class="bi bi-list-task me-2"></i>Rubriques / Épreuves
-</a>
-<a href="{% url 'clubs:demandes_affiliation' %}" class="nav-link">
-    <i class="bi bi-file-earmark-check me-2"></i>Affiliations
-</a>
-<span class="sidebar-title mt-2">Communication</span>
-<a href="{% url 'communication:liste_actualites' %}" class="nav-link">
-    <i class="bi bi-newspaper me-2"></i>Actualités
-</a>
-<a href="{% url 'communication:liste_documents' %}" class="nav-link">
-    <i class="bi bi-file-earmark-text me-2"></i>Documents
-</a>
-<span class="sidebar-title mt-2">Institution & Présentation</span>
-<a href="{% url 'ligues:editer_infos' %}" class="nav-link">
-    <i class="bi bi-pencil-square me-2"></i>Présentation & À propos
-</a>
+{% include 'includes/_sidebar_ligue.html' %}
 {% endblock %}
 
 {% block content %}

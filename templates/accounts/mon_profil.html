@@ -174,13 +174,84 @@
                 </div>
             </div>
 
-            <div class="d-flex justify-content-end gap-2">
+            <div class="d-flex justify-content-end gap-2 mb-4">
                 <a href="{% url 'accounts:tableau_de_bord' %}" class="btn btn-secondary px-4">Annuler</a>
-                <button type="submit" class="btn btn-success px-4 fw-semibold">
-                    <i class="bi bi-check-circle me-1"></i>Enregistrer les modifications
+                <button type="submit" class="btn btn-primary px-4 fw-semibold">
+                    <i class="bi bi-check-circle me-1"></i>Enregistrer mon profil
                 </button>
             </div>
         </form>
+
+        {% if club_form %}
+        <!-- Club Form Card (For Club Managers) -->
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="sauvegarder_club" value="1">
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white py-3 border-bottom border-danger border-2">
+                    <h5 class="fw-bold mb-0 text-danger">
+                        <i class="bi bi-building me-2"></i>Fiche & Présentation de mon Club ({{ club.nom_club }})
+                    </h5>
+                    <small class="text-muted">Ces informations (présentation, horaires, coordonnées) seront affichées sur l'annuaire public.</small>
+                </div>
+                <div class="card-body p-4">
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label fw-semibold"><i class="bi bi-person-badge text-danger me-1"></i>{{ club_form.nom_fondateur.label }}</label>
+                            {{ club_form.nom_fondateur }}
+                            {% if club_form.nom_fondateur.errors %}<div class="text-danger small mt-1">{{ club_form.nom_fondateur.errors.0 }}</div>{% endif %}
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold"><i class="bi bi-card-text text-warning me-1"></i>{{ club_form.description.label }}</label>
+                            {{ club_form.description }}
+                            <div class="form-text small">{{ club_form.description.help_text }}</div>
+                            {% if club_form.description.errors %}<div class="text-danger small mt-1">{{ club_form.description.errors.0 }}</div>{% endif %}
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold"><i class="bi bi-telephone text-secondary me-1"></i>{{ club_form.telephone.label }}</label>
+                            {{ club_form.telephone }}
+                            {% if club_form.telephone.errors %}<div class="text-danger small mt-1">{{ club_form.telephone.errors.0 }}</div>{% endif %}
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold"><i class="bi bi-envelope text-secondary me-1"></i>{{ club_form.email.label }}</label>
+                            {{ club_form.email }}
+                            {% if club_form.email.errors %}<div class="text-danger small mt-1">{{ club_form.email.errors.0 }}</div>{% endif %}
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold"><i class="bi bi-geo-alt text-danger me-1"></i>{{ club_form.localite.label }}</label>
+                            {{ club_form.localite }}
+                            {% if club_form.localite.errors %}<div class="text-danger small mt-1">{{ club_form.localite.errors.0 }}</div>{% endif %}
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold">{{ club_form.adresse.label }}</label>
+                            {{ club_form.adresse }}
+                            {% if club_form.adresse.errors %}<div class="text-danger small mt-1">{{ club_form.adresse.errors.0 }}</div>{% endif %}
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold"><i class="bi bi-compass text-primary me-1"></i>{{ club_form.latitude.label }}</label>
+                            {{ club_form.latitude }}
+                        </div>
+
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold"><i class="bi bi-compass text-primary me-1"></i>{{ club_form.longitude.label }}</label>
+                            {{ club_form.longitude }}
+                        </div>
+                    </div>
+                </div>
+                <div class="card-footer bg-light p-3 d-flex justify-content-end">
+                    <button type="submit" class="btn btn-danger px-4 fw-semibold">
+                        <i class="bi bi-save me-1"></i>Enregistrer la fiche de mon club
+                    </button>
+                </div>
+            </div>
+        </form>
+        {% endif %}
     </div>
 </div>
 {% endblock %}

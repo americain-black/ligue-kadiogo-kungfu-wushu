@@ -455,25 +455,44 @@ def supprimer_utilisateur(request, pk):
 @login_required
 def mon_profil(request):
     user = request.user
+    from apps.clubs.forms import ClubProfilForm
+    club = getattr(user, 'club', None) if user.est_gest_club() else None
+
+    club_form = None
+    if club:
+        club_form = ClubProfilForm(instance=club)
+
     if request.method == 'POST':
-        form = MonProfilForm(request.POST, request.FILES, instance=user)
-        if form.is_valid():
-            saved_user = form.save(commit=False)
-            new_pwd = form.cleaned_data.get('nouveau_mot_de_passe')
-            if new_pwd:
-                saved_user.set_password(new_pwd)
-            saved_user.save()
-            if new_pwd:
-                update_session_auth_hash(request, saved_user)
-            messages.success(request, "Votre profil a été mis à jour avec succès.")
-            return redirect('accounts:mon_profil')
+        if 'sauvegarder_club' in request.POST and club:
+            club_form = ClubProfilForm(request.POST, instance=club)
+            if club_form.is_valid():
+                club_form.save()
+                messages.success(request, f"La présentation et les coordonnées du club « {club.nom_club} » ont été mises à jour.")
+                return redirect('accounts:mon_profil')
+            else:
+                messages.error(request, "Erreur lors de la mise à jour des informations du club.")
+                form = MonProfilForm(instance=user)
         else:
-            messages.error(request, "Veuillez corriger les erreurs ci-dessous.")
+            form = MonProfilForm(request.POST, request.FILES, instance=user)
+            if form.is_valid():
+                saved_user = form.save(commit=False)
+                new_pwd = form.cleaned_data.get('nouveau_mot_de_passe')
+                if new_pwd:
+                    saved_user.set_password(new_pwd)
+                saved_user.save()
+                if new_pwd:
+                    update_session_auth_hash(request, saved_user)
+                messages.success(request, "Votre profil a été mis à jour avec succès.")
+                return redirect('accounts:mon_profil')
+            else:
+                messages.error(request, "Veuillez corriger les erreurs ci-dessous.")
     else:
         form = MonProfilForm(instance=user)
 
     return render(request, 'accounts/mon_profil.html', {
         'form': form,
+        'club_form': club_form,
+        'club': club,
         'user_obj': user,
     })
 
@@ -500,7 +519,58 @@ def vision_missions(request):
 
 
 def contact(request):
-    """Page publique : Contact & Localisation."""
+    """Page publique : Contact & Localisation avec envoi réel du formulaire."""
     from apps.ligues.models import Ligue
+    from config.emails import envoyer_email_notification
+
     ligue = Ligue.objects.filter(sigle='LKKFW').first() or Ligue.objects.first()
+
+    if request.method == 'POST':
+        nom = request.POST.get('nom', '').strip()
+        telephone = request.POST.get('telephone', '').strip()
+        email_visiteur = request.POST.get('email', '').strip()
+        sujet_choisi = request.POST.get('sujet', 'Autre demande').strip()
+        message_txt = request.POST.get('message', '').strip()
+
+        if nom and message_txt and (email_visiteur or telephone):
+            sujet_mail = f"Contact Secrétariat [{sujet_choisi.upper()}] — {nom}"
+            contenu = (
+                f"Bonjour,<br><br>"
+                f"Un nouveau message a été adressé au Secrétariat de la Ligue du Kadiogo :<br><br>"
+                f"• <strong>Nom complet :</strong> {nom}<br>"
+                f"• <strong>Motif :</strong> {sujet_choisi}<br>"
+                f"• <strong>Téléphone :</strong> {telephone or 'Non renseigné'}<br>"
+                f"• <strong>Email :</strong> {email_visiteur or 'Non renseigné'}<br><br>"
+                f"<strong>Message du visiteur :</strong><br>"
+                f"{message_txt}"
+            )
+
+            destinataires = ['info@kadiogokungfu.teeritech.bf']
+            if ligue and ligue.email_contact and ligue.email_contact not in destinataires:
+                destinataires.append(ligue.email_contact)
+
+            # Notification à la Ligue
+            envoyer_email_notification(
+                destinataires=destinataires,
+                sujet=sujet_mail,
+                titre_entete="Nouveau Message au Secrétariat",
+                contenu_html_ou_texte=contenu,
+                reply_to=email_visiteur if email_visiteur else None
+            )
+
+            # Accusé de réception au visiteur
+            if email_visiteur:
+                envoyer_email_notification(
+                    destinataires=[email_visiteur],
+                    sujet="Accusé de réception — Ligue du Kadiogo de Kung-Fu Wushu",
+                    titre_entete="Votre message a bien été reçu",
+                    contenu_html_ou_texte=f"Bonjour {nom},<br><br>Nous avons bien reçu votre message destiné au Secrétariat de la Ligue du Kadiogo de Kung-Fu Wushu. Notre équipe reviendra vers vous dans les plus brefs délais.",
+                    motif_ou_details=message_txt
+                )
+
+            messages.success(request, "Votre message a été transmis avec succès au Secrétariat de la Ligue !")
+            return redirect('accounts:contact')
+        else:
+            messages.error(request, "Veuillez remplir tous les champs obligatoires du formulaire.")
+
     return render(request, 'accounts/contact.html', {'ligue': ligue})

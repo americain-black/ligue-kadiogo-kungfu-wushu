@@ -5,6 +5,8 @@
 
 {% block extra_css %}
 <link href="{% static 'css/lk_public.css' %}" rel="stylesheet">
+<!-- Leaflet OpenStreetMap CSS (CDNJS Ultra Reliable) -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
 <style>
     .lk-recherche {
         max-width: 540px;
@@ -25,6 +27,18 @@
     }
     .lk-recherche .btn:hover {
         background-color: var(--lk-rouge-fonce, #661010);
+    }
+    #carteClubsContainer {
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 18px rgba(0,0,0,0.1);
+        border: 2px solid #fff;
+        margin-bottom: 2.5rem;
+    }
+    #mapClubs {
+        height: 380px;
+        width: 100%;
+        z-index: 1;
     }
     .lk-card-club-item {
         border-radius: 14px;
@@ -85,6 +99,13 @@
         display: flex;
         gap: 0.6rem;
     }
+    .lk-club-description-box {
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
 </style>
 {% endblock %}
 
@@ -137,6 +158,15 @@
             </div>
         </form>
 
+        <!-- Carte OpenStreetMap des clubs avec coordonnées GPS -->
+        <div id="carteClubsContainer" class="mb-4">
+            <div class="bg-dark text-white p-3 d-flex justify-content-between align-items-center">
+                <div class="fw-bold"><i class="bi bi-map-fill text-warning me-2"></i>Carte Interactive des Clubs de la Ligue</div>
+                <small class="text-white-50"><i class="bi bi-geo-alt-fill text-danger me-1"></i>Cliquez sur un marqueur pour voir le club</small>
+            </div>
+            <div id="mapClubs"></div>
+        </div>
+
         {% if clubs %}
         <div class="row g-4" id="grilleClubs">
             {% for club in clubs %}
@@ -164,6 +194,15 @@
 
                     <div class="body">
                         <h5 class="fw-bold mb-3 text-dark">{{ club.nom_club }}</h5>
+
+                        {% if club.nom_fondateur %}
+                        <div class="lk-info-ligne text-danger">
+                            <i class="bi bi-person-badge-fill"></i>
+                            <div>
+                                <strong>Maître / Fondateur :</strong> {{ club.nom_fondateur }}
+                            </div>
+                        </div>
+                        {% endif %}
 
                         <div class="lk-info-ligne">
                             <i class="bi bi-geo-alt-fill"></i>
@@ -195,12 +234,23 @@
                         </div>
                         {% endif %}
 
+                        {% if club.description %}
                         <div class="lk-info-ligne mt-3 pt-2 border-top">
-                            <i class="bi bi-people-fill"></i>
-                            <div>
-                                <strong>Pratiquants :</strong> {{ club.nb_pratiquants }} inscrit{{ club.nb_pratiquants|pluralize }}
+                            <i class="bi bi-card-text text-muted"></i>
+                            <div class="text-muted small w-100" style="line-height: 1.4;">
+                                <strong>Présentation :</strong>
+                                <span class="d-block text-secondary mt-1 lk-club-description-box" title="{{ club.description }}">
+                                    {{ club.description|truncatewords:22 }}
+                                </span>
+                                <button type="button" 
+                                        class="btn btn-link p-0 text-danger fw-bold small text-decoration-none mt-1 d-inline-flex align-items-center gap-1"
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#modalDetailClub{{ club.pk }}">
+                                    Voir plus <i class="bi bi-arrow-right-short fs-6"></i>
+                                </button>
                             </div>
                         </div>
+                        {% endif %}
                     </div>
 
                     <div class="foot">
@@ -219,6 +269,105 @@
                                 data-bs-target="#modalContactClub{{ club.pk }}">
                             <i class="bi bi-envelope-paper-fill me-1 text-warning"></i>Contacter
                         </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Détails complets du club (Voir plus) -->
+            <div class="modal fade" id="modalDetailClub{{ club.pk }}" tabindex="-1" aria-labelledby="labelDetail{{ club.pk }}" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                        <div class="modal-header bg-dark text-white p-4">
+                            <div class="d-flex align-items-center gap-3">
+                                {% if club.sigle_club %}
+                                <span class="badge bg-danger fs-6 px-3 py-2 rounded-pill">{{ club.sigle_club }}</span>
+                                {% endif %}
+                                <div>
+                                    <h4 class="modal-title fw-bold mb-0" id="labelDetail{{ club.pk }}">{{ club.nom_club }}</h4>
+                                    <small class="text-white-50"><i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ club.localite }}</small>
+                                </div>
+                            </div>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                        </div>
+                        <div class="modal-body p-4 bg-light">
+                            <div class="row g-4">
+                                <div class="col-md-7">
+                                    <div class="bg-white p-4 rounded-4 shadow-sm border h-100">
+                                        <h6 class="fw-bold text-danger border-bottom pb-2 mb-3">
+                                            <i class="bi bi-journal-text me-2"></i>Présentation & Histoire du Club
+                                        </h6>
+                                        {% if club.description %}
+                                        <div class="text-dark small lh-base" style="white-space: pre-line;">
+                                            {{ club.description }}
+                                        </div>
+                                        {% else %}
+                                        <p class="text-muted small fst-italic mb-0">Aucune présentation détaillée disponible pour ce club.</p>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <div class="col-md-5">
+                                    <div class="bg-white p-4 rounded-4 shadow-sm border h-100 d-flex flex-column justify-content-between">
+                                        <div>
+                                            <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">
+                                                <i class="bi bi-building me-2 text-danger"></i>Informations Officieuses
+                                            </h6>
+                                            
+                                            {% if club.nom_fondateur %}
+                                            <div class="mb-3">
+                                                <small class="text-muted d-block">Maître Principal / Fondateur</small>
+                                                <strong class="text-danger fs-6"><i class="bi bi-person-badge me-1"></i>{{ club.nom_fondateur }}</strong>
+                                            </div>
+                                            {% endif %}
+
+                                            <div class="mb-3">
+                                                <small class="text-muted d-block">Localité & Adresse</small>
+                                                <span class="text-dark fw-semibold d-block"><i class="bi bi-geo-alt me-1 text-danger"></i>{{ club.localite }}</span>
+                                                {% if club.adresse %}
+                                                <span class="text-muted small d-block">{{ club.adresse }}</span>
+                                                {% endif %}
+                                            </div>
+
+                                            {% if club.telephone %}
+                                            <div class="mb-3">
+                                                <small class="text-muted d-block">Téléphone</small>
+                                                <a href="tel:{{ club.telephone }}" class="text-dark fw-bold text-decoration-none">
+                                                    <i class="bi bi-telephone me-1 text-danger"></i>{{ club.telephone }}
+                                                </a>
+                                            </div>
+                                            {% endif %}
+
+                                            {% if club.email %}
+                                            <div class="mb-3">
+                                                <small class="text-muted d-block">Adresse Email</small>
+                                                <a href="mailto:{{ club.email }}" class="text-dark fw-bold text-decoration-none">
+                                                    <i class="bi bi-envelope me-1 text-danger"></i>{{ club.email }}
+                                                </a>
+                                            </div>
+                                            {% endif %}
+                                        </div>
+
+                                        <div class="pt-3 border-top d-grid gap-2">
+                                            <a href="https://www.google.com/maps/search/?api=1&query={{ club.nom_club|urlencode }}+{{ club.localite|urlencode }}{% if club.adresse %}+{{ club.adresse|urlencode }}{% endif %}" 
+                                               target="_blank" 
+                                               rel="noopener noreferrer" 
+                                               class="btn btn-outline-dark btn-sm fw-bold">
+                                                <i class="bi bi-geo-fill text-danger me-1"></i>Voir l'itinéraire sur la carte
+                                            </a>
+                                            <button type="button" 
+                                                    class="btn btn-danger btn-sm fw-bold" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#modalContactClub{{ club.pk }}"
+                                                    data-bs-dismiss="modal">
+                                                <i class="bi bi-envelope-fill me-1"></i>Envoyer un message à ce club
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer bg-white p-3">
+                            <button type="button" class="btn btn-secondary btn-sm px-4" data-bs-dismiss="modal">Fermer</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -287,29 +436,96 @@
 
 {% include 'includes/_lk_footer.html' %}
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
     (function () {
         const champ = document.getElementById('rechercheClub');
         const items = document.querySelectorAll('#grilleClubs .lk-club-item');
         const videMessage = document.getElementById('clubsAucunResultat');
-        if (!champ || !items.length) return;
+        if (champ && items.length) {
+            // Recherche instantanée automatique à la saisie au clavier
+            champ.addEventListener('input', function () {
+                const recherche = champ.value.trim().toLowerCase();
+                let visibles = 0;
 
-        // Recherche instantanée automatique à la saisie au clavier
-        champ.addEventListener('input', function () {
-            const recherche = champ.value.trim().toLowerCase();
-            let visibles = 0;
+                items.forEach(function (item) {
+                    const texteCard = item.dataset.recherche || '';
+                    const correspond = texteCard.includes(recherche);
+                    item.classList.toggle('d-none', !correspond);
+                    if (correspond) visibles++;
+                });
 
-            items.forEach(function (item) {
-                const texteCard = item.dataset.recherche || '';
-                const correspond = texteCard.includes(recherche);
-                item.classList.toggle('d-none', !correspond);
-                if (correspond) visibles++;
+                if (videMessage) {
+                    videMessage.classList.toggle('d-none', visibles > 0);
+                }
+            });
+        }
+
+        // Initialisation de la carte OpenStreetMap Leaflet
+        const mapEl = document.getElementById('mapClubs');
+        if (mapEl && typeof L !== 'undefined') {
+            const defaultLat = 12.3714;
+            const defaultLng = -1.5197;
+            const map = L.map('mapClubs', {
+                center: [defaultLat, defaultLng],
+                zoom: 12,
+                zoomControl: true
             });
 
-            if (videMessage) {
-                videMessage.classList.toggle('d-none', visibles > 0);
+            // Utilisation des tuiles CartoDB Voyager (ultra rapides et fiables au niveau mondial)
+            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                maxZoom: 19,
+                subdomains: 'abcd',
+                attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+            }).addTo(map);
+
+            // Redimensionnement automatique répété pour garantir l'affichage complet des tuiles
+            [100, 300, 800, 1500].forEach(function (delai) {
+                setTimeout(function () {
+                    map.invalidateSize();
+                }, delai);
+            });
+
+            window.addEventListener('resize', function () {
+                map.invalidateSize();
+            });
+
+            const clubsData = [
+                {% for club in clubs %}
+                {% if club.latitude and club.longitude %}
+                {
+                    nom: "{{ club.nom_club|escapejs }}",
+                    fondateur: "{{ club.nom_fondateur|default:''|escapejs }}",
+                    localite: "{{ club.localite|escapejs }}",
+                    tel: "{{ club.telephone|default:''|escapejs }}",
+                    lat: {{ club.latitude }},
+                    lng: {{ club.longitude }}
+                },
+                {% endif %}
+                {% endfor %}
+            ];
+
+            if (clubsData.length > 0) {
+                const bounds = [];
+                clubsData.forEach(c => {
+                    const popupContent = `
+                        <div style="font-family: sans-serif; padding: 4px;">
+                            <strong style="color: #dc2626; font-size: 0.95rem;">${c.nom}</strong><br>
+                            ${c.fondateur ? `<small><b>Maître :</b> ${c.fondateur}</small><br>` : ''}
+                            <small><b>Localité :</b> ${c.localite}</small><br>
+                            ${c.tel ? `<small><b>Tél :</b> <a href="tel:${c.tel}">${c.tel}</a></small>` : ''}
+                        </div>
+                    `;
+                    L.marker([c.lat, c.lng]).addTo(map).bindPopup(popupContent);
+                    bounds.push([c.lat, c.lng]);
+                });
+                if (bounds.length > 0) {
+                    map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
+                }
+            } else {
+                L.marker([defaultLat, defaultLng]).addTo(map).bindPopup("<b>Ligue du Kadiogo de Wushu</b><br>Ouagadougou, Burkina Faso");
             }
-        });
+        }
     })();
 </script>
 {% endblock %}

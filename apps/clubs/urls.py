@@ -11,6 +11,9 @@ urlpatterns = [
 
     path('',                              views.liste_clubs,          name='liste'),
     path('creer/',                        views.creer_club,           name='creer'),
+    path('exporter/',                     views.exporter_clubs,       name='exporter'),
+    path('importer/',                     views.importer_clubs,       name='importer'),
+    path('telecharger-modele/',           views.telecharger_modele_clubs, name='telecharger_modele'),
     path('<int:pk>/',                     views.detail_club,          name='detail'),
     path('<int:pk>/modifier/',            views.modifier_club,        name='modifier'),
     path('<int:pk>/toggle-statut/',        views.toggle_statut_club,   name='toggle_statut'),

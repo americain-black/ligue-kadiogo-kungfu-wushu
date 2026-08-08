@@ -104,7 +104,8 @@ from decouple import config
 
 SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
-ALLOWED_HOSTS = ['localhost', '127.0.0.1', '192.168.11.103', '192.168.11.105', '192.168.11.102']
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='kadiogokungfu.teeritech.bf,kadiogofunfu.bf,www.kadiogofunfu.bf,localhost,127.0.0.1,192.168.11.103,192.168.11.105,192.168.11.102', cast=lambda v: [s.strip() for s in v.split(',') if s.strip()])
+CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='http://167.86.109.31,http://kadiogokungfu.teeritech.bf,https://kadiogokungfu.teeritech.bf,http://www.kadiogokungfu.teeritech.bf,https://www.kadiogokungfu.teeritech.bf,http://kadiogofunfu.bf,https://kadiogofunfu.bf,http://www.kadiogofunfu.bf,https://www.kadiogofunfu.bf,http://localhost,http://127.0.0.1', cast=lambda v: [s.strip() for s in v.split(',') if s.strip()])
 
 DATABASES = {
     'default': {
@@ -167,14 +168,15 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 
-# Email (récupération de mot de passe)
-EMAIL_BACKEND      = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST         = 'smtp.gmail.com'
-EMAIL_PORT         = 587
-EMAIL_USE_TLS      = True
-EMAIL_HOST_USER    = config('EMAIL_HOST_USER', default='')
+# Email (Notifications & Récupération)
+EMAIL_BACKEND       = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
+EMAIL_HOST          = config('EMAIL_HOST', default='kadiogokungfu.teeritech.bf')
+EMAIL_PORT          = config('EMAIL_PORT', default=465, cast=int)
+EMAIL_USE_SSL       = config('EMAIL_USE_SSL', default=True, cast=bool)
+EMAIL_USE_TLS       = config('EMAIL_USE_TLS', default=False, cast=bool)
+EMAIL_HOST_USER     = config('EMAIL_HOST_USER', default='info@kadiogokungfu.teeritech.bf')
 EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
-DEFAULT_FROM_EMAIL = config('EMAIL_HOST_USER', default='')
+DEFAULT_FROM_EMAIL  = config('DEFAULT_FROM_EMAIL', default='Ligue du Kadiogo de Kung-Fu Wushu <info@kadiogokungfu.teeritech.bf>')
 
 
 

@@ -34,7 +34,7 @@ class Ligue(models.Model):
     titre_mot_president    = models.CharField(max_length=100, default="Mot du Président", blank=True, verbose_name="Titre du bouton Mot du Président / Présidente")
     titre_organigramme     = models.CharField(max_length=100, default="Organigramme & Direction", blank=True, verbose_name="Titre du bouton Organigramme")
     titre_vision_missions  = models.CharField(max_length=100, default="Vision & Missions", blank=True, verbose_name="Titre du bouton Vision & Missions")
-    titre_contact          = models.CharField(max_length=100, default="Contact & Localisation", blank=True, verbose_name="Titre du bouton Contact")
+    titre_contact          = models.CharField(max_length=100, default="Contact", blank=True, verbose_name="Titre du bouton Contact")
 
     # Configuration du Bulletin de Note (Modifiables depuis le tableau de bord)
     bulletin_header_gauche_ligne1 = models.CharField(max_length=200, default="FEDERATION BURKINABE DE KUNG FU WUSHU (FBKFW)", blank=True, verbose_name="En-tête gauche - Ligne 1 (Fédération)")
@@ -138,7 +138,7 @@ class Ligue(models.Model):
         return self.titre_vision_missions or "Vision & Missions"
 
     def get_titre_contact(self):
-        return self.titre_contact or "Contact & Localisation"
+        return self.titre_contact or "Contact"
 
     def get_bulletin_header_gauche_ligne1(self):
         return self.bulletin_header_gauche_ligne1 or "FEDERATION BURKINABE DE KUNG FU WUSHU (FBKFW)"

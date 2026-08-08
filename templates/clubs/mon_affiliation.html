@@ -10,6 +10,11 @@
 <a href="{% url 'clubs:mon_affiliation' %}" class="nav-link active">
     <i class="bi bi-file-earmark-check me-2"></i>Mon affiliation
 </a>
+{% if club %}
+<a href="{% url 'accounts:mon_profil' %}" class="nav-link">
+    <i class="bi bi-pencil-square me-2"></i>Mon Profil & Fiche du club
+</a>
+{% endif %}
 <a href="{% url 'practitioners:liste' %}" class="nav-link">
     <i class="bi bi-people me-2"></i>Pratiquants
 </a>
@@ -29,6 +34,11 @@
         <h4 class="fw-bold mb-0">Mon affiliation</h4>
         <small class="text-muted">{{ club.nom_club }}{% if annee %} — {{ annee.libelle }}{% endif %}</small>
     </div>
+    {% if club %}
+    <a href="{% url 'accounts:mon_profil' %}" class="btn btn-outline-danger btn-sm">
+        <i class="bi bi-person-gear me-1"></i>Modifier la présentation de mon club (Mon Profil)
+    </a>
+    {% endif %}
 </div>
 
 {% if messages %}

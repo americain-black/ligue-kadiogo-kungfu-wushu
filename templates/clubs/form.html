@@ -3,128 +3,167 @@
 {% block title %}{{ titre }} — Ligue du Kadiogo{% endblock %}
 
 {% block sidebar %}
-<span class="sidebar-title">Navigation</span>
-<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
-    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
-</a>
-<span class="sidebar-title mt-2">Gestion</span>
-<a href="{% url 'clubs:liste' %}" class="nav-link active">
-    <i class="bi bi-building me-2"></i>Clubs
-</a>
-<a href="{% url 'exams:liste' %}" class="nav-link">
-    <i class="bi bi-journal-check me-2"></i>Sessions d'examen
-</a>
-<a href="{% url 'exams:tarifs_accueil' %}" class="nav-link ps-4">
-    <i class="bi bi-cash-coin me-2"></i>Tarifs d'examen
-</a>
-<a href="{% url 'exams:rubriques' %}" class="nav-link">
-    <i class="bi bi-list-task me-2"></i>Rubriques / Épreuves
-</a>
-<a href="{% url 'exams:options' %}" class="nav-link">
-    <i class="bi bi-tags me-2"></i>Options / Styles
-</a>
-<a href="{% url 'exams:modele_matricule' %}" class="nav-link">
-    <i class="bi bi-123 me-2"></i>Modèle de matricule
-</a>
-
-
-<a href="{% url 'clubs:demandes_affiliation' %}" class="nav-link">
-    <i class="bi bi-file-earmark-check me-2"></i>Affiliations
-</a>
-<a href="{% url 'clubs:parametres_affiliation' %}" class="nav-link ps-4">
-    <i class="bi bi-cash-coin me-2"></i>Frais d'affiliation
-</a>
+{% include 'includes/_sidebar_ligue.html' %}
 {% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h4 class="fw-bold mb-0">{{ titre }}</h4>
-        <small class="text-muted">
-            {% if club %}Modification du club{% else %}Nouveau club{% endif %}
-        </small>
+<div class="container-fluid px-0" style="max-width: 960px;">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold mb-0"><i class="bi bi-building text-danger me-2"></i>{{ titre }}</h4>
+            <small class="text-muted">
+                {% if club %}Modification du club {{ club.nom_club }}{% else %}Enregistrement d'un nouveau club de Wushu{% endif %}
+            </small>
+        </div>
+        <a href="{% url 'clubs:liste' %}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i>Retour à la liste
+        </a>
     </div>
-    <a href="{% url 'clubs:liste' %}" class="btn btn-outline-secondary btn-sm">
-        <i class="bi bi-arrow-left me-1"></i>Retour à la liste
-    </a>
-</div>
 
-<div class="card p-4">
     <form method="post" novalidate>
         {% csrf_token %}
 
-        <!-- Identification -->
-        <h6 class="fw-bold text-danger mb-3 border-bottom pb-2">Identification du club</h6>
-        <div class="row g-3 mb-4">
-            <div class="col-md-6">
-                <label class="form-label fw-semibold">{{ form.nom_club.label }} <span class="text-danger">*</span></label>
-                {{ form.nom_club }}
-                {% if form.nom_club.errors %}<div class="text-danger small mt-1">{{ form.nom_club.errors.0 }}</div>{% endif %}
+        <!-- 1. Identification du club -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h6 class="fw-bold text-danger mb-0">
+                    <i class="bi bi-shield-check me-2"></i>1. Identification du club
+                </h6>
             </div>
-            <div class="col-md-3">
-                <label class="form-label fw-semibold">{{ form.sigle_club.label }}</label>
-                {{ form.sigle_club }}
-            </div>
-            <div class="col-md-3">
-                <label class="form-label fw-semibold">{{ form.code_club.label }}</label>
-                {{ form.code_club }}
-                <div class="form-text small">Auto (ex: CL01) si vide</div>
-            </div>
-            <div class="col-md-6">
-                <label class="form-label fw-semibold">{{ form.localite.label }} <span class="text-danger">*</span></label>
-                {{ form.localite }}
-                {% if form.localite.errors %}<div class="text-danger small mt-1">{{ form.localite.errors.0 }}</div>{% endif %}
-            </div>
-            <div class="col-md-6">
-                <label class="form-label fw-semibold">{{ form.adresse.label }}</label>
-                {{ form.adresse }}
-            </div>
-            <div class="col-md-6">
-                <label class="form-label fw-semibold">{{ form.telephone.label }}</label>
-                {{ form.telephone }}
-            </div>
-            <div class="col-md-6">
-                <label class="form-label fw-semibold">{{ form.email.label }}</label>
-                {{ form.email }}
-            </div>
-        </div>
-
-        <!-- Statut -->
-        <h6 class="fw-bold text-danger mb-3 border-bottom pb-2">Statut</h6>
-        <div class="row g-3 mb-4">
-            <div class="col-md-4">
-                <label class="form-label fw-semibold">{{ form.statut_club.label }}</label>
-                {{ form.statut_club }}
-            </div>
-        </div>
-
-        <!-- Gestionnaire -->
-        <h6 class="fw-bold text-danger mb-3 border-bottom pb-2">
-            <i class="bi bi-person-gear me-2"></i>Gestionnaire du club
-        </h6>
-        <div class="row g-3 mb-4">
-            <div class="col-md-8">
-                <label class="form-label fw-semibold">{{ form.utilisateur.label }}</label>
-                {{ form.utilisateur }}
-                <div class="form-text">
-                    <i class="bi bi-info-circle me-1"></i>
-                    Seuls les comptes avec le rôle <strong>Gestionnaire Club</strong> de votre ligue
-                    et non encore assignés à un autre club sont listés ici.
-                    Si la liste est vide, créez d'abord un compte utilisateur depuis le
-                    <a href="{% url 'accounts:tableau_de_bord' %}">tableau de bord Super Admin</a>.
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">{{ form.nom_club.label }} <span class="text-danger">*</span></label>
+                        {{ form.nom_club }}
+                        {% if form.nom_club.errors %}<div class="text-danger small mt-1">{{ form.nom_club.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">{{ form.sigle_club.label }}</label>
+                        {{ form.sigle_club }}
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label fw-semibold">{{ form.code_club.label }}</label>
+                        {{ form.code_club }}
+                        <div class="form-text small">Auto (ex: CL01) si vide</div>
+                    </div>
+                    <div class="col-md-12">
+                        <label class="form-label fw-semibold"><i class="bi bi-person-badge text-danger me-1"></i>{{ form.nom_fondateur.label }}</label>
+                        {{ form.nom_fondateur }}
+                        <div class="form-text small">{{ form.nom_fondateur.help_text }}</div>
+                        {% if form.nom_fondateur.errors %}<div class="text-danger small mt-1">{{ form.nom_fondateur.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold"><i class="bi bi-card-text text-warning me-1"></i>{{ form.description.label }}</label>
+                        {{ form.description }}
+                        <div class="form-text small">{{ form.description.help_text }}</div>
+                        {% if form.description.errors %}<div class="text-danger small mt-1">{{ form.description.errors.0 }}</div>{% endif %}
+                    </div>
                 </div>
-                {% if form.utilisateur.errors %}
-                <div class="text-danger small mt-1">{{ form.utilisateur.errors.0 }}</div>
-                {% endif %}
             </div>
         </div>
 
-        <div class="d-flex gap-2">
-            <button type="submit" class="btn btn-ligue">
-                <i class="bi bi-check-lg me-1"></i>Enregistrer
+        <!-- 2. Localisation & Coordonnées GPS -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold text-danger mb-0">
+                    <i class="bi bi-geo-alt-fill me-2"></i>2. Localisation & Coordonnées GPS
+                </h6>
+                <button type="button" class="btn btn-sm btn-outline-danger" id="btnGeolocaliser">
+                    <i class="bi bi-crosshair me-1"></i>Détecter ma position GPS
+                </button>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">{{ form.localite.label }} <span class="text-danger">*</span></label>
+                        {{ form.localite }}
+                        {% if form.localite.errors %}<div class="text-danger small mt-1">{{ form.localite.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">{{ form.adresse.label }}</label>
+                        {{ form.adresse }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold"><i class="bi bi-telephone me-1 text-secondary"></i>{{ form.telephone.label }}</label>
+                        {{ form.telephone }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold"><i class="bi bi-envelope me-1 text-secondary"></i>{{ form.email.label }}</label>
+                        {{ form.email }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold"><i class="bi bi-compass me-1 text-primary"></i>{{ form.latitude.label }}</label>
+                        {{ form.latitude }}
+                        <div class="form-text small">Latitude en degrés décimaux (ex: 12.3714)</div>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold"><i class="bi bi-compass me-1 text-primary"></i>{{ form.longitude.label }}</label>
+                        {{ form.longitude }}
+                        <div class="form-text small">Longitude en degrés décimaux (ex: -1.5197)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Statut & Compte Gestionnaire -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-white py-3">
+                <h6 class="fw-bold text-danger mb-0">
+                    <i class="bi bi-person-gear me-2"></i>3. Statut & Compte de gestion
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">{{ form.statut_club.label }}</label>
+                        {{ form.statut_club }}
+                    </div>
+                    <div class="col-md-8">
+                        <label class="form-label fw-semibold">{{ form.utilisateur.label }}</label>
+                        {{ form.utilisateur }}
+                        <div class="form-text mt-1">
+                            <i class="bi bi-info-circle me-1"></i>
+                            Compte utilisateur avec le rôle <strong>Gestionnaire Club</strong>.
+                        </div>
+                        {% if form.utilisateur.errors %}
+                        <div class="text-danger small mt-1">{{ form.utilisateur.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex gap-3 mb-5">
+            <button type="submit" class="btn btn-ligue btn-lg px-4">
+                <i class="bi bi-check-circle me-2"></i>Enregistrer le club
             </button>
-            <a href="{% url 'clubs:liste' %}" class="btn btn-outline-secondary">Annuler</a>
+            <a href="{% url 'clubs:liste' %}" class="btn btn-outline-secondary btn-lg">Annuler</a>
         </div>
     </form>
 </div>
+
+<script>
+document.getElementById('btnGeolocaliser')?.addEventListener('click', function() {
+    if (navigator.geolocation) {
+        this.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Détection...';
+        navigator.geolocation.getCurrentPosition(
+            (pos) => {
+                document.getElementById('id_latitude').value = pos.coords.latitude.toFixed(6);
+                document.getElementById('id_longitude').value = pos.coords.longitude.toFixed(6);
+                this.innerHTML = '<i class="bi bi-check-lg me-1 text-success"></i> Position trouvée !';
+                setTimeout(() => {
+                    this.innerHTML = '<i class="bi bi-crosshair me-1"></i>Détecter ma position GPS';
+                }, 3000);
+            },
+            (err) => {
+                alert('Impossible d\'obtenir la position GPS : ' + err.message);
+                this.innerHTML = '<i class="bi bi-crosshair me-1"></i>Détecter ma position GPS';
+            }
+        );
+    } else {
+        alert('La géolocalisation n\'est pas supportée par votre navigateur.');
+    }
+});
+</script>
 {% endblock %}
+

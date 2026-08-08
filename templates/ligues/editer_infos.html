@@ -3,23 +3,7 @@
 {% block title %}Gestion des Informations & Présentation — {{ ligue.sigle }}{% endblock %}
 
 {% block sidebar %}
-<span class="sidebar-title">Navigation</span>
-<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
-    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
-</a>
-<span class="sidebar-title mt-2">Gestion Ligue</span>
-<a href="{% url 'ligues:editer_infos' %}" class="nav-link active">
-    <i class="bi bi-pencil-square me-2"></i>Présentation & À propos
-</a>
-<a href="{% url 'ligues:organigramme' %}" class="nav-link">
-    <i class="bi bi-diagram-3 me-2"></i>Organigramme ligue
-</a>
-<a href="{% url 'clubs:liste' %}" class="nav-link">
-    <i class="bi bi-building me-2"></i>Clubs
-</a>
-<a href="{% url 'practitioners:liste' %}" class="nav-link">
-    <i class="bi bi-people me-2"></i>Pratiquants / Athlètes
-</a>
+{% include 'includes/_sidebar_ligue.html' %}
 {% endblock %}
 
 {% block extra_css %}

@@ -43,6 +43,153 @@ def liste_clubs(request):
 
 
 @gest_ligue_requis
+def exporter_clubs(request):
+    """
+    Exporte la liste des clubs de la ligue au format CSV (compatible Excel).
+    """
+    import csv
+    from django.http import HttpResponse
+
+    clubs = Club.objects.filter(ligue=request.user.ligue).order_by('nom_club')
+    response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
+    response['Content-Disposition'] = 'attachment; filename="clubs_ligue_kadiogo.csv"'
+
+    writer = csv.writer(response, delimiter=';')
+    writer.writerow([
+        'Nom du Club', 'Sigle', 'Code Club', 'Maître / Fondateur',
+        'Localité', 'Adresse', 'Téléphone', 'Email',
+        'Latitude', 'Longitude', 'Statut'
+    ])
+
+    for c in clubs:
+        writer.writerow([
+            c.nom_club,
+            c.sigle_club or '',
+            c.code_club or '',
+            c.nom_fondateur or '',
+            c.localite or '',
+            c.adresse or '',
+            c.telephone or '',
+            c.email or '',
+            c.latitude if c.latitude is not None else '',
+            c.longitude if c.longitude is not None else '',
+            c.get_statut_club_display(),
+        ])
+
+    return response
+
+
+@gest_ligue_requis
+def importer_clubs(request):
+    """
+    Importe des clubs à partir d'un fichier CSV / Excel.
+    """
+    import csv
+
+    if request.method == 'POST' and request.FILES.get('fichier'):
+        fichier = request.FILES['fichier']
+        try:
+            lignes = fichier.read().decode('utf-8-sig', errors='ignore').splitlines()
+            if not lignes:
+                messages.error(request, "Le fichier est vide.")
+                return redirect('clubs:liste')
+
+            reader = csv.reader(lignes, delimiter=';')
+            headers = [h.strip().lower() for h in next(reader, [])]
+
+            if len(headers) <= 1 and ',' in lignes[0]:
+                reader = csv.reader(lignes, delimiter=',')
+                headers = [h.strip().lower() for h in next(reader, [])]
+
+            import_count = 0
+            for row in reader:
+                if not row or not any(row):
+                    continue
+                d = dict(zip(headers, [v.strip() for v in row]))
+
+                nom_club = d.get('nom du club') or d.get('nom_club') or d.get('nom')
+                if not nom_club:
+                    continue
+
+                sigle = d.get('sigle') or d.get('sigle_club') or ''
+                code = d.get('code club') or d.get('code_club') or ''
+                fondateur = d.get('maître / fondateur') or d.get('fondateur') or d.get('maître') or d.get('nom_fondateur') or ''
+                localite = d.get('localité') or d.get('localite') or 'Ouagadougou'
+                adresse = d.get('adresse') or ''
+                telephone = d.get('téléphone') or d.get('telephone') or ''
+                email = d.get('email') or ''
+
+                lat_val = d.get('latitude') or None
+                lng_val = d.get('longitude') or None
+                try:
+                    latitude = float(lat_val) if lat_val else None
+                except ValueError:
+                    latitude = None
+                try:
+                    longitude = float(lng_val) if lng_val else None
+                except ValueError:
+                    longitude = None
+
+                club, created = Club.objects.get_or_create(
+                    ligue=request.user.ligue,
+                    nom_club=nom_club,
+                    defaults={
+                        'sigle_club': sigle,
+                        'code_club': code if code else None,
+                        'nom_fondateur': fondateur,
+                        'localite': localite,
+                        'adresse': adresse,
+                        'telephone': telephone,
+                        'email': email,
+                        'latitude': latitude,
+                        'longitude': longitude,
+                        'statut_club': 'AFFILIE',
+                    }
+                )
+                if not created:
+                    if sigle: club.sigle_club = sigle
+                    if fondateur: club.nom_fondateur = fondateur
+                    if localite: club.localite = localite
+                    if adresse: club.adresse = adresse
+                    if telephone: club.telephone = telephone
+                    if email: club.email = email
+                    if latitude is not None: club.latitude = latitude
+                    if longitude is not None: club.longitude = longitude
+                    club.save()
+                import_count += 1
+
+            messages.success(request, f"{import_count} club(s) importé(s) / mis à jour avec succès.")
+        except Exception as exc:
+            messages.error(request, f"Erreur lors de l'importation du fichier : {exc}")
+
+    return redirect('clubs:liste')
+
+
+@gest_ligue_requis
+def telecharger_modele_clubs(request):
+    """
+    Télécharge un modèle de fichier CSV pour l'import de clubs.
+    """
+    import csv
+    from django.http import HttpResponse
+
+    response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
+    response['Content-Disposition'] = 'attachment; filename="modele_import_clubs.csv"'
+    writer = csv.writer(response, delimiter=';')
+    writer.writerow([
+        'Nom du Club', 'Sigle', 'Code Club', 'Maître / Fondateur',
+        'Localité', 'Adresse', 'Téléphone', 'Email',
+        'Latitude', 'Longitude'
+    ])
+    writer.writerow([
+        'Dragon Rouge Wushu', 'DRW', 'CL01', 'Maître Ouedraogo',
+        'Ouagadougou, Secteur 15', 'Rue 14.25', '+226 70 12 34 56', 'contact@dragonrouge.bf',
+        '12.3714', '-1.5197'
+    ])
+    return response
+
+
+@gest_ligue_requis
 def creer_club(request):
     if request.method == 'POST':
         form = ClubForm(request.POST, ligue=request.user.ligue)
@@ -60,17 +207,29 @@ def creer_club(request):
     })
 
 
-@gest_ligue_requis
+@login_required
 def modifier_club(request, pk):
-    club = get_object_or_404(Club, pk=pk, ligue=request.user.ligue)
+    user = request.user
+    if user.is_superuser or user.est_gest_ligue():
+        club = get_object_or_404(Club, pk=pk, ligue=user.ligue)
+    elif user.est_gest_club() and hasattr(user, 'club') and user.club and user.club.pk == pk:
+        club = user.club
+    else:
+        messages.error(request, "Vous n'avez pas l'autorisation de modifier ce club.")
+        return redirect('accounts:tableau_de_bord')
+
+    ligue_context = user.ligue if hasattr(user, 'ligue') and user.ligue else (club.ligue if club else None)
+
     if request.method == 'POST':
-        form = ClubForm(request.POST, instance=club, ligue=request.user.ligue)
+        form = ClubForm(request.POST, instance=club, ligue=ligue_context)
         if form.is_valid():
             form.save()
-            messages.success(request, f"Club « {club.nom_club} » modifié avec succès.")
+            messages.success(request, f"Le club « {club.nom_club} » a été mis à jour avec succès.")
+            if user.est_gest_club():
+                return redirect('clubs:mon_affiliation')
             return redirect('clubs:detail', pk=club.pk)
     else:
-        form = ClubForm(instance=club, ligue=request.user.ligue)
+        form = ClubForm(instance=club, ligue=ligue_context)
     return render(request, 'clubs/form.html', {
         'form':  form,
         'titre': f'Modifier — {club.nom_club}',
@@ -443,36 +602,47 @@ def annuaire_clubs(request):
 
         club_cible = Club.objects.filter(pk=club_id).exclude(statut_club='SUSPENDU').first()
         if club_cible and nom_expediteur and (email_expediteur or telephone_expediteur) and message_contenu:
-            # pyrefly: ignore [missing-import]
-            from django.core.mail import send_mail
-            # pyrefly: ignore [missing-import]
-            from django.conf import settings
+            from config.emails import envoyer_email_notification
 
-            sujet = f"[Ligue Kung-Fu Wushu] Message de {nom_expediteur} pour {club_cible.nom_club}"
-            corps = (
-                f"Bonjour {club_cible.nom_club},\n\n"
-                f"Vous avez reçu un nouveau message depuis l'annuaire public des clubs :\n\n"
-                f"• Nom : {nom_expediteur}\n"
-                f"• Email : {email_expediteur or 'Non renseigné'}\n"
-                f"• Téléphone : {telephone_expediteur or 'Non renseigné'}\n\n"
-                f"Contenu du message :\n{message_contenu}\n\n"
-                f"---\nPlateforme de la Ligue du Kadiogo de Kung-Fu Wushu"
+            sujet = f"Message de {nom_expediteur} pour {club_cible.nom_club}"
+            titre = f"Nouveau message pour {club_cible.nom_club}"
+            contenu_msg = (
+                f"Bonjour,<br><br>"
+                f"Un nouveau message a été envoyé depuis l'annuaire public des clubs pour <strong>{club_cible.nom_club}</strong> :<br><br>"
+                f"• <strong>Nom de l'expéditeur :</strong> {nom_expediteur}<br>"
+                f"• <strong>Email :</strong> {email_expediteur or 'Non renseigné'}<br>"
+                f"• <strong>Téléphone :</strong> {telephone_expediteur or 'Non renseigné'}<br><br>"
+                f"<strong>Contenu du message :</strong><br>"
+                f"{message_contenu}"
             )
+
+            destinataires = []
             if club_cible.email:
-                try:
-                    send_mail(
-                        sujet,
-                        corps,
-                        getattr(settings, 'DEFAULT_FROM_EMAIL', 'noreply@ligue-kungfu.org'),
-                        [club_cible.email],
-                        fail_silently=True,
-                    )
-                except Exception:
-                    pass
+                destinataires.append(club_cible.email)
+            # Toujours ajouter une copie à la Ligue (info@kadiogokungfu.teeritech.bf)
+            destinataires.append('info@kadiogokungfu.teeritech.bf')
+
+            if email_expediteur:
+                # Envoyer un accusé de réception à l'expéditeur
+                envoyer_email_notification(
+                    destinataires=[email_expediteur],
+                    sujet=f"Confirmation d'envoi à {club_cible.nom_club}",
+                    titre_entete="Votre message a été transmis",
+                    contenu_html_ou_texte=f"Bonjour {nom_expediteur},<br><br>Votre message destiné au club <strong>{club_cible.nom_club}</strong> a bien été transmis.",
+                    motif_ou_details=message_contenu
+                )
+
+            envoyer_email_notification(
+                destinataires=destinataires,
+                sujet=sujet,
+                titre_entete=titre,
+                contenu_html_ou_texte=contenu_msg,
+                reply_to=email_expediteur
+            )
 
             messages.success(
                 request,
-                f"Votre message pour le club « {club_cible.nom_club} » a été transmis avec succès !"
+                f"Votre message pour le club « {club_cible.nom_club} » a été transmis avec succès par email !"
             )
         else:
             messages.error(request, "Veuillez remplir tous les champs obligatoires du formulaire de contact.")

@@ -2,74 +2,28 @@
 {% block title %}Clubs — Ligue du Kadiogo{% endblock %}
 
 {% block sidebar %}
-<span class="sidebar-title">Navigation</span>
-<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
-    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
-</a>
-<span class="sidebar-title mt-2">Gestion</span>
-<a href="{% url 'clubs:liste' %}" class="nav-link active">
-    <i class="bi bi-building me-2"></i>Clubs
-</a>
-<a href="{% url 'practitioners:grades' %}" class="nav-link">
-    <i class="bi bi-award me-2"></i>Grades
-</a>
-<a href="{% url 'exams:annees_sportives' %}" class="nav-link">
-    <i class="bi bi-calendar2-range me-2"></i>Années sportives
-</a>
-<a href="{% url 'exams:liste' %}" class="nav-link">
-    <i class="bi bi-journal-check me-2"></i>Sessions d'examen
-</a>
-<a href="{% url 'exams:tarifs_accueil' %}" class="nav-link ps-4">
-    <i class="bi bi-cash-coin me-2"></i>Tarifs d'examen
-</a>
-<a href="{% url 'exams:rubriques' %}" class="nav-link">
-    <i class="bi bi-list-task me-2"></i>Rubriques / Épreuves
-</a>
-<a href="{% url 'exams:options' %}" class="nav-link">
-    <i class="bi bi-tags me-2"></i>Options / Styles
-</a>
-<a href="{% url 'exams:modele_matricule' %}" class="nav-link">
-    <i class="bi bi-123 me-2"></i>Modèle de matricule
-</a>
-
-
-<a href="{% url 'clubs:demandes_affiliation' %}" class="nav-link">
-    <i class="bi bi-file-earmark-check me-2"></i>Affiliations
-</a>
-<a href="{% url 'clubs:parametres_affiliation' %}" class="nav-link ps-4">
-    <i class="bi bi-cash-coin me-2"></i>Frais d'affiliation
-</a>
-<a href="{% url 'ligues:organigramme' %}" class="nav-link">
-    <i class="bi bi-diagram-3 me-2"></i>Organigramme ligue
-</a>
+{% include 'includes/_sidebar_ligue.html' %}
 {% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center gap-3">
-    <a href="{% url 'accounts:dashboard_ligue' %}" class="btn-action btn-action-edit flex-shrink-0" title="Tableau de bord" data-bs-toggle="tooltip">
-        <i class="bi bi-arrow-left"></i>
-    </a>
+        <a href="{% url 'accounts:dashboard_ligue' %}" class="btn-action btn-action-edit flex-shrink-0" title="Tableau de bord" data-bs-toggle="tooltip">
+            <i class="bi bi-arrow-left"></i>
+        </a>
         <div>
-        <h4 class="fw-bold mb-0">Clubs</h4>
-        <small class="text-muted">Liste des clubs de la ligue</small>
+            <h4 class="fw-bold mb-0">Clubs</h4>
+            <small class="text-muted">Liste des clubs de la ligue</small>
         </div>
     </div>
     <div class="d-flex gap-2 flex-wrap">
-        <!-- Dropdown Exportation globale -->
-        <div class="dropdown">
-            <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
-                <i class="bi bi-download me-1"></i>Exporter
-            </button>
-            <ul class="dropdown-menu dropdown-menu-end">
-                <li><a class="dropdown-item" href="{% url 'practitioners:exporter' %}?format=csv"><i class="bi bi-filetype-csv me-2 text-primary"></i>Exporter en CSV</a></li>
-                <li><a class="dropdown-item" href="{% url 'practitioners:exporter' %}?format=excel"><i class="bi bi-file-earmark-excel me-2 text-success"></i>Exporter pour Excel (.csv)</a></li>
-                <li><a class="dropdown-item" href="{% url 'practitioners:exporter' %}?format=json"><i class="bi bi-filetype-json me-2 text-warning"></i>Exporter en JSON</a></li>
-            </ul>
-        </div>
-        <!-- Bouton Importation globale -->
-        <button class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalImportPratiquants">
-            <i class="bi bi-upload me-1"></i>Importer
+        <!-- Exportation des clubs -->
+        <a class="btn btn-outline-primary btn-sm" href="{% url 'clubs:exporter' %}" title="Exporter la liste des clubs au format CSV / Excel">
+            <i class="bi bi-download me-1"></i>Exporter les clubs
+        </a>
+        <!-- Importation des clubs -->
+        <button class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalImportClubs">
+            <i class="bi bi-upload me-1"></i>Importer des clubs
         </button>
         <a href="{% url 'clubs:creer' %}" class="btn btn-ligue btn-sm">
             <i class="bi bi-plus me-1"></i>Enregistrer un club
@@ -101,6 +55,7 @@
             <tr>
                 <th class="ps-3">Club</th>
                 <th>Code / Sigle</th>
+                <th>Maître / Fondateur</th>
                 <th>Localité</th>
                 <th>Gestionnaire</th>
                 <th>Statut</th>
@@ -112,10 +67,18 @@
         <tr>
             <td class="ps-3">
                 <strong>{{ club.nom_club }}</strong>
+                {% if club.latitude and club.longitude %}
+                    <span class="badge bg-light text-success border ms-1" title="Position GPS enregistrée : {{ club.latitude }}, {{ club.longitude }}">
+                        <i class="bi bi-geo-alt-fill me-1"></i>GPS
+                    </span>
+                {% endif %}
             </td>
             <td>
                 <span class="badge bg-primary font-monospace me-1" title="Code unique du club">{{ club.code_club }}</span>
                 {% if club.sigle_club %}<span class="badge bg-secondary font-monospace">{{ club.sigle_club }}</span>{% endif %}
+            </td>
+            <td class="small fw-semibold text-danger">
+                {{ club.nom_fondateur|default:"—" }}
             </td>
             <td class="small">{{ club.localite }}</td>
             <td class="small">
@@ -143,13 +106,6 @@
                        data-bs-toggle="tooltip" data-bs-placement="top">
                         <i class="bi bi-download"></i>
                     </a>
-                    <button class="btn-action btn-action-edit text-primary btn-import-club"
-                            data-bs-toggle="modal" data-bs-target="#modalImportPratiquants"
-                            data-club-id="{{ club.pk }}"
-                            title="Importer des pratiquants dans {{ club.nom_club }}"
-                            data-bs-placement="top">
-                        <i class="bi bi-upload"></i>
-                    </button>
                     <a href="{% url 'clubs:detail' club.pk %}"
                        class="btn-action btn-action-edit" title="Voir la fiche"
                        data-bs-toggle="tooltip" data-bs-placement="top">
@@ -203,67 +159,45 @@
     </div>
 </div>
 
-<!-- Modal Importation des pratiquants -->
-<div class="modal fade" id="modalImportPratiquants" tabindex="-1">
+<!-- Modal Importation des Clubs -->
+<div class="modal fade" id="modalImportClubs" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form method="post" action="{% url 'practitioners:importer' %}" enctype="multipart/form-data">
+            <form method="post" action="{% url 'clubs:importer' %}" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title"><i class="bi bi-file-earmark-arrow-up me-2"></i>Importer des pratiquants / athlètes</h5>
+                    <h5 class="modal-title"><i class="bi bi-file-earmark-arrow-up me-2"></i>Importer la liste des clubs</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <p class="small text-muted">
-                        Téléversez un fichier au format <strong>CSV, Excel (.csv/.xlsx) ou JSON</strong> contenant la liste des pratiquants à inscrire ou mettre à jour.
+                        Téléversez un fichier au format <strong>CSV ou Excel (.csv/.xlsx)</strong> contenant la liste des clubs avec leurs coordonnées et maître responsable.
                     </p>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Club de destination (Optionnel)</label>
-                        <select name="club_id" id="select_import_club" class="form-select">
-                            <option value="">-- Utiliser le code/nom du club du fichier (ou 1er club) --</option>
-                            {% for c in clubs %}
-                            <option value="{{ c.pk }}">{{ c.nom_club }} {% if c.sigle_club %}({{ c.sigle_club }}){% endif %}</option>
-                            {% endfor %}
-                        </select>
-                        <div class="form-text">Si sélectionné, tous les pratiquants importés seront rattachés à ce club.</div>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Fichier d'import</label>
-                        <input type="file" name="fichier" class="form-control" accept=".csv,.json,.txt,.xlsx,.xls" required>
-                        <div class="form-text">Formats supportés : Excel (.xlsx), CSV, TSV, JSON</div>
+                        <label class="form-label fw-semibold">Fichier d'import de clubs</label>
+                        <input type="file" name="fichier" class="form-control" accept=".csv,.txt,.xlsx,.xls" required>
+                        <div class="form-text">Formats supportés : Excel (.xlsx), CSV (délimiteur point-virgule ou virgule)</div>
                     </div>
                     <div class="p-3 bg-light rounded border">
                         <div class="d-flex justify-content-between align-items-center mb-1">
                             <span class="fw-semibold small"><i class="bi bi-info-circle me-1"></i>Besoin d'un exemple ?</span>
-                            <a href="{% url 'practitioners:telecharger_modele' %}" class="btn btn-sm btn-link p-0 text-decoration-none">
+                            <a href="{% url 'clubs:telecharger_modele' %}" class="btn btn-sm btn-link p-0 text-decoration-none">
                                 <i class="bi bi-download me-1"></i>Télécharger le modèle CSV
                             </a>
                         </div>
                         <small class="text-muted d-block">
-                            Colonnes acceptées : <code>Nom</code>, <code>Prénom</code>, <code>Date de naissance</code>, <code>Sexe</code>, <code>Grade</code>, <code>Club</code> ou <code>Code_Club</code>
+                            Colonnes acceptées : <code>Nom du Club</code>, <code>Sigle</code>, <code>Code Club</code>, <code>Maître / Fondateur</code>, <code>Localité</code>, <code>Adresse</code>, <code>Téléphone</code>, <code>Email</code>, <code>Latitude</code>, <code>Longitude</code>
                         </small>
                     </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
                     <button type="submit" class="btn btn-success">
-                        <i class="bi bi-upload me-1"></i>Lancer l'importation
+                        <i class="bi bi-upload me-1"></i>Lancer l'importation des clubs
                     </button>
                 </div>
             </form>
         </div>
     </div>
 </div>
-
-<script>
-document.querySelectorAll('.btn-import-club').forEach(function(btn) {
-    btn.addEventListener('click', function() {
-        const clubId = btn.getAttribute('data-club-id');
-        const select = document.getElementById('select_import_club');
-        if (select && clubId) {
-            select.value = clubId;
-        }
-    });
-});
-</script>
 {% endblock %}

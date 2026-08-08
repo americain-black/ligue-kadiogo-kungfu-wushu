@@ -240,6 +240,9 @@ def detail_paiement_affiliation(request, pk):
     })
 
 
+from config.emails import envoyer_email_notification
+
+
 @gest_financier_requis
 def valider_paiement_affiliation(request, pk):
     paiement = get_object_or_404(
@@ -253,6 +256,13 @@ def valider_paiement_affiliation(request, pk):
             paiement=paiement, action='VALIDE',
             acteur=request.user, montant=paiement.montant_paye,
         )
+        if paiement.demande.club.email:
+            envoyer_email_notification(
+                destinataires=[paiement.demande.club.email],
+                sujet=f"Paiement d'Affiliation Validé — {paiement.demande.club.nom_club}",
+                titre_entete="Confirmation de Paiement d'Affiliation",
+                contenu_html_ou_texte=f"Le paiement de <strong>{paiement.montant_paye:,.0f} FCFA</strong> pour l'affiliation de votre club <strong>{paiement.demande.club.nom_club}</strong> a été validé par le gestionnaire financier. Votre dossier est transmis au bureau de la ligue pour la décision d'affiliation."
+            )
         messages.success(
             request,
             f"Paiement d'affiliation de « {paiement.demande.club.nom_club} » validé. "
@@ -281,6 +291,14 @@ def rejeter_paiement_affiliation(request, pk):
                 paiement=paiement, action='REJETE',
                 acteur=request.user, montant=paiement.montant_paye, motif=motif,
             )
+            if paiement.demande.club.email:
+                envoyer_email_notification(
+                    destinataires=[paiement.demande.club.email],
+                    sujet=f"Rejet du Paiement d'Affiliation — {paiement.demande.club.nom_club}",
+                    titre_entete="Paiement d'Affiliation Non Validé",
+                    contenu_html_ou_texte=f"Votre preuve de paiement pour l'affiliation du club <strong>{paiement.demande.club.nom_club}</strong> a été rejetée par la commission financière.",
+                    motif_ou_details=motif
+                )
             messages.warning(
                 request,
                 f"Paiement d'affiliation de « {paiement.demande.club.nom_club} » rejeté. "
@@ -355,6 +373,13 @@ def valider_paiement_examen(request, pk):
             paiement=paiement, action='VALIDE',
             acteur=request.user, montant=paiement.montant_paye
         )
+        if paiement.club.email:
+            envoyer_email_notification(
+                destinataires=[paiement.club.email],
+                sujet=f"Paiement d'Examen Validé — {paiement.club.nom_club}",
+                titre_entete="Confirmation de Paiement aux Examens",
+                contenu_html_ou_texte=f"Le paiement de <strong>{paiement.montant_paye:,.0f} FCFA</strong> concernant la session <strong>{paiement.session.nom_session}</strong> pour le club <strong>{paiement.club.nom_club}</strong> a été validé. {nb} inscription(s) sont confirmées."
+            )
         messages.success(
             request,
             f"Paiement de « {paiement.club.nom_club} » validé. "
@@ -441,6 +466,14 @@ def rejeter_paiement_examen(request, pk):
                 paiement=paiement, action='REJETE',
                 acteur=request.user, montant=paiement.montant_paye, motif=motif
             )
+            if paiement.club.email:
+                envoyer_email_notification(
+                    destinataires=[paiement.club.email],
+                    sujet=f"Rejet du Paiement d'Examen — {paiement.club.nom_club}",
+                    titre_entete="Paiement aux Examens Non Validé",
+                    contenu_html_ou_texte=f"Votre preuve de paiement pour la session d'examen <strong>{paiement.session.nom_session}</strong> du club <strong>{paiement.club.nom_club}</strong> a été rejetée par le service financier.",
+                    motif_ou_details=motif
+                )
             messages.warning(
                 request,
                 f"Paiement de « {paiement.club.nom_club} » rejeté. Le club peut resoumettre une preuve."

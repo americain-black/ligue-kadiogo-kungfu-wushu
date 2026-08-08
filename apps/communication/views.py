@@ -252,6 +252,9 @@ def supprimer_actualite(request, pk):
     })
 
 
+from config.emails import envoyer_email_notification
+
+
 @gest_ligue_requis
 def publier_actualite(request, pk):
     actualite = get_object_or_404(
@@ -261,6 +264,13 @@ def publier_actualite(request, pk):
     if request.method == 'POST':
         actualite.est_public = request.POST.get('visibilite', 'public') == 'public'
         actualite.publier(validee_par=request.user)
+        if actualite.club and actualite.club.email:
+            envoyer_email_notification(
+                destinataires=[actualite.club.email],
+                sujet=f"Actualité Publiée — {actualite.titre}",
+                titre_entete="Actualité Validée & Publiée",
+                contenu_html_ou_texte=f"Excellente nouvelle ! L'article <strong>« {actualite.titre} »</strong> soumis par votre club <strong>{actualite.club.nom_club}</strong> a été validé et publié sur la plateforme officielle de la Ligue."
+            )
         messages.success(request, f"Actualité « {actualite.titre} » publiée.")
         return redirect('communication:liste_actualites')
     return render(request, 'communication/confirmer_publication.html', {'actualite': actualite})
@@ -289,7 +299,16 @@ def rejeter_actualite(request, pk):
     if request.method == 'POST':
         form = RejetActualiteForm(request.POST)
         if form.is_valid():
-            actualite.rejeter(motif=form.cleaned_data['motif'])
+            motif = form.cleaned_data['motif']
+            actualite.rejeter(motif=motif)
+            if actualite.club and actualite.club.email:
+                envoyer_email_notification(
+                    destinataires=[actualite.club.email],
+                    sujet=f"Actualité Rejetée — {actualite.titre}",
+                    titre_entete="Actualité Non Retenue",
+                    contenu_html_ou_texte=f"L'article <strong>« {actualite.titre} »</strong> soumis par le club <strong>{actualite.club.nom_club}</strong> n'a pas été retenu pour publication.",
+                    motif_ou_details=motif
+                )
             messages.warning(request, f"Actualité « {actualite.titre} » rejetée.")
             return redirect('communication:liste_actualites')
     else:

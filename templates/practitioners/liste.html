@@ -19,6 +19,9 @@
 {% endblock %}
 
 {% block sidebar %}
+{% if user.est_gest_ligue or user.is_superuser %}
+{% include 'includes/_sidebar_ligue.html' %}
+{% else %}
 <span class="sidebar-title">Navigation</span>
 <a href="{% url 'accounts:dashboard_club' %}" class="nav-link">
     <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
@@ -30,6 +33,7 @@
 <a href="{% url 'exams:club_sessions' %}" class="nav-link">
     <i class="bi bi-journal-check me-2"></i>Sessions d'examen
 </a>
+{% endif %}
 {% endblock %}
 
 {% block content %}

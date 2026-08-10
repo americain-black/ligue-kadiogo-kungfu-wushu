@@ -61,7 +61,7 @@
     <div class="card-header d-flex justify-content-between align-items-center bg-primary text-white">
         <h6 class="mb-0 fw-bold">
             <i class="bi bi-folder2-open me-2"></i>{{ volet.nom_volet }}
-            <span class="badge bg-light text-primary ms-2">{{ volet.membres.count }} membre(s)</span>
+            <span class="badge bg-light text-primary ms-2">{{ volet.membres_du_volet.count }} membre(s)</span>
         </h6>
         <div class="d-flex gap-2">
             <button class="btn btn-sm btn-light"
@@ -85,7 +85,7 @@
     </div>
 
     <div class="card-body p-0">
-        {% if volet.membres.all %}
+        {% if volet.membres_du_volet %}
         <div class="table-responsive">
             <table class="table table-hover mb-0">
                 <thead class="table-light">
@@ -100,7 +100,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    {% for membre in volet.membres.all %}
+                    {% for membre in volet.membres_du_volet %}
                     <tr class="{% if not membre.actif %}table-secondary text-muted{% endif %}">
                         <td class="fw-semibold">
                             {{ membre.prenom }} {{ membre.nom }}
@@ -270,16 +270,16 @@
                 </div>
                 <div class="modal-body">
                     <p>Voulez-vous supprimer le volet <strong>{{ volet.nom_volet }}</strong> ?</p>
-                    {% if volet.membres.exists %}
+                    {% if volet.membres_du_volet.exists %}
                     <div class="alert alert-warning">
                         <i class="bi bi-exclamation-triangle me-1"></i>
-                        Ce volet contient {{ volet.membres.count }} membre(s). Supprimez-les d'abord.
+                        Ce volet contient {{ volet.membres_du_volet.count }} membre(s). Supprimez-les d'abord.
                     </div>
                     {% endif %}
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    {% if not volet.membres.exists %}
+                    {% if not volet.membres_du_volet.exists %}
                     <button type="submit" class="btn btn-danger">
                         <i class="bi bi-trash me-1"></i>Supprimer
                     </button>
@@ -291,7 +291,7 @@
 </div>
 
 <!-- Modals : Modifier chaque membre -->
-{% for membre in volet.membres.all %}
+{% for membre in volet.membres_du_volet %}
 <div class="modal fade" id="modalModifierMembre{{ membre.pk }}" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">

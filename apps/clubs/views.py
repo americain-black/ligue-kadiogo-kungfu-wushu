@@ -543,8 +543,12 @@ def ajouter_membre_club(request, volet_pk):
 def modifier_membre_club(request, pk):
     from apps.ligues.models import MembreOrganigramme
     from apps.ligues.forms import MembreOrganigrammeForm
-    membre = get_object_or_404(MembreOrganigramme, pk=pk)
-    club = membre.club or getattr(request.user, 'club', None)
+    user_club = getattr(request.user, 'club', None)
+    if request.user.is_superuser:
+        membre = get_object_or_404(MembreOrganigramme, pk=pk)
+    else:
+        membre = get_object_or_404(MembreOrganigramme, pk=pk, club=user_club)
+    club = membre.club or user_club
     if request.method == 'POST':
         form = MembreOrganigrammeForm(request.POST, instance=membre)
         if form.is_valid():
@@ -556,8 +560,12 @@ def modifier_membre_club(request, pk):
 @gest_club_requis
 def toggle_actif_membre_club(request, pk):
     from apps.ligues.models import MembreOrganigramme
-    membre = get_object_or_404(MembreOrganigramme, pk=pk)
-    club = membre.club or getattr(request.user, 'club', None)
+    user_club = getattr(request.user, 'club', None)
+    if request.user.is_superuser:
+        membre = get_object_or_404(MembreOrganigramme, pk=pk)
+    else:
+        membre = get_object_or_404(MembreOrganigramme, pk=pk, club=user_club)
+    club = membre.club or user_club
     membre.actif = not membre.actif
     membre.save()
     etat = "activé" if membre.actif else "désactivé"
@@ -568,8 +576,12 @@ def toggle_actif_membre_club(request, pk):
 @gest_club_requis
 def supprimer_membre_club(request, pk):
     from apps.ligues.models import MembreOrganigramme
-    membre = get_object_or_404(MembreOrganigramme, pk=pk)
-    club = membre.club or getattr(request.user, 'club', None)
+    user_club = getattr(request.user, 'club', None)
+    if request.user.is_superuser:
+        membre = get_object_or_404(MembreOrganigramme, pk=pk)
+    else:
+        membre = get_object_or_404(MembreOrganigramme, pk=pk, club=user_club)
+    club = membre.club or user_club
     if request.method == 'POST':
         nom = f"{membre.prenom} {membre.nom}"
         membre.delete()

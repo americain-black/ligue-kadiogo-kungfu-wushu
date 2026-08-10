@@ -126,6 +126,8 @@ def supprimer_ligue(request, pk):
 def organigramme(request):
     ligue = request.user.ligue
     volets = ligue.volets.prefetch_related('membres__club').all()
+    for v in volets:
+        v.membres_du_volet = v.membres.filter(club__isnull=True)
     form_volet = VoletOrganigrammeForm()
     clubs = ligue.clubs.all().order_by('nom_club')
     return render(request, 'ligues/organigramme.html', {
@@ -151,7 +153,7 @@ def organigramme_visuel(request):
     volets = ligue.volets.prefetch_related('membres__club').all()
     for volet in volets:
         volet.membres_actifs = sorted(
-            volet.membres.filter(actif=True),
+            volet.membres.filter(actif=True, club__isnull=True),
             key=lambda m: ordre_fonctions.index(m.fonction) if m.fonction in ordre_fonctions else 999
         )
     return render(request, 'ligues/organigramme_visuel.html', {

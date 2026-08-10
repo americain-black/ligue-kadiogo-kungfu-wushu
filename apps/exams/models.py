@@ -466,7 +466,7 @@ class AnnonceExamenPrevisionnelle(models.Model):
     )
     description = models.TextField(
         blank=True,
-        help_text="Informations et consignes complémentaires pour les pratiquants et présidents de club."
+        help_text="Informations et consignes complémentaires pour les licenciés et présidents de club."
     )
     est_actif = models.BooleanField(
         default=True,

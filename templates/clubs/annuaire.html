@@ -127,17 +127,6 @@
 <section class="py-4 bg-light min-vh-50" id="annuaireClubs">
     <div class="container">
 
-        {% if messages %}
-        <div class="max-w-700 mx-auto mb-4">
-            {% for message in messages %}
-            <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                <i class="bi bi-check-circle-fill me-2"></i>{{ message }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fermer"></button>
-            </div>
-            {% endfor %}
-        </div>
-        {% endif %}
-
         <!-- Barre de recherche automatique / instantanée -->
         <form method="get" action="{% url 'clubs:annuaire' %}" class="lk-recherche" id="formRecherche">
             <div class="d-flex">

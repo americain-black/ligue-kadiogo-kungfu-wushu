@@ -75,7 +75,7 @@ def soumettre_paiement_examen(request, session_pk):
     nb_en_attente = inscriptions_en_attente.count()
 
     if nb_en_attente == 0:
-        messages.info(request, "Tous vos pratiquants inscrits ont déjà un paiement soumis ou validé.")
+        messages.info(request, "Tous vos licenciés inscrits ont déjà un paiement soumis ou validé.")
         return redirect('exams:club_inscriptions', session_pk=session_pk)
 
     # Montant brut (somme des tarifs pour les inscriptions en attente)
@@ -437,7 +437,7 @@ def insuffisant_paiement_examen(request, pk):
             f"Montant reçu : {montant_recu:,.0f} FCFA — "
             f"Montant attendu : {montant_dû:,.0f} FCFA — "
             f"Manque : {manque:,.0f} FCFA. "
-            f"Veuillez compléter le paiement ou retirer les pratiquants non couverts "
+            f"Veuillez compléter le paiement ou retirer les licenciés non couverts "
             f"avant le {date_str}."
         )
         form = InsuffisantPaiementForm(initial={'motif': motif_auto})

@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Pratiquants — {{ club.nom_club }}{% endblock %}
+{% block title %}Licenciés — {{ club.nom_club }}{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -28,7 +28,7 @@
 </a>
 <span class="sidebar-title mt-2">Gestion</span>
 <a href="{% url 'practitioners:liste' %}" class="nav-link active">
-    <i class="bi bi-people me-2"></i>Pratiquants
+    <i class="bi bi-people me-2"></i>Licenciés
 </a>
 <a href="{% url 'exams:club_sessions' %}" class="nav-link">
     <i class="bi bi-journal-check me-2"></i>Sessions d'examen
@@ -67,7 +67,7 @@
             </td>
         </tr>
         <tr>
-            <td colspan="2" style="padding:3px 0;"><strong>Total :</strong> {{ pratiquants|length }} pratiquant(s)</td>
+            <td colspan="2" style="padding:3px 0;"><strong>Total :</strong> {{ pratiquants|length }} licencié(s)</td>
         </tr>
     </table>
 </div>
@@ -85,7 +85,7 @@
     </a>
     {% endif %}
         <div>
-        <h4 class="fw-bold mb-0">Pratiquants</h4>
+        <h4 class="fw-bold mb-0">Licenciés</h4>
         <small class="text-muted">{% if club %}{{ club.nom_club }}{% else %}{{ ligue.nom_ligue }} (Tous les clubs){% endif %}</small>
         </div>
     </div>
@@ -110,7 +110,7 @@
         </button>
         {% if user.est_gest_club %}
         <a href="{% url 'practitioners:ajouter' %}" class="btn btn-success btn-sm">
-            <i class="bi bi-person-plus me-1"></i>Inscrire un pratiquant
+            <i class="bi bi-person-plus me-1"></i>Inscrire un licencié
         </a>
         {% endif %}
     </div>
@@ -125,12 +125,12 @@
             <form method="post" action="{% url 'practitioners:importer' %}" enctype="multipart/form-data">
                 {% csrf_token %}
                 <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title"><i class="bi bi-file-earmark-arrow-up me-2"></i>Importer des pratiquants / athlètes</h5>
+                    <h5 class="modal-title"><i class="bi bi-file-earmark-arrow-up me-2"></i>Importer des licenciés</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <p class="small text-muted">
-                        Téléversez un fichier au format <strong>CSV, Excel (.csv/.xlsx) ou JSON</strong> contenant la liste des pratiquants à inscrire ou mettre à jour.
+                        Téléversez un fichier au format <strong>CSV, Excel (.csv/.xlsx) ou JSON</strong> contenant la liste des licenciés à inscrire ou mettre à jour.
                     </p>
                     {% if user.est_gest_ligue or user.is_superuser %}
                     <div class="mb-3">
@@ -141,7 +141,7 @@
                             <option value="{{ c.pk }}">{{ c.nom_club }} {% if c.sigle_club %}({{ c.sigle_club }}){% endif %}</option>
                             {% endfor %}
                         </select>
-                        <div class="form-text">Si sélectionné, tous les pratiquants importés seront attribués à ce club.</div>
+                        <div class="form-text">Si sélectionné, tous les licenciés importés seront attribués à ce club.</div>
                     </div>
                     {% endif %}
                     <div class="mb-3">
@@ -246,7 +246,7 @@
             <table class="table table-hover mb-0 align-middle">
                 <thead class="table-light">
                     <tr>
-                        <th class="ps-3">Pratiquant</th>
+                        <th class="ps-3">Licencié</th>
                         {% if not club %}<th>Club</th>{% endif %}
                         <th>Sexe</th>
                         <th>Grade</th>
@@ -326,17 +326,17 @@
         </div>
 
         <div class="p-2 border-top text-muted small text-end pe-3">
-            <span id="compteur-affiches">{{ pratiquants|length }}</span> pratiquant(s) affiché(s)
+            <span id="compteur-affiches">{{ pratiquants|length }}</span> licencié(s) affiché(s)
         </div>
         <div id="aucun-resultat-recherche" class="text-center py-5 text-muted" style="display:none;">
             <i class="bi bi-search fs-1 opacity-25 d-block mb-2"></i>
-            Aucun pratiquant ne correspond à cette recherche.
+            Aucun licencié ne correspond à cette recherche.
         </div>
 
         {% else %}
         <div class="text-center py-5 text-muted">
             <i class="bi bi-people fs-1 opacity-25 d-block mb-2"></i>
-            Aucun pratiquant trouvé avec ces filtres.
+            Aucun licencié trouvé avec ces filtres.
             {% if filtre_grade or filtre_sexe or filtre_recherche or filtre == 'inactif' %}
             <a href="{% url 'practitioners:liste' %}" class="d-block mt-2 small">
                 Effacer les filtres

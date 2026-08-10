@@ -246,9 +246,9 @@ def dashboard_club(request):
     # Sessions actives de la ligue — pour le ticker d'information
     _MESSAGES = {
         'EN_PREPARATION':     "est en cours de préparation par la ligue. Vous serez informé dès que les inscriptions seront ouvertes.",
-        'INSCRIPTIONS_OUVERTES': "Les inscriptions sont ouvertes. Inscrivez vos pratiquants et soumettez votre preuve de paiement avant la date de clôture.",
-        'INSCRIPTIONS_CLOSES':   "Les inscriptions sont closes. Vous ne pouvez plus inscrire de nouveaux pratiquants, mais vous pouvez encore régulariser votre paiement si nécessaire.",
-        'EN_COURS':           "L'examen est en cours. Assurez-vous que le paiement de vos pratiquants est bien validé.",
+        'INSCRIPTIONS_OUVERTES': "Les inscriptions sont ouvertes. Inscrivez vos licenciés et soumettez votre preuve de paiement avant la date de clôture.",
+        'INSCRIPTIONS_CLOSES':   "Les inscriptions sont closes. Vous ne pouvez plus inscrire de nouveaux licenciés, mais vous pouvez encore régulariser votre paiement si nécessaire.",
+        'EN_COURS':           "L'examen est en cours. Assurez-vous que le paiement de vos licenciés est bien validé.",
         'CLOTUREE':           "L'examen est terminé. Les résultats sont en cours de traitement par la ligue.",
     }
     _COULEURS = {

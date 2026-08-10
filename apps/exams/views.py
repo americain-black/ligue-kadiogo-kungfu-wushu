@@ -605,7 +605,7 @@ def cloturer_inscriptions(request, pk):
     return render(request, 'exams/session_confirmer_action.html', {
         'session':      session,
         'titre_action': "Clôturer les inscriptions",
-        'message':      f"Voulez-vous clôturer les inscriptions pour « {session.titre} » ? Les clubs ne pourront plus inscrire de pratiquants.",
+        'message':      f"Voulez-vous clôturer les inscriptions pour « {session.titre} » ? Les clubs ne pourront plus inscrire de licenciés.",
         'btn_class':    'btn-warning',
         'btn_label':    "Oui, clôturer les inscriptions",
         'url_action':   reverse('exams:cloturer_inscriptions', args=[pk]),
@@ -1093,11 +1093,11 @@ def reintegrer_inscription(request, pk):
                 )
                 messages.warning(
                     request,
-                    f"Le paiement précédemment validé ne couvre pas ce pratiquant. "
-                    f"Le club doit soumettre un complément de {nouveau_attendu} FCFA."
+                    f"Le paiement précédemment validé ne couvre pas ce licencié. "
+                    f"Veuillez régulariser le paiement."
                 )
         else:
-            messages.error(request, "Ce pratiquant n'est pas exclu.")
+            messages.error(request, "Ce licencié n'est pas exclu.")
     return redirect('exams:traiter_dossier_club', session_pk=insc.session.pk, club_pk=insc.pratiquant.club.pk)
 
 
@@ -1174,11 +1174,11 @@ def valider_liste_club(request, session_pk, club_pk):
                 messages.warning(
                     request,
                     "Aucun modèle de matricule configuré pour cette ligue. "
-                    "Les pratiquants autorisés n'ont pas encore reçu de matricule. "
-                    "Configurez-le dans « Modèle de matricule » puis revalidez."
+                    "Les licenciés autorisés n'ont pas encore reçu de matricule. "
+                    "Définissez d'abord un modèle de matricule dans les paramètres de la ligue."
                 )
 
-            msg = f"Liste de « {club.nom_club} » validée : {nb} pratiquant(s) autorisé(s)."
+            msg = f"Liste de « {club.nom_club} » validée : {nb} licencié(s) autorisé(s)."
             if nb_matricules:
                 msg += f" {nb_matricules} matricule(s) attribué(s) automatiquement."
             messages.success(request, msg)
@@ -1307,7 +1307,7 @@ def inscrire_pratiquant(request, session_pk):
             return redirect('exams:inscrire', session_pk=session_pk)
         pks_coches = request.POST.getlist('pratiquants')
         if not pks_coches:
-            messages.error(request, "Aucun pratiquant sélectionné.")
+            messages.error(request, "Aucun licencié sélectionné.")
         else:
             nb_ok = 0
             bulletins_manquants = []

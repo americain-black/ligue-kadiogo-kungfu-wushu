@@ -12,7 +12,7 @@
     <i class="bi bi-file-earmark-check me-2"></i>Mon affiliation
 </a>
 <a href="{% url 'practitioners:liste' %}" class="nav-link">
-    <i class="bi bi-people me-2"></i>Pratiquants
+    <i class="bi bi-people me-2"></i>Licenciés
 </a>
 <a href="{% url 'exams:club_sessions' %}" class="nav-link">
     <i class="bi bi-journal-check me-2"></i>Sessions d'examen
@@ -108,7 +108,7 @@
         <div class="card stat-card p-3">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <div class="text-muted small">Pratiquants actifs</div>
+                    <div class="text-muted small">Licenciés actifs</div>
                     <div class="fs-3 fw-bold text-success">{{ nb_pratiquants }}</div>
                 </div>
                 <i class="bi bi-people fs-2 text-success opacity-50"></i>
@@ -119,7 +119,7 @@
         <div class="card stat-card p-3">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <div class="text-muted small">Pratiquants inactifs</div>
+                    <div class="text-muted small">Licenciés inactifs</div>
                     <div class="fs-3 fw-bold text-secondary">{{ nb_inactifs }}</div>
                 </div>
                 <i class="bi bi-person-x fs-2 text-secondary opacity-50"></i>
@@ -150,7 +150,7 @@
 <!-- Sessions d'examen -->
 <div class="card mt-4">
     <div class="card-header d-flex justify-content-between align-items-center">
-        <h6 class="mb-0 fw-bold"><i class="bi bi-journal-check me-2"></i>Mes pratiquants par session d'examen</h6>
+        <h6 class="mb-0 fw-bold"><i class="bi bi-journal-check me-2"></i>Mes licenciés par session d'examen</h6>
         <span class="badge bg-secondary">{{ sessions_avec_inscrits|length }}</span>
     </div>
     <div class="card-body p-0">
@@ -205,7 +205,7 @@
         {% else %}
         <div class="text-center py-4 text-muted">
             <i class="bi bi-journal-x fs-2"></i>
-            <p class="mt-2 mb-0">Aucun pratiquant inscrit à une session d'examen pour l'instant.</p>
+            <p class="mt-2 mb-0">Aucun licencié inscrit à une session d'examen pour l'instant.</p>
         </div>
         {% endif %}
     </div>

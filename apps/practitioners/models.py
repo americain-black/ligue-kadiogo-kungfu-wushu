@@ -86,8 +86,8 @@ class Pratiquant(models.Model):
     )
 
     class Meta:
-        verbose_name        = 'Pratiquant'
-        verbose_name_plural = 'Pratiquants'
+        verbose_name        = 'Licencié'
+        verbose_name_plural = 'Licenciés'
         ordering            = ['grade_actuel__id_grade', 'nom', 'prenom']
 
     def __str__(self):

@@ -22,14 +22,6 @@
     </h4>
 </div>
 
-{% if messages %}
-{% for msg in messages %}
-<div class="alert alert-{{ msg.tags }} alert-dismissible fade show">
-    {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-</div>
-{% endfor %}
-{% endif %}
-
 <!-- Bloc inscriptions → BLOQUANT -->
 {% if nb_inscriptions > 0 %}
 <div class="alert alert-danger d-flex gap-3 align-items-start">

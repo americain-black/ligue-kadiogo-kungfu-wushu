@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% block title %}Inscrire des pratiquants — {{ session.titre }}{% endblock %}
+{% block title %}Inscrire des licenciés — {{ session.titre }}{% endblock %}
 
 {% block sidebar %}
 <span class="sidebar-title">Navigation</span>
@@ -8,7 +8,7 @@
 </a>
 <span class="sidebar-title mt-2">Mon club</span>
 <a href="{% url 'practitioners:liste' %}" class="nav-link">
-    <i class="bi bi-people me-2"></i>Pratiquants
+    <i class="bi bi-people me-2"></i>Licenciés
 </a>
 <a href="{% url 'exams:club_sessions' %}" class="nav-link active">
     <i class="bi bi-journal-check me-2"></i>Sessions d'examen
@@ -23,7 +23,7 @@
             › <a href="{% url 'exams:club_inscriptions' session.pk %}">{{ session.titre }}</a>
             › Inscrire
         </small>
-        <h4 class="fw-bold mt-1 mb-0">Inscrire des pratiquants</h4>
+        <h4 class="fw-bold mt-1 mb-0">Inscrire des licenciés</h4>
         <small class="text-muted">{{ session.titre }} — {{ session.date_examen|date:"d/m/Y" }}</small>
     </div>
     <a href="{% url 'exams:club_inscriptions' session.pk %}" class="btn btn-outline-secondary btn-sm">
@@ -31,18 +31,10 @@
     </a>
 </div>
 
-{% if messages %}
-{% for msg in messages %}
-<div class="alert alert-{{ msg.tags }} alert-dismissible fade show">
-    {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-</div>
-{% endfor %}
-{% endif %}
-
 {% if nb_total_dispo == 0 %}
 <div class="alert alert-info">
     <i class="bi bi-info-circle me-2"></i>
-    Tous vos pratiquants actifs sont déjà inscrits à cette session.
+    Tous vos licenciés actifs sont déjà inscrits à cette session.
     <a href="{% url 'exams:club_inscriptions' session.pk %}" class="alert-link ms-2">Voir les inscriptions →</a>
 </div>
 
@@ -66,7 +58,7 @@
                     </option>
                     {% endfor %}
                 </select>
-                <div class="form-text">Seuls les pratiquants possédant le grade précédent apparaîtront.</div>
+                <div class="form-text">Seuls les licenciés possédant le grade précédent apparaîtront.</div>
             </div>
         </form>
     </div>
@@ -77,8 +69,8 @@
 {% if not pratiquants_eligibles %}
 <div class="alert alert-warning">
     <i class="bi bi-exclamation-triangle me-2"></i>
-    Aucun pratiquant de votre club n'est éligible pour le grade <strong>{{ grade_vise.nom }}</strong>.
-    Seuls les pratiquants avec le grade précédent peuvent viser ce grade.
+    Aucun licencié de votre club n'est éligible pour le grade <strong>{{ grade_vise.nom }}</strong>.
+    Seuls les licenciés avec le grade précédent peuvent viser ce grade.
 </div>
 
 {% else %}
@@ -90,7 +82,7 @@
     <div class="card mb-4">
         <div class="card-header py-2 bg-success text-white d-flex justify-content-between align-items-center">
             <h6 class="mb-0 fw-bold">
-                <i class="bi bi-people me-2"></i>Pratiquants éligibles
+                <i class="bi bi-people me-2"></i>Licenciés éligibles
                 <span class="badge bg-white text-success ms-2">{{ pratiquants_eligibles|length }}</span>
             </h6>
             <div class="d-flex gap-2">

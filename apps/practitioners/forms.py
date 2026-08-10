@@ -35,7 +35,7 @@ class PratiquantForm(forms.ModelForm):
             'telephone':      'Téléphone',
             'photo':          'Photo',
             'bulletin_grade': 'Bulletin / attestation de grade',
-            'actif':          'Pratiquant actif',
+            'actif':          'Licencié actif',
         }
 
     def __init__(self, *args, ligue=None, **kwargs):
@@ -55,7 +55,7 @@ class PratiquantForm(forms.ModelForm):
         grade_choisi  = cleaned_data.get('grade_actuel_nom')
         bulletin      = cleaned_data.get('bulletin_grade')
         # Bulletin requis si création ET grade id_grade >= 2
-        # En modification, un bulletin déjà enregistré sur le pratiquant est accepté
+        # En modification, un bulletin déjà enregistré sur le licencié est accepté
         est_creation = not (self.instance and self.instance.pk)
         if grade_choisi and grade_choisi.id_grade >= 2:
             bulletin_existant = (
@@ -65,7 +65,7 @@ class PratiquantForm(forms.ModelForm):
                 self.add_error(
                     'bulletin_grade',
                     "Le bulletin / attestation du grade actuel est obligatoire "
-                    f"pour un pratiquant de grade « {grade_choisi} »."
+                    f"pour un licencié de grade « {grade_choisi} »."
                 )
         return cleaned_data
 

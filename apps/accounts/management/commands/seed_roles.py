@@ -43,8 +43,8 @@ PERMISSIONS = [
     # ── GEST_CLUB — Gestion du club ──────────────────────────────────
     ('soumettre_affiliation',  'Soumettre une demande d affiliation',  'clubs'),
     ('gerer_mon_club',         'Gérer les informations de son club',   'clubs'),
-    ('gerer_pratiquants',      'Gérer les pratiquants de son club',    'pratiquants'),
-    ('gerer_inscriptions',     'Inscrire les pratiquants aux examens', 'examens'),
+    ('gerer_pratiquants',      'Gérer les licenciés de son club',    'pratiquants'),
+    ('gerer_inscriptions',     'Inscrire les licenciés aux examens', 'examens'),
     ('signaler_paiement',      'Signaler un paiement effectué',        'paiements'),
     ('gerer_actualites_club',  'Gérer les actualités de son club',     'communication'),
     ('consulter_resultats',    'Consulter les résultats de son club',  'resultats'),

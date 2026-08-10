@@ -16,7 +16,7 @@
 </a>
 {% endif %}
 <a href="{% url 'practitioners:liste' %}" class="nav-link">
-    <i class="bi bi-people me-2"></i>Pratiquants
+    <i class="bi bi-people me-2"></i>Licenciés
 </a>
 <a href="{% url 'exams:club_sessions' %}" class="nav-link">
     <i class="bi bi-journal-check me-2"></i>Sessions d'examen
@@ -40,14 +40,6 @@
     </a>
     {% endif %}
 </div>
-
-{% if messages %}
-{% for msg in messages %}
-<div class="alert alert-{{ msg.tags }} alert-dismissible fade show">
-    {{ msg }}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-</div>
-{% endfor %}
-{% endif %}
 
 {% if not annee %}
 <div class="alert alert-secondary">

@@ -119,7 +119,7 @@ def ajouter_pratiquant(request):
     grades_json = json.dumps({str(g.pk): g.id_grade for g in grades_qs})
     return render(request, 'practitioners/form.html', {
         'form':        form,
-        'titre':       'Inscrire un pratiquant',
+        'titre':       'Inscrire un licencié',
         'club':        club,
         'grades':      grades_qs,
         'grades_json': grades_json,
@@ -320,7 +320,7 @@ def supprimer_grade(request, pk):
         messages.success(
             request,
             f"Grade « {nom} » supprimé"
-            + (f" — {nb_pratiquants} pratiquant(s) sans grade" if nb_pratiquants else "")
+            + (f" — {nb_pratiquants} licencié(s) sans grade" if nb_pratiquants else "")
             + (f" — {nb_tarifs} tarif(s) supprimé(s)" if nb_tarifs else "")
             + "."
         )
@@ -586,7 +586,7 @@ def importer_pratiquants(request):
             club_defaut = club_choisi
 
     if not club_defaut:
-        messages.error(request, "Aucun club n'est configuré pour importer des pratiquants.")
+        messages.error(request, "Aucun club n'est configuré pour importer des licenciés.")
         return redirect('practitioners:liste')
 
     rows_data = []
@@ -749,7 +749,7 @@ def importer_pratiquants(request):
             )
             nb_crees += 1
 
-    msg = f"Importation réussie : {nb_crees} pratiquant(s) créé(s), {nb_mis_a_jour} mis à jour."
+    msg = f"Importation réussie : {nb_crees} licencié(s) créé(s), {nb_mis_a_jour} mis à jour."
     if nb_erreurs > 0:
         msg += f" ({nb_erreurs} ligne(s) ignorée(s))."
         messages.warning(request, msg)
@@ -762,7 +762,7 @@ def importer_pratiquants(request):
 @login_required
 def telecharger_modele_import(request):
     response = HttpResponse(content_type='text/csv; charset=utf-8-sig')
-    response['Content-Disposition'] = 'attachment; filename="modele_import_pratiquants.csv"'
+    response['Content-Disposition'] = 'attachment; filename="modele_import_licencies.csv"'
     writer = csv.writer(response, delimiter=';')
     writer.writerow(['Nom', 'Prénom', 'Date de naissance', 'Sexe', 'Lieu de naissance', 'Téléphone', 'Grade', 'Code_Club'])
     writer.writerow(['OUEDRAOGO', 'Moussa', '2005-04-12', 'M', 'Ouagadougou', '70000000', 'BLANC', 'CC'])

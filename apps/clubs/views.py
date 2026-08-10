@@ -271,7 +271,7 @@ def supprimer_club(request, pk):
     club = get_object_or_404(Club, pk=pk, ligue=request.user.ligue)
     if request.method == 'POST':
         if club.pratiquants.exists():
-            messages.error(request, f"Impossible de supprimer « {club.nom_club} » : il contient des pratiquants.")
+            messages.error(request, f"Impossible de supprimer « {club.nom_club} » : il contient des licenciés.")
             return redirect('clubs:detail', pk=pk)
         nom = club.nom_club
         club.delete()

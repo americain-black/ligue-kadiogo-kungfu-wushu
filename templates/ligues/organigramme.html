@@ -40,15 +40,6 @@
     </div>
 </div>
 
-{% if messages %}
-    {% for msg in messages %}
-    <div class="alert alert-{{ msg.tags }} alert-dismissible fade show" role="alert">
-        {{ msg }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-    {% endfor %}
-{% endif %}
-
 {% if not volets %}
 <div class="text-center py-5 text-muted">
     <i class="bi bi-diagram-3 fs-1"></i>

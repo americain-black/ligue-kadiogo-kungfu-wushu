@@ -8,7 +8,7 @@
 </a>
 <span class="sidebar-title mt-2">Mon club</span>
 <a href="{% url 'practitioners:liste' %}" class="nav-link">
-    <i class="bi bi-people me-2"></i>Pratiquants
+    <i class="bi bi-people me-2"></i>Licenciés
 </a>
 <a href="{% url 'exams:club_sessions' %}" class="nav-link active">
     <i class="bi bi-journal-check me-2"></i>Sessions d'examen
@@ -45,7 +45,7 @@
                     <td class="small">{{ club.nom_club }}</td>
                 </tr>
                 <tr>
-                    <td class="text-muted small">Pratiquants inscrits</td>
+                    <td class="text-muted small">Licenciés inscrits</td>
                     <td class="small"><span class="badge bg-secondary">{{ nb_en_attente }}</span></td>
                 </tr>
                 <tr class="border-top">

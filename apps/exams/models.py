@@ -332,6 +332,12 @@ class AffectationJury(models.Model):
         related_name='affectations_jury',
         verbose_name='Rubriques à évaluer'
     )
+    rubrique_grades = models.ManyToManyField(
+        RubriqueGrade,
+        blank=True,
+        related_name='affectations_jury',
+        verbose_name='Épreuves (Grade + Rubrique) à évaluer'
+    )
     date_affectation = models.DateTimeField(auto_now_add=True)
 
     class Meta:

@@ -18,74 +18,106 @@
         <h4 class="fw-bold mb-0">Tableau de bord</h4>
         <small class="text-muted">Bonjour, {{ user.get_full_name|default:user.username }}</small>
     </div>
-    <span class="badge bg-secondary px-3 py-2 fs-6">Jury</span>
+    <span class="badge bg-primary px-3 py-2 fs-6"><i class="bi bi-award-fill me-1"></i>Membre du Jury</span>
 </div>
 
-{% if sessions_en_cours %}
-<div class="alert alert-primary d-flex justify-content-between align-items-center mb-4">
+{% if affectations %}
+<div class="alert alert-info d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2 shadow-sm border-0" style="background:#e8f4fd; color:#0c5460;">
     <div>
-        <i class="bi bi-play-circle-fill me-2"></i>
-        <strong>{{ sessions_en_cours|length }} session(s) en cours</strong> — la saisie des notes est ouverte.
+        <i class="bi bi-info-circle-fill fs-5 me-2 align-middle text-primary"></i>
+        <strong>Jury affecté</strong> — {{ affectations|length }} session(s) d'examen à évaluer.
+    </div>
+</div>
+{% endif %}
+
+{% if sessions_en_cours %}
+<div class="alert alert-success d-flex justify-content-between align-items-center mb-4 shadow-sm border-0" style="background:#d1e7dd; color:#0f5132;">
+    <div>
+        <i class="bi bi-play-circle-fill fs-5 me-2 align-middle text-success"></i>
+        <strong>{{ sessions_en_cours|length }} session(s) en cours</strong> — La saisie des notes d'évaluation est ouverte.
     </div>
 </div>
 {% endif %}
 
 <!-- Mes sessions affectées -->
-<div class="card p-3">
-    <h6 class="fw-bold mb-3">
-        <i class="bi bi-person-badge me-2 text-muted"></i>
-        Mes sessions d'examen
-        <span class="badge bg-secondary ms-1">{{ affectations|length }}</span>
+<div class="card p-3 shadow-sm border-0">
+    <h6 class="fw-bold mb-3 text-uppercase text-muted" style="letter-spacing:0.04em;">
+        <i class="bi bi-person-badge me-2 text-primary"></i>
+        Mes sessions d'examen d'affectation
+        <span class="badge bg-primary ms-1">{{ affectations|length }}</span>
     </h6>
 
     {% if affectations %}
-    <table class="table table-hover table-sm align-middle mb-0">
-        <thead class="table-light">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th class="ps-3">Session</th>
+                    <th>Date & Lieu</th>
+                    <th>Périmètre attribué</th>
+                    <th>Statut</th>
+                    <th class="text-end pe-3">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for aff in affectations %}
             <tr>
-                <th>Session</th>
-                <th>Année sportive</th>
-                <th>Date examen</th>
-                <th>Lieu</th>
-                <th>Statut</th>
-                <th class="text-center">Action</th>
+                <td class="ps-3">
+                    <strong class="text-dark d-block">{{ aff.session.titre }}</strong>
+                    <span class="small text-muted"><i class="bi bi-calendar-range me-1"></i>Année {{ aff.session.annee_sportive.libelle }}</span>
+                </td>
+                <td>
+                    <div class="small fw-semibold"><i class="bi bi-calendar-event me-1 text-primary"></i>{{ aff.session.date_examen|date:"d/m/Y" }}</div>
+                    <div class="small text-muted"><i class="bi bi-geo-alt me-1"></i>{{ aff.session.lieu }}</div>
+                </td>
+                <td>
+                    <div class="d-flex flex-wrap gap-1 align-items-center">
+                        <span class="badge bg-light text-dark border">
+                            <i class="bi bi-award me-1 text-warning"></i>{{ aff.grades.count }} grade(s)
+                        </span>
+                        <span class="badge bg-light text-dark border">
+                            <i class="bi bi-tags me-1 text-info"></i>{{ aff.options.count }} option(s)
+                        </span>
+                        <span class="badge bg-light text-dark border">
+                            <i class="bi bi-list-check me-1 text-success"></i>{{ aff.rubrique_grades.count|default:aff.rubriques.count }} rubrique(s)
+                        </span>
+                    </div>
+                </td>
+                <td>
+                    {% if aff.session.statut == 'EN_PREPARATION' %}
+                        <span class="badge bg-secondary">En préparation</span>
+                    {% elif aff.session.statut == 'INSCRIPTIONS_OUVERTES' %}
+                        <span class="badge bg-info text-dark">Inscriptions ouvertes</span>
+                    {% elif aff.session.statut == 'INSCRIPTIONS_CLOSES' %}
+                        <span class="badge bg-warning text-dark">Inscriptions closes</span>
+                    {% elif aff.session.statut == 'EN_COURS' %}
+                        <span class="badge bg-success"><i class="bi bi-broadcast me-1"></i>En cours (notation ouverte)</span>
+                    {% elif aff.session.statut == 'CLOTUREE' %}
+                        <span class="badge bg-dark">Clôturée</span>
+                    {% elif aff.session.statut == 'RESULTATS_PUBLIES' %}
+                        <span class="badge bg-primary">Résultats publiés</span>
+                    {% endif %}
+                </td>
+                <td class="text-end pe-3">
+                    <div class="d-flex justify-content-end gap-2">
+                        <a href="{% url 'accounts:detail_affectation_jury' aff.pk %}"
+                           class="btn btn-sm btn-outline-primary">
+                            <i class="bi bi-eye me-1"></i>Voir mon affectation
+                        </a>
+                        {% if aff.session.statut == 'EN_COURS' %}
+                        <a href="{% url 'evaluations:interface_notation' aff.session.pk %}"
+                           class="btn btn-sm btn-success">
+                            <i class="bi bi-pencil-square me-1"></i>Noter les candidats
+                        </a>
+                        {% endif %}
+                    </div>
+                </td>
             </tr>
-        </thead>
-        <tbody>
-        {% for aff in affectations %}
-        <tr>
-            <td><strong>{{ aff.session.titre }}</strong></td>
-            <td class="small text-muted">{{ aff.session.annee_sportive.libelle }}</td>
-            <td>{{ aff.session.date_examen|date:"d/m/Y" }}</td>
-            <td class="small text-muted">{{ aff.session.lieu }}</td>
-            <td>
-                {% if aff.session.statut == 'EN_PREPARATION' %}
-                    <span class="badge bg-secondary">En préparation</span>
-                {% elif aff.session.statut == 'INSCRIPTIONS_OUVERTES' %}
-                    <span class="badge bg-success">Inscriptions ouvertes</span>
-                {% elif aff.session.statut == 'INSCRIPTIONS_CLOSES' %}
-                    <span class="badge bg-warning text-dark">Inscriptions closes</span>
-                {% elif aff.session.statut == 'EN_COURS' %}
-                    <span class="badge bg-primary">En cours — noter</span>
-                {% elif aff.session.statut == 'CLOTUREE' %}
-                    <span class="badge bg-dark">Clôturée</span>
-                {% elif aff.session.statut == 'RESULTATS_PUBLIES' %}
-                    <span class="badge bg-info">Résultats publiés</span>
-                {% endif %}
-            </td>
-            <td class="text-center">
-                {% if aff.session.statut == 'EN_COURS' %}
-                <a href="{% url 'evaluations:interface_notation' aff.session.pk %}"
-                   class="btn btn-sm btn-primary">
-                    <i class="bi bi-pencil-square me-1"></i>Noter
-                </a>
-                {% else %}
-                    <span class="text-muted small">—</span>
-                {% endif %}
-            </td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
     {% else %}
     <div class="text-center py-5 text-muted">
         <i class="bi bi-journal-x fs-1 opacity-25 d-block mb-2"></i>

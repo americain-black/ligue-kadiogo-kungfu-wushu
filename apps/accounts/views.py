@@ -42,12 +42,14 @@ def accueil(request):
     }
 
     if ligue:
+        from apps.exams.models import Inscription
         contexte['nb_clubs_affilies'] = Club.objects.filter(
             ligue=ligue, statut_club='AFFILIE'
         ).count()
-        contexte['nb_pratiquants'] = Pratiquant.objects.filter(
-            club__ligue=ligue
-        ).count()
+        contexte['nb_licencies'] = Pratiquant.objects.filter(
+            club__ligue=ligue,
+            inscriptions__statut__in=['PAIEMENT_VALIDE', 'AUTORISE']
+        ).distinct().count()
         contexte['nb_total_clubs'] = Club.objects.filter(
             ligue=ligue
         ).count()
@@ -324,12 +326,28 @@ def dashboard_jury(request):
         AffectationJury.objects
         .filter(jury=request.user)
         .select_related('session', 'session__annee_sportive')
+        .prefetch_related('grades', 'options', 'rubriques', 'rubrique_grades__grade', 'rubrique_grades__rubrique')
         .order_by('-session__date_examen')
     )
     sessions_en_cours = [a.session for a in affectations if a.session.statut == 'EN_COURS']
     return render(request, 'accounts/dashboard_jury.html', {
-        'affectations':    affectations,
+        'affectations':      affectations,
         'sessions_en_cours': sessions_en_cours,
+    })
+
+
+@login_required
+def detail_affectation_jury(request, pk):
+    from apps.exams.models import AffectationJury
+    affectation = get_object_or_404(
+        AffectationJury.objects.select_related('session', 'session__annee_sportive')
+        .prefetch_related('options', 'rubrique_grades__grade', 'rubrique_grades__rubrique'),
+        pk=pk,
+        jury=request.user
+    )
+    return render(request, 'accounts/detail_affectation_jury.html', {
+        'aff': affectation,
+        'session': affectation.session,
     })
 
 

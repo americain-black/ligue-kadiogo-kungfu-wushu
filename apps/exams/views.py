@@ -863,15 +863,56 @@ def retirer_jury(request, pk):
     )
     session_pk = affectation.session.pk
     if request.method == 'POST':
-        nom = str(affectation.jury)
+        nom = str(affectation.jury.get_full_name() or affectation.jury.username)
         affectation.delete()
-        messages.success(request, f"{nom} retiré du jury.")
-    return redirect('exams:detail', pk=session_pk)
+        messages.success(request, f"Membre du jury « {nom} » retiré. Ses épreuves attribuées sont à nouveau libres.")
+    return redirect('exams:liste_jury_affecte', session_pk=session_pk)
+
+
+@gest_ligue_requis
+def liste_jury_affecte(request, session_pk):
+    session = get_object_or_404(
+        SessionExamen, pk=session_pk,
+        annee_sportive__ligue=request.user.ligue
+    )
+    affectations = (
+        session.affectations_jury
+        .select_related('jury')
+        .prefetch_related('grades', 'options', 'rubriques', 'rubrique_grades__grade', 'rubrique_grades__rubrique')
+        .order_by('date_affectation')
+    )
+    return render(request, 'exams/liste_jury_affecte.html', {
+        'session': session,
+        'affectations': affectations,
+    })
+
+
+@gest_ligue_requis
+def imprimer_affectations_jury(request, session_pk):
+    session = get_object_or_404(
+        SessionExamen, pk=session_pk,
+        annee_sportive__ligue=request.user.ligue
+    )
+    affectation_id = request.GET.get('affectation_id')
+    affectations = (
+        session.affectations_jury
+        .select_related('jury')
+        .prefetch_related('grades', 'options', 'rubrique_grades__grade', 'rubrique_grades__rubrique')
+        .order_by('jury__last_name', 'jury__first_name')
+    )
+    single_aff = None
+    if affectation_id and affectation_id.isdigit():
+        single_aff = affectations.filter(pk=int(affectation_id)).first()
+
+    return render(request, 'exams/imprimer_affectations_jury.html', {
+        'session': session,
+        'affectations': affectations,
+        'single_aff': single_aff,
+    })
 
 
 @gest_ligue_requis
 def gestion_jury(request, pk):
-    import json
     session = get_object_or_404(
         SessionExamen, pk=pk,
         annee_sportive__ligue=request.user.ligue
@@ -883,18 +924,14 @@ def gestion_jury(request, pk):
             aff = form.save(commit=False)
             aff.session = session
             aff.save()
-            messages.success(request, f"{aff.jury} ajouté au jury.")
+            messages.success(request, f"Membre du jury « {aff.jury} » ajouté. Veuillez configurer son périmètre d'évaluation.")
+            return redirect('exams:configurer_jury', session_pk=pk, affectation_pk=aff.pk)
         else:
             messages.error(request, "Impossible d'ajouter ce membre du jury.")
         return redirect('exams:gestion_jury', pk=pk)
 
     jury_form    = AffectationJuryForm(session=session, ligue=ligue)
-    affectations = (
-        session.affectations_jury
-        .select_related('jury')
-        .prefetch_related('grades', 'options', 'rubriques')
-        .order_by('date_affectation')
-    )
+    affectations = session.affectations_jury.all()
     return render(request, 'exams/gestion_jury.html', {
         'session':      session,
         'jury_form':    jury_form,
@@ -926,37 +963,50 @@ def configurer_jury(request, session_pk, affectation_pk):
     for rg in rubrique_grades:
         gid = str(rg.grade_id)
         rubriques_par_grade.setdefault(gid, []).append({
-            'pk': rg.rubrique_id, 'nom': rg.rubrique.nom
+            'rg_pk': rg.pk,
+            'rubrique_id': rg.rubrique_id,
+            'nom': rg.rubrique.nom,
+            'coeff': rg.coefficient
         })
 
     if request.method == 'POST':
-        grade_ids    = request.POST.getlist('grades')
-        option_ids   = request.POST.getlist('options')
-        rubrique_ids = request.POST.getlist('rubriques')
-        affectation.grades.set(GradeModel.objects.filter(pk__in=grade_ids))
-        affectation.options.set(OptionExamen.objects.filter(pk__in=option_ids))
-        affectation.rubriques.set(Rubrique.objects.filter(pk__in=rubrique_ids))
-        messages.success(request, f"Configuration de {affectation.jury} enregistrée.")
-        return redirect('exams:gestion_jury', pk=session_pk)
+        grade_ids          = request.POST.getlist('grades')
+        option_ids         = request.POST.getlist('options')
+        rubrique_grade_ids = request.POST.getlist('rubrique_grades')
 
-    # Rubriques déjà prises par les AUTRES jury de cette session
-    rubriques_prises = set(
+        selected_rgs = RubriqueGrade.objects.filter(pk__in=rubrique_grade_ids).select_related('grade', 'rubrique')
+        affectation.rubrique_grades.set(selected_rgs)
+
+        derived_grade_ids = {rg.grade_id for rg in selected_rgs} | {int(g) for g in grade_ids if g.isdigit()}
+        derived_rubrique_ids = {rg.rubrique_id for rg in selected_rgs}
+
+        affectation.grades.set(GradeModel.objects.filter(pk__in=derived_grade_ids))
+        affectation.options.set(OptionExamen.objects.filter(pk__in=option_ids))
+        affectation.rubriques.set(Rubrique.objects.filter(pk__in=derived_rubrique_ids))
+        messages.success(request, f"Configuration de {affectation.jury} enregistrée.")
+        return redirect('exams:liste_jury_affecte', session_pk=session_pk)
+
+    # RubriqueGrade.pk déjà prises par d'AUTRES membres du jury sur cette session
+    autres_affectations = (
         AffectationJury.objects
         .filter(session=session)
         .exclude(pk=affectation.pk)
-        .values_list('rubriques__pk', flat=True)
-    ) - {None}
+        .prefetch_related('rubrique_grades')
+    )
+    rg_prises = set()
+    for o_aff in autres_affectations:
+        rg_prises.update(o_aff.rubrique_grades.values_list('pk', flat=True))
 
     return render(request, 'exams/configurer_jury.html', {
-        'session':             session,
-        'affectation':         affectation,
-        'grades':              grades,
-        'options':             options,
-        'rubriques_par_grade': json.dumps(rubriques_par_grade),
-        'grades_affectes':     set(affectation.grades.values_list('pk', flat=True)),
-        'options_affectees':   set(affectation.options.values_list('pk', flat=True)),
-        'rubriques_affectees': set(affectation.rubriques.values_list('pk', flat=True)),
-        'rubriques_prises':    json.dumps(list(rubriques_prises)),
+        'session':                    session,
+        'affectation':                affectation,
+        'grades':                     grades,
+        'options':                    options,
+        'rubriques_par_grade':        json.dumps(rubriques_par_grade),
+        'grades_affectes':            set(affectation.grades.values_list('pk', flat=True)),
+        'options_affectees':          set(affectation.options.values_list('pk', flat=True)),
+        'rubrique_grades_affectees': set(affectation.rubrique_grades.values_list('pk', flat=True)),
+        'rubrique_grades_prises':    json.dumps(list(rg_prises)),
     })
 
 

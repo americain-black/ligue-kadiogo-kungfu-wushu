@@ -131,37 +131,43 @@
 <script>
 // Données injectées depuis la vue
 const RUBRIQUES_PAR_GRADE = {{ rubriques_par_grade|safe }};
-// Rubriques déjà affectées à CE jury
-const RUBRIQUES_AFFECTEES = new Set([{% for pk in rubriques_affectees %}{{ pk }},{% endfor %}]);
-// Rubriques déjà prises par d'AUTRES jury (à masquer)
-const RUBRIQUES_PRISES = new Set({{ rubriques_prises|safe }});
+// RubriqueGrade.pk déjà affectées à CE jury
+const RG_AFFECTEES = new Set([{% for pk in rubrique_grades_affectees %}{{ pk }},{% endfor %}]);
+// RubriqueGrade.pk déjà prises par d'AUTRES jury sur cette session
+const RG_PRISES = new Set({{ rubrique_grades_prises|safe }});
 
 function renderRubriques(gradeId) {
     const container = document.getElementById('rubrique-items-' + gradeId);
     const noRub     = document.getElementById('no-rubrique-' + gradeId);
+    if (!container || !noRub) return;
+
     const rubriques = RUBRIQUES_PAR_GRADE[String(gradeId)] || [];
 
-    // Filtrer : garder celles non prises par d'autres (ou déjà affectées à ce jury)
-    const disponibles = rubriques.filter(r => !RUBRIQUES_PRISES.has(r.pk) || RUBRIQUES_AFFECTEES.has(r.pk));
+    // Filtrer : garder celles non prises par d'autres pour CE grade (ou déjà affectées à ce jury)
+    const disponibles = rubriques.filter(r => !RG_PRISES.has(r.rg_pk) || RG_AFFECTEES.has(r.rg_pk));
 
     if (disponibles.length === 0) {
         container.innerHTML = '';
         noRub.style.display = 'block';
         noRub.textContent   = rubriques.length > 0
-            ? 'Toutes les rubriques de ce grade sont déjà affectées à un autre jury.'
+            ? 'Toutes les épreuves (rubriques) de ce grade sont déjà affectées à un autre jury.'
             : 'Aucune rubrique définie pour ce grade.';
         return;
     }
     noRub.style.display = 'none';
+
+    // Générer un ID unique par RubriqueGrade : "rg-${r.rg_pk}"
     container.innerHTML = disponibles.map(r => `
         <div class="check-item">
             <input type="checkbox"
-                   name="rubriques"
-                   value="${r.pk}"
-                   id="rub-${r.pk}"
+                   name="rubrique_grades"
+                   value="${r.rg_pk}"
+                   id="rg-${r.rg_pk}"
                    class="form-check-input mt-0"
-                   ${RUBRIQUES_AFFECTEES.has(r.pk) ? 'checked' : ''}>
-            <label for="rub-${r.pk}">${r.nom}</label>
+                   ${RG_AFFECTEES.has(r.rg_pk) ? 'checked' : ''}>
+            <label for="rg-${r.rg_pk}">
+                ${r.nom} <span class="badge bg-light text-dark border ms-1">Coeff ${r.coeff}</span>
+            </label>
         </div>
     `).join('');
 }
@@ -171,18 +177,20 @@ function handleGradeCheck(gradeId, isChecked) {
     const icon   = document.getElementById('icon-' + gradeId);
     if (isChecked) {
         renderRubriques(gradeId);
-        rubDiv.classList.add('visible');
-        icon.classList.replace('bi-chevron-down', 'bi-chevron-up');
+        if (rubDiv) rubDiv.classList.add('visible');
+        if (icon) icon.classList.replace('bi-chevron-down', 'bi-chevron-up');
     } else {
-        rubDiv.classList.remove('visible');
-        icon.classList.replace('bi-chevron-up', 'bi-chevron-down');
-        // Décocher toutes les rubriques de ce grade
-        rubDiv.querySelectorAll('input[type=checkbox]').forEach(cb => cb.checked = false);
+        if (rubDiv) {
+            rubDiv.classList.remove('visible');
+            rubDiv.querySelectorAll('input[type=checkbox]').forEach(cb => cb.checked = false);
+        }
+        if (icon) icon.classList.replace('bi-chevron-up', 'bi-chevron-down');
     }
 }
 
 function toggleGrade(gradeId) {
     const cb = document.getElementById('grade-' + gradeId);
+    if (!cb) return;
     cb.checked = !cb.checked;
     handleGradeCheck(gradeId, cb.checked);
 }
@@ -190,7 +198,10 @@ function toggleGrade(gradeId) {
 // Initialiser les grades déjà cochés
 document.addEventListener('DOMContentLoaded', () => {
     document.querySelectorAll('.grade-cb:checked').forEach(cb => {
-        renderRubriques(parseInt(cb.dataset.grade));
+        const gradeId = parseInt(cb.dataset.grade, 10);
+        if (gradeId) {
+            renderRubriques(gradeId);
+        }
     });
 });
 </script>

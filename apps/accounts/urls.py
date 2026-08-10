@@ -47,6 +47,7 @@ urlpatterns = [
     path('club/',            views.dashboard_club,        name='dashboard_club'),
     path('financier/',       views.dashboard_financier,   name='dashboard_financier'),
     path('jury/',            views.dashboard_jury,        name='dashboard_jury'),
+    path('jury/affectation/<int:pk>/', views.detail_affectation_jury, name='detail_affectation_jury'),
 
     # Profil utilisateur
     path('mon-profil/',                            views.mon_profil,               name='mon_profil'),

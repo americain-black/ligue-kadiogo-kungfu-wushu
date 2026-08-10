@@ -75,6 +75,17 @@
     }
     .tree ul {
         margin-top: 1.5em;
+        position: relative;
+    }
+    /* Tige verticale partant du nœud parent vers le connecteur horizontal */
+    .tree ul:before {
+        content: "";
+        position: absolute;
+        top: -1.5em;
+        left: 50%;
+        height: 0.75em;
+        border-left: 2px solid #475569;
+        transform: translateX(-50%);
     }
     .tree li {
         display: table-cell;
@@ -82,7 +93,7 @@
         vertical-align: top;
     }
     .tree li:before {
-        outline: solid 1px #333;
+        border-top: 2px solid #475569;
         content: "";
         left: 0;
         position: absolute;
@@ -94,16 +105,18 @@
     .tree li:only-child:before  { display: none; }
 
     .tree li > .noeud:before {
-        outline: solid 1px #333;
+        border-left: 2px solid #475569;
         content: "";
         height: .75em;
         left: 50%;
         position: absolute;
         top: -0.75em;
+        transform: translateX(-50%);
     }
     .tree > li:before,
     .tree > li > .noeud:before {
-        outline: none;
+        display: none !important;
+        border: none !important;
     }
 
     .tree .noeud {

@@ -1,0 +1,141 @@
+{% extends 'base.html' %}
+{% block title %}Mon Affectation Jury — {{ session.titre }}{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_jury' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Mes sessions</span>
+<a href="{% url 'accounts:dashboard_jury' %}" class="nav-link active">
+    <i class="bi bi-journal-check me-2"></i>Sessions affectées
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-4 flex-wrap gap-2">
+    <div class="d-flex align-items-center gap-3">
+        <a href="{% url 'accounts:dashboard_jury' %}" class="btn-action btn-action-edit flex-shrink-0" title="Retour au tableau de bord" data-bs-toggle="tooltip">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+            <small class="text-muted">
+                <a href="{% url 'accounts:dashboard_jury' %}">Tableau de bord</a> › Affectation Jury
+            </small>
+            <h4 class="fw-bold mb-0 mt-1">
+                <i class="bi bi-person-badge me-2 text-primary"></i>Affectation Jury — {{ session.titre }}
+            </h4>
+        </div>
+    </div>
+    {% if session.statut == 'EN_COURS' %}
+    <a href="{% url 'evaluations:interface_notation' session.pk %}" class="btn btn-success">
+        <i class="bi bi-pencil-square me-1"></i>Accéder à la grille de notation
+    </a>
+    {% endif %}
+</div>
+
+<!-- Card 1 : Informations générales -->
+<div class="card p-4 shadow-sm border-0 mb-4 bg-white">
+    <h6 class="fw-bold text-primary mb-3">
+        <i class="bi bi-journal-text me-2"></i>Informations générales sur la session
+    </h6>
+    <div class="row g-3">
+        <div class="col-md-6 col-lg-3">
+            <div class="p-2 bg-light rounded">
+                <small class="text-muted d-block">Session d'examen</small>
+                <span class="fw-bold text-dark">{{ session.titre }}</span>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="p-2 bg-light rounded">
+                <small class="text-muted d-block">Année sportive</small>
+                <span class="fw-semibold text-dark">{{ session.annee_sportive.libelle }}</span>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="p-2 bg-light rounded">
+                <small class="text-muted d-block">Date de l'examen</small>
+                <span class="fw-semibold text-primary"><i class="bi bi-calendar-event me-1"></i>{{ session.date_examen|date:"d/m/Y" }}</span>
+            </div>
+        </div>
+        <div class="col-md-6 col-lg-3">
+            <div class="p-2 bg-light rounded">
+                <small class="text-muted d-block">Lieu</small>
+                <span class="fw-semibold text-dark"><i class="bi bi-geo-alt me-1 text-danger"></i>{{ session.lieu }}</span>
+            </div>
+        </div>
+    </div>
+    <div class="mt-3 pt-3 border-top d-flex align-items-center gap-2">
+        <strong class="small text-muted">Statut de la session :</strong>
+        {% if session.statut == 'EN_COURS' %}
+            <span class="badge bg-success fs-6"><i class="bi bi-broadcast me-1"></i>En cours — Saisie des notes ouverte</span>
+        {% else %}
+            <span class="badge bg-secondary fs-6">{{ session.get_statut_display }}</span>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Card 2 : Options / Styles attribués (si présents) -->
+{% if aff.options.all %}
+<div class="card p-4 shadow-sm border-0 mb-4 bg-white">
+    <h6 class="fw-bold text-dark mb-2">
+        <i class="bi bi-tags me-2 text-info"></i>Options / Styles attribués
+    </h6>
+    <div class="d-flex flex-wrap gap-2 mt-2">
+        {% for opt in aff.options.all %}
+            <span class="badge bg-info text-dark px-3 py-2 fs-6">
+                <i class="bi bi-tag-fill me-1"></i>{{ opt.nom }}
+            </span>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- Card 3 : Périmètre d'Évaluation (Grade & Rubriques concernées) -->
+<div class="card p-4 shadow-sm border-0 bg-white">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="fw-bold text-dark mb-0">
+            <i class="bi bi-list-check me-2 text-success"></i>Périmètre d'évaluation attribué (Grades & Rubriques concernées)
+        </h6>
+    </div>
+
+    {% if aff.rubrique_grades.all %}
+        <div class="table-responsive">
+            <table class="table table-hover table-bordered align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 35%;" class="ps-3 py-3">Grade concerné</th>
+                        <th class="py-3">Rubriques concernées pour ce grade</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% regroup aff.rubrique_grades.all by grade as grade_group_list %}
+                    {% for group in grade_group_list %}
+                    <tr>
+                        <td class="ps-3 py-3">
+                            <span class="badge bg-primary px-3 py-2 fs-6">
+                                <i class="bi bi-award-fill me-1 text-warning"></i>{{ group.grouper.nom }}
+                            </span>
+                        </td>
+                        <td class="py-3">
+                            <div class="d-flex flex-wrap gap-2 align-items-center">
+                                {% for rg in group.list %}
+                                    <span class="badge bg-success bg-opacity-10 text-success border border-success px-3 py-2 fs-6">
+                                        <i class="bi bi-check-circle-fill me-1"></i>{{ rg.rubrique.nom }}
+                                    </span>
+                                {% endfor %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    {% else %}
+        <div class="alert alert-info py-3 px-3 mb-0">
+            <i class="bi bi-info-circle-fill me-2"></i>
+            Vous n'avez pas de restriction spécifique d'épreuve : vous êtes habilité(e) à évaluer <strong>toutes les épreuves et rubriques</strong> des candidats attribués à cette session.
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

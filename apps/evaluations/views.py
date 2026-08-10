@@ -160,6 +160,13 @@ def detail_candidat(request, session_id, inscription_id):
         grade=inscription.grade_vise, actif=True
     ).select_related('rubrique')
 
+    affectation = AffectationJury.objects.filter(session=session, jury=user).first()
+    if est_jury and not est_gl and affectation:
+        if affectation.grades.exists() and inscription.grade_vise not in affectation.grades.all():
+            rubriques = RubriqueGrade.objects.none()
+        elif affectation.rubrique_grades.exists():
+            rubriques = rubriques.filter(pk__in=affectation.rubrique_grades.values_list('pk', flat=True))
+
     notes_existantes = {
         n.rubrique_grade_id: n
         for n in NoteRubrique.objects.filter(
@@ -204,6 +211,11 @@ def saisir_note(request, session_id, inscription_id, rubrique_grade_id):
     affectation = get_object_or_404(
         AffectationJury, session_id=session_id, jury=request.user
     )
+
+    if affectation.grades.exists() and inscription.grade_vise not in affectation.grades.all():
+        return JsonResponse({'erreur': "Vous n'êtes pas affecté à ce grade."}, status=403)
+    if affectation.rubrique_grades.exists() and rubrique_grade not in affectation.rubrique_grades.all():
+        return JsonResponse({'erreur': "Vous n'êtes pas affecté à cette épreuve pour ce grade."}, status=403)
 
     note, _ = NoteRubrique.objects.get_or_create(
         inscription=inscription,

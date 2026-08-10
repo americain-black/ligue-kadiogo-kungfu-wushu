@@ -1,0 +1,165 @@
+{% extends 'base.html' %}
+{% block title %}Jurys affectés — {{ session.titre }}{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Examens</span>
+<a href="{% url 'exams:liste' %}" class="nav-link active">
+    <i class="bi bi-journal-check me-2"></i>Sessions d'examen
+</a>
+<a href="{% url 'exams:detail' session.pk %}" class="nav-link ps-4">
+    <i class="bi bi-arrow-left me-2"></i>Retour à la session
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div class="d-flex align-items-center gap-3">
+        <a href="{% url 'exams:detail' session.pk %}" class="btn-action btn-action-edit flex-shrink-0" title="Retour à la session" data-bs-toggle="tooltip">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+            <small class="text-muted">
+                <a href="{% url 'exams:liste' %}">Sessions</a> ›
+                <a href="{% url 'exams:detail' session.pk %}">{{ session.titre }}</a> › Liste des jurys affectés
+            </small>
+            <h4 class="fw-bold mt-1 mb-0">
+                <i class="bi bi-people-fill me-2 text-primary"></i>Liste des jurys affectés
+                <span class="badge bg-primary ms-1 fs-6">{{ affectations|length }}</span>
+            </h4>
+            <small class="text-muted">{{ session.titre }} — {{ session.date_examen|date:"d/m/Y" }}</small>
+        </div>
+    </div>
+    <div class="d-flex gap-2 align-items-center flex-wrap">
+        <a href="{% url 'exams:gestion_jury' session.pk %}" class="btn btn-primary">
+            <i class="bi bi-plus-lg me-1"></i>Affecter un membre
+        </a>
+        {% if affectations %}
+        <a href="{% url 'exams:imprimer_affectations_jury' session.pk %}" target="_blank" class="btn btn-outline-secondary">
+            <i class="bi bi-printer me-1"></i>Imprimer la liste
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+{% if affectations %}
+<div class="row g-3">
+    {% for aff in affectations %}
+    <div class="col-12">
+        <div class="card border shadow-sm">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                    <div>
+                        <h5 class="fw-bold text-dark mb-0">
+                            <i class="bi bi-person-badge me-2 text-primary"></i>{{ aff.jury.get_full_name|default:aff.jury.username }}
+                        </h5>
+                        <small class="text-muted"><i class="bi bi-envelope me-1"></i>{{ aff.jury.email|default:"Aucun email" }}</small>
+                    </div>
+                    <div class="d-flex gap-2 align-items-center">
+                        <a href="{% url 'exams:imprimer_affectations_jury' session.pk %}?affectation_id={{ aff.pk }}"
+                           target="_blank"
+                           class="btn btn-sm btn-outline-secondary" title="Imprimer la fiche individuelle" data-bs-toggle="tooltip">
+                            <i class="bi bi-printer me-1"></i>Imprimer Fiche
+                        </a>
+                        <a href="{% url 'exams:configurer_jury' session.pk aff.pk %}"
+                           class="btn btn-sm btn-outline-primary" title="Modifier le périmètre" data-bs-toggle="tooltip">
+                            <i class="bi bi-pencil me-1"></i>Modifier
+                        </a>
+                        <form method="post" action="{% url 'exams:retirer_jury' aff.pk %}"
+                               onsubmit="return confirm('Retirer {{ aff.jury.get_full_name|default:aff.jury.username }} du jury ? Ses épreuves attribuées redeviendront disponibles.')">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Retirer ce jury" data-bs-toggle="tooltip">
+                                <i class="bi bi-trash me-1"></i>Retirer
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Détail du périmètre d'évaluation -->
+                <div class="mt-3 p-3 bg-light rounded border">
+                    {% if aff.options.all %}
+                    <div class="mb-2">
+                        <small class="text-muted fw-semibold me-1"><i class="bi bi-tags me-1 text-info"></i>Options / Styles :</small>
+                        {% for o in aff.options.all %}
+                            <span class="badge bg-info text-dark me-1">{{ o.nom }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    {% if aff.rubrique_grades.all %}
+                    <div class="small fw-bold text-dark mb-2"><i class="bi bi-award-fill me-1 text-warning"></i>Épreuves & Rubriques attribuées par Grade :</div>
+                    <div class="table-responsive">
+                        <table class="table table-sm table-bordered bg-white mb-0 align-middle">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 35%;" class="ps-2 py-2">Grade concerné</th>
+                                    <th class="ps-2 py-2">Rubriques concernées</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% regroup aff.rubrique_grades.all by grade as grade_group_list %}
+                                {% for group in grade_group_list %}
+                                <tr>
+                                    <td class="fw-bold text-primary ps-2 py-2">
+                                        <i class="bi bi-patch-check me-1"></i>{{ group.grouper.nom }}
+                                    </td>
+                                    <td class="ps-2 py-2">
+                                        <div class="d-flex flex-wrap gap-1 align-items-center">
+                                            {% for rg in group.list %}
+                                                <span class="badge bg-success bg-opacity-10 text-success border border-success px-2 py-1">
+                                                    <i class="bi bi-check2 me-1"></i>{{ rg.rubrique.nom }}
+                                                </span>
+                                            {% endfor %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% elif aff.grades.all or aff.rubriques.all %}
+                    {% if aff.grades.all %}
+                    <div class="mb-1">
+                        <small class="text-muted fw-semibold">Grades : </small>
+                        {% for g in aff.grades.all %}
+                            <span class="badge bg-primary me-1">{{ g.nom }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    {% if aff.rubriques.all %}
+                    <div class="mb-1">
+                        <small class="text-muted fw-semibold">Rubriques : </small>
+                        {% for r in aff.rubriques.all %}
+                            <span class="badge bg-light text-dark border me-1">{{ r.nom }}</span>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    {% else %}
+                    <div class="alert alert-warning py-2 px-3 mb-0 mt-1 small">
+                        <i class="bi bi-exclamation-triangle me-1"></i>
+                        Aucune épreuve configurée.
+                        <a href="{% url 'exams:configurer_jury' session.pk aff.pk %}" class="fw-bold ms-1">Configurer maintenant →</a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card p-5 text-center text-muted shadow-sm border-0">
+    <i class="bi bi-person-badge fs-1 opacity-25 d-block mb-3"></i>
+    <h5 class="fw-bold text-dark mb-2">Aucun membre du jury affecté</h5>
+    <p class="small text-muted mb-4">Vous n'avez pas encore configuré de membres du jury pour cette session d'examen.</p>
+    <div>
+        <a href="{% url 'exams:gestion_jury' session.pk %}" class="btn btn-primary px-4">
+            <i class="bi bi-plus-lg me-1"></i>Affecter un membre du jury
+        </a>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

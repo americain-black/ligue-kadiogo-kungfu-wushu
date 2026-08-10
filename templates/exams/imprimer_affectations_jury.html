@@ -1,0 +1,225 @@
+{% extends 'base.html' %}
+{% block title %}Imprimer Affectations Jury — {{ session.titre }}{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Examens</span>
+<a href="{% url 'exams:gestion_jury' session.pk %}" class="nav-link active">
+    <i class="bi bi-arrow-left me-2"></i>Retour à la gestion jury
+</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+@media print {
+    /* Cacher les éléments inutiles à l'impression */
+    .sidebar, .navbar, .btn-print-bar, footer, .no-print {
+        display: none !important;
+    }
+    body {
+        background: #fff !important;
+        color: #000 !important;
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+    .container, .main-content {
+        max-width: 100% !important;
+        width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+    }
+    .card {
+        border: none !important;
+        box-shadow: none !important;
+    }
+    .page-break {
+        page-break-after: always;
+    }
+}
+.print-header {
+    border-bottom: 2px solid #333;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Barre d'action non imprimable -->
+<div class="d-flex justify-content-between align-items-center mb-4 btn-print-bar flex-wrap gap-2">
+    <div class="d-flex align-items-center gap-2">
+        <a href="{% url 'exams:gestion_jury' session.pk %}" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i>Retour au jury
+        </a>
+        {% if single_aff %}
+        <a href="{% url 'exams:imprimer_affectations_jury' session.pk %}" class="btn btn-outline-primary">
+            <i class="bi bi-people me-1"></i>Voir toute la liste groupée
+        </a>
+        {% endif %}
+    </div>
+    <button onclick="window.print()" class="btn btn-primary px-4">
+        <i class="bi bi-printer me-2"></i>Imprimer ce document
+    </button>
+</div>
+
+<div class="card p-4 shadow-sm border-0 bg-white">
+    <!-- En-tête officiel du document -->
+    <div class="print-header text-center">
+        <h5 class="fw-bold text-uppercase mb-1" style="letter-spacing:0.05em;">
+            {{ session.annee_sportive.ligue.nom|default:"LIGUE DU KADIOGO DE KUNG-FU WUSHU" }}
+        </h5>
+        <div class="small text-muted mb-3">Affiliée à la Fédération Burkinabè de Kung-Fu Wushu</div>
+        <h4 class="fw-bold text-primary text-uppercase mb-2">
+            {% if single_aff %}
+                FICHE INDIVIDUELLE D'AFFECTATION JURY
+            {% else %}
+                LISTE OFFICIELLE DE COMPOSITION DU JURY D'EXAMEN
+            {% endif %}
+        </h4>
+        <div class="fs-6 fw-semibold">Session : {{ session.titre }}</div>
+        <div class="small text-muted">
+            Date : <strong>{{ session.date_examen|date:"d/m/Y" }}</strong> | Lieu : <strong>{{ session.lieu }}</strong> | Année sportive : <strong>{{ session.annee_sportive.libelle }}</strong>
+        </div>
+    </div>
+
+    {% if single_aff %}
+    <!-- MODE FICHE INDIVIDUELLE -->
+    <div class="my-3">
+        <div class="p-3 bg-light rounded border mb-4">
+            <h6 class="fw-bold text-dark mb-2"><i class="bi bi-person-badge me-2 text-primary"></i>Membre du Jury</h6>
+            <div class="row g-2">
+                <div class="col-md-6"><strong>Nom & Prénom :</strong> {{ single_aff.jury.get_full_name|default:single_aff.jury.username }}</div>
+                <div class="col-md-6"><strong>Email :</strong> {{ single_aff.jury.email|default:"Non renseigné" }}</div>
+                <div class="col-md-6"><strong>Téléphone :</strong> {{ single_aff.jury.telephone|default:"Non renseigné" }}</div>
+                <div class="col-md-6"><strong>Qualité :</strong> Membre de Jury d'Examen</div>
+            </div>
+        </div>
+
+        {% if single_aff.options.all %}
+        <div class="mb-4">
+            <h6 class="fw-bold text-dark mb-2"><i class="bi bi-tags me-1 text-info"></i>Options / Styles à évaluer :</h6>
+            <div>
+                {% for o in single_aff.options.all %}
+                    <span class="badge bg-info text-dark me-1 px-3 py-2 fs-6">{{ o.nom }}</span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="mb-4">
+            <h6 class="fw-bold text-dark mb-3"><i class="bi bi-list-check me-2 text-success"></i>Périmètre des Épreuves & Grades attribués :</h6>
+            {% if single_aff.rubrique_grades.all %}
+            <table class="table table-bordered align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th style="width: 35%;">Grade concerné</th>
+                        <th>Rubriques / Épreuves à évaluer</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% regroup single_aff.rubrique_grades.all by grade as grade_group_list %}
+                    {% for group in grade_group_list %}
+                    <tr>
+                        <td class="fw-bold text-primary">{{ group.grouper.nom }}</td>
+                        <td>
+                            {% for rg in group.list %}
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success me-1 px-2 py-1">
+                                    <i class="bi bi-check2 me-1"></i>{{ rg.rubrique.nom }}
+                                </span>
+                            {% endfor %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="alert alert-secondary py-2">Attribué à l'ensemble des grades et rubriques de cette session.</div>
+            {% endif %}
+        </div>
+
+        <div class="row mt-5 pt-4 text-center">
+            <div class="col-6">
+                <p class="fw-bold mb-5">Signature de l'intéressé(e)</p>
+                <div class="text-muted small">Le Membre du Jury</div>
+            </div>
+            <div class="col-6">
+                <p class="fw-bold mb-5">Pour la Ligue</p>
+                <div class="text-muted small">Le Gestionnaire / Président de Ligue</div>
+            </div>
+        </div>
+    </div>
+
+    {% else %}
+    <!-- MODE LISTE GROUPÉE (TOUS LES MEMBRES DU JURY) -->
+    <div class="table-responsive my-3">
+        <table class="table table-bordered align-middle">
+            <thead class="table-light text-center">
+                <tr>
+                    <th style="width: 5%;">N°</th>
+                    <th style="width: 25%;">Membre du Jury</th>
+                    <th style="width: 15%;">Options</th>
+                    <th>Épreuves & Grades attribués</th>
+                    <th style="width: 15%;" class="no-print-col">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for aff in affectations %}
+                <tr>
+                    <td class="text-center fw-bold">{{ forloop.counter }}</td>
+                    <td>
+                        <strong class="text-dark d-block">{{ aff.jury.get_full_name|default:aff.jury.username }}</strong>
+                        <small class="text-muted d-block">{{ aff.jury.email }}</small>
+                    </td>
+                    <td>
+                        {% for o in aff.options.all %}
+                            <span class="badge bg-info text-dark me-1">{{ o.nom }}</span>
+                        {% empty %}
+                            <span class="text-muted small">Toutes</span>
+                        {% endfor %}
+                    </td>
+                    <td>
+                        {% if aff.rubrique_grades.all %}
+                            {% regroup aff.rubrique_grades.all by grade as g_list %}
+                            {% for g in g_list %}
+                                <div class="mb-1">
+                                    <strong class="text-primary small">{{ g.grouper.nom }} :</strong>
+                                    {% for rg in g.list %}
+                                        <span class="badge bg-light text-dark border me-1">{{ rg.rubrique.nom }}</span>
+                                    {% endfor %}
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <span class="badge bg-secondary">Toutes les épreuves</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center no-print">
+                        <a href="?affectation_id={{ aff.pk }}" class="btn btn-sm btn-outline-secondary" title="Fiche individuelle">
+                            <i class="bi bi-printer me-1"></i>Fiche
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center py-4 text-muted">
+                        Aucun membre du jury affecté pour le moment.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="row mt-5 pt-3 text-center">
+        <div class="col-6">
+            <p class="fw-bold mb-5">Le Président du Jury</p>
+        </div>
+        <div class="col-6">
+            <p class="fw-bold mb-5">Le Gestionnaire de la Ligue</p>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

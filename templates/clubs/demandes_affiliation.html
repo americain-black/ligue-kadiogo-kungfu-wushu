@@ -102,7 +102,7 @@
 <div class="card border-0 shadow-sm p-3 mb-4 rounded-3">
     <form method="get" id="filterFormAffiliation" class="row g-2 align-items-center">
         <input type="hidden" name="statut" value="{{ statut_filtre }}">
-        <div class="col-md-6">
+        <div class="col-md-7">
             <div class="input-group input-group-sm">
                 <span class="input-group-text bg-white border-end-0 text-danger"><i class="bi bi-search"></i></span>
                 <input type="text" 
@@ -114,7 +114,7 @@
                        oninput="filterTableRows(this); autoSubmitForm(this.form)">
             </div>
         </div>
-        <div class="col-md-4">
+        <div class="col-md-5">
             <select name="annee" class="form-select form-select-sm" onchange="this.form.submit()">
                 <option value="">-- Toutes les saisons sportives --</option>
                 {% for annee in annees %}
@@ -123,9 +123,6 @@
                 </option>
                 {% endfor %}
             </select>
-        </div>
-        <div class="col-md-2 text-end">
-            <a href="{% url 'clubs:demandes_affiliation' %}" class="btn btn-outline-secondary btn-sm rounded-pill w-100">Réinitialiser</a>
         </div>
     </form>
 </div>

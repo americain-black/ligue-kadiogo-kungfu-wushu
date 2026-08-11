@@ -68,7 +68,7 @@
 <!-- Formulaire de recherche et filtre -->
 <div class="card border-0 shadow-sm p-3 mb-4 rounded-3">
     <form method="get" id="filterFormHistorique" class="row g-3 align-items-center">
-        <div class="col-md-5">
+        <div class="col-md-6">
             <label class="form-label small fw-semibold text-muted mb-1">Recherche Automatique par Club</label>
             <div class="input-group input-group-sm">
                 <span class="input-group-text bg-white border-end-0 text-danger"><i class="bi bi-search"></i></span>
@@ -100,9 +100,6 @@
                 <option value="EN_ATTENTE_VALID_LIGUE" {% if statut_filtre == 'EN_ATTENTE_VALID_LIGUE' %}selected{% endif %}>En attente validation Ligue</option>
                 <option value="EN_ATTENTE_PAIEMENT" {% if statut_filtre == 'EN_ATTENTE_PAIEMENT' %}selected{% endif %}>En attente paiement</option>
             </select>
-        </div>
-        <div class="col-md-1 text-end mt-4">
-            <a href="{% url 'clubs:historique_affiliations' %}" class="btn btn-outline-secondary btn-sm rounded-pill w-100" title="Réinitialiser">Effacer</a>
         </div>
     </form>
 </div>

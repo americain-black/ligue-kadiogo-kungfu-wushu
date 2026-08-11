@@ -299,6 +299,7 @@ class MembreOrganigrammeClub(models.Model):
     prenom              = models.CharField(max_length=100)
     contact             = models.CharField(max_length=50, blank=True)
     fonction            = models.CharField(max_length=200)
+    ordre               = models.PositiveIntegerField(default=1, verbose_name="Ligne / Rang hiérarchique", help_text="Numéro de ligne : 1 = Ligne du haut (Président), 2 = Ligne du dessous (VP), 3 = Ligne 3...")
     date_debut_fonction = models.DateField(null=True, blank=True)
     actif               = models.BooleanField(default=True)
     date_ajout          = models.DateTimeField(auto_now_add=True)
@@ -306,7 +307,55 @@ class MembreOrganigrammeClub(models.Model):
     class Meta:
         verbose_name        = 'Membre organigramme club'
         verbose_name_plural = 'Membres organigramme club'
-        ordering            = ['-actif', 'nom', 'prenom']
+        ordering            = ['-actif', 'ordre', 'nom', 'prenom']
 
     def __str__(self):
-        return f"{self.prenom} {self.nom} — {self.fonction}"
+        return f"[Ligne {self.ordre}] {self.prenom} {self.nom} — {self.fonction}"
+
+    @property
+    def sigle_seul(self):
+        f = (self.fonction or '').strip()
+        if not f:
+            return ""
+            
+        f_lower = f.lower().replace('é', 'e').replace('è', 'e')
+        
+        SIGLES = [
+            ('vice-president', 'VPT'),
+            ('vice president', 'VPT'),
+            ('vice-président', 'VPT'),
+            ('vice président', 'VPT'),
+            ('president', 'PDT'),
+            ('président', 'PDT'),
+            ('secretaire general adjoint', 'SGA'),
+            ('secretaire generale adjointe', 'SGA'),
+            ('secretaire general', 'SG'),
+            ('secretaire generale', 'SG'),
+            ('tresoriere generale', 'TG'),
+            ('tresorier general', 'TG'),
+            ('tresoriere adjointe', 'TA'),
+            ('tresorier adjoint', 'TA'),
+            ('secretaire adjoint', 'SAO'),
+            ('secretaire adjointe', 'SAO'),
+            ('organisation', 'SO'),
+            ('information', 'SIC'),
+            ('communication', 'SIC'),
+            ('1er commissaire', 'CC1'),
+            ('2e commissaire', 'CC2'),
+            ('commissaire aux comptes 1', 'CC1'),
+            ('commissaire aux comptes 2', 'CC2'),
+            ('conseiller juridique', 'CJ'),
+            ('directeur technique adjoint', 'DTA'),
+            ('directeur technique', 'DT'),
+            ('entraineur', 'ENT'),
+            ('entraîneur', 'ENT'),
+        ]
+        
+        for kw, sigle in SIGLES:
+            if kw in f_lower:
+                return sigle
+                
+        if len(f) <= 5:
+            return f.upper()
+            
+        return f

@@ -58,110 +58,206 @@
         text-decoration: underline;
     }
 
-    /* Arbre de l'organigramme */
-    .tree, .tree ul, .tree li {
-        list-style: none;
-        margin: 0;
-        padding: 0;
-        position: relative;
-    }
-    .tree {
-        margin: 2em 0 1em;
+    /* ── CONTENEUR DE DÉFILEMENT UNIFIÉ DE L'ARBRE ── */
+    .tree-scroll-container {
+        width: 100%;
+        overflow-x: auto !important;
+        overflow-y: auto;
+        padding: 2rem 1rem;
         text-align: center;
+        background-color: #ffffff;
+        border-radius: 12px;
+        -webkit-overflow-scrolling: touch;
+        min-height: 400px;
     }
-    .tree, .tree ul {
-        display: table;
+
+    /* ── ARBRE HIÉRARCHIQUE EN FLEXBOX AVEC ALIGNEMENT ET LIGNES MATHERMATIQUEMENT EXACTES ── */
+    .tree {
+        display: inline-flex !important;
+        flex-direction: column;
+        align-items: center;
+        min-width: max-content;
+        margin: 0 auto;
+        padding: 0;
+        text-align: center;
+        transition: transform 0.2s ease-out;
+    }
+
+    .tree-root {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        z-index: 2;
+    }
+
+    .tree-root-connector {
+        width: 2.5px;
+        height: 24px;
+        background-color: #334155;
+    }
+
+    .tree-volets-row {
+        display: flex;
+        justify-content: center;
+        position: relative;
         width: 100%;
     }
-    .tree ul {
-        margin-top: 1.5em;
+
+    .tree-volet-col {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
         position: relative;
+        flex: 1;
+        min-width: 680px;
+        padding: 24px 1rem 0 1rem;
     }
-    /* Tige verticale partant du nœud parent vers le connecteur horizontal */
-    .tree ul:before {
+
+    /* Trait horizontal d'interconnexion au-dessus de chaque volet */
+    .tree-volet-col::before {
         content: "";
         position: absolute;
-        top: -1.5em;
-        left: 50%;
-        height: 0.75em;
-        border-left: 2px solid #475569;
-        transform: translateX(-50%);
-    }
-    .tree li {
-        display: table-cell;
-        padding: 0 .5em;
-        vertical-align: top;
-    }
-    .tree li:before {
-        border-top: 2px solid #475569;
-        content: "";
+        top: 0;
         left: 0;
-        position: absolute;
         right: 0;
-        top: -0.75em;
+        height: 2.5px;
+        background-color: #334155;
     }
-    .tree li:first-child:before { left: 50%; }
-    .tree li:last-child:before  { right: 50%; }
-    .tree li:only-child:before  { display: none; }
 
-    .tree li > .noeud:before {
-        border-left: 2px solid #475569;
-        content: "";
-        height: .75em;
+    /* Le premier volet s'arrête à son centre vers la gauche */
+    .tree-volet-col:first-child::before {
         left: 50%;
+    }
+
+    /* Le dernier volet s'arrête à son centre vers la droite */
+    .tree-volet-col:last-child::before {
+        right: 50%;
+    }
+
+    /* Si un seul volet existe, pas de barre horizontale */
+    .tree-volet-col:only-child::before {
+        display: none;
+    }
+
+    /* Ligne verticale qui descend de la barre horizontale exactement au milieu du titre du volet */
+    .tree-volet-col::after {
+        content: "";
         position: absolute;
-        top: -0.75em;
+        top: 0;
+        left: 50%;
+        width: 2.5px;
+        height: 24px;
+        background-color: #334155;
         transform: translateX(-50%);
     }
-    .tree > li:before,
-    .tree > li > .noeud:before {
-        display: none !important;
-        border: none !important;
-    }
 
-    .tree .noeud {
-        border: 2px solid #333;
-        border-radius: .4em;
+    /* Styles des Boîtes */
+    .noeud {
+        border-radius: 10px;
         display: inline-block;
-        margin: 0 .3em 1em;
-        padding: .6em 1em;
+        margin: 0;
+        padding: .65em 1.2em;
         position: relative;
         background: #fff;
         font-weight: 600;
-        min-width: 9.5em;
-        box-shadow: 0 3px 6px rgba(0,0,0,0.08);
+        min-width: 11em;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.06);
     }
-    .tree .noeud-ligue {
+    .noeud-ligue {
         background: #c0392b;
         color: #fff;
-        border-color: #c0392b;
+        border: 2px solid #c0392b;
         text-transform: uppercase;
-        font-size: 1.1em;
+        font-size: 1.15em;
         font-weight: 800;
+        box-shadow: 0 6px 15px rgba(192, 57, 43, 0.25);
     }
-    .tree .noeud-volet {
-        background: #f8f9fa;
-        border-color: #0284c7;
+    .noeud-volet {
+        background: #f8fafc;
+        border: 2px solid #0284c7;
         color: #0284c7;
         text-transform: uppercase;
+        font-size: .95em;
+        font-weight: 700;
+        box-shadow: 0 4px 10px rgba(2, 132, 199, 0.12);
+        z-index: 2;
+    }
+    .noeud-membre {
+        border: 1.8px solid #334155 !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+    }
+    .noeud-membre .code {
+        display: block;
         font-size: .9em;
-        font-weight: 700;
-    }
-    .tree .noeud-membre .code {
-        display: block;
-        font-size: .75em;
-        letter-spacing: .05em;
         color: #dc2626;
-        font-weight: 700;
+        font-weight: 800;
     }
-    .tree .noeud-membre .nom {
+    .noeud-membre .nom {
         display: block;
-        font-weight: 600;
-        color: #1e293b;
+        font-weight: 700;
+        color: #0f172a;
+        font-size: 0.95rem;
+    }
+
+    /* ── STYLES DES NIVEAUX ET CONNECTEURS VERTICAUX ── */
+    .volet-levels-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        width: 100%;
+        position: relative;
+        padding-top: 0.25rem;
+    }
+
+    .level-row-cards {
+        display: inline-flex !important;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: nowrap !important;
+        gap: 1rem;
+        position: relative;
+        z-index: 2;
+        min-width: max-content;
+        padding: 4px 6px;
+    }
+
+    .level-connector-bar {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        height: 34px;
+        margin: 2px 0;
+        z-index: 1;
+        width: 100%;
+    }
+
+    .level-connector-bar .v-line {
+        width: 2.5px;
+        height: 100%;
+        background-color: #334155;
+        border-radius: 1px;
+    }
+
+    .level-connector-bar .v-arrow-clean {
+        position: absolute;
+        bottom: -5px;
+        color: #334155;
+        font-size: 0.85rem;
+        line-height: 1;
+        z-index: 3;
+        background-color: #ffffff;
+        padding: 0 2px;
     }
 
     @media print {
         .no-print { display: none !important; }
+        .tree-scroll-container { overflow-x: visible !important; }
+        .level-row-cards { flex-wrap: wrap !important; }
+        .tree { transform: none !important; }
     }
 </style>
 {% endblock %}
@@ -200,47 +296,62 @@
                 <p class="mt-3 fs-5">Aucun volet n'a été publié pour le moment.</p>
             </div>
             {% else %}
-            <h5 class="text-center fw-bold text-uppercase mb-4 text-dark" style="letter-spacing: 0.05em;">
+            <h5 class="text-center fw-bold text-uppercase mb-3 text-dark" style="letter-spacing: 0.05em;">
                 ORGANIGRAMME DE {{ ligue.nom_ligue }}
             </h5>
 
-            <div class="table-responsive py-3">
-                <ul class="tree">
-                    <li>
-                        <span class="noeud noeud-ligue px-4 py-2">{{ ligue.sigle }}</span>
-                        <ul>
-                            {% for volet in volets %}
-                            <li>
-                                <span class="noeud noeud-volet">{{ volet.nom_volet }}</span>
-                                {% if volet.membres_actifs %}
-                                <ul>
-                                    {% for membre in volet.membres_actifs %}
-                                    <li>
-                                        <span class="noeud noeud-membre">
-                                            <span class="code">{{ membre.fonction }}</span>
-                                            <span class="nom">{{ membre.prenom }} {{ membre.nom }}</span>
-                                        </span>
-                                    </li>
-                                    {% endfor %}
-                                </ul>
-                                {% endif %}
-                            </li>
-                            {% endfor %}
-                        </ul>
-                    </li>
-                </ul>
+            <!-- Barre d'outils de Zoom & Plein écran -->
+            <div class="d-flex justify-content-between align-items-center mb-3 no-print bg-light p-2 px-3 rounded-3 border">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="small fw-semibold text-secondary me-1"><i class="bi bi-search me-1"></i>Zoom :</span>
+                    <button type="button" class="btn btn-sm btn-white border shadow-sm btn-zoom-out" title="Zoom arrière (-15%)">
+                        <i class="bi bi-dash-lg"></i>
+                    </button>
+                    <span class="badge bg-dark px-2 py-1 zoom-badge" style="min-width: 52px; font-size: 0.85rem;">100%</span>
+                    <button type="button" class="btn btn-sm btn-white border shadow-sm btn-zoom-in" title="Zoom avant (+15%)">
+                        <i class="bi bi-plus-lg"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary ms-2 btn-zoom-reset" title="Réinitialiser à 100%">
+                        <i class="bi bi-arrow-counterclockwise me-1"></i>100%
+                    </button>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-dark btn-fullscreen" title="Mode plein écran">
+                    <i class="bi bi-arrows-fullscreen me-1"></i>Plein écran
+                </button>
             </div>
 
-            <!-- Légende des abréviations -->
-            <div class="card mt-5 no-print border-0 bg-light rounded-3">
-                <div class="card-header bg-dark text-white py-2">
-                    <h6 class="fw-bold mb-0 text-white"><i class="bi bi-list-ul me-2 text-warning"></i>Légende des fonctions</h6>
-                </div>
-                <div class="card-body">
-                    <div class="row row-cols-2 row-cols-md-4 g-2 small">
-                        {% for code, libelle in fonction_choices %}
-                        <div class="col">
-                            <span class="badge bg-danger me-1">{{ code }}</span> {{ libelle }}
+            <div class="tree-scroll-container tree-container-target">
+                <div class="tree tree-target">
+                    <!-- Racines : LKKFW -->
+                    <div class="tree-root">
+                        <span class="noeud noeud-ligue px-4 py-2">{{ ligue.sigle }}</span>
+                        <div class="tree-root-connector"></div>
+                    </div>
+
+                    <!-- Rangée des Volets -->
+                    <div class="tree-volets-row">
+                        {% for volet in volets %}
+                        <div class="tree-volet-col">
+                            <span class="noeud noeud-volet">{{ volet.nom_volet }}</span>
+                            {% if volet.niveaux_membres %}
+                            <div class="volet-levels-wrapper">
+                                {% for level in volet.niveaux_membres %}
+                                    <div class="level-connector-bar">
+                                        <div class="v-line"></div>
+                                        <i class="bi bi-caret-down-fill v-arrow-clean"></i>
+                                    </div>
+                                    
+                                    <div class="level-row-cards">
+                                        {% for membre in level.membres %}
+                                        <span class="noeud noeud-membre shadow-sm" title="{{ membre.fonction }}">
+                                            <span class="code fs-6">{{ membre.sigle_seul }}</span>
+                                            <span class="nom">{{ membre.prenom }} {{ membre.nom }}</span>
+                                        </span>
+                                        {% endfor %}
+                                    </div>
+                                {% endfor %}
+                            </div>
+                            {% endif %}
                         </div>
                         {% endfor %}
                     </div>
@@ -263,7 +374,7 @@
             <i class="bi bi-arrow-left"></i>
         </a>
         <div>
-            <h4 class="fw-bold mb-0">Organigramme — vue graphique</h4>
+            <h4 class="fw-bold mb-0">Organigramme — Vue graphique hiérarchique</h4>
             <small class="text-muted">{{ ligue.nom_ligue }} ({{ ligue.sigle }})</small>
         </div>
     </div>
@@ -283,49 +394,152 @@
     <p class="mt-2">Aucun volet créé pour l'instant.</p>
 </div>
 {% else %}
-<h5 class="text-center fw-bold text-uppercase mb-0">ORGANIGRAMME DE {{ ligue.nom_ligue }}</h5>
+<div class="bg-white p-4 p-md-5 rounded-4 shadow-sm border">
+    <h5 class="text-center fw-bold text-uppercase mb-3 text-dark">ORGANIGRAMME DE {{ ligue.nom_ligue }}</h5>
 
-<div class="table-responsive">
-    <ul class="tree">
-        <li>
-            <span class="noeud noeud-ligue">{{ ligue.sigle }}</span>
-            <ul>
-                {% for volet in volets %}
-                <li>
-                    <span class="noeud noeud-volet">{{ volet.nom_volet }}</span>
-                    {% if volet.membres_actifs %}
-                    <ul>
-                        {% for membre in volet.membres_actifs %}
-                        <li>
-                            <span class="noeud noeud-membre">
-                                <span class="code">{{ membre.fonction }}</span>
-                                <span class="nom">{{ membre.prenom }} {{ membre.nom }}</span>
-                            </span>
-                        </li>
-                        {% endfor %}
-                    </ul>
-                    {% endif %}
-                </li>
-                {% endfor %}
-            </ul>
-        </li>
-    </ul>
-</div>
-
-<!-- Légende des abréviations -->
-<div class="card mt-4 no-print">
-    <div class="card-header py-2 bg-dark text-white">
-        <h6 class="fw-bold mb-0 text-white"><i class="bi bi-list-ul me-2 text-warning"></i>Légende</h6>
+    <!-- Barre d'outils de Zoom & Plein écran -->
+    <div class="d-flex justify-content-between align-items-center mb-3 no-print bg-light p-2 px-3 rounded-3 border">
+        <div class="d-flex align-items-center gap-2">
+            <span class="small fw-semibold text-secondary me-1"><i class="bi bi-search me-1"></i>Zoom :</span>
+            <button type="button" class="btn btn-sm btn-white border shadow-sm btn-zoom-out" title="Zoom arrière (-15%)">
+                <i class="bi bi-dash-lg"></i>
+            </button>
+            <span class="badge bg-dark px-2 py-1 zoom-badge" style="min-width: 52px; font-size: 0.85rem;">100%</span>
+            <button type="button" class="btn btn-sm btn-white border shadow-sm btn-zoom-in" title="Zoom avant (+15%)">
+                <i class="bi bi-plus-lg"></i>
+            </button>
+            <button type="button" class="btn btn-sm btn-outline-secondary ms-2 btn-zoom-reset" title="Réinitialiser à 100%">
+                <i class="bi bi-arrow-counterclockwise me-1"></i>100%
+            </button>
+        </div>
+        <button type="button" class="btn btn-sm btn-outline-dark btn-fullscreen" title="Mode plein écran">
+            <i class="bi bi-arrows-fullscreen me-1"></i>Plein écran
+        </button>
     </div>
-    <div class="card-body">
-        <div class="row row-cols-2 row-cols-md-4 g-2 small">
-            {% for code, libelle in fonction_choices %}
-            <div class="col">
-                <span class="badge bg-secondary">{{ code }}</span> {{ libelle }}
+
+    <div class="tree-scroll-container tree-container-target">
+        <div class="tree tree-target">
+            <!-- Racines : LKKFW -->
+            <div class="tree-root">
+                <span class="noeud noeud-ligue px-4 py-2">{{ ligue.sigle }}</span>
+                <div class="tree-root-connector"></div>
             </div>
-            {% endfor %}
+
+            <!-- Rangée des Volets -->
+            <div class="tree-volets-row">
+                {% for volet in volets %}
+                <div class="tree-volet-col">
+                    <span class="noeud noeud-volet">{{ volet.nom_volet }}</span>
+                    {% if volet.niveaux_membres %}
+                    <div class="volet-levels-wrapper">
+                        {% for level in volet.niveaux_membres %}
+                            <div class="level-connector-bar">
+                                <div class="v-line"></div>
+                                <i class="bi bi-caret-down-fill v-arrow-clean"></i>
+                            </div>
+                            
+                            <div class="level-row-cards">
+                                {% for membre in level.membres %}
+                                <span class="noeud noeud-membre shadow-sm" title="{{ membre.fonction }}">
+                                    <span class="code fs-6">{{ membre.sigle_seul }}</span>
+                                    <span class="nom">{{ membre.prenom }} {{ membre.nom }}</span>
+                                </span>
+                                {% endfor %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
         </div>
     </div>
 </div>
 {% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialisation du contrôle de Zoom sur toutes les barres de zoom de la page
+    const zoomContainers = document.querySelectorAll('.bg-white');
+    
+    zoomContainers.forEach(container => {
+        const btnIn = container.querySelector('.btn-zoom-in');
+        const btnOut = container.querySelector('.btn-zoom-out');
+        const btnReset = container.querySelector('.btn-zoom-reset');
+        const btnFullscreen = container.querySelector('.btn-fullscreen');
+        const badge = container.querySelector('.zoom-badge');
+        const tree = container.querySelector('.tree-target');
+        const scrollContainer = container.querySelector('.tree-container-target');
+        
+        if (!tree) return;
+        
+        let zoomLevel = 1.0;
+        
+        function updateZoom() {
+            tree.style.transform = `scale(${zoomLevel})`;
+            tree.style.transformOrigin = 'top center';
+            if (badge) {
+                badge.textContent = Math.round(zoomLevel * 100) + '%';
+            }
+        }
+        
+        if (btnIn) {
+            btnIn.addEventListener('click', function() {
+                if (zoomLevel < 2.0) {
+                    zoomLevel += 0.15;
+                    updateZoom();
+                }
+            });
+        }
+        
+        if (btnOut) {
+            btnOut.addEventListener('click', function() {
+                if (zoomLevel > 0.4) {
+                    zoomLevel -= 0.15;
+                    updateZoom();
+                }
+            });
+        }
+        
+        if (btnReset) {
+            btnReset.addEventListener('click', function() {
+                zoomLevel = 1.0;
+                updateZoom();
+            });
+        }
+        
+        if (btnFullscreen && scrollContainer) {
+            btnFullscreen.addEventListener('click', function() {
+                if (!document.fullscreenElement) {
+                    if (scrollContainer.requestFullscreen) {
+                        scrollContainer.requestFullscreen();
+                    } else if (scrollContainer.webkitRequestFullscreen) {
+                        scrollContainer.webkitRequestFullscreen();
+                    }
+                } else {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    }
+                }
+            });
+        }
+        
+        if (scrollContainer) {
+            scrollContainer.addEventListener('wheel', function(e) {
+                if (e.ctrlKey) {
+                    e.preventDefault();
+                    if (e.deltaY < 0 && zoomLevel < 2.0) {
+                        zoomLevel += 0.1;
+                    } else if (e.deltaY > 0 && zoomLevel > 0.4) {
+                        zoomLevel -= 0.1;
+                    }
+                    updateZoom();
+                }
+            }, { passive: false });
+        }
+    });
+});
+</script>
 {% endblock %}

@@ -149,17 +149,20 @@ def organigramme_visuel(request):
         messages.error(request, "Aucune ligue trouvée.")
         return redirect('accounts:accueil')
 
-    ordre_fonctions = [code for code, _ in MembreOrganigramme.FONCTION_CHOICES]
     volets = ligue.volets.prefetch_related('membres__club').all()
     for volet in volets:
-        volet.membres_actifs = sorted(
-            volet.membres.filter(actif=True, club__isnull=True),
-            key=lambda m: ordre_fonctions.index(m.fonction) if m.fonction in ordre_fonctions else 999
-        )
+        membres = list(volet.membres.filter(actif=True, club__isnull=True).order_by('ordre', 'nom'))
+        niveaux_dict = {}
+        for m in membres:
+            niveaux_dict.setdefault(m.ordre, []).append(m)
+        
+        volet.niveaux_membres = [
+            {'niveau': lvl, 'membres': sorted(m_list, key=lambda x: x.nom)}
+            for lvl, m_list in sorted(niveaux_dict.items())
+        ]
     return render(request, 'ligues/organigramme_visuel.html', {
-        'ligue':            ligue,
-        'volets':           volets,
-        'fonction_choices': MembreOrganigramme.FONCTION_CHOICES,
+        'ligue':  ligue,
+        'volets': volets,
     })
 
 

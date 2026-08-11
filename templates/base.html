@@ -187,6 +187,69 @@
 
         /* ── Boutons d'action (icône seule, style uniforme) ── */
         .btn-action {
+            width: 34px;         /* ── BARRE DE RECHERCHE EXACTE (EXACTEMENT COMME LA CAPTURE) ── */
+        }
+        .lk-search-group, .lk-recherche-exacte {
+            position: relative;
+            display: flex;
+            align-items: center;
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .lk-search-group .lk-search-icon,
+        .lk-recherche-exacte .lk-search-icon {
+            position: absolute;
+            left: 16px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #dc2626; /* Icône loupe rouge */
+            font-size: 1.15rem;
+            pointer-events: none;
+            z-index: 5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .lk-search-group input[type="search"],
+        .lk-search-group input[type="text"],
+        .lk-search-group .form-control,
+        .lk-recherche-exacte input[type="search"],
+        .lk-recherche-exacte input[type="text"],
+        .lk-recherche-exacte .form-control {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 3rem !important; /* Espace pour la loupe à l'intérieur */
+            font-size: 1.15rem !important;
+            font-weight: 400;
+            color: #334155;
+            background-color: #ffffff;
+            border: 1.5px solid #94a3b8 !important; /* Contour identique à la capture */
+            border-radius: 12px !important; /* Bords arrondis identiques à la capture */
+            box-shadow: none !important;
+            transition: border-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        }
+
+        .lk-search-group input:focus,
+        .lk-search-group .form-control:focus,
+        .lk-recherche-exacte input:focus,
+        .lk-recherche-exacte .form-control:focus {
+            outline: none !important;
+            border-color: #dc2626 !important;
+            box-shadow: 0 0 0 3.5px rgba(220, 38, 38, 0.12) !important;
+            background-color: #ffffff;
+        }
+
+        .lk-search-group input::placeholder,
+        .lk-search-group .form-control::placeholder,
+        .lk-recherche-exacte input::placeholder,
+        .lk-recherche-exacte .form-control::placeholder {
+            color: #64748b;
+            font-size: 1.15rem;
+            font-weight: 400;
+        }
+        .btn-action {
             width: 34px; height: 34px;
             padding: 0;
             border-radius: 8px;
@@ -319,7 +382,33 @@
 
 <!-- Bootstrap 5 JS -->
 <script src="{% static 'js/bootstrap.bundle.min.js' %}"></script>
+
+<!-- TinyMCE Rich Text Editor -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tinymce/6.8.3/tinymce.min.js" referrerpolicy="origin"></script>
 <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        if (typeof tinymce !== 'undefined') {
+            tinymce.init({
+                selector: 'textarea.wysiwyg-editor, textarea.richtext, textarea[name="contenu"], textarea[name="description"], textarea[name="mot_president"], textarea[name="presentation_generale"], textarea[name="historique"], textarea[name="objectif_general"], textarea[name="objectifs_specifiques"], textarea[name="vision"], textarea[name="valeurs"]',
+                height: 380,
+                menubar: false,
+                plugins: 'advlist autolink lists link image charmap preview anchor searchreplace visualblocks code fullscreen insertdatetime media table code help wordcount',
+                toolbar: 'blocks | bold italic | table | link | bullist numlist | blockquote | undo redo | removeformat code',
+                block_formats: 'Paragraph=p; Heading 1=h1; Heading 2=h2; Heading 3=h3',
+                content_style: 'body { font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size: 15px; line-height: 1.6; color: #1e293b; padding: 12px; }',
+                skin: 'oxide',
+                branding: false,
+                promotion: false,
+                placeholder: 'Veuillez saisir votre contenu enrichi ici...',
+                setup: function (editor) {
+                    editor.on('change keyup blur', function () {
+                        editor.save();
+                    });
+                }
+            });
+        }
+    });
+
     /* ── Tooltips globaux ── */
     document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(el => {
         new bootstrap.Tooltip(el, { trigger: 'hover' });

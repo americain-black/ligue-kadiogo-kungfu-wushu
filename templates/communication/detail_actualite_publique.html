@@ -61,8 +61,8 @@
 
                 <!-- Texte d'introduction (1er paragraphe / extrait) -->
                 {% if intro_text %}
-                <div class="lead fw-normal text-secondary mb-4" style="font-size: 1.12rem; line-height: 1.7; white-space: pre-line;">
-                    {{ intro_text }}
+                <div class="lead fw-normal text-secondary mb-4" style="font-size: 1.12rem; line-height: 1.7;">
+                    {{ intro_text|safe }}
                 </div>
                 {% endif %}
 
@@ -78,8 +78,8 @@
 
                 <!-- Reste du texte (Corps de l'article) -->
                 {% if reste_text %}
-                <div class="text-dark" style="font-size: 1.05rem; line-height: 1.8; white-space: pre-line;">
-                    {{ reste_text }}
+                <div class="text-dark" style="font-size: 1.05rem; line-height: 1.8;">
+                    {{ reste_text|safe }}
                 </div>
                 {% endif %}
 

@@ -55,14 +55,12 @@
                     </select>
                 </div>
 
-                <!-- Champ de Recherche Textuelle -->
+                <!-- Champ de Recherche Textuelle exact (Capture 1) -->
                 <div class="col-12 col-sm-6 col-md">
-                    <div class="input-group">
-                        <input type="search" id="rechercheActu" name="q" value="{{ q }}" class="form-control form-control-sm rounded-start-pill ps-3"
-                               placeholder="Rechercher un mot-clé..." autocomplete="off">
-                        <button type="submit" class="btn btn-danger btn-sm rounded-end-pill px-3">
-                            <i class="bi bi-search"></i>
-                        </button>
+                    <div class="lk-search-group">
+                        <i class="bi bi-search lk-search-icon"></i>
+                        <input type="search" id="rechercheActu" name="q" value="{{ q }}" class="form-control"
+                               placeholder="Recherche" autocomplete="off">
                     </div>
                 </div>
             </div>
@@ -102,7 +100,7 @@
                                 {{ actu.titre }}
                             </h5>
                             <p class="text-muted small mb-3 text-secondary" style="line-height: 1.5; font-size: 0.88rem;">
-                                {{ actu.contenu|striptags|truncatewords:22 }}
+                                {{ actu.contenu|striptags|safe|truncatewords:22 }}
                             </p>
                         </div>
 

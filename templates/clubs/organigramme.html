@@ -53,6 +53,9 @@
         <h4 class="fw-bold mb-0 mt-1">Organigramme du Club</h4>
         <small class="text-muted">{{ club.nom_club }}{% if club.sigle_club %} ({{ club.sigle_club }}){% endif %}</small>
     </div>
+    <a href="{% url 'clubs:organigramme_visuel' club.pk %}" class="btn btn-outline-danger btn-sm fw-bold shadow-sm">
+        <i class="bi bi-diagram-2 me-1"></i>Vue graphique (Arbre)
+    </a>
 </div>
 
 <div class="alert alert-info d-flex align-items-center mb-4">
@@ -90,6 +93,7 @@
             <table class="table table-hover mb-0">
                 <thead class="table-light">
                     <tr>
+                        <th style="width: 80px;">Ligne</th>
                         <th>Nom & Prénom</th>
                         <th>Fonction</th>
                         <th>Depuis</th>
@@ -101,6 +105,7 @@
                 <tbody>
                     {% for membre in volet.membres_du_club %}
                     <tr class="{% if not membre.actif %}table-secondary text-muted{% endif %}">
+                        <td><span class="badge bg-dark">Ligne {{ membre.ordre }}</span></td>
                         <td class="fw-semibold">
                             {{ membre.prenom }} {{ membre.nom }}
                             {% if not membre.actif %}
@@ -188,6 +193,10 @@
                                 placeholder="Ex: Responsable technique, Délégué..." required>
                         </div>
                         <div class="col-md-6">
+                            <label class="form-label fw-semibold text-danger">Ligne hiérarchique (1, 2, 3...)</label>
+                            <input type="number" name="ordre" class="form-control" min="1" value="1" placeholder="1 = Haut, 2 = Deuxième ligne..." required>
+                        </div>
+                        <div class="col-md-6">
                             <label class="form-label fw-semibold">Date de début de fonction</label>
                             <input type="date" name="date_debut_fonction" class="form-control">
                         </div>
@@ -242,6 +251,10 @@
                             <label class="form-label fw-semibold">Fonction</label>
                             <input type="text" name="fonction" class="form-control" value="{{ membre.fonction }}"
                                 required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold text-danger">Ligne hiérarchique (1, 2, 3...)</label>
+                            <input type="number" name="ordre" class="form-control" min="1" value="{{ membre.ordre|default:1 }}" required>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label fw-semibold">Date de début de fonction</label>

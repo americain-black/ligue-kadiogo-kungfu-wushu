@@ -176,10 +176,10 @@
 <div class="card p-3 mb-3">
     <form method="get" class="row g-2 align-items-center" id="form-filtres">
         <div class="col-12 col-md-4">
-            <div class="input-group input-group-sm">
-                <span class="input-group-text"><i class="bi bi-search"></i></span>
+            <div class="lk-search-group">
+                <i class="bi bi-search lk-search-icon"></i>
                 <input type="text" name="q" id="id_recherche_live" value="{{ filtre_recherche }}" class="form-control"
-                       placeholder="Rechercher un nom ou prénom…" autocomplete="off">
+                       placeholder="Recherche" autocomplete="off">
             </div>
         </div>
         {% if not club %}

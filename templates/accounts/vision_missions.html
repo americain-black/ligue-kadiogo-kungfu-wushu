@@ -88,9 +88,9 @@
                     <div class="lk-section-heading">
                         NOTRE VISION STRATÉGIQUE
                     </div>
-                    <p class="lead text-secondary mt-3">
-                        {{ ligue.get_vision }}
-                    </p>
+                    <div class="lead text-secondary mt-3" style="font-size: 1.12rem; line-height: 1.7;">
+                        {{ ligue.get_vision|safe }}
+                    </div>
                 </div>
 
                 <!-- OBJECTIF GÉNÉRAL -->
@@ -98,9 +98,9 @@
                     <div class="lk-section-heading">
                         OBJECTIF GÉNÉRAL
                     </div>
-                    <p class="fs-5 text-dark fw-medium mt-3">
-                        {{ ligue.get_objectif_general }}
-                    </p>
+                    <div class="fs-5 text-dark fw-medium mt-3" style="line-height: 1.7;">
+                        {{ ligue.get_objectif_general|safe }}
+                    </div>
                 </div>
 
                 <!-- OBJECTIFS SPÉCIFIQUES -->
@@ -130,7 +130,7 @@
                         VALEURS FONDAMENTALES
                     </div>
                     <div class="text-secondary mt-3" style="font-size: 1.05rem; line-height: 1.8;">
-                        {{ ligue.get_valeurs|linebreaks }}
+                        {{ ligue.get_valeurs|safe }}
                     </div>
                 </div>
                 {% endif %}

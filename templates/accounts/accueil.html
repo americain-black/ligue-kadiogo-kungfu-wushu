@@ -449,7 +449,7 @@
                             <i class="bi bi-calendar3 me-1 text-danger"></i>{{ actu.date_publication|date:"d F Y" }}
                         </div>
                         <h5 class="fw-bold text-dark mb-2 fs-6" style="line-height: 1.4;">{{ actu.titre }}</h5>
-                        <p class="text-secondary small mb-3 flex-grow-1" style="line-height: 1.6;">{{ actu.contenu|truncatewords:20 }}</p>
+                        <p class="text-secondary small mb-3 flex-grow-1" style="line-height: 1.6;">{{ actu.contenu|striptags|safe|truncatewords:20 }}</p>
                         <div class="mt-auto">
                             <a href="{% url 'communication:detail_actualite_publique' actu.pk %}" class="btn btn-danger btn-voir-plus w-100">
                                 Lire la suite <i class="bi bi-arrow-right ms-1"></i>
@@ -461,64 +461,12 @@
             {% endfor %}
         </div>
         {% else %}
-        <div class="row g-4">
-            <div class="col-12 col-md-6 col-lg-4">
-                <div class="lk-card-actu-horiz h-100 shadow-sm border rounded-4 bg-white overflow-hidden d-flex flex-column">
-                    <div class="position-relative overflow-hidden bg-dark p-4 text-center text-white" style="height: 200px;">
-                        <i class="bi bi-award fs-1 text-warning mb-2 d-block"></i>
-                        <span class="fw-bold fs-6">Examens de Grade</span>
-                        <span class="position-absolute top-0 start-0 m-3 badge bg-danger rounded-pill">Officiel</span>
-                    </div>
-                    <div class="p-3 p-md-4 d-flex flex-column flex-grow-1">
-                        <div class="text-muted small mb-2"><i class="bi bi-calendar3 me-1 text-danger"></i>Saison 2026</div>
-                        <h5 class="fw-bold text-dark mb-2 fs-6">Inscriptions aux Examens de Ceinture</h5>
-                        <p class="text-secondary small mb-3 flex-grow-1">Consultez le calendrier des examens officiels et inscrivez les athlètes de votre club.</p>
-                        <div class="mt-auto">
-                            <a href="{% url 'communication:actualites_publiques' %}" class="btn btn-danger btn-voir-plus w-100">
-                                En savoir plus <i class="bi bi-arrow-right ms-1"></i>
-                            </a>
-                        </div>
-                    </div>
-                </div>
+        <div class="bg-white p-5 rounded-4 border shadow-sm text-center">
+            <div class="mb-3">
+                <i class="bi bi-newspaper display-4 text-muted opacity-50"></i>
             </div>
-            <div class="col-12 col-md-6 col-lg-4">
-                <div class="lk-card-actu-horiz h-100 shadow-sm border rounded-4 bg-white overflow-hidden d-flex flex-column">
-                    <div class="position-relative overflow-hidden bg-dark p-4 text-center text-white" style="height: 200px;">
-                        <i class="bi bi-shield-check fs-1 text-warning mb-2 d-block"></i>
-                        <span class="fw-bold fs-6">Affiliation des Clubs</span>
-                        <span class="position-absolute top-0 start-0 m-3 badge bg-primary rounded-pill">Clubs</span>
-                    </div>
-                    <div class="p-3 p-md-4 d-flex flex-column flex-grow-1">
-                        <div class="text-muted small mb-2"><i class="bi bi-calendar3 me-1 text-danger"></i>Province du Kadiogo</div>
-                        <h5 class="fw-bold text-dark mb-2 fs-6">Campagne d'Affiliation des Clubs</h5>
-                        <p class="text-secondary small mb-3 flex-grow-1">Les responsables de clubs peuvent mettre à jour l'organigramme et les pratiquants en ligne.</p>
-                        <div class="mt-auto">
-                            <a href="{% url 'clubs:annuaire' %}" class="btn btn-danger btn-voir-plus w-100">
-                                Voir l'annuaire <i class="bi bi-arrow-right ms-1"></i>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-12 col-md-6 col-lg-4">
-                <div class="lk-card-actu-horiz h-100 shadow-sm border rounded-4 bg-white overflow-hidden d-flex flex-column">
-                    <div class="position-relative overflow-hidden bg-dark p-4 text-center text-white" style="height: 200px;">
-                        <i class="bi bi-trophy fs-1 text-warning mb-2 d-block"></i>
-                        <span class="fw-bold fs-6">Championnat Régional</span>
-                        <span class="position-absolute top-0 start-0 m-3 badge bg-success rounded-pill">Compétition</span>
-                    </div>
-                    <div class="p-3 p-md-4 d-flex flex-column flex-grow-1">
-                        <div class="text-muted small mb-2"><i class="bi bi-calendar3 me-1 text-danger"></i>Ligue du Kadiogo</div>
-                        <h5 class="fw-bold text-dark mb-2 fs-6">Résultats des Compétitions Wushu</h5>
-                        <p class="text-secondary small mb-3 flex-grow-1">Découvrez le classement général des clubs et le palmarès des meilleurs pratiquants.</p>
-                        <div class="mt-auto">
-                            <a href="{% url 'results:consultation_publique' %}" class="btn btn-danger btn-voir-plus w-100">
-                                Consulter les résultats <i class="bi bi-arrow-right ms-1"></i>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <h5 class="fw-bold text-dark mb-1">Aucune actualité publiée pour le moment</h5>
+            <p class="text-muted small mb-0">Les dernières informations, annonces et événements officiels de la ligue et des clubs apparaîtront ici.</p>
         </div>
         {% endif %}
     </div>
@@ -567,45 +515,12 @@
             {% endfor %}
         </div>
         {% else %}
-        <div class="row g-3">
-            <div class="col-12 col-md-6">
-                <div class="p-3 bg-white border rounded-4 shadow-sm h-100 d-flex align-items-center justify-content-between gap-3">
-                    <div class="d-flex align-items-center gap-3 min-w-0">
-                        <div class="bg-danger bg-opacity-10 text-danger p-3 rounded-3 fs-3 flex-shrink-0">
-                            <i class="bi bi-file-earmark-text-fill"></i>
-                        </div>
-                        <div class="min-w-0">
-                            <h6 class="fw-bold text-dark mb-1 text-truncate">Fiche d'Inscription - Examen de Grade 2026</h6>
-                            <div class="text-muted small">
-                                <span class="badge bg-light text-dark border me-2">Formulaire</span>
-                                <i class="bi bi-calendar3 me-1"></i>Officiel
-                            </div>
-                        </div>
-                    </div>
-                    <a href="{% url 'communication:documents_publics' %}" class="btn btn-outline-dark btn-voir-plus flex-shrink-0">
-                        <i class="bi bi-eye-fill me-1"></i>Consulter
-                    </a>
-                </div>
+        <div class="bg-white p-5 rounded-4 border shadow-sm text-center">
+            <div class="mb-3">
+                <i class="bi bi-file-earmark-pdf display-4 text-muted opacity-50"></i>
             </div>
-            <div class="col-12 col-md-6">
-                <div class="p-3 bg-white border rounded-4 shadow-sm h-100 d-flex align-items-center justify-content-between gap-3">
-                    <div class="d-flex align-items-center gap-3 min-w-0">
-                        <div class="bg-danger bg-opacity-10 text-danger p-3 rounded-3 fs-3 flex-shrink-0">
-                            <i class="bi bi-journal-text"></i>
-                        </div>
-                        <div class="min-w-0">
-                            <h6 class="fw-bold text-dark mb-1 text-truncate">Règlement Général des Examens et Jurys</h6>
-                            <div class="text-muted small">
-                                <span class="badge bg-light text-dark border me-2">Règlement</span>
-                                <i class="bi bi-calendar3 me-1"></i>Officiel
-                            </div>
-                        </div>
-                    </div>
-                    <a href="{% url 'communication:documents_publics' %}" class="btn btn-outline-dark btn-voir-plus flex-shrink-0">
-                        <i class="bi bi-eye-fill me-1"></i>Consulter
-                    </a>
-                </div>
-            </div>
+            <h5 class="fw-bold text-dark mb-1">Aucun document disponible pour le moment</h5>
+            <p class="text-muted small mb-0">Les règlements, circulaires et formulaires officiels apparaîtront ici dès leur mise en ligne.</p>
         </div>
         {% endif %}
     </div>

@@ -116,13 +116,13 @@
 <section class="py-4 bg-light min-vh-50" id="resultats">
     <div class="container">
 
-        <form method="get" class="lk-recherche">
-            <div class="d-flex">
+        <form method="get" class="mb-4">
+            <div class="lk-search-group">
+                <i class="bi bi-search lk-search-icon"></i>
                 <input type="text" id="matricule" name="matricule" value="{{ matricule }}" class="form-control"
-                       placeholder="" autocomplete="off" required>
-                <button type="submit" class="btn"><i class="bi bi-search"></i></button>
+                       placeholder="Recherche par matricule (ex: LKKFW-2026-001)..." autocomplete="off" required>
             </div>
-            <div class="form-text text-center">
+            <div class="form-text text-center text-muted mt-2">
                 <i class="bi bi-shield-lock me-1"></i>Saisissez le matricule complet et validez pour afficher le résultat.
             </div>
         </form>

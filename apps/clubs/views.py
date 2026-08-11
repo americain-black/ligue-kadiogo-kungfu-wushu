@@ -673,3 +673,26 @@ def annuaire_clubs(request):
     }
     return render(request, 'clubs/annuaire.html', context)
 
+
+def organigramme_visuel_club(request, club_pk):
+    """
+    Vue graphique de l'organigramme d'un club (arbre visuel avec boîtes et connecteurs).
+    """
+    from apps.ligues.models import VoletOrganigramme
+    club = get_object_or_404(Club, pk=club_pk)
+    volets = VoletOrganigramme.objects.filter(club=club).prefetch_related('membres')
+    for volet in volets:
+        membres = list(volet.membres.filter(actif=True).order_by('ordre', 'nom'))
+        niveaux_dict = {}
+        for m in membres:
+            niveaux_dict.setdefault(m.ordre, []).append(m)
+        volet.niveaux_membres = [
+            {'niveau': lvl, 'membres': sorted(m_list, key=lambda x: x.nom)}
+            for lvl, m_list in sorted(niveaux_dict.items())
+        ]
+
+    return render(request, 'clubs/organigramme_visuel.html', {
+        'club': club,
+        'volets': volets,
+    })
+

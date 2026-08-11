@@ -127,9 +127,9 @@
                     PRÉSENTATION GÉNÉRALE
                 </div>
                 <div class="lk-text-content">
-                    <p class="lead text-dark fw-medium mb-0">
-                        {{ ligue.get_presentation_generale|linebreaksbr }}
-                    </p>
+                    <div class="lead text-dark fw-medium mb-0">
+                        {{ ligue.get_presentation_generale|safe }}
+                    </div>
                 </div>
             </div>
 
@@ -139,7 +139,7 @@
                     HISTORIQUE DU WUSHU DANS LA RÉGION DU KADIOGO
                 </div>
                 <div class="lk-text-content">
-                    {{ ligue.get_historique|linebreaks }}
+                    {{ ligue.get_historique|safe }}
                 </div>
             </div>
 
@@ -149,15 +149,13 @@
                     MISSIONS ET OBJECTIFS
                 </div>
                 <div class="lk-text-content">
-                    <p class="mb-3">
-                        <strong>Objectif général :</strong> {{ ligue.get_objectif_general }}
-                    </p>
+                    <div class="mb-3">
+                        <strong>Objectif général :</strong> {{ ligue.get_objectif_general|safe }}
+                    </div>
                     <p class="fw-bold mb-2">Objectifs spécifiques :</p>
-                    <ul class="lk-list-custom">
-                        {% for obj in ligue.get_objectifs_specifiques_list %}
-                        <li>{{ obj }}</li>
-                        {% endfor %}
-                    </ul>
+                    <div class="lk-list-custom">
+                        {{ ligue.get_objectifs_specifiques|safe }}
+                    </div>
                 </div>
             </div>
 
@@ -168,7 +166,7 @@
                     VALEURS FONDAMENTALES
                 </div>
                 <div class="lk-text-content">
-                    {{ ligue.get_valeurs|linebreaks }}
+                    {{ ligue.get_valeurs|safe }}
                 </div>
             </div>
             {% endif %}

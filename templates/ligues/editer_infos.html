@@ -44,6 +44,11 @@
     .lk-tabs-header .nav-link.active i {
         opacity: 1 !important;
     }
+
+    .dropdown-menu-apercu {
+        z-index: 1070 !important;
+        min-width: 250px;
+    }
 </style>
 {% endblock %}
 
@@ -55,39 +60,38 @@
         </a>
         <div>
             <h4 class="fw-bold mb-0">Édition des Informations & Présentation ("À Propos")</h4>
-            <small class="text-muted">Personnalisez tous les contenus et boutons publics de la Ligue du Kadiogo</small>
         </div>
     </div>
     
-    <!-- Bouton d'aperçu des pages publiques (Menu déroulant pour tester chaque page) -->
-    <div class="dropdown">
-        <button class="btn btn-outline-dark dropdown-toggle fw-bold" type="button" id="dropdownApercu" data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="bi bi-eye me-1 text-primary"></i>Aperçu des pages publiques
+    <!-- Bouton d'aperçu des pages publiques -->
+    <div class="dropdown position-relative">
+        <button class="btn btn-dark dropdown-toggle fw-bold shadow-sm" type="button" id="dropdownApercu" data-bs-toggle="dropdown" aria-expanded="false">
+            <i class="bi bi-eye text-warning me-1"></i>Aperçu des pages publiques
         </button>
-        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-3" aria-labelledby="dropdownApercu">
+        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-3 dropdown-menu-apercu" aria-labelledby="dropdownApercu">
             <li>
-                <a class="dropdown-item py-2" href="{% url 'accounts:presentation' %}" target="_blank">
+                <a class="dropdown-item py-2 fw-medium" href="{% url 'accounts:presentation' %}" target="_blank">
                     <i class="bi bi-building text-warning me-2"></i>Page Présentation
                 </a>
             </li>
             <li>
-                <a class="dropdown-item py-2" href="{% url 'accounts:mot_president' %}" target="_blank">
+                <a class="dropdown-item py-2 fw-medium" href="{% url 'accounts:mot_president' %}" target="_blank">
                     <i class="bi bi-person-workspace text-danger me-2"></i>Page {{ ligue.get_titre_mot_president }}
                 </a>
             </li>
             <li>
-                <a class="dropdown-item py-2" href="{% url 'ligues:organigramme_visuel' %}" target="_blank">
-                    <i class="bi bi-diagram-3 text-info me-2"></i>Organigramme Visuel Public
+                <a class="dropdown-item py-2 fw-medium" href="{% url 'ligues:organigramme_visuel' %}" target="_blank">
+                    <i class="bi bi-diagram-3 text-info me-2"></i>Organigramme Visuel
                 </a>
             </li>
             <li>
-                <a class="dropdown-item py-2" href="{% url 'accounts:vision_missions' %}" target="_blank">
+                <a class="dropdown-item py-2 fw-medium" href="{% url 'accounts:vision_missions' %}" target="_blank">
                     <i class="bi bi-compass text-success me-2"></i>Page Vision & Missions
                 </a>
             </li>
             <li><hr class="dropdown-divider"></li>
             <li>
-                <a class="dropdown-item py-2" href="{% url 'accounts:contact' %}" target="_blank">
+                <a class="dropdown-item py-2 fw-medium" href="{% url 'accounts:contact' %}" target="_blank">
                     <i class="bi bi-geo-alt text-primary me-2"></i>Page Contact & Localisation
                 </a>
             </li>
@@ -99,7 +103,7 @@
     {% csrf_token %}
 
     <div class="card shadow-sm border-0 rounded-4 overflow-hidden mb-4">
-        <!-- En-tête avec la couleur du footer Slate Navy #0F172A -->
+        <!-- En-tête des onglets -->
         <div class="card-header lk-tabs-header p-3">
             <ul class="nav nav-tabs card-header-tabs border-0" id="infoTabs" role="tablist">
                 <li class="nav-item" role="presentation">
@@ -146,7 +150,6 @@
                                 <i class="bi bi-info-circle text-warning me-1"></i> {{ form.presentation_generale.label }}
                             </label>
                             {{ form.presentation_generale }}
-                            <small class="text-muted">Résumé général du rôle institutionnel et de la structure de la Ligue.</small>
                         </div>
 
                         <div class="col-12">
@@ -154,7 +157,6 @@
                                 <i class="bi bi-hourglass-split text-danger me-1"></i> {{ form.historique.label }}
                             </label>
                             {{ form.historique }}
-                            <small class="text-muted">Historique de la création de la Ligue (ex: 2006, 36 clubs, 400+ athlètes, bureau exécutif & direction technique, mandats de 4 ans).</small>
                         </div>
                     </div>
                 </div>
@@ -167,7 +169,6 @@
                                 <i class="bi bi-flag text-danger me-1"></i> {{ form.objectif_general.label }}
                             </label>
                             {{ form.objectif_general }}
-                            <small class="text-muted">Objectif principal de la Ligue dans la région.</small>
                         </div>
 
                         <div class="col-md-6">
@@ -175,7 +176,6 @@
                                 <i class="bi bi-list-check text-primary me-1"></i> {{ form.objectifs_specifiques.label }}
                             </label>
                             {{ form.objectifs_specifiques }}
-                            <small class="text-muted">Saisissez un objectif spécifique par ligne (avec des puces • ou tirets).</small>
                         </div>
 
                         <div class="col-md-6">
@@ -183,7 +183,6 @@
                                 <i class="bi bi-eye text-success me-1"></i> {{ form.vision.label }}
                             </label>
                             {{ form.vision }}
-                            <small class="text-muted">Vision à long terme (ex: Pôle d'excellence du Wushu...).</small>
                         </div>
 
                         <div class="col-md-6">
@@ -191,24 +190,18 @@
                                 <i class="bi bi-gem text-warning me-1"></i> {{ form.valeurs.label }}
                             </label>
                             {{ form.valeurs }}
-                            <small class="text-muted">Valeurs martiales & administratives prônées.</small>
                         </div>
                     </div>
                 </div>
 
                 <!-- TAB 3 : Mot du Président / de la Présidente -->
                 <div class="tab-pane fade" id="tab-president" role="tabpanel">
-                    <div class="alert alert-info py-2 small">
-                        <i class="bi bi-info-circle me-1"></i>
-                        Si la ligue est dirigée par une présidente, vous pouvez adapter ici le nom et le titre du message (ex: "Mot de la Présidente").
-                    </div>
                     <div class="row g-4">
                         <div class="col-md-6">
                             <label class="form-label fw-bold text-dark">
                                 <i class="bi bi-tag-fill text-warning me-1"></i> {{ form.titre_mot_president.label }}
                             </label>
                             {{ form.titre_mot_president }}
-                            <small class="text-muted">Nom affiché sur le bouton & le titre (ex: "Mot du Président" ou "Mot de la Présidente").</small>
                         </div>
 
                         <div class="col-md-6">
@@ -216,12 +209,11 @@
                                 <i class="bi bi-person-fill text-dark me-1"></i> {{ form.nom_president.label }}
                             </label>
                             {{ form.nom_president }}
-                            <small class="text-muted">Ex: "Maître Mahamadi SANFO, Président" ou "Mme Fatoumata KABORE, Présidente".</small>
                         </div>
 
                         <div class="col-md-12">
                             <label class="form-label fw-bold text-dark">
-                                <i class="bi bi-image text-primary me-1"></i> {{ form.photo_president.label }}
+                                <i class="bi bi-image text-primary me-1"></i> Photo officielle
                             </label>
                             {{ form.photo_president }}
                             {% if ligue.photo_president %}
@@ -236,17 +228,21 @@
                                 <i class="bi bi-chat-quote-fill text-danger me-1"></i> {{ form.mot_president.label }}
                             </label>
                             {{ form.mot_president }}
-                            <small class="text-muted">Message d'accueil et orientations de la présidence adressés à la communauté.</small>
                         </div>
                     </div>
                 </div>
 
-                <!-- TAB 4 : Personnalisation des Titres des Boutons "À PROPOS" -->
+                <!-- TAB 4 : Personnalisation des Titres des Boutons -->
                 <div class="tab-pane fade" id="tab-titles" role="tabpanel">
-                    <div class="alert alert-light border py-2 mb-4 small">
-                        <i class="bi bi-gear-fill text-primary me-1"></i>
-                        Vous pouvez personnaliser l'intitulé de tous les boutons du menu déroulant "À PROPOS" pour les adapter exactement à vos besoins.
+                    <div class="alert alert-light border shadow-sm rounded-3 p-3 mb-4 d-flex align-items-center gap-3">
+                        <div class="p-2 bg-warning bg-opacity-10 rounded-circle text-warning flex-shrink-0">
+                            <i class="bi bi-info-circle-fill fs-5"></i>
+                        </div>
+                        <div class="small text-secondary mb-0">
+                            <strong class="text-dark">À quoi sert cet onglet ?</strong> Cet espace vous permet de personnaliser le texte exact affiché sur les boutons et liens du menu déroulant <strong>"À PROPOS"</strong> du site public (par exemple, pour adapter <em>"Mot du Président"</em> en <em>"Mot de la Présidente"</em> selon vos besoins).
+                        </div>
                     </div>
+
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label fw-bold text-dark"><i class="bi bi-building text-warning me-1"></i> {{ form.titre_presentation.label }}</label>
@@ -314,11 +310,6 @@
 
                 <!-- TAB 6 : Configuration du Bulletin de Note -->
                 <div class="tab-pane fade" id="tab-bulletin" role="tabpanel">
-                    <div class="alert alert-info border-0 shadow-sm rounded-3 mb-4">
-                        <i class="bi bi-info-circle-fill me-2"></i>
-                        <strong>Textes & Mentions du Bulletin Officiel :</strong> Ces informations apparaissent sur tous les bulletins de note imprimés (PDF et Web). Modifiez le signataire, les en-têtes ou le pied de page à tout moment.
-                    </div>
-
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label fw-bold text-dark">{{ form.bulletin_header_gauche_ligne1.label }}</label>
@@ -370,9 +361,8 @@
             </div>
         </div>
 
-        <div class="card-footer bg-light p-3 d-flex justify-content-between align-items-center">
-            <span class="text-muted small"><i class="bi bi-info-circle me-1"></i>Les modifications seront immédiatement répercutées sur les boutons et pages publiques.</span>
-            <button type="submit" class="btn btn-success px-4 fw-bold">
+        <div class="card-footer bg-light p-3 d-flex justify-content-end align-items-center">
+            <button type="submit" class="btn btn-success px-4 fw-bold shadow-sm">
                 <i class="bi bi-check-circle me-1"></i>Enregistrer les modifications
             </button>
         </div>

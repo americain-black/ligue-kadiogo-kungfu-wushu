@@ -32,6 +32,7 @@ urlpatterns = [
 
     # Organigramme club
     path('<int:club_pk>/organigramme/',                              views.organigramme_club,        name='organigramme'),
+    path('<int:club_pk>/organigramme/visuel/',                       views.organigramme_visuel_club, name='organigramme_visuel'),
     path('organigramme/volet/<int:volet_pk>/membre/ajouter/',        views.ajouter_membre_club,      name='ajouter_membre_club'),
     path('organigramme/membre/<int:pk>/modifier/',                   views.modifier_membre_club,     name='modifier_membre_club'),
     path('organigramme/membre/<int:pk>/toggle/',     views.toggle_actif_membre_club, name='toggle_actif_membre_club'),

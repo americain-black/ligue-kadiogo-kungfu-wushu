@@ -127,19 +127,17 @@
 <section class="py-4 bg-light min-vh-50" id="annuaireClubs">
     <div class="container">
 
-        <!-- Barre de recherche automatique / instantanée -->
-        <form method="get" action="{% url 'clubs:annuaire' %}" class="lk-recherche" id="formRecherche">
-            <div class="d-flex">
+        <!-- Barre de recherche exacte (Capture 1) -->
+        <form method="get" action="{% url 'clubs:annuaire' %}" class="mb-4" id="formRecherche">
+            <div class="lk-search-group">
+                <i class="bi bi-search lk-search-icon"></i>
                 <input type="search" 
                        id="rechercheClub" 
                        name="q" 
                        value="{{ query }}" 
                        class="form-control" 
-                       placeholder="Recherche automatique par nom, sigle ou localité..." 
+                       placeholder="Recherche" 
                        autocomplete="off">
-                <button type="submit" class="btn" title="Rechercher">
-                    <i class="bi bi-search"></i>
-                </button>
             </div>
             <div class="form-text text-center text-muted mt-2">
                 <i class="bi bi-lightning-charge-fill text-warning me-1"></i>
@@ -228,8 +226,8 @@
                             <i class="bi bi-card-text text-muted"></i>
                             <div class="text-muted small w-100" style="line-height: 1.4;">
                                 <strong>Présentation :</strong>
-                                <span class="d-block text-secondary mt-1 lk-club-description-box" title="{{ club.description }}">
-                                    {{ club.description|truncatewords:22 }}
+                                <span class="d-block text-secondary mt-1 lk-club-description-box" title="{{ club.description|striptags }}">
+                                    {{ club.description|striptags|safe|truncatewords:22 }}
                                 </span>
                                 <button type="button" 
                                         class="btn btn-link p-0 text-danger fw-bold small text-decoration-none mt-1 d-inline-flex align-items-center gap-1"
@@ -286,8 +284,8 @@
                                             <i class="bi bi-journal-text me-2"></i>Présentation & Histoire du Club
                                         </h6>
                                         {% if club.description %}
-                                        <div class="text-dark small lh-base" style="white-space: pre-line;">
-                                            {{ club.description }}
+                                        <div class="text-dark small lh-base">
+                                            {{ club.description|safe }}
                                         </div>
                                         {% else %}
                                         <p class="text-muted small fst-italic mb-0">Aucune présentation détaillée disponible pour ce club.</p>

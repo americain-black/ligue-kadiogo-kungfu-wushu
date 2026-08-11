@@ -55,11 +55,12 @@
 <section class="py-4 bg-light min-vh-50" id="documents">
     <div class="container">
 
-        <form method="get" class="lk-recherche d-flex mb-4" style="max-width: 540px; margin: 0 auto;">
-            <div class="input-group shadow-sm">
-                <input type="search" id="rechercheDoc" name="q" value="{{ q }}" class="form-control rounded-start-pill ps-4"
-                       placeholder="Rechercher un document (ex: règlement, formulaire...)" autocomplete="off">
-                <button type="submit" class="btn btn-danger rounded-end-pill px-4"><i class="bi bi-search"></i></button>
+        <!-- Barre de recherche exacte (Capture 1) -->
+        <form method="get" class="mb-4">
+            <div class="lk-search-group">
+                <i class="bi bi-search lk-search-icon"></i>
+                <input type="search" id="rechercheDoc" name="q" value="{{ q }}" class="form-control"
+                       placeholder="Recherche" autocomplete="off">
             </div>
         </form>
 

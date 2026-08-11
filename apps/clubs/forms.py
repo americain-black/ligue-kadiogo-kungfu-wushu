@@ -144,12 +144,13 @@ class VoletOrganigrammeClubForm(forms.ModelForm):
 class MembreOrganigrammeClubForm(forms.ModelForm):
     class Meta:
         model  = MembreOrganigrammeClub
-        fields = ['nom', 'prenom', 'contact', 'fonction', 'date_debut_fonction', 'actif']
+        fields = ['nom', 'prenom', 'contact', 'fonction', 'ordre', 'date_debut_fonction', 'actif']
         widgets = {
             'nom':                 forms.TextInput(attrs={'class': 'form-control'}),
             'prenom':              forms.TextInput(attrs={'class': 'form-control'}),
             'contact':             forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Téléphone ou email'}),
             'fonction':            forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Président, DT...'}),
+            'ordre':               forms.NumberInput(attrs={'class': 'form-control', 'min': 1, 'placeholder': '1, 2, 3...'}),
             'date_debut_fonction': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
             'actif':               forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
@@ -158,6 +159,7 @@ class MembreOrganigrammeClubForm(forms.ModelForm):
             'prenom':              'Prénom',
             'contact':             'Contact',
             'fonction':            'Fonction',
+            'ordre':               'Ligne / Niveau hiérarchique (1 = Ligne 1, 2 = Ligne 2...)',
             'date_debut_fonction': 'Date de début de fonction',
             'actif':               'Membre actif',
         }

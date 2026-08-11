@@ -100,12 +100,18 @@
 
 <!-- Filtres de Recherche -->
 <div class="card border-0 shadow-sm p-3 mb-4 rounded-3">
-    <form method="get" class="row g-2 align-items-center">
+    <form method="get" id="filterFormAffiliation" class="row g-2 align-items-center">
         <input type="hidden" name="statut" value="{{ statut_filtre }}">
-        <div class="col-md-5">
+        <div class="col-md-6">
             <div class="input-group input-group-sm">
-                <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
-                <input type="text" name="q" value="{{ q }}" class="form-control form-control-sm border-start-0" placeholder="Rechercher par nom de club, sigle ou code...">
+                <span class="input-group-text bg-white border-end-0 text-danger"><i class="bi bi-search"></i></span>
+                <input type="text" 
+                       name="q" 
+                       id="searchInputAffiliation" 
+                       value="{{ q }}" 
+                       class="form-control form-control-sm border-start-0" 
+                       placeholder="Recherche automatique par nom de club, sigle ou code..."
+                       oninput="filterTableRows(this); autoSubmitForm(this.form)">
             </div>
         </div>
         <div class="col-md-4">
@@ -118,12 +124,34 @@
                 {% endfor %}
             </select>
         </div>
-        <div class="col-md-3 text-end">
-            <button type="submit" class="btn btn-dark btn-sm rounded-pill px-3">Filtrer</button>
-            <a href="{% url 'clubs:demandes_affiliation' %}" class="btn btn-outline-secondary btn-sm rounded-pill">Réinitialiser</a>
+        <div class="col-md-2 text-end">
+            <a href="{% url 'clubs:demandes_affiliation' %}" class="btn btn-outline-secondary btn-sm rounded-pill w-100">Réinitialiser</a>
         </div>
     </form>
 </div>
+
+<script>
+let submitDebounceTimer;
+function autoSubmitForm(form) {
+    clearTimeout(submitDebounceTimer);
+    submitDebounceTimer = setTimeout(() => {
+        form.submit();
+    }, 450);
+}
+
+function filterTableRows(input) {
+    const term = input.value.toLowerCase().trim();
+    const rows = document.querySelectorAll('table tbody tr');
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        if (term === '' || text.includes(term)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+</script>
 
 <!-- Table des Demandes d'Affiliation -->
 <div class="card border-0 shadow-sm rounded-3 overflow-hidden">

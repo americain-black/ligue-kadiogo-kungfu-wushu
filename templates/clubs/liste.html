@@ -31,20 +31,47 @@
     </div>
 </div>
 
-<!-- Filtre par statut -->
-<div class="card p-3 mb-4">
-    <div class="d-flex align-items-center gap-2 flex-wrap">
-        <span class="fw-semibold small">Filtrer :</span>
-        <a href="{% url 'clubs:liste' %}"
-           class="btn btn-sm {% if not statut_filtre %}btn-danger{% else %}btn-outline-secondary{% endif %}">Tous</a>
-        {% for code, libelle in statuts %}
-        <a href="?statut={{ code }}"
-           class="btn btn-sm {% if statut_filtre == code %}btn-danger{% else %}btn-outline-secondary{% endif %}">
-            {{ libelle }}
-        </a>
-        {% endfor %}
+<!-- Filtre et Recherche Automatique par Nom de Club -->
+<div class="card p-3 mb-4 border-0 shadow-sm rounded-3">
+    <div class="row g-3 align-items-center">
+        <div class="col-md-5">
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-white border-end-0 text-danger"><i class="bi bi-search"></i></span>
+                <input type="text" 
+                       id="searchClubListInput" 
+                       class="form-control form-control-sm border-start-0" 
+                       placeholder="Recherche automatique par nom de club, maître ou localité..."
+                       oninput="filterClubRows(this)">
+            </div>
+        </div>
+        <div class="col-md-7 text-md-end">
+            <span class="fw-semibold small me-2 text-muted">Statut :</span>
+            <a href="{% url 'clubs:liste' %}"
+               class="btn btn-sm {% if not statut_filtre %}btn-danger{% else %}btn-outline-secondary{% endif %}">Tous</a>
+            {% for code, libelle in statuts %}
+            <a href="?statut={{ code }}"
+               class="btn btn-sm {% if statut_filtre == code %}btn-danger{% else %}btn-outline-secondary{% endif %}">
+                {{ libelle }}
+            </a>
+            {% endfor %}
+        </div>
     </div>
 </div>
+
+<script>
+function filterClubRows(input) {
+    const term = input.value.toLowerCase().trim();
+    const rows = document.querySelectorAll('table tbody tr');
+    rows.forEach(row => {
+        const text = row.textContent.toLowerCase();
+        if (term === '' || text.includes(term)) {
+            row.style.display = '';
+        } else {
+            row.style.display = 'none';
+        }
+    });
+}
+</script>
 
 <!-- Tableau -->
 <div class="card">

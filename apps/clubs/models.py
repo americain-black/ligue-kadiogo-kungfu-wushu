@@ -121,6 +121,13 @@ class DemandeAffiliation(models.Model):
     )
     motif_rejet        = models.TextField(blank=True)
     nombre_soumissions = models.PositiveSmallIntegerField(default=0)
+    date_approbation   = models.DateTimeField(null=True, blank=True, verbose_name="Date d'approbation")
+    approuve_par       = models.ForeignKey(
+        'accounts.Utilisateur',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='demandes_affiliation_approuvees'
+    )
 
     class Meta:
         verbose_name        = "Demande d'affiliation"
@@ -189,9 +196,13 @@ class DemandeAffiliation(models.Model):
         self.motif_rejet        = motif
         self.save()
 
-    def approuver(self):
+    def approuver(self, utilisateur=None):
         """Appelée par le Gestionnaire Ligue."""
+        from django.utils import timezone
         self.statut_affiliation  = 'APPROUVEE'
+        self.date_approbation    = timezone.now()
+        if utilisateur:
+            self.approuve_par    = utilisateur
         self.club.statut_club    = 'AFFILIE'
         self.club.save()
         self.save()

@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Demandes d'affiliation — Ligue du Kadiogo{% endblock %}
+{% block title %}Traitement des Affiliations — Ligue du Kadiogo{% endblock %}
 
 {% block sidebar %}
 <span class="sidebar-title">Navigation</span>
@@ -14,22 +14,11 @@
 <a href="{% url 'exams:liste' %}" class="nav-link">
     <i class="bi bi-journal-check me-2"></i>Sessions d'examen
 </a>
-<a href="{% url 'exams:tarifs_accueil' %}" class="nav-link ps-4">
-    <i class="bi bi-cash-coin me-2"></i>Tarifs d'examen
-</a>
-<a href="{% url 'exams:rubriques' %}" class="nav-link">
-    <i class="bi bi-list-task me-2"></i>Rubriques / Épreuves
-</a>
-<a href="{% url 'exams:options' %}" class="nav-link">
-    <i class="bi bi-tags me-2"></i>Options / Styles
-</a>
-<a href="{% url 'exams:modele_matricule' %}" class="nav-link">
-    <i class="bi bi-123 me-2"></i>Modèle de matricule
-</a>
-
-
 <a href="{% url 'clubs:demandes_affiliation' %}" class="nav-link active">
     <i class="bi bi-file-earmark-check me-2"></i>Affiliations
+</a>
+<a href="{% url 'clubs:historique_affiliations' %}" class="nav-link ps-4">
+    <i class="bi bi-archive me-2"></i>Historique & Archives
 </a>
 <a href="{% url 'clubs:parametres_affiliation' %}" class="nav-link ps-4">
     <i class="bi bi-cash-coin me-2"></i>Frais d'affiliation
@@ -37,57 +26,194 @@
 {% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
     <div class="d-flex align-items-center gap-3">
-    <a href="{% url 'accounts:dashboard_ligue' %}" class="btn-action btn-action-edit flex-shrink-0" title="Tableau de bord" data-bs-toggle="tooltip">
-        <i class="bi bi-arrow-left"></i>
-    </a>
+        <a href="{% url 'accounts:dashboard_ligue' %}" class="btn-action btn-action-edit flex-shrink-0" title="Tableau de bord" data-bs-toggle="tooltip">
+            <i class="bi bi-arrow-left"></i>
+        </a>
         <div>
-        <h4 class="fw-bold mb-0">Demandes d'affiliation</h4>
-        <small class="text-muted">En attente de votre validation</small>
+            <h4 class="fw-bold mb-0">Traitement des Dossiers d'Affiliation</h4>
+            <small class="text-muted">Gestion, étude et validation des demandes des clubs par saison</small>
         </div>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'clubs:historique_affiliations' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
+            <i class="bi bi-archive-fill me-1 text-primary"></i>Historique complet
+        </a>
+        <a href="{% url 'clubs:parametres_affiliation' %}" class="btn btn-outline-dark btn-sm rounded-pill px-3">
+            <i class="bi bi-gear me-1"></i>Paramètres frais
+        </a>
     </div>
 </div>
 
-<div class="card p-3">
+<!-- Cartes Statistiques & Filtres Rapides -->
+<div class="row g-3 mb-4">
+    <div class="col-md-2 col-6">
+        <a href="?statut=EN_ATTENTE_VALID_LIGUE" class="text-decoration-none">
+            <div class="card p-3 border-0 shadow-sm rounded-3 text-center h-100 {% if statut_filtre == 'EN_ATTENTE_VALID_LIGUE' %}border-start border-4 border-warning bg-warning-subtle{% endif %}">
+                <span class="fs-4 fw-bold text-warning d-block">{{ nb_en_attente_ligue }}</span>
+                <small class="text-dark fw-semibold" style="font-size: 0.78rem;">À valider (Ligue)</small>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-2 col-6">
+        <a href="?statut=EN_ATTENTE_VALID_FINANCIER" class="text-decoration-none">
+            <div class="card p-3 border-0 shadow-sm rounded-3 text-center h-100 {% if statut_filtre == 'EN_ATTENTE_VALID_FINANCIER' %}border-start border-4 border-info bg-info-subtle{% endif %}">
+                <span class="fs-4 fw-bold text-info d-block">{{ nb_en_attente_financier }}</span>
+                <small class="text-dark fw-semibold" style="font-size: 0.78rem;">Valid. Financière</small>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-2 col-6">
+        <a href="?statut=EN_ATTENTE_PAIEMENT" class="text-decoration-none">
+            <div class="card p-3 border-0 shadow-sm rounded-3 text-center h-100 {% if statut_filtre == 'EN_ATTENTE_PAIEMENT' %}border-start border-4 border-secondary bg-light{% endif %}">
+                <span class="fs-4 fw-bold text-secondary d-block">{{ nb_en_attente_paiement }}</span>
+                <small class="text-dark fw-semibold" style="font-size: 0.78rem;">En attente paiement</small>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-2 col-6">
+        <a href="?statut=APPROUVEE" class="text-decoration-none">
+            <div class="card p-3 border-0 shadow-sm rounded-3 text-center h-100 {% if statut_filtre == 'APPROUVEE' %}border-start border-4 border-success bg-success-subtle{% endif %}">
+                <span class="fs-4 fw-bold text-success d-block">{{ nb_approuvees }}</span>
+                <small class="text-dark fw-semibold" style="font-size: 0.78rem;">Approuvées</small>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-2 col-6">
+        <a href="?statut=REJETEE" class="text-decoration-none">
+            <div class="card p-3 border-0 shadow-sm rounded-3 text-center h-100 {% if statut_filtre == 'REJETEE' %}border-start border-4 border-danger bg-danger-subtle{% endif %}">
+                <span class="fs-4 fw-bold text-danger d-block">{{ nb_rejetees }}</span>
+                <small class="text-dark fw-semibold" style="font-size: 0.78rem;">Rejetées</small>
+            </div>
+        </a>
+    </div>
+    <div class="col-md-2 col-6">
+        <a href="?statut=TOUS" class="text-decoration-none">
+            <div class="card p-3 border-0 shadow-sm rounded-3 text-center h-100 {% if statut_filtre == 'TOUS' %}border-start border-4 border-dark bg-dark text-white{% endif %}">
+                <span class="fs-4 fw-bold text-dark d-block">{{ nb_total }}</span>
+                <small class="text-muted fw-semibold" style="font-size: 0.78rem;">Toutes saisons</small>
+            </div>
+        </a>
+    </div>
+</div>
+
+<!-- Filtres de Recherche -->
+<div class="card border-0 shadow-sm p-3 mb-4 rounded-3">
+    <form method="get" class="row g-2 align-items-center">
+        <input type="hidden" name="statut" value="{{ statut_filtre }}">
+        <div class="col-md-5">
+            <div class="input-group input-group-sm">
+                <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                <input type="text" name="q" value="{{ q }}" class="form-control form-control-sm border-start-0" placeholder="Rechercher par nom de club, sigle ou code...">
+            </div>
+        </div>
+        <div class="col-md-4">
+            <select name="annee" class="form-select form-select-sm" onchange="this.form.submit()">
+                <option value="">-- Toutes les saisons sportives --</option>
+                {% for annee in annees %}
+                <option value="{{ annee.id }}" {% if annee_id == annee.id|stringformat:"s" %}selected{% endif %}>
+                    Saison {{ annee.libelle }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3 text-end">
+            <button type="submit" class="btn btn-dark btn-sm rounded-pill px-3">Filtrer</button>
+            <a href="{% url 'clubs:demandes_affiliation' %}" class="btn btn-outline-secondary btn-sm rounded-pill">Réinitialiser</a>
+        </div>
+    </form>
+</div>
+
+<!-- Table des Demandes d'Affiliation -->
+<div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+    <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
+        <h6 class="fw-bold mb-0 text-dark">
+            <i class="bi bi-folder-check me-2 text-danger"></i>Liste des Dossiers d'Affiliation
+        </h6>
+        <span class="badge bg-secondary font-monospace">{{ demandes.count }} dossier(s) trouvé(s)</span>
+    </div>
+    
     {% if demandes %}
-    <table class="table table-hover align-middle mb-0">
-        <thead class="table-light">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light small text-muted text-uppercase">
+                <tr>
+                    <th>Club</th>
+                    <th>Localité</th>
+                    <th>Saison</th>
+                    <th>Date Demande</th>
+                    <th>Statut</th>
+                    <th>Pièces & Paiement</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for demande in demandes %}
             <tr>
-                <th>Club</th>
-                <th>Localité</th>
-                <th>Année sportive</th>
-                <th>Date de demande</th>
-                <th>Soumissions</th>
-                <th class="text-end">Actions</th>
+                <td>
+                    <div class="fw-bold text-dark">{{ demande.club.nom_club }}</div>
+                    <div class="small text-muted">
+                        {% if demande.club.sigle_club %}<span class="badge bg-secondary font-monospace">{{ demande.club.sigle_club }}</span>{% endif %}
+                        <span class="font-monospace ms-1">{{ demande.club.code_club }}</span>
+                    </div>
+                </td>
+                <td><i class="bi bi-geo-alt me-1 text-danger"></i>{{ demande.club.localite }}</td>
+                <td><span class="badge bg-light text-dark border">{{ demande.annee_sportive.libelle }}</span></td>
+                <td>
+                    <div class="small fw-semibold">{{ demande.date_demande|date:"d/m/Y" }}</div>
+                    <div class="text-muted micro-text">{{ demande.date_demande|timesince }}</div>
+                </td>
+                <td>
+                    {% if demande.statut_affiliation == 'EN_ATTENTE_VALID_LIGUE' %}
+                        <span class="badge bg-warning text-dark"><i class="bi bi-clock me-1"></i>À valider (Ligue)</span>
+                    {% elif demande.statut_affiliation == 'EN_ATTENTE_VALID_FINANCIER' %}
+                        <span class="badge bg-info text-dark"><i class="bi bi-cash me-1"></i>Valid. Financier</span>
+                    {% elif demande.statut_affiliation == 'EN_ATTENTE_PAIEMENT' %}
+                        <span class="badge bg-secondary"><i class="bi bi-credit-card me-1"></i>En attente paiement</span>
+                    {% elif demande.statut_affiliation == 'APPROUVEE' %}
+                        <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Approuvée</span>
+                        {% if demande.date_approbation %}
+                        <div class="text-muted micro-text">le {{ demande.date_approbation|date:"d/m/Y" }}</div>
+                        {% endif %}
+                    {% elif demande.statut_affiliation == 'REJETEE' %}
+                        <span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Rejetée</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="d-flex flex-column gap-1">
+                        <span class="badge bg-light text-secondary border w-auto" style="width: fit-content;">
+                            <i class="bi bi-paperclip me-1"></i>{{ demande.pieces_justificatives.count }} fichier(s)
+                        </span>
+                        {% if demande.paiement %}
+                        <span class="badge bg-success-subtle text-success border border-success-subtle w-auto" style="width: fit-content;">
+                            <i class="bi bi-currency-exchange me-1"></i>Payé ({{ demande.montant_frais|floatformat:0 }} F)
+                        </span>
+                        {% endif %}
+                    </div>
+                </td>
+                <td class="text-end">
+                    <div class="btn-group">
+                        <a href="{% url 'clubs:detail_demande_affiliation' demande.pk %}" class="btn btn-sm btn-outline-dark" title="Examiner la fiche du dossier">
+                            <i class="bi bi-folder2-open me-1"></i>Dossier
+                        </a>
+                        {% if demande.statut_affiliation == 'APPROUVEE' %}
+                        <a href="{% url 'clubs:attestation_affiliation' demande.pk %}" target="_blank" class="btn btn-sm btn-success" title="Voir / Imprimer l'Attestation Officielle">
+                            <i class="bi bi-file-earmark-pdf me-1"></i>Attestation
+                        </a>
+                        {% endif %}
+                    </div>
+                </td>
             </tr>
-        </thead>
-        <tbody>
-        {% for demande in demandes %}
-        <tr>
-            <td>
-                <strong>{{ demande.club.nom_club }}</strong>
-                {% if demande.club.sigle_club %}<span class="text-muted small">({{ demande.club.sigle_club }})</span>{% endif %}
-            </td>
-            <td>{{ demande.club.localite }}</td>
-            <td>{{ demande.annee_sportive.libelle }}</td>
-            <td>{{ demande.date_demande|date:"d/m/Y" }}</td>
-            <td class="text-center">
-                <span class="badge bg-secondary">{{ demande.nombre_soumissions }}</span>
-            </td>
-            <td class="text-end">
-                <a href="{% url 'clubs:detail_demande_affiliation' demande.pk %}" class="btn btn-sm btn-primary" title="Examiner le dossier">
-                    <i class="bi bi-folder2-open me-1"></i>Examiner le dossier
-                </a>
-            </td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
     {% else %}
     <div class="text-center py-5 text-muted">
-        <i class="bi bi-check-circle fs-1 opacity-25 d-block mb-2 text-success"></i>
-        Aucune demande en attente de validation.
+        <i class="bi bi-folder-x fs-1 opacity-25 d-block mb-3 text-secondary"></i>
+        <h6 class="fw-bold">Aucun dossier d'affiliation trouvé</h6>
+        <p class="small mb-0">Aucun résultat ne correspond aux filtres sélectionnés.</p>
     </div>
     {% endif %}
 </div>

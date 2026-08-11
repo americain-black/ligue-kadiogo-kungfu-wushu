@@ -16,6 +16,17 @@ from .forms import (
 )
 
 
+def gest_club_requis(view_func):
+    """Réservé au GEST_CLUB uniquement (pas GEST_LIGUE) pour les actions d'écriture."""
+    @login_required
+    def wrapper(request, *args, **kwargs):
+        if not (request.user.is_superuser or request.user.est_gest_club()):
+            messages.error(request, "Accès réservé au Gestionnaire de Club.")
+            return redirect('accounts:tableau_de_bord')
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+
 def gest_ligue_requis(view_func):
     @login_required
     def wrapper(request, *args, **kwargs):
@@ -282,12 +293,98 @@ def supprimer_club(request, pk):
 
 @gest_ligue_requis
 def demandes_affiliation(request):
-    demandes = DemandeAffiliation.objects.filter(
-        club__ligue=request.user.ligue,
-        statut_affiliation='EN_ATTENTE_VALID_LIGUE'
-    ).select_related('club', 'annee_sportive').order_by('-date_demande')
+    from apps.exams.models import AnneeSportive
+    from django.db.models import Q
+
+    ligue = request.user.ligue
+    statut_filtre = request.GET.get('statut', 'EN_ATTENTE_VALID_LIGUE')
+    annee_id = request.GET.get('annee', '')
+    q = request.GET.get('q', '').strip()
+
+    qs = DemandeAffiliation.objects.filter(club__ligue=ligue).select_related('club', 'annee_sportive', 'approuve_par')
+
+    if statut_filtre and statut_filtre != 'TOUS':
+        qs = qs.filter(statut_affiliation=statut_filtre)
+    
+    if annee_id:
+        qs = qs.filter(annee_sportive_id=annee_id)
+
+    if q:
+        qs = qs.filter(
+            Q(club__nom_club__icontains=q) |
+            Q(club__sigle_club__icontains=q) |
+            Q(club__code_club__icontains=q)
+        )
+
+    demandes = qs.order_by('-date_demande')
+    annees = AnneeSportive.objects.all().order_by('-date_debut')
+
+    nb_en_attente_ligue = DemandeAffiliation.objects.filter(club__ligue=ligue, statut_affiliation='EN_ATTENTE_VALID_LIGUE').count()
+    nb_en_attente_paiement = DemandeAffiliation.objects.filter(club__ligue=ligue, statut_affiliation='EN_ATTENTE_PAIEMENT').count()
+    nb_en_attente_financier = DemandeAffiliation.objects.filter(club__ligue=ligue, statut_affiliation='EN_ATTENTE_VALID_FINANCIER').count()
+    nb_approuvees = DemandeAffiliation.objects.filter(club__ligue=ligue, statut_affiliation='APPROUVEE').count()
+    nb_rejetees = DemandeAffiliation.objects.filter(club__ligue=ligue, statut_affiliation='REJETEE').count()
+    nb_total = DemandeAffiliation.objects.filter(club__ligue=ligue).count()
+
     return render(request, 'clubs/demandes_affiliation.html', {
         'demandes': demandes,
+        'annees': annees,
+        'statut_filtre': statut_filtre,
+        'annee_id': annee_id,
+        'q': q,
+        'nb_en_attente_ligue': nb_en_attente_ligue,
+        'nb_en_attente_paiement': nb_en_attente_paiement,
+        'nb_en_attente_financier': nb_en_attente_financier,
+        'nb_approuvees': nb_approuvees,
+        'nb_rejetees': nb_rejetees,
+        'nb_total': nb_total,
+    })
+
+
+@gest_ligue_requis
+def historique_affiliations_ligue(request):
+    """
+    Vue d'archivage et historique complet de toutes les affiliations passées et présentes de la Ligue.
+    """
+    from apps.exams.models import AnneeSportive
+    from django.db.models import Q
+
+    ligue = request.user.ligue
+    statut_filtre = request.GET.get('statut', '')
+    annee_id = request.GET.get('annee', '')
+    q = request.GET.get('q', '').strip()
+
+    qs = DemandeAffiliation.objects.filter(club__ligue=ligue).select_related('club', 'annee_sportive', 'approuve_par')
+
+    if statut_filtre:
+        qs = qs.filter(statut_affiliation=statut_filtre)
+    if annee_id:
+        qs = qs.filter(annee_sportive_id=annee_id)
+    if q:
+        qs = qs.filter(
+            Q(club__nom_club__icontains=q) |
+            Q(club__sigle_club__icontains=q) |
+            Q(club__code_club__icontains=q)
+        )
+
+    demandes = qs.order_by('-date_demande')
+    annees = AnneeSportive.objects.all().order_by('-date_debut')
+
+    nb_total = DemandeAffiliation.objects.filter(club__ligue=ligue).count()
+    nb_approuvees = DemandeAffiliation.objects.filter(club__ligue=ligue, statut_affiliation='APPROUVEE').count()
+    nb_rejetees = DemandeAffiliation.objects.filter(club__ligue=ligue, statut_affiliation='REJETEE').count()
+    nb_en_cours = nb_total - nb_approuvees - nb_rejetees
+
+    return render(request, 'clubs/historique_affiliations.html', {
+        'demandes': demandes,
+        'annees': annees,
+        'statut_filtre': statut_filtre,
+        'annee_id': annee_id,
+        'q': q,
+        'nb_total': nb_total,
+        'nb_approuvees': nb_approuvees,
+        'nb_rejetees': nb_rejetees,
+        'nb_en_cours': nb_en_cours,
     })
 
 
@@ -315,8 +412,8 @@ def valider_demande(request, pk):
         statut_affiliation='EN_ATTENTE_VALID_LIGUE'
     )
     if request.method == 'POST':
-        demande.approuver()
-        messages.success(request, f"Affiliation de « {demande.club.nom_club} » approuvée.")
+        demande.approuver(utilisateur=request.user)
+        messages.success(request, f"Affiliation de « {demande.club.nom_club} » approuvée avec succès pour la saison {demande.annee_sportive.libelle}.")
         return redirect('clubs:demandes_affiliation')
     return render(request, 'clubs/confirmer_validation.html', {'demande': demande})
 
@@ -339,6 +436,52 @@ def rejeter_demande(request, pk):
     return render(request, 'clubs/rejeter_demande.html', {
         'form':    form,
         'demande': demande,
+    })
+
+
+def attestation_affiliation(request, pk):
+    """
+    Vue imprimable / téléchargeable d'Attestation Officielle d'Affiliation.
+    Accessible aux gestionnaires de ligue et au gestionnaire du club concerné.
+    """
+    demande = get_object_or_404(DemandeAffiliation, pk=pk, statut_affiliation='APPROUVEE')
+    user = request.user
+    
+    if not user.is_authenticated:
+        return redirect('accounts:login')
+
+    est_autorise = False
+    if user.est_gest_ligue and user.ligue == demande.club.ligue:
+        est_autorise = True
+    elif user.est_gest_club and hasattr(user, 'club') and user.club == demande.club:
+        est_autorise = True
+    elif user.is_superuser:
+        est_autorise = True
+
+    if not est_autorise:
+        messages.error(request, "Vous n'avez pas l'autorisation de consulter cette attestation.")
+        return redirect('accounts:accueil')
+
+    ligue = demande.club.ligue
+    return render(request, 'clubs/attestation_affiliation.html', {
+        'demande': demande,
+        'club': demande.club,
+        'ligue': ligue,
+        'annee': demande.annee_sportive,
+    })
+
+
+@gest_club_requis
+def historique_affiliations_club(request):
+    """
+    Vue d'historique de toutes les demandes d'affiliation passées et présentes du Club.
+    """
+    club = request.user.club
+    demandes = DemandeAffiliation.objects.filter(club=club).select_related('annee_sportive', 'approuve_par').order_by('-date_demande')
+    
+    return render(request, 'clubs/mes_demandes_affiliation.html', {
+        'club': club,
+        'demandes': demandes,
     })
 
 

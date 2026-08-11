@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+
+{% block title %}Historique de mes Affiliations — {{ club.nom_club }}{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Mon Club</span>
+<a href="{% url 'clubs:mon_affiliation' %}" class="nav-link">
+    <i class="bi bi-shield-check me-2"></i>Mon Affiliation Actuelle
+</a>
+<a href="{% url 'clubs:mes_demandes_affiliation' %}" class="nav-link active">
+    <i class="bi bi-clock-history me-2"></i>Historique des Dossiers
+</a>
+<a href="{% url 'clubs:detail' club.pk %}" class="nav-link">
+    <i class="bi bi-building me-2"></i>Fiche du Club
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <div class="d-flex align-items-center gap-3">
+        <a href="{% url 'clubs:mon_affiliation' %}" class="btn-action btn-action-edit flex-shrink-0" title="Mon Affiliation">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+            <h4 class="fw-bold mb-0">Historique des Affiliations du Club</h4>
+            <small class="text-muted">Archives de toutes vos demandes d'affiliation à la Ligue par saison sportive</small>
+        </div>
+    </div>
+    <div>
+        <a href="{% url 'clubs:mon_affiliation' %}" class="btn btn-danger btn-sm rounded-pill px-3">
+            <i class="bi bi-plus-circle me-1"></i>Soumettre l'affiliation actuelle
+        </a>
+    </div>
+</div>
+
+<div class="row g-4">
+    {% for demande in demandes %}
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
+            <div class="card-header bg-white p-3 border-bottom d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-danger fs-6 rounded-pill px-3">Saison {{ demande.annee_sportive.libelle }}</span>
+                    <small class="text-muted font-monospace">Dossier N°{{ demande.id }}</small>
+                </div>
+                <div>
+                    {% if demande.statut_affiliation == 'APPROUVEE' %}
+                        <span class="badge bg-success rounded-pill px-3 py-2"><i class="bi bi-check-circle-fill me-1"></i>AFFILIÉ</span>
+                    {% elif demande.statut_affiliation == 'REJETEE' %}
+                        <span class="badge bg-danger rounded-pill px-3 py-2"><i class="bi bi-x-circle-fill me-1"></i>REJETÉE</span>
+                    {% else %}
+                        <span class="badge bg-warning text-dark rounded-pill px-3 py-2"><i class="bi bi-hourglass-split me-1"></i>EN COURS</span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-3 mb-3">
+                    <div class="col-6">
+                        <small class="text-muted d-block">Date de soumission :</small>
+                        <strong class="text-dark">{{ demande.date_demande|date:"d F Y" }}</strong>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted d-block">Frais d'affiliation :</small>
+                        <strong class="text-dark">{{ demande.montant_frais|floatformat:0 }} FCFA</strong>
+                    </div>
+                </div>
+
+                <!-- Pièces transmises -->
+                <div class="bg-light p-3 rounded-3 mb-3 border">
+                    <small class="text-secondary fw-semibold d-block mb-2">
+                        <i class="bi bi-files me-1"></i>Documents transmis ({{ demande.pieces_justificatives.count }}) :
+                    </small>
+                    <ul class="list-unstyled mb-0 small">
+                        {% for piece in demande.pieces_justificatives.all %}
+                        <li class="d-flex align-items-center justify-content-between mb-1">
+                            <span><i class="bi bi-file-earmark-pdf me-1 text-danger"></i>{{ piece.get_type_piece_display }}</span>
+                            <a href="{{ piece.fichier.url }}" target="_blank" class="text-decoration-none small text-primary">Voir <i class="bi bi-box-arrow-up-right ms-1"></i></a>
+                        </li>
+                        {% empty %}
+                        <li class="text-muted italic">Aucun document joint.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+
+                {% if demande.statut_affiliation == 'REJETEE' and demande.motif_rejet %}
+                <div class="alert alert-danger mb-3 p-3 rounded-3 small">
+                    <strong><i class="bi bi-exclamation-triangle-fill me-1"></i>Motif du rejet :</strong>
+                    <p class="mb-0 mt-1">{{ demande.motif_rejet }}</p>
+                </div>
+                {% endif %}
+
+                {% if demande.statut_affiliation == 'APPROUVEE' %}
+                <div class="alert alert-success mb-3 p-3 rounded-3 small">
+                    <i class="bi bi-patch-check-fill me-1 text-success fs-6"></i>
+                    <strong>Dossier d'affiliation validé par la Ligue !</strong>
+                    {% if demande.date_approbation %}
+                    <div class="text-muted mt-1">Approuvé le {{ demande.date_approbation|date:"d/m/Y à H:i" }}</div>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="card-footer bg-light p-3 border-top d-flex justify-content-between align-items-center">
+                {% if demande.statut_affiliation == 'APPROUVEE' %}
+                <a href="{% url 'clubs:attestation_affiliation' demande.pk %}" target="_blank" class="btn btn-success btn-sm rounded-pill w-100 py-2 fw-semibold">
+                    <i class="bi bi-file-earmark-pdf-fill me-1"></i>Télécharger / Imprimer l'Attestation Officielle
+                </a>
+                {% elif demande.statut_affiliation == 'REJETEE' %}
+                <a href="{% url 'clubs:mon_affiliation' %}" class="btn btn-danger btn-sm rounded-pill w-100 py-2 fw-semibold">
+                    <i class="bi bi-pencil-square me-1"></i>Corriger et Re-soumettre
+                </a>
+                {% else %}
+                <span class="text-muted small w-100 text-center d-block"><i class="bi bi-clock me-1"></i>En cours d'étude par la Ligue</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="card border-0 shadow-sm p-5 text-center rounded-4">
+            <i class="bi bi-archive fs-1 opacity-25 text-secondary d-block mb-3"></i>
+            <h5 class="fw-bold text-dark">Aucun dossier d'affiliation enregistré</h5>
+            <p class="text-muted">Votre club n'a encore soumis aucune demande d'affiliation.</p>
+            <div class="mt-2">
+                <a href="{% url 'clubs:mon_affiliation' %}" class="btn btn-danger rounded-pill px-4">
+                    Commencer une demande d'affiliation
+                </a>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

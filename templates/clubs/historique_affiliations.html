@@ -66,23 +66,24 @@
 </div>
 
 <!-- Formulaire de recherche et filtre -->
-<div class="card border-0 shadow-sm p-3 mb-4 rounded-3">
+<div class="card border-0 shadow-sm p-3 mb-4 rounded-4">
     <form method="get" id="filterFormHistorique" class="row g-3 align-items-center">
         <div class="col-md-6">
-            <label class="form-label small fw-semibold text-muted mb-1">Recherche Automatique par Club</label>
-            <div class="input-group input-group-sm">
-                <span class="input-group-text bg-white border-end-0 text-danger"><i class="bi bi-search"></i></span>
+            <label class="form-label small fw-semibold text-muted mb-1">Recherche</label>
+            <div class="position-relative">
+                <i class="bi bi-search text-danger position-absolute top-50 start-0 translate-middle-y ms-3 fs-6"></i>
                 <input type="text" 
                        name="q" 
                        value="{{ q }}" 
-                       class="form-control border-start-0" 
-                       placeholder="Recherche automatique par nom, sigle ou code..."
-                       oninput="filterTableRows(this); autoSubmitForm(this.form)">
+                       class="form-control rounded-pill ps-5 border-secondary-subtle" 
+                       placeholder="Recherche"
+                       oninput="filterTableRows(this)"
+                       autocomplete="off">
             </div>
         </div>
         <div class="col-md-3">
             <label class="form-label small fw-semibold text-muted mb-1">Saison Sportive</label>
-            <select name="annee" class="form-select form-select-sm" onchange="this.form.submit()">
+            <select name="annee" class="form-select rounded-pill px-3" onchange="this.form.submit()">
                 <option value="">-- Toutes les saisons --</option>
                 {% for annee in annees %}
                 <option value="{{ annee.id }}" {% if annee_id == annee.id|stringformat:"s" %}selected{% endif %}>
@@ -93,7 +94,7 @@
         </div>
         <div class="col-md-3">
             <label class="form-label small fw-semibold text-muted mb-1">Statut du Dossier</label>
-            <select name="statut" class="form-select form-select-sm" onchange="this.form.submit()">
+            <select name="statut" class="form-select rounded-pill px-3" onchange="this.form.submit()">
                 <option value="">-- Tous les statuts --</option>
                 <option value="APPROUVEE" {% if statut_filtre == 'APPROUVEE' %}selected{% endif %}>Approuvée (Affilié)</option>
                 <option value="REJETEE" {% if statut_filtre == 'REJETEE' %}selected{% endif %}>Rejetée</option>
@@ -105,14 +106,6 @@
 </div>
 
 <script>
-let submitDebounceTimer;
-function autoSubmitForm(form) {
-    clearTimeout(submitDebounceTimer);
-    submitDebounceTimer = setTimeout(() => {
-        form.submit();
-    }, 450);
-}
-
 function filterTableRows(input) {
     const term = input.value.toLowerCase().trim();
     const rows = document.querySelectorAll('table tbody tr');

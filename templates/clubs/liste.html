@@ -32,25 +32,26 @@
 </div>
 
 <!-- Filtre et Recherche Automatique par Nom de Club -->
-<div class="card p-3 mb-4 border-0 shadow-sm rounded-3">
+<div class="card p-3 mb-4 border-0 shadow-sm rounded-4">
     <div class="row g-3 align-items-center">
         <div class="col-md-5">
-            <div class="input-group input-group-sm">
-                <span class="input-group-text bg-white border-end-0 text-danger"><i class="bi bi-search"></i></span>
+            <div class="position-relative">
+                <i class="bi bi-search text-danger position-absolute top-50 start-0 translate-middle-y ms-3 fs-6"></i>
                 <input type="text" 
                        id="searchClubListInput" 
-                       class="form-control form-control-sm border-start-0" 
-                       placeholder="Recherche automatique par nom de club, maître ou localité..."
-                       oninput="filterClubRows(this)">
+                       class="form-control rounded-pill ps-5 border-secondary-subtle" 
+                       placeholder="Recherche"
+                       oninput="filterClubRows(this)"
+                       autocomplete="off">
             </div>
         </div>
         <div class="col-md-7 text-md-end">
             <span class="fw-semibold small me-2 text-muted">Statut :</span>
             <a href="{% url 'clubs:liste' %}"
-               class="btn btn-sm {% if not statut_filtre %}btn-danger{% else %}btn-outline-secondary{% endif %}">Tous</a>
+               class="btn btn-sm rounded-pill px-3 {% if not statut_filtre %}btn-danger{% else %}btn-outline-secondary{% endif %}">Tous</a>
             {% for code, libelle in statuts %}
             <a href="?statut={{ code }}"
-               class="btn btn-sm {% if statut_filtre == code %}btn-danger{% else %}btn-outline-secondary{% endif %}">
+               class="btn btn-sm rounded-pill px-3 {% if statut_filtre == code %}btn-danger{% else %}btn-outline-secondary{% endif %}">
                 {{ libelle }}
             </a>
             {% endfor %}

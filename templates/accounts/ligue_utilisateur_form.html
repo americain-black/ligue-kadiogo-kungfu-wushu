@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+{% block title %}{{ titre }} — Ligue{% endblock %}
+
+{% block sidebar %}
+{% include 'includes/_sidebar_ligue.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="d-flex align-items-center gap-3 mb-4">
+            <a href="{% url 'accounts:liste_utilisateurs_ligue' %}" class="btn btn-outline-secondary btn-sm rounded-circle p-2">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <div>
+                <h4 class="fw-bold mb-0">{{ titre }}</h4>
+                <small class="text-muted">Création d'un compte utilisateur directement rattaché à la {{ request.user.ligue.nom_ligue|default:"Ligue" }}</small>
+            </div>
+        </div>
+
+        <div class="card border-0 shadow-sm rounded-4 p-4">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger rounded-3">
+                    {% for error in form.non_field_errors %}
+                        <div><i class="bi bi-exclamation-triangle me-2"></i>{{ error }}</div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                <!-- Section Rôle & Fonction -->
+                <div class="mb-4 p-3 bg-light rounded-3 border">
+                    <h6 class="fw-bold text-danger mb-3">
+                        <i class="bi bi-shield-check me-2"></i>Attribution du Rôle dans la Ligue
+                    </h6>
+                    <div class="mb-2">
+                        {{ form.role.label_tag }}
+                        {{ form.role }}
+                        {% if form.role.errors %}
+                            <div class="text-danger small mt-1">{{ form.role.errors|striptags }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Section Identité -->
+                <div class="row g-3 mb-4">
+                    <h6 class="fw-bold text-dark mb-0">
+                        <i class="bi bi-person me-2 text-muted"></i>Informations d'identité
+                    </h6>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Nom d'utilisateur (Identifiant) *</label>
+                        {{ form.username }}
+                        {% if form.username.errors %}<div class="text-danger small mt-1">{{ form.username.errors|striptags }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Civilité / Sexe</label>
+                        {{ form.sexe }}
+                        {% if form.sexe.errors %}<div class="text-danger small mt-1">{{ form.sexe.errors|striptags }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Prénom *</label>
+                        {{ form.first_name }}
+                        {% if form.first_name.errors %}<div class="text-danger small mt-1">{{ form.first_name.errors|striptags }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Nom de famille *</label>
+                        {{ form.last_name }}
+                        {% if form.last_name.errors %}<div class="text-danger small mt-1">{{ form.last_name.errors|striptags }}</div>{% endif %}
+                    </div>
+                </div>
+
+                <!-- Section Contact -->
+                <div class="row g-3 mb-4">
+                    <h6 class="fw-bold text-dark mb-0">
+                        <i class="bi bi-telephone me-2 text-muted"></i>Contact & Profil
+                    </h6>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Adresse Email</label>
+                        {{ form.email }}
+                        {% if form.email.errors %}<div class="text-danger small mt-1">{{ form.email.errors|striptags }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Numéro de Téléphone</label>
+                        {{ form.telephone }}
+                        {% if form.telephone.errors %}<div class="text-danger small mt-1">{{ form.telephone.errors|striptags }}</div>{% endif %}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold">Photo de profil (Optionnel)</label>
+                        {{ form.photo }}
+                        {% if form.photo.errors %}<div class="text-danger small mt-1">{{ form.photo.errors|striptags }}</div>{% endif %}
+                    </div>
+                </div>
+
+                <!-- Section Sécurité -->
+                <div class="row g-3 mb-4 p-3 bg-light rounded-3 border">
+                    <h6 class="fw-bold text-dark mb-1">
+                        <i class="bi bi-lock me-2 text-muted"></i>Sécurité & Mot de passe
+                    </h6>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Mot de passe *</label>
+                        {{ form.password1 }}
+                        {% if form.password1.errors %}<div class="text-danger small mt-1">{{ form.password1.errors|striptags }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Confirmer le mot de passe *</label>
+                        {{ form.password2 }}
+                        {% if form.password2.errors %}<div class="text-danger small mt-1">{{ form.password2.errors|striptags }}</div>{% endif %}
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{% url 'accounts:liste_utilisateurs_ligue' %}" class="btn btn-outline-secondary rounded-pill px-4">Annuler</a>
+                    <button type="submit" class="btn btn-danger rounded-pill px-4 shadow-sm">
+                        <i class="bi bi-check-circle me-1"></i>Créer le compte
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -4,7 +4,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 
 from .models import Utilisateur, Role, UtilisateurRole
-from .forms import UtilisateurCreationForm, UtilisateurModificationForm, RolesForm, MonProfilForm
+from .forms import UtilisateurCreationForm, UtilisateurLigueCreationForm, UtilisateurModificationForm, RolesForm, MonProfilForm
+from django.db.models import Q
 
 
 def super_admin_requis(view_func):
@@ -468,6 +469,97 @@ def supprimer_utilisateur(request, pk):
         'club_gere':         club_gere,
         'affectations_jury': affectations_jury,
     })
+
+
+# ─── Gestion des Utilisateurs de la Ligue ──────────────────────────────────────
+
+@login_required
+def liste_utilisateurs_ligue(request):
+    """
+    Permet au Gestionnaire Principal de Ligue (ou Super Admin) de voir et gérer
+    tous les utilisateurs rattachés à sa Ligue (Équipe Ligue & Gestionnaires de Club).
+    """
+    user = request.user
+    if not (user.is_superuser or user.est_gest_ligue_principal()):
+        messages.error(request, "Accès réservé au Gestionnaire Principal de Ligue.")
+        return redirect('accounts:tableau_de_bord')
+
+    ligue = user.ligue
+    role_filtre = request.GET.get('role', '')
+    q = request.GET.get('q', '').strip()
+
+    qs = Utilisateur.objects.filter(ligue=ligue, is_superuser=False).prefetch_related('roles')
+
+    if role_filtre:
+        qs = qs.filter(roles__nom_role=role_filtre)
+
+    if q:
+        qs = qs.filter(
+            Q(first_name__icontains=q) |
+            Q(last_name__icontains=q) |
+            Q(username__icontains=q) |
+            Q(email__icontains=q)
+        )
+
+    utilisateurs = qs.distinct().order_by('last_name', 'first_name')
+    roles_choices = Role.objects.exclude(nom_role=Role.SUPER_ADMIN)
+
+    return render(request, 'accounts/ligue_utilisateurs_liste.html', {
+        'utilisateurs': utilisateurs,
+        'roles_choices': roles_choices,
+        'role_filtre': role_filtre,
+        'q': q,
+        'ligue': ligue,
+    })
+
+
+@login_required
+def creer_utilisateur_ligue(request):
+    """
+    Permet au Gestionnaire Principal de Ligue de créer un compte (Administrateur Ligue, Resp. Technique, Financier, Chargé de Com, Club, Jury)
+    qui sera automatiquement lié à sa Ligue.
+    """
+    user = request.user
+    if not (user.is_superuser or user.est_gest_ligue_principal()):
+        messages.error(request, "Accès réservé au Gestionnaire Principal de Ligue.")
+        return redirect('accounts:tableau_de_bord')
+
+    if request.method == 'POST':
+        form = UtilisateurLigueCreationForm(request.POST, request.FILES)
+        if form.is_valid():
+            nouvel_utilisateur = form.save(ligue=user.ligue)
+            messages.success(request, f"Compte de {nouvel_utilisateur.get_full_name() or nouvel_utilisateur.username} créé avec succès pour votre Ligue.")
+            return redirect('accounts:liste_utilisateurs_ligue')
+    else:
+        form = UtilisateurLigueCreationForm()
+
+    return render(request, 'accounts/ligue_utilisateur_form.html', {
+        'form': form,
+        'titre': 'Créer un compte pour la Ligue ou un Club',
+    })
+
+
+@login_required
+def toggle_statut_utilisateur_ligue(request, pk):
+    """
+    Permet au Gestionnaire Principal de Ligue d'activer / désactiver un compte de sa Ligue.
+    """
+    user = request.user
+    if not (user.is_superuser or user.est_gest_ligue_principal()):
+        messages.error(request, "Accès réservé au Gestionnaire Principal de Ligue.")
+        return redirect('accounts:tableau_de_bord')
+
+    cible = get_object_or_404(Utilisateur, pk=pk, ligue=user.ligue)
+    if cible == user:
+        messages.error(request, "Vous ne pouvez pas désactiver votre propre compte.")
+        return redirect('accounts:liste_utilisateurs_ligue')
+
+    cible.statut_compte = not cible.statut_compte
+    cible.save()
+
+    statut_str = "réactivé" if cible.statut_compte else "désactivé"
+    messages.success(request, f"Le compte de {cible.get_full_name() or cible.username} a été {statut_str}.")
+    return redirect('accounts:liste_utilisateurs_ligue')
 
 
 @login_required

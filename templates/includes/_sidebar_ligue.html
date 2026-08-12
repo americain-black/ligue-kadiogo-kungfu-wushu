@@ -61,6 +61,9 @@
 </a>
 
 <span class="sidebar-title mt-2">Institution & Présentation</span>
+<a href="{% url 'accounts:liste_utilisateurs_ligue' %}" class="nav-link {% if request.resolver_match.url_name == 'liste_utilisateurs_ligue' or request.resolver_match.url_name == 'creer_utilisateur_ligue' %}active{% endif %}">
+    <i class="bi bi-people-fill me-2 text-danger"></i>Équipe & Utilisateurs
+</a>
 <a href="{% url 'ligues:editer_infos' %}" class="nav-link {% if request.resolver_match.namespace == 'ligues' and request.resolver_match.url_name == 'editer_infos' %}active{% endif %}">
     <i class="bi bi-pencil-square me-2"></i>Présentation & À propos
 </a>

@@ -37,16 +37,20 @@ class Role(models.Model):
 
     SUPER_ADMIN    = 'SUPER_ADMIN'
     GEST_LIGUE     = 'GEST_LIGUE'
-    GEST_CLUB      = 'GEST_CLUB'
+    GEST_TECHNIQUE = 'GEST_TECHNIQUE'
     GEST_FINANCIER = 'GEST_FINANCIER'
+    GEST_COM       = 'GEST_COM'
+    GEST_CLUB      = 'GEST_CLUB'
     JURY           = 'JURY'
 
     ROLE_CHOICES = [
         (SUPER_ADMIN,    'Super Administrateur'),
-        (GEST_LIGUE,     'Gestionnaire Ligue'),
+        (GEST_LIGUE,     'Gestionnaire Ligue (Administrateur Principal / SG)'),
+        (GEST_TECHNIQUE, 'Responsable Technique Ligue (Examens, Grades)'),
+        (GEST_FINANCIER, 'Gestionnaire Financier Ligue'),
+        (GEST_COM,       'Chargé de Communication Ligue'),
         (GEST_CLUB,      'Gestionnaire Club'),
-        (GEST_FINANCIER, 'Gestionnaire Financier'),
-        (JURY,           'Jury'),
+        (JURY,           'Membre du Jury / Évaluateur'),
     ]
 
     nom_role    = models.CharField(max_length=50, choices=ROLE_CHOICES, unique=True)
@@ -107,6 +111,69 @@ class Utilisateur(AbstractUser):
     tentatives_connexion     = models.PositiveSmallIntegerField(default=0)
     token_reinitialisation   = models.UUIDField(default=uuid.uuid4, null=True, blank=True)
     token_expiration         = models.DateTimeField(null=True, blank=True)
+
+    # On utilise 'ligues.Ligue' en string pour éviter l'import circulaire entre apps.
+    ligue = models.ForeignKey(
+        'ligues.Ligue',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='utilisateurs'
+    )
+
+    # Rôles many-to-many via UtilisateurRole
+    roles = models.ManyToManyField(
+        Role,
+        through='UtilisateurRole',
+        related_name='utilisateurs',
+        blank=True
+    )
+
+    class Meta:
+        verbose_name = "Utilisateur"
+        verbose_name_plural = "Utilisateurs"
+
+    def __str__(self):
+        return f"{self.get_full_name() or self.username}"
+
+    # ── Méthodes utilitaires ─────────────────────────────────────────
+
+    def a_le_role(self, nom_role):
+        """Vérifie si l'utilisateur possède un rôle donné."""
+        return self.roles.filter(nom_role=nom_role).exists()
+
+    def a_la_permission(self, code_permission):
+        """
+        Vérifie si l'utilisateur possède une permission donnée,
+        via l'un quelconque de ses rôles.
+        """
+        return Permission.objects.filter(
+            code=code_permission,
+            roles__utilisateurs=self
+        ).exists()
+
+    def est_super_admin(self):
+        return self.a_le_role(Role.SUPER_ADMIN) or self.is_superuser
+
+    def est_gest_ligue(self):
+        return self.is_superuser or self.a_le_role(Role.GEST_LIGUE) or self.a_le_role(Role.GEST_TECHNIQUE) or self.a_le_role(Role.GEST_FINANCIER) or self.a_le_role(Role.GEST_COM)
+
+    def est_gest_ligue_principal(self):
+        return self.is_superuser or self.a_le_role(Role.GEST_LIGUE)
+
+    def est_gest_technique(self):
+        return self.est_gest_ligue_principal() or self.a_le_role(Role.GEST_TECHNIQUE)
+
+    def est_gest_com(self):
+        return self.est_gest_ligue_principal() or self.a_le_role(Role.GEST_COM)
+
+    def est_gest_club(self):
+        return self.a_le_role(Role.GEST_CLUB)
+
+    def est_gest_financier(self):
+        return self.est_gest_ligue_principal() or self.a_le_role(Role.GEST_FINANCIER)
+
+    def est_jury(self):
+        return self.a_le_role(Role.JURY)
 
 
 

@@ -69,5 +69,7 @@ urlpatterns = [
     # Gestion des comptes par la Ligue (Équipe Ligue, Financiers, Jurys, Clubs)
     path('ligue/utilisateurs/',                        views.liste_utilisateurs_ligue,        name='liste_utilisateurs_ligue'),
     path('ligue/utilisateurs/creer/',                  views.creer_utilisateur_ligue,         name='creer_utilisateur_ligue'),
+    path('ligue/utilisateurs/<int:pk>/modifier/',      views.modifier_utilisateur_ligue,      name='modifier_utilisateur_ligue'),
     path('ligue/utilisateurs/<int:pk>/toggle-statut/', views.toggle_statut_utilisateur_ligue, name='toggle_statut_utilisateur_ligue'),
+    path('ligue/utilisateurs/<int:pk>/supprimer/',     views.supprimer_utilisateur_ligue,     name='supprimer_utilisateur_ligue'),
 ]

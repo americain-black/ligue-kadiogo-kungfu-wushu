@@ -20,7 +20,7 @@ class Club(models.Model):
     )
     utilisateur = models.OneToOneField(
         'accounts.Utilisateur',
-        on_delete=models.PROTECT,
+        on_delete=models.SET_NULL,
         related_name='club',
         null=True, blank=True
     )

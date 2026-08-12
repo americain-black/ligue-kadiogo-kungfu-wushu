@@ -93,6 +93,90 @@
     .lk-hero .btn-or { animation-delay: 0.5s; }
     .lk-hero .btn-outline-blanc { animation-delay: 0.7s; }
 
+    /* ── Animation d'Élégance Innovante du Titre (3D Morph Slide) ── */
+    .hero-animated-phrase {
+        display: inline-block;
+        background: linear-gradient(135deg, #FFFFFF 15%, #FCD116 60%, #EF2B2D 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease, filter 0.5s ease;
+        transform-origin: center center;
+        will-change: transform, opacity, filter;
+    }
+    .hero-phrase-hidden-up {
+        opacity: 0 !important;
+        transform: translateY(-28px) rotateX(35deg) scale(0.96) !important;
+        filter: blur(6px) !important;
+    }
+    .hero-phrase-hidden-down {
+        opacity: 0 !important;
+        transform: translateY(28px) rotateX(-35deg) scale(0.96) !important;
+        filter: blur(6px) !important;
+    }
+    .hero-phrase-visible {
+        opacity: 1 !important;
+        transform: translateY(0) rotateX(0deg) scale(1) !important;
+        filter: blur(0px) !important;
+    }
+    .hero-dots-container {
+        display: flex;
+        justify-content: center;
+        gap: 6px;
+        margin-top: 6px;
+    }
+    .hero-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: rgba(255, 255, 255, 0.25);
+        transition: all 0.4s ease;
+    }
+    .hero-dot.active {
+        width: 24px;
+        border-radius: 12px;
+        background-color: #FCD116;
+        box-shadow: 0 0 10px rgba(252, 209, 22, 0.6);
+    }
+
+    /* ── Défilement Infini Pleine Largeur du Titre (de la Gauche vers la Droite, Sans Cadre) ── */
+    .hero-marquee-wrapper {
+        overflow: hidden;
+        white-space: nowrap;
+        width: 100%;
+        max-width: 100%;
+        margin: 0 0 1.5rem 0;
+        padding: 0.5rem 0;
+        position: relative;
+        background: transparent;
+        border: none;
+        box-shadow: none;
+    }
+    .hero-marquee-content {
+        display: inline-flex;
+        align-items: center;
+        white-space: nowrap;
+        animation: marquee-natural 24s linear infinite;
+        will-change: transform;
+    }
+    .hero-marquee-wrapper:hover .hero-marquee-content {
+        animation-play-state: paused;
+    }
+    .hero-marquee-item {
+        display: inline-flex;
+        align-items: center;
+        font-size: 1.4rem;
+        font-weight: 800;
+        color: #ffffff;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+        padding-right: 4rem;
+        text-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    }
+    @keyframes marquee-natural {
+        0%   { transform: translateX(0%); }
+        100% { transform: translateX(-50%); }
+    }
+
     @keyframes lk-apparition {
         from { opacity: 0; transform: translateY(18px); }
         to   { opacity: 1; transform: translateY(0); }
@@ -285,9 +369,27 @@
         </div>
 
         <div class="text-center pt-2">
-            <h1 id="heroTitre">Gestion des passages de grades sportifs</h1>
+            {% if ligue and ligue.titre_hero_accueil %}
+                <div class="hero-marquee-wrapper mb-3">
+                    <div class="hero-marquee-content">
+                        <div class="hero-marquee-item">
+                            <i class="bi bi-star-fill text-warning me-2"></i>{{ ligue.titre_hero_accueil }}
+                        </div>
+                        <div class="hero-marquee-item">
+                            <i class="bi bi-star-fill text-warning me-2"></i>{{ ligue.titre_hero_accueil }}
+                        </div>
+                        <div class="hero-marquee-item">
+                            <i class="bi bi-star-fill text-warning me-2"></i>{{ ligue.titre_hero_accueil }}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+            <h1 id="heroTitre" class="fw-bold my-2" style="min-height: 3.4rem; perspective: 1000px;">
+                <span id="heroTypingSpan" class="hero-animated-phrase hero-phrase-visible">{% if phrases_hero %}{{ phrases_hero.0 }}{% else %}Gestion des passages de grades sportifs{% endif %}</span>
+            </h1>
+            <div id="heroDots" class="hero-dots-container mb-3"></div>
             <div class="lk-hero-tagline">
-                <p class="lead" id="heroTagline">Affiliations, inscriptions aux examens, évaluations et publication des résultats</p>
+                <p class="lead" id="heroTagline">{% if ligue and ligue.soustitre_hero_accueil %}{{ ligue.soustitre_hero_accueil }}{% else %}Affiliations, inscriptions aux examens, évaluations et publication des résultats{% endif %}</p>
             </div>
             <div class="d-flex gap-3 justify-content-center flex-wrap mt-3">
                 <a href="{% url 'results:consultation_publique' %}" class="btn btn-outline-blanc">
@@ -530,37 +632,6 @@
 
 <script>
     (function () {
-        if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-
-        function demarrerRotation(element, phrases, intervalMs) {
-            if (!element) return;
-            let index = 0;
-            setInterval(function () {
-                element.classList.add('lk-rotation-sortie');
-                setTimeout(function () {
-                    index = (index + 1) % phrases.length;
-                    element.textContent = phrases[index];
-                    element.classList.remove('lk-rotation-sortie');
-                }, 500);
-            }, intervalMs);
-        }
-
-        demarrerRotation(document.getElementById('heroTitre'), [
-            "Gestion des passages de grades sportifs",
-            "Une seule plateforme pour toutes les ligues et fédérations",
-            "Affiliations, examens et résultats, ligue par ligue",
-            "La gestion sportive, simplifiée et centralisée",
-        ], 4500);
-
-        demarrerRotation(document.getElementById('heroTagline'), [
-            "Affiliations, inscriptions aux examens, évaluations et publication des résultats",
-            "Une plateforme complète pour la gestion des ligues et fédérations sportives",
-            "Suivez chaque parcours, du club jusqu'au grade obtenu, en toute transparence",
-            "Rigueur, discipline et excellence au service du sport",
-        ], 4000);
-    })();
-
-    (function () {
         const stats = document.getElementById('lkStats');
         if (!stats) return;
         const reduitMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -590,6 +661,65 @@
             });
         }, { threshold: 0.4 });
         observateur.observe(stats);
+    })();
+
+    // Animation Innovante 3D Slide & Morph des phrases dynamiques de la bannière
+    (function () {
+        const phrases = {{ phrases_hero_json|default:"[]"|safe }};
+        if (!phrases || phrases.length <= 1) return;
+
+        const typingSpan = document.getElementById('heroTypingSpan');
+        const dotsContainer = document.getElementById('heroDots');
+        if (!typingSpan) return;
+
+        // Génération dynamique des puces/indicateurs lumineux de pagination
+        if (dotsContainer) {
+            dotsContainer.innerHTML = '';
+            phrases.forEach((_, idx) => {
+                const dot = document.createElement('div');
+                dot.className = 'hero-dot' + (idx === 0 ? ' active' : '');
+                dotsContainer.appendChild(dot);
+            });
+        }
+
+        let currentIndex = 0;
+
+        function updateDots(index) {
+            if (!dotsContainer) return;
+            const dots = dotsContainer.querySelectorAll('.hero-dot');
+            dots.forEach((dot, idx) => {
+                if (idx === index) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+        }
+
+        function slideNextPhrase() {
+            // 1. Animation de sortie vers le haut (flou + 3D tilt)
+            typingSpan.className = 'hero-animated-phrase hero-phrase-hidden-up';
+
+            setTimeout(() => {
+                // 2. Passage au texte de la phrase suivante
+                currentIndex = (currentIndex + 1) % phrases.length;
+                typingSpan.textContent = phrases[currentIndex];
+                updateDots(currentIndex);
+
+                // 3. Positionnement initial masqué en bas
+                typingSpan.className = 'hero-animated-phrase hero-phrase-hidden-down';
+
+                // 4. Animation d'entrée fluide vers le centre
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        typingSpan.className = 'hero-animated-phrase hero-phrase-visible';
+                    });
+                });
+            }, 550);
+        }
+
+        // Lancement de la rotation fluide toutes les 3,6 secondes
+        setInterval(slideNextPhrase, 3600);
     })();
 </script>
 {% endblock %}

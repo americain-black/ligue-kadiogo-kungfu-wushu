@@ -47,6 +47,25 @@ class Ligue(models.Model):
     bulletin_pied_legal           = models.TextField(default="LIGUE DU KADIOGO DE KUNG FU WUSHU (LKKFW)\nSiège social : Ouagadougou, Récépissé n° : 2024-22/MSJE/RCEN/DRSL-CEN/SRRIS\nMail : ligueducentrekungfuwushu@gmail.com Tél : (+226) 65 08 92 62 / 73 86 86 16", blank=True, verbose_name="Pied de page légal du bulletin")
     bulletin_mention_exemplaire   = models.CharField(max_length=200, default="Ceci est un document original, il n'est délivré qu'en un seul exemplaire.", blank=True, verbose_name="Mention d'exemplaire unique (bas de page)")
 
+    # Configuration de la Bannière d'Accueil (Textes & Animation)
+    titre_hero_accueil = models.CharField(
+        max_length=250,
+        default="",
+        blank=True,
+        verbose_name="Titre principal fixe de la Bannière (Optionnel)"
+    )
+    soustitre_hero_accueil = models.TextField(
+        default="Suivez chaque parcours, du club jusqu'au grade obtenu, en toute transparence",
+        blank=True,
+        verbose_name="Sous-titre de la Bannière d'Accueil"
+    )
+    phrases_hero_accueil = models.TextField(
+        default="Gestion des passages de grades sportifs\nAffiliations et Licences des Clubs\nRégularisation et Homologation des Ceintures\nPromotion et Développement du Wushu",
+        blank=True,
+        verbose_name="Phrases dynamiques tournantes (1 par ligne)",
+        help_text="Entrez les phrases d'animation de la bannière d'accueil (une phrase par ligne)."
+    )
+
     class Meta:
         verbose_name        = 'Ligue'
         verbose_name_plural = 'Ligues'
@@ -56,6 +75,17 @@ class Ligue(models.Model):
 
     def est_active(self):
         return self.statut == 'ACTIVE'
+
+    def get_phrases_hero_list(self):
+        if not self.phrases_hero_accueil:
+            return [
+                "Gestion des passages de grades sportifs",
+                "Affiliations et Licences des Clubs",
+                "Régularisation et Homologation des Ceintures",
+                "Promotion et Développement du Wushu"
+            ]
+        lines = [l.strip() for l in self.phrases_hero_accueil.splitlines() if l.strip()]
+        return lines if lines else ["Gestion des passages de grades sportifs"]
 
     def get_presentation_generale(self):
         if self.presentation_generale and self.presentation_generale.strip():

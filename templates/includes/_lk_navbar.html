@@ -1,8 +1,8 @@
 <nav class="navbar navbar-expand-lg lk-navbar">
     <div class="container">
-        <a class="navbar-brand" href="{% url 'accounts:accueil' %}">
-            <i class="bi bi-trophy-fill"></i>
-            Administration
+        <a class="navbar-brand fw-bold" href="{% url 'accounts:accueil' %}">
+            <i class="bi bi-trophy-fill text-warning me-1"></i>
+            GRADIS
             <svg class="lk-drapeau" width="30" height="20" viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Drapeau du Burkina Faso">
                 <rect width="900" height="300" fill="#EF2B2D"/>
                 <rect y="300" width="900" height="300" fill="#009E49"/>
@@ -69,9 +69,9 @@
                 </li>
                 {% else %}
                 <li class="nav-item ms-lg-2">
-                    <button class="btn btn-outline-blanc" type="button" data-bs-toggle="offcanvas" data-bs-target="#loginPanel" aria-controls="loginPanel">
+                    <a class="btn btn-outline-blanc" href="{% url 'accounts:login' %}">
                         <i class="bi bi-box-arrow-in-right me-1"></i>Se connecter
-                    </button>
+                    </a>
                 </li>
                 {% endif %}
             </ul>

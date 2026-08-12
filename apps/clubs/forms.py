@@ -53,6 +53,11 @@ class ClubForm(forms.ModelForm):
             'longitude':     "Coordonnée longitude pour géolocalisation sur la carte.",
         }
 
+    def clean_telephone(self):
+        from apps.accounts.forms import normaliser_telephone
+        tel = self.cleaned_data.get('telephone')
+        return normaliser_telephone(tel)
+
     def __init__(self, *args, ligue=None, **kwargs):
         super().__init__(*args, **kwargs)
         self.fields['utilisateur'].required = False

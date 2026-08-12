@@ -4,7 +4,10 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 
 from .models import Utilisateur, Role, UtilisateurRole
-from .forms import UtilisateurCreationForm, UtilisateurLigueCreationForm, UtilisateurModificationForm, RolesForm, MonProfilForm
+from .forms import (
+    UtilisateurCreationForm, UtilisateurLigueCreationForm, UtilisateurLigueEditionForm,
+    UtilisateurModificationForm, RolesForm, MonProfilForm
+)
 from django.db.models import Q
 
 
@@ -75,6 +78,16 @@ def accueil(request):
             Document.objects.filter(ligue=ligue, est_public=True)
             .order_by('-date_publication')[:5]
         )
+
+    import json
+    phrases_hero = ligue.get_phrases_hero_list() if ligue else [
+        "Gestion des passages de grades sportifs",
+        "Affiliations et Licences des Clubs",
+        "Régularisation et Homologation des Ceintures",
+        "Promotion et Développement du Wushu"
+    ]
+    contexte['phrases_hero'] = phrases_hero
+    contexte['phrases_hero_json'] = json.dumps(phrases_hero)
 
     return render(request, 'accounts/accueil.html', contexte)
 
@@ -356,9 +369,14 @@ def detail_affectation_jury(request, pk):
 
 @super_admin_requis
 def liste_utilisateurs(request):
+    """
+    Le Super Admin ne voit et ne gère dans son espace que les comptes qu'il a créés
+    (Gestionnaires de Ligue et Super Admins), évitant ainsi toute suppression accidentelle
+    de comptes clubs ou jurys créés par les ligues.
+    """
     utilisateurs = Utilisateur.objects.filter(
-        is_superuser=False
-    ).prefetch_related('roles').order_by('last_name', 'first_name')
+        roles__nom_role__in=[Role.GEST_LIGUE, Role.SUPER_ADMIN]
+    ).distinct().prefetch_related('roles', 'ligue').order_by('last_name', 'first_name')
     return render(request, 'super_admin/utilisateurs_liste.html', {
         'utilisateurs': utilisateurs
     })
@@ -535,7 +553,7 @@ def creer_utilisateur_ligue(request):
 
     return render(request, 'accounts/ligue_utilisateur_form.html', {
         'form': form,
-        'titre': 'Créer un compte pour la Ligue ou un Club',
+        'titre': 'Espace de création de comptes utilisateurs',
     })
 
 
@@ -559,6 +577,65 @@ def toggle_statut_utilisateur_ligue(request, pk):
 
     statut_str = "réactivé" if cible.statut_compte else "désactivé"
     messages.success(request, f"Le compte de {cible.get_full_name() or cible.username} a été {statut_str}.")
+    return redirect('accounts:liste_utilisateurs_ligue')
+
+
+@login_required
+def modifier_utilisateur_ligue(request, pk):
+    """
+    Permet au Gestionnaire Principal de Ligue de modifier un compte utilisateur de sa Ligue.
+    """
+    user = request.user
+    if not (user.is_superuser or user.est_gest_ligue_principal()):
+        messages.error(request, "Accès réservé au Gestionnaire Principal de Ligue.")
+        return redirect('accounts:tableau_de_bord')
+
+    cible = get_object_or_404(Utilisateur, pk=pk, ligue=user.ligue, is_superuser=False)
+
+    if request.method == 'POST':
+        form = UtilisateurLigueEditionForm(request.POST, request.FILES, instance=cible)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Le compte de {cible.get_full_name() or cible.username} a été modifié avec succès.")
+            return redirect('accounts:liste_utilisateurs_ligue')
+    else:
+        form = UtilisateurLigueEditionForm(instance=cible)
+
+    return render(request, 'accounts/ligue_utilisateur_form.html', {
+        'form': form,
+        'titre': f"Modification du compte : {cible.get_full_name() or cible.username}",
+        'edition': True,
+        'cible': cible,
+    })
+
+
+@login_required
+def supprimer_utilisateur_ligue(request, pk):
+    """
+    Permet au Gestionnaire Principal de Ligue de supprimer définitivement un compte utilisateur de sa Ligue.
+    Détache automatiquement les clubs dépendants pour éviter les erreurs d'intégrité (ProtectedError).
+    """
+    user = request.user
+    if not (user.is_superuser or user.est_gest_ligue_principal()):
+        messages.error(request, "Accès réservé au Gestionnaire Principal de Ligue.")
+        return redirect('accounts:tableau_de_bord')
+
+    cible = get_object_or_404(Utilisateur, pk=pk, ligue=user.ligue, is_superuser=False)
+    if cible == user:
+        messages.error(request, "Vous ne pouvez pas supprimer votre propre compte.")
+        return redirect('accounts:liste_utilisateurs_ligue')
+
+    nom = cible.get_full_name() or cible.username
+
+    try:
+        from apps.clubs.models import Club
+        # Détacher le compte de tout club avant la suppression
+        Club.objects.filter(utilisateur=cible).update(utilisateur=None)
+        cible.delete()
+        messages.success(request, f"Le compte utilisateur '{nom}' a été supprimé définitivement.")
+    except Exception as e:
+        messages.error(request, f"Impossible de supprimer le compte '{nom}' : des enregistrements y sont rattachés.")
+
     return redirect('accounts:liste_utilisateurs_ligue')
 
 

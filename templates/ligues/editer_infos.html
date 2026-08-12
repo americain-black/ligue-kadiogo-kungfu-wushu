@@ -62,41 +62,6 @@
             <h4 class="fw-bold mb-0">Édition des Informations & Présentation ("À Propos")</h4>
         </div>
     </div>
-    
-    <!-- Bouton d'aperçu des pages publiques -->
-    <div class="dropdown position-relative">
-        <button class="btn btn-dark dropdown-toggle fw-bold shadow-sm" type="button" id="dropdownApercu" data-bs-toggle="dropdown" aria-expanded="false">
-            <i class="bi bi-eye text-warning me-1"></i>Aperçu des pages publiques
-        </button>
-        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 rounded-3 dropdown-menu-apercu" aria-labelledby="dropdownApercu">
-            <li>
-                <a class="dropdown-item py-2 fw-medium" href="{% url 'accounts:presentation' %}" target="_blank">
-                    <i class="bi bi-building text-warning me-2"></i>Page Présentation
-                </a>
-            </li>
-            <li>
-                <a class="dropdown-item py-2 fw-medium" href="{% url 'accounts:mot_president' %}" target="_blank">
-                    <i class="bi bi-person-workspace text-danger me-2"></i>Page {{ ligue.get_titre_mot_president }}
-                </a>
-            </li>
-            <li>
-                <a class="dropdown-item py-2 fw-medium" href="{% url 'ligues:organigramme_visuel' %}" target="_blank">
-                    <i class="bi bi-diagram-3 text-info me-2"></i>Organigramme Visuel
-                </a>
-            </li>
-            <li>
-                <a class="dropdown-item py-2 fw-medium" href="{% url 'accounts:vision_missions' %}" target="_blank">
-                    <i class="bi bi-compass text-success me-2"></i>Page Vision & Missions
-                </a>
-            </li>
-            <li><hr class="dropdown-divider"></li>
-            <li>
-                <a class="dropdown-item py-2 fw-medium" href="{% url 'accounts:contact' %}" target="_blank">
-                    <i class="bi bi-geo-alt text-primary me-2"></i>Page Contact & Localisation
-                </a>
-            </li>
-        </ul>
-    </div>
 </div>
 
 <form method="post" enctype="multipart/form-data">
@@ -263,6 +228,34 @@
                         <div class="col-md-6">
                             <label class="form-label fw-bold text-dark"><i class="bi bi-envelope-paper text-primary me-1"></i> {{ form.titre_contact.label }}</label>
                             {{ form.titre_contact }}
+                        </div>
+
+                        <!-- Section Bannière Verte d'Accueil -->
+                        <div class="col-12 mt-4 pt-3 border-top">
+                            <h6 class="fw-bold text-success mb-3">
+                                <i class="bi bi-window-fullscreen me-2"></i>Textes de la Bannière d'Accueil (Zone Verte)
+                            </h6>
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <label class="form-label fw-bold text-dark">
+                                        <i class="bi bi-fonts text-danger me-1"></i> {{ form.titre_hero_accueil.label }}
+                                    </label>
+                                    {{ form.titre_hero_accueil }}
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-bold text-dark">
+                                        <i class="bi bi-text-paragraph text-primary me-1"></i> {{ form.soustitre_hero_accueil.label }}
+                                    </label>
+                                    {{ form.soustitre_hero_accueil }}
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-bold text-dark">
+                                        <i class="bi bi-type text-success me-1"></i> Phrases tournantes animées de l'Accueil (1 phrase par ligne)
+                                    </label>
+                                    {{ form.phrases_hero_accueil }}
+                                    <small class="text-muted d-block mt-1">Chaque ligne saisie ici sera animée automatiquement avec l'effet Typewriter. Vous pouvez modifier ou ajouter autant de phrases que souhaité !</small>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

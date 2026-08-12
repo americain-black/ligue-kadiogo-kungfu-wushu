@@ -241,13 +241,24 @@
                     </div>
 
                     <div class="foot">
-                        <!-- Localisation Google Maps -->
+                        <!-- Localisation Google Maps GPS / Itinéraire -->
+                        {% if club.latitude and club.longitude %}
+                        <a href="https://www.google.com/maps/dir/?api=1&destination={{ club.latitude }},{{ club.longitude }}" 
+                           target="_blank" 
+                           rel="noopener noreferrer" 
+                           class="btn btn-outline-dark btn-voir-plus flex-fill"
+                           title="Ouvrir l'itinéraire GPS précis sur Google Maps">
+                            <i class="bi bi-geo-alt-fill me-1 text-danger"></i>Itinéraire GPS
+                        </a>
+                        {% else %}
                         <a href="https://www.google.com/maps/search/?api=1&query={{ club.nom_club|urlencode }}+{{ club.localite|urlencode }}{% if club.adresse %}+{{ club.adresse|urlencode }}{% endif %}" 
                            target="_blank" 
                            rel="noopener noreferrer" 
-                           class="btn btn-outline-dark btn-voir-plus flex-fill">
+                           class="btn btn-outline-dark btn-voir-plus flex-fill"
+                           title="Rechercher la zone sur Google Maps">
                             <i class="bi bi-geo-fill me-1 text-danger"></i>Itinéraire
                         </a>
+                        {% endif %}
 
                         <!-- Modal Formulaire de contact -->
                         <button type="button" 
@@ -459,22 +470,53 @@
                 zoomControl: true
             });
 
-            // Utilisation des tuiles CartoDB Voyager (ultra rapides et fiables au niveau mondial)
-            L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+            // Utilisation des tuiles officielles OpenStreetMap (Haute fiabilité)
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
                 maxZoom: 19,
-                subdomains: 'abcd',
-                attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             }).addTo(map);
 
-            // Redimensionnement automatique répété pour garantir l'affichage complet des tuiles
-            [100, 300, 800, 1500].forEach(function (delai) {
+            // Forcer le rendu immédiat et différé des tuiles pour éviter la carte blanche
+            map.invalidateSize();
+            [50, 200, 500, 1000, 2000].forEach(function (delai) {
                 setTimeout(function () {
-                    map.invalidateSize();
+                    if (map) map.invalidateSize();
                 }, delai);
             });
 
             window.addEventListener('resize', function () {
                 map.invalidateSize();
+            });
+
+            // Création d'une icône de marqueur ROUGE brillant personnalisée (SVG)
+            const redPinIcon = L.divIcon({
+                className: 'custom-red-pin-icon',
+                html: `
+                    <div style="
+                        position: relative;
+                        width: 34px;
+                        height: 34px;
+                        background: radial-gradient(circle at 35% 35%, #ef2b2d, #991b1b);
+                        border-radius: 50% 50% 50% 0;
+                        transform: rotate(-45deg);
+                        border: 2px solid #ffffff;
+                        box-shadow: 0 4px 12px rgba(220, 38, 38, 0.5);
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                    ">
+                        <div style="
+                            width: 12px;
+                            height: 12px;
+                            background-color: #ffffff;
+                            border-radius: 50%;
+                            transform: rotate(45deg);
+                        "></div>
+                    </div>
+                `,
+                iconSize: [34, 34],
+                iconAnchor: [17, 34],
+                popupAnchor: [0, -34]
             });
 
             const clubsData = [
@@ -496,21 +538,26 @@
                 const bounds = [];
                 clubsData.forEach(c => {
                     const popupContent = `
-                        <div style="font-family: sans-serif; padding: 4px;">
-                            <strong style="color: #dc2626; font-size: 0.95rem;">${c.nom}</strong><br>
-                            ${c.fondateur ? `<small><b>Maître :</b> ${c.fondateur}</small><br>` : ''}
-                            <small><b>Localité :</b> ${c.localite}</small><br>
-                            ${c.tel ? `<small><b>Tél :</b> <a href="tel:${c.tel}">${c.tel}</a></small>` : ''}
+                        <div style="font-family: sans-serif; padding: 6px; min-width: 180px;">
+                            <strong style="color: #dc2626; font-size: 1rem; display: block; margin-bottom: 4px;">${c.nom}</strong>
+                            ${c.fondateur ? `<div style="font-size: 0.85rem; color: #333;"><b>Maître :</b> ${c.fondateur}</div>` : ''}
+                            <div style="font-size: 0.85rem; color: #555;"><b>Localité :</b> ${c.localite}</div>
+                            ${c.tel ? `<div style="font-size: 0.85rem; color: #555;"><b>Tél :</b> <a href="tel:${c.tel}">${c.tel}</a></div>` : ''}
+                            <div style="margin-top: 8px; text-align: center;">
+                                <a href="https://www.google.com/maps/dir/?api=1&destination=${c.lat},${c.lng}" target="_blank" style="display: inline-block; background-color: #dc2626; color: #ffffff; padding: 4px 10px; border-radius: 20px; text-decoration: none; font-size: 0.8rem; font-weight: bold;">
+                                    📍 Lancer l'itinéraire GPS
+                                </a>
+                            </div>
                         </div>
                     `;
-                    L.marker([c.lat, c.lng]).addTo(map).bindPopup(popupContent);
+                    L.marker([c.lat, c.lng], { icon: redPinIcon }).addTo(map).bindPopup(popupContent);
                     bounds.push([c.lat, c.lng]);
                 });
                 if (bounds.length > 0) {
-                    map.fitBounds(bounds, { padding: [40, 40], maxZoom: 14 });
+                    map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
                 }
             } else {
-                L.marker([defaultLat, defaultLng]).addTo(map).bindPopup("<b>Ligue du Kadiogo de Wushu</b><br>Ouagadougou, Burkina Faso");
+                L.marker([defaultLat, defaultLng], { icon: redPinIcon }).addTo(map).bindPopup("<b>Ligue du Kadiogo de Wushu</b><br>Ouagadougou, Burkina Faso");
             }
         }
     })();

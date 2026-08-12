@@ -68,6 +68,8 @@
         }
         .main-wrapper-auth {
             padding-top: 56px;
+            min-height: 100vh;
+            background-color: #f8fafc;
         }
         .navbar-ligue .navbar-brand { font-size: 1.1rem; letter-spacing: 0.02em; }
         .navbar-ligue .navbar-brand,
@@ -76,14 +78,29 @@
 
         /* ── Sidebar ── */
         .sidebar {
-            width: 240px;
-            min-width: 240px;
+            width: 250px;
+            min-width: 250px;
             height: calc(100vh - 56px);
             position: sticky;
             top: 56px;
             overflow-y: auto;
             background-color: #1e2d3d;
             box-shadow: 2px 0 8px rgba(0,0,0,0.1);
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+        }
+        .sidebar::-webkit-scrollbar {
+            width: 5px;
+        }
+        .sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.25);
+            border-radius: 10px;
+        }
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
         }
         .sidebar .nav-link {
             color: #c8d6e5;
@@ -109,7 +126,11 @@
         }
 
         /* ── Contenu ── */
-        .main-content { padding: 1.5rem 2rem; min-width: 0; }
+        .main-content {
+            padding: 1.5rem 2rem;
+            min-width: 0;
+            min-height: calc(100vh - 56px);
+        }
 
         /* ── Sidebar mobile (slide-in) ── */
         .sidebar-overlay {
@@ -326,8 +347,8 @@
             <i class="bi bi-list fs-5"></i>
         </button>
         <a class="navbar-brand fw-bold" href="/tableau-de-bord/">
-            <i class="bi bi-trophy-fill me-2"></i>
-            Plateforme de gestion — {% if user.ligue %}{{ user.ligue.nom_ligue }}{% elif ligue_site %}{{ ligue_site.nom_ligue }}{% else %}Ligue du Kadiogo{% endif %}
+            <i class="bi bi-trophy-fill text-warning me-2"></i>
+            GRADIS — {% if user.ligue %}{{ user.ligue.nom_ligue }}{% elif ligue_site %}{{ ligue_site.nom_ligue }}{% else %}Ligue du Kadiogo{% endif %}
         </a>
         <div class="ms-auto d-flex align-items-center gap-2">
             <span class="text-white-50 small d-none d-sm-inline me-1 d-flex align-items-center gap-2">

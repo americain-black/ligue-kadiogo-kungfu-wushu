@@ -181,64 +181,6 @@ class Utilisateur(AbstractUser):
 
 
 
-    #On utilise 'ligues.Ligue' en string pour éviter l'import circulaire entre apps.
-    ligue = models.ForeignKey(
-    'ligues.Ligue',
-    on_delete=models.SET_NULL,
-    null=True, blank=True,
-    related_name='utilisateurs'
-    )
-
-
-    
-
-
-    # Rôles many-to-many via UtilisateurRole
-    roles = models.ManyToManyField(
-        Role,
-        through='UtilisateurRole',
-        related_name='utilisateurs',
-        blank=True
-    )
-
-    class Meta:
-        verbose_name = "Utilisateur"
-        verbose_name_plural = "Utilisateurs"
-
-    def __str__(self):
-        return f"{self.get_full_name() or self.username}"
-
-    # ── Méthodes utilitaires ─────────────────────────────────────────
-
-    def a_le_role(self, nom_role):
-        """Vérifie si l'utilisateur possède un rôle donné."""
-        return self.roles.filter(nom_role=nom_role).exists()
-
-    def a_la_permission(self, code_permission):
-        """
-        Vérifie si l'utilisateur possède une permission donnée,
-        via l'un quelconque de ses rôles.
-        """
-        return Permission.objects.filter(
-            code=code_permission,
-            roles__utilisateurs=self
-        ).exists()
-
-    def est_super_admin(self):
-        return self.a_le_role(Role.SUPER_ADMIN)
-
-    def est_gest_ligue(self):
-        return self.a_le_role(Role.GEST_LIGUE)
-
-    def est_gest_club(self):
-        return self.a_le_role(Role.GEST_CLUB)
-
-    def est_gest_financier(self):
-        return self.a_le_role(Role.GEST_FINANCIER)
-
-    def est_jury(self):
-        return self.a_le_role(Role.JURY)
-
     def get_roles_display(self):
         """Retourne la liste lisible des rôles de l'utilisateur."""
         return [r.get_nom_role_display() for r in self.roles.all()]
@@ -248,6 +190,7 @@ class Utilisateur(AbstractUser):
         if not self.token_expiration:
             return False
         return timezone.now() < self.token_expiration
+
 
 
 class UtilisateurRole(models.Model):

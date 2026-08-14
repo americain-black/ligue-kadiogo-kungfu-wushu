@@ -23,45 +23,54 @@
     <h4 class="fw-bold mt-1">Valider la preuve de paiement</h4>
 </div>
 
-<div class="row g-3" style="max-width: 700px;">
+<div class="row g-3" style="max-width: 760px;">
     <div class="col-12">
-        <div class="card p-3 mb-3">
-            <h6 class="fw-bold mb-3"><i class="bi bi-receipt me-2 text-muted"></i>Récapitulatif</h6>
+        <!-- Carte Récapitulatif du Paiement -->
+        <div class="card p-3 mb-3 shadow-sm border-0">
+            <h6 class="fw-bold mb-3 text-dark"><i class="bi bi-receipt me-2 text-primary"></i>Récapitulatif du Paiement</h6>
             <table class="table table-sm table-borderless mb-0">
                 <tr>
-                    <td class="text-muted small">Club</td>
-                    <td class="fw-semibold small">{{ demande.club.nom_club }}</td>
+                    <td class="text-muted small" style="width: 170px;">Club</td>
+                    <td class="fw-bold text-dark">{{ demande.club.nom_club }}</td>
                 </tr>
                 <tr>
                     <td class="text-muted small">Année sportive</td>
-                    <td class="small">{{ demande.annee_sportive.libelle }}</td>
+                    <td>{{ demande.annee_sportive.libelle }}</td>
                 </tr>
                 <tr>
                     <td class="text-muted small">Mode de paiement</td>
-                    <td class="small fw-semibold">{{ paiement.get_mode_paiement_display }}</td>
+                    <td class="fw-semibold">{{ paiement.get_mode_paiement_display }}</td>
                 </tr>
                 {% if paiement.mode_paiement == 'DEPOT_MOBILE' %}
                 <tr>
                     <td class="text-muted small">N° expéditeur</td>
-                    <td class="small">{{ paiement.numero_expediteur|default:"—" }}</td>
+                    <td>{{ paiement.numero_expediteur|default:"—" }}</td>
                 </tr>
                 <tr>
                     <td class="text-muted small">N° bénéficiaire</td>
-                    <td class="small">{{ paiement.numero_beneficiaire|default:"—" }}</td>
+                    <td>{{ paiement.numero_beneficiaire|default:"—" }}</td>
                 </tr>
                 <tr>
                     <td class="text-muted small">Référence</td>
-                    <td class="small">{{ paiement.reference|default:"—" }}</td>
+                    <td>{{ paiement.reference|default:"—" }}</td>
                 </tr>
                 {% else %}
                 <tr>
                     <td class="text-muted small">Nom du payeur</td>
-                    <td class="small fw-semibold">{{ paiement.nom_payeur|default:"—" }}</td>
+                    <td class="fw-semibold">{{ paiement.nom_payeur|default:"—" }}</td>
                 </tr>
                 {% endif %}
                 <tr>
-                    <td class="text-muted small">Preuve</td>
-                    <td class="small"><a href="{{ paiement.fichier_preuve.url }}" target="_blank">Voir le fichier</a></td>
+                    <td class="text-muted small">Preuve de paiement</td>
+                    <td>
+                        {% if paiement.fichier_preuve %}
+                        <button type="button" class="btn btn-sm btn-outline-primary rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#preuveModalValider">
+                            <i class="bi bi-eye me-1"></i>Visualiser la preuve dans l'application
+                        </button>
+                        {% else %}
+                        <span class="text-muted">Aucun fichier</span>
+                        {% endif %}
+                    </td>
                 </tr>
                 <tr class="border-top">
                     <td class="text-muted small pt-2">Montant attendu</td>
@@ -72,6 +81,40 @@
                     <td class="fw-bold {% if paiement.montant_paye < demande.montant_frais %}text-danger{% else %}text-success{% endif %}">
                         {{ paiement.montant_paye|floatformat:"0" }} FCFA
                     </td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Carte Récépissé Officiel d'Existence -->
+        <div class="card p-3 mb-3 shadow-sm border-0 border-start border-4 border-danger">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="fw-bold text-dark mb-0"><i class="bi bi-file-earmark-text me-2 text-danger"></i>Récépissé Officiel d'Existence du Club</h6>
+                {% if demande.club.numero_recepisse and demande.club.date_delivrance_recepisse %}
+                    {% if demande.club.recepisse_est_valide %}
+                    <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Récépissé Valide</span>
+                    {% else %}
+                    <span class="badge bg-danger"><i class="bi bi-exclamation-triangle me-1"></i>Récépissé Expiré</span>
+                    {% endif %}
+                {% endif %}
+            </div>
+            <table class="table table-sm table-borderless mb-0">
+                <tr>
+                    <td class="text-muted small" style="width: 170px;">Numéro récépissé</td>
+                    <td class="fw-semibold">{{ demande.club.numero_recepisse|default:"Non renseigné" }}</td>
+                </tr>
+                <tr>
+                    <td class="text-muted small">Date de délivrance</td>
+                    <td class="fw-semibold">
+                        {% if demande.club.date_delivrance_recepisse %}
+                            {{ demande.club.date_delivrance_recepisse|date:"d/m/Y" }}
+                        {% else %}
+                            <span class="text-muted">Non renseignée</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td class="text-muted small">Loi / Cadre</td>
+                    <td class="small">{{ demande.club.loi_reglementation|default:"Loi N° 064-2015/CNT" }}</td>
                 </tr>
             </table>
         </div>
@@ -88,15 +131,15 @@
         </div>
         {% endif %}
 
-        <div class="card p-4">
-            <p class="mb-3">
+        <div class="card p-4 shadow-sm border-0">
+            <p class="mb-3 text-dark">
                 En validant, la demande d'affiliation de <strong>« {{ demande.club.nom_club }} »</strong>
                 passera en <strong>« attente de validation par la ligue »</strong>.
             </p>
             <form method="post">
                 {% csrf_token %}
                 <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-success">
+                    <button type="submit" class="btn btn-success px-4">
                         <i class="bi bi-check-lg me-1"></i>Valider le paiement
                     </button>
                     <a href="{% url 'payments:detail_paiement_affiliation' paiement.pk %}"
@@ -106,4 +149,25 @@
         </div>
     </div>
 </div>
+
+<!-- Modal Preuve de Paiement -->
+{% if paiement.fichier_preuve %}
+<div class="modal fade" id="preuveModalValider" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h6 class="modal-title fw-bold"><i class="bi bi-file-earmark-image me-2 text-primary"></i>Preuve de paiement — {{ demande.club.nom_club }}</h6>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+            </div>
+            <div class="modal-body text-center p-3" style="min-height: 480px;">
+                <iframe src="{{ paiement.fichier_preuve.url }}" style="width:100%; height:520px; border:none;" class="rounded"></iframe>
+            </div>
+            <div class="modal-footer">
+                <a href="{{ paiement.fichier_preuve.url }}" download class="btn btn-primary btn-sm"><i class="bi bi-download me-1"></i>Télécharger le fichier</a>
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Fermer</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 {% endblock %}

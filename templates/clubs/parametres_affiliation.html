@@ -1,89 +1,108 @@
 {% extends 'base.html' %}
-{% block title %}Paramètres affiliation — Ligue du Kadiogo{% endblock %}
+{% block title %}Frais d'affiliation — Ligue du Kadiogo{% endblock %}
 
 {% block sidebar %}
 <span class="sidebar-title">Navigation</span>
 <a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
     <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
 </a>
-<span class="sidebar-title mt-2">Clubs</span>
+<span class="sidebar-title mt-2">Gestion</span>
 <a href="{% url 'clubs:liste' %}" class="nav-link">
     <i class="bi bi-building me-2"></i>Clubs
+</a>
+<a href="{% url 'exams:liste' %}" class="nav-link">
+    <i class="bi bi-journal-check me-2"></i>Sessions d'examen
 </a>
 <a href="{% url 'clubs:demandes_affiliation' %}" class="nav-link">
     <i class="bi bi-file-earmark-check me-2"></i>Affiliations
 </a>
-<a href="{% url 'clubs:parametres_affiliation' %}" class="nav-link active">
+<a href="{% url 'clubs:historique_affiliations' %}" class="nav-link ps-4">
+    <i class="bi bi-archive me-2"></i>Historique & Archives
+</a>
+<a href="{% url 'clubs:modele_attestation' %}" class="nav-link ps-4">
+    <i class="bi bi-file-earmark-pdf-fill me-2 text-danger"></i>Modèle Attestation
+</a>
+<a href="{% url 'clubs:parametres_affiliation' %}" class="nav-link ps-4 active">
     <i class="bi bi-cash-coin me-2"></i>Frais d'affiliation
 </a>
 {% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h4 class="fw-bold mb-0">
-            <i class="bi bi-cash-coin me-2 text-primary"></i>Frais d'affiliation
-        </h4>
-        <small class="text-muted">Définissez le montant que chaque club doit payer pour son affiliation annuelle.</small>
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <div class="d-flex align-items-center gap-3">
+        <a href="{% url 'clubs:demandes_affiliation' %}" class="btn-action btn-action-edit flex-shrink-0" title="Retour aux affiliations" data-bs-toggle="tooltip">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+            <h4 class="fw-bold mb-0">
+                <i class="bi bi-cash-coin me-2 text-primary"></i>Paramètres des Frais d'Affiliation
+            </h4>
+            <small class="text-muted">Définissez le montant des frais d'affiliation dus par les clubs et les règles du récépissé d'existence.</small>
+        </div>
     </div>
 </div>
 
-<div class="row g-4">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h6 class="mb-0 fw-bold"><i class="bi bi-sliders me-2"></i>Montant des frais</h6>
+<form method="post" class="row g-4">
+    {% csrf_token %}
+    
+    <div class="col-lg-7">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-primary text-white py-3">
+                <h6 class="mb-0 fw-bold text-white"><i class="bi bi-sliders me-2"></i>Configuration des Frais d'Affiliation</h6>
             </div>
-            <div class="card-body">
-                <form method="post">
-                    {% csrf_token %}
-                    {% if form.non_field_errors %}
-                    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
-                    {% endif %}
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">
-                            {{ form.montant_frais_affiliation.label }}
-                        </label>
-                        <div class="input-group">
-                            {{ form.montant_frais_affiliation }}
-                            <span class="input-group-text fw-bold">FCFA</span>
-                        </div>
-                        {% if form.montant_frais_affiliation.errors %}
-                        <div class="text-danger small">{{ form.montant_frais_affiliation.errors.as_text }}</div>
-                        {% endif %}
-                        <div class="form-text">
-                            Ce montant sera appliqué à chaque nouvelle demande d'affiliation soumise par un club.
-                        </div>
+            <div class="card-body p-4">
+                {% if form.non_field_errors %}
+                <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                {% endif %}
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold text-dark fs-6">
+                        {{ form.montant_frais_affiliation.label }}
+                    </label>
+                    <div class="input-group input-group-lg mb-2">
+                        {{ form.montant_frais_affiliation }}
+                        <span class="input-group-text fw-bold">FCFA</span>
                     </div>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-check-circle me-1"></i>Enregistrer
-                    </button>
-                </form>
+                    {% if form.montant_frais_affiliation.errors %}
+                    <div class="text-danger small mt-1">{{ form.montant_frais_affiliation.errors.as_text }}</div>
+                    {% endif %}
+                    <div class="form-text small">
+                        Ce montant sera automatiquement appliqué à chaque nouvelle demande d'affiliation soumise par un club.
+                    </div>
+                </div>
+
+                <div class="p-3 bg-light rounded-3 border mb-4">
+                    <h6 class="fw-bold text-dark mb-2"><i class="bi bi-shield-check text-danger me-1"></i>Contrôle du Récépissé Officiel d'Existence</h6>
+                    <div class="form-check form-switch mb-3">
+                        {{ form.exiger_recepisse_valide }}
+                        <label class="form-check-label fw-semibold text-dark" for="{{ form.exiger_recepisse_valide.id_for_label }}">
+                            {{ form.exiger_recepisse_valide.label }}
+                        </label>
+                    </div>
+
+                    <div class="mb-2">
+                        <label class="form-label small fw-semibold text-dark">{{ form.duree_validite_recepisse_ans.label }}</label>
+                        {{ form.duree_validite_recepisse_ans }}
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-lg px-4 fw-bold shadow-sm">
+                    <i class="bi bi-check-circle-fill me-2"></i>Enregistrer les frais
+                </button>
             </div>
         </div>
     </div>
 
-    <div class="col-md-6">
-        {% if params %}
-        <div class="card">
-            <div class="card-header">
-                <h6 class="mb-0 fw-bold"><i class="bi bi-info-circle me-2"></i>Montant actuel</h6>
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm text-center p-4 mb-4">
+            <h6 class="text-muted small text-uppercase mb-2 fw-bold">Montant Actuel Appliqué</h6>
+            <div class="display-5 fw-bold text-primary">
+                {% if params %}{{ params.montant_frais_affiliation|floatformat:"0" }}{% else %}0{% endif %} FCFA
             </div>
-            <div class="card-body text-center">
-                <div class="display-6 fw-bold text-primary">{{ params.montant_frais_affiliation|floatformat:"0" }} FCFA</div>
-                <p class="small text-muted mt-3 mb-0">
-                    Ce montant s'applique à toutes les demandes d'affiliation en cours et futures.
-                    Modifier ce montant n'affecte pas les demandes déjà validées.
-                </p>
-            </div>
+            <p class="small text-muted mt-3 mb-0">
+                Modifier ce montant met à jour le tarif d'affiliation pour la saison en cours.
+            </p>
         </div>
-        {% else %}
-        <div class="card p-4 bg-light text-muted text-center">
-            <i class="bi bi-exclamation-circle fs-2 mb-2"></i>
-            <p class="mb-0">Aucun montant défini. Configurez-le ci-contre.</p>
-            <small>Sans ce paramètre, les clubs ne pourront pas soumettre de demande d'affiliation.</small>
-        </div>
-        {% endif %}
     </div>
-</div>
+</form>
 {% endblock %}

@@ -11,7 +11,7 @@ from .models import (
     VoletOrganigrammeClub, MembreOrganigrammeClub,
 )
 from .forms import (
-    ClubForm, RejetDemandeForm, ParametresAffiliationForm, PieceJustificativeAffiliationForm,
+    ClubForm, RejetDemandeForm, ParametresAffiliationForm, ModeleAttestationForm, PieceJustificativeAffiliationForm,
     VoletOrganigrammeClubForm, MembreOrganigrammeClubForm,
 )
 
@@ -203,7 +203,7 @@ def telecharger_modele_clubs(request):
 @gest_ligue_requis
 def creer_club(request):
     if request.method == 'POST':
-        form = ClubForm(request.POST, ligue=request.user.ligue)
+        form = ClubForm(request.POST, request.FILES, ligue=request.user.ligue)
         if form.is_valid():
             club = form.save(commit=False)
             club.ligue = request.user.ligue
@@ -232,7 +232,7 @@ def modifier_club(request, pk):
     ligue_context = user.ligue if hasattr(user, 'ligue') and user.ligue else (club.ligue if club else None)
 
     if request.method == 'POST':
-        form = ClubForm(request.POST, instance=club, ligue=ligue_context)
+        form = ClubForm(request.POST, request.FILES, instance=club, ligue=ligue_context)
         if form.is_valid():
             form.save()
             messages.success(request, f"Le club « {club.nom_club} » a été mis à jour avec succès.")
@@ -297,7 +297,7 @@ def demandes_affiliation(request):
     from django.db.models import Q
 
     ligue = request.user.ligue
-    statut_filtre = request.GET.get('statut', 'EN_ATTENTE_VALID_LIGUE')
+    statut_filtre = request.GET.get('statut', '')
     annee_id = request.GET.get('annee', '')
     q = request.GET.get('q', '').strip()
 
@@ -463,11 +463,13 @@ def attestation_affiliation(request, pk):
         return redirect('accounts:accueil')
 
     ligue = demande.club.ligue
+    params = getattr(ligue, 'parametres_affiliation', None)
     return render(request, 'clubs/attestation_affiliation.html', {
         'demande': demande,
-        'club': demande.club,
-        'ligue': ligue,
-        'annee': demande.annee_sportive,
+        'club':    demande.club,
+        'ligue':   ligue,
+        'annee':   demande.annee_sportive,
+        'params':  params,
     })
 
 
@@ -505,6 +507,26 @@ def gerer_parametres_affiliation(request):
         form = ParametresAffiliationForm(instance=params)
 
     return render(request, 'clubs/parametres_affiliation.html', {
+        'params': params,
+        'form':   form,
+    })
+
+
+@gest_ligue_requis
+def gerer_modele_attestation(request):
+    ligue = request.user.ligue
+    params, _ = ParametresAffiliation.objects.get_or_create(ligue=ligue)
+
+    if request.method == 'POST':
+        form = ModeleAttestationForm(request.POST, instance=params)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Le modèle d'attestation officielle a été enregistré avec succès.")
+            return redirect('clubs:modele_attestation')
+    else:
+        form = ModeleAttestationForm(instance=params)
+
+    return render(request, 'clubs/modele_attestation.html', {
         'params': params,
         'form':   form,
     })
@@ -560,6 +582,36 @@ def mon_affiliation(request):
 
 
 @gest_club_requis
+def enregistrer_recepisse_club(request):
+    club = request.user.club
+    if request.method == 'POST':
+        numero = request.POST.get('numero_recepisse', '').strip()
+        date_delivrance = request.POST.get('date_delivrance_recepisse', '').strip()
+        loi = request.POST.get('loi_reglementation', '').strip() or 'Loi N° 064-2015/CNT'
+        date_expiration = request.POST.get('date_expiration_recepisse', '').strip()
+
+        club.numero_recepisse = numero
+        club.loi_reglementation = loi
+
+        if date_delivrance:
+            from django.utils.dateparse import parse_date
+            club.date_delivrance_recepisse = parse_date(date_delivrance)
+        else:
+            club.date_delivrance_recepisse = None
+
+        if date_expiration:
+            from django.utils.dateparse import parse_date
+            club.date_expiration_recepisse = parse_date(date_expiration)
+        else:
+            club.date_expiration_recepisse = None
+
+        club.save()
+        messages.success(request, "Les informations du récépissé d'existence ont été mises à jour.")
+
+    return redirect('clubs:mon_affiliation')
+
+
+@gest_club_requis
 def demarrer_demande_affiliation(request):
     club  = request.user.club
     annee = _annee_active_club(club)
@@ -574,6 +626,37 @@ def demarrer_demande_affiliation(request):
         return redirect('clubs:mon_affiliation')
 
     if request.method == 'POST':
+        # 1. Enregistrement automatique des détails du récépissé saisis dans le formulaire unique
+        numero = request.POST.get('numero_recepisse', '').strip()
+        date_delivrance = request.POST.get('date_delivrance_recepisse', '').strip()
+        loi = request.POST.get('loi_reglementation', '').strip() or 'Loi N° 064-2015/CNT'
+
+        if numero:
+            club.numero_recepisse = numero
+        if loi:
+            club.loi_reglementation = loi
+        if date_delivrance:
+            from django.utils.dateparse import parse_date
+            club.date_delivrance_recepisse = parse_date(date_delivrance)
+        club.save()
+
+        # 2. Contrôle d'exigence du récépissé (si configuré par la ligue)
+        if params.exiger_recepisse_valide:
+            if not club.numero_recepisse or not club.date_delivrance_recepisse:
+                messages.error(
+                    request,
+                    "La ligue exige la saisie obligatoire du récépissé d'existence (numéro et date de délivrance)."
+                )
+                return redirect('clubs:mon_affiliation')
+
+        # 3. Contrôle d'expiration du récépissé
+        if not club.recepisse_est_valide():
+            messages.error(
+                request,
+                "Votre récépissé d'existence officiel est expiré. Veuillez fournir la date de votre nouveau récépissé renouvelé."
+            )
+            return redirect('clubs:mon_affiliation')
+
         demande, _created = DemandeAffiliation.objects.get_or_create(
             club=club, annee_sportive=annee,
             defaults={'montant_frais': params.montant_frais_affiliation},
@@ -584,7 +667,7 @@ def demarrer_demande_affiliation(request):
             demande.soumettre()
             messages.success(
                 request,
-                "Demande d'affiliation démarrée. Joignez vos pièces justificatives puis soumettez votre preuve de paiement."
+                "Demande d'affiliation enregistrée et démarrée avec succès. Vous pouvez à présent joindre vos pièces justificatives et procéder au paiement."
             )
         except Exception as exc:
             messages.error(request, str(exc))

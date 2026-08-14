@@ -1,260 +1,277 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Attestation d'Affiliation — {{ club.nom_club }} ({{ annee.libelle }})</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Montserrat:wght@400;500;600;700&display=swap');
+{% extends 'base.html' %}
 
+{% block title %}Attestation d'Affiliation — {{ club.nom_club }} ({{ annee.libelle }}){% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Gestion</span>
+<a href="{% url 'clubs:liste' %}" class="nav-link">
+    <i class="bi bi-building me-2"></i>Clubs
+</a>
+<a href="{% url 'exams:liste' %}" class="nav-link">
+    <i class="bi bi-journal-check me-2"></i>Sessions d'examen
+</a>
+<a href="{% url 'clubs:demandes_affiliation' %}" class="nav-link active">
+    <i class="bi bi-file-earmark-check me-2"></i>Affiliations
+</a>
+<a href="{% url 'clubs:historique_affiliations' %}" class="nav-link ps-4">
+    <i class="bi bi-archive me-2"></i>Historique & Archives
+</a>
+{% endblock %}
+
+{% block content %}
+<style>
+    @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Montserrat:wght@400;500;600;700&display=swap');
+
+    .certificate-container {
+        max-width: 900px;
+        margin: 0 auto;
+        background: #ffffff;
+        border: 12px solid #009E49;
+        border-image: linear-gradient(135deg, #009E49 0%, #FCD116 50%, #EF2B2D 100%) 1;
+        padding: 45px 55px;
+        box-shadow: 0 15px 40px rgba(0,0,0,0.12);
+        position: relative;
+        background-image: radial-gradient(circle at 50% 50%, rgba(252, 209, 22, 0.03) 0%, transparent 70%);
+    }
+
+    .cert-inner-border {
+        border: 2px solid #009E49;
+        padding: 35px;
+        position: relative;
+    }
+
+    .cert-header {
+        text-align: center;
+        border-bottom: 2px solid #EF2B2D;
+        padding-bottom: 20px;
+        margin-bottom: 30px;
+    }
+
+    .flag-strip {
+        height: 6px;
+        background: linear-gradient(90deg, #EF2B2D 0%, #EF2B2D 50%, #009E49 50%, #009E49 100%);
+        margin-bottom: 15px;
+    }
+
+    .cert-title {
+        font-family: 'Cinzel', serif;
+        font-weight: 800;
+        font-size: 24pt;
+        color: #009E49;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        margin-top: 10px;
+        margin-bottom: 5px;
+        text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
+    }
+
+    .cert-subtitle {
+        font-family: 'Cinzel', serif;
+        font-weight: 700;
+        font-size: 13pt;
+        color: #EF2B2D;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+    }
+
+    .cert-body {
+        font-size: 11.5pt;
+        line-height: 1.85;
+        text-align: justify;
+        margin: 30px 0;
+    }
+
+    .club-highlight {
+        font-size: 15pt;
+        font-weight: 700;
+        color: #000;
+        text-align: center;
+        padding: 12px;
+        background-color: #f8f9fa;
+        border-left: 5px solid #EF2B2D;
+        border-right: 5px solid #009E49;
+        margin: 20px 0;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .cert-footer {
+        margin-top: 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+    }
+
+    .stamp-box {
+        width: 140px;
+        height: 140px;
+        border: 2px dashed #009E49;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        font-size: 8.5pt;
+        color: #009E49;
+        font-weight: 600;
+        padding: 10px;
+        transform: rotate(-12deg);
+        opacity: 0.85;
+    }
+
+    .signature-box {
+        text-align: center;
+        min-width: 220px;
+    }
+
+    .signature-title {
+        font-weight: 700;
+        font-size: 10pt;
+        text-transform: uppercase;
+        color: #333;
+        margin-bottom: 50px;
+    }
+
+    .signature-name {
+        font-weight: 700;
+        font-size: 11pt;
+        color: #000;
+        border-top: 1px solid #1a1a1a;
+        padding-top: 5px;
+    }
+
+    .cert-barcode {
+        font-family: monospace;
+        font-size: 8.5pt;
+        color: #666;
+        text-align: center;
+        margin-top: 25px;
+        border-top: 1px dashed #ccc;
+        padding-top: 10px;
+    }
+
+    @media print {
         body {
-            background-color: #f4f6f9;
-            font-family: 'Montserrat', sans-serif;
-            color: #1a1a1a;
-            padding: 30px 15px;
+            background: none !important;
+            padding: 0 !important;
         }
-
+        .no-print, nav, .sidebar, header, footer, .navbar {
+            display: none !important;
+        }
+        .main-content {
+            margin-left: 0 !important;
+            padding: 0 !important;
+        }
         .certificate-container {
-            max-width: 900px;
-            margin: 0 auto;
-            background: #ffffff;
-            border: 12px solid #009E49;
-            border-image: linear-gradient(135deg, #009E49 0%, #FCD116 50%, #EF2B2D 100%) 1;
-            padding: 45px 55px;
-            box-shadow: 0 15px 40px rgba(0,0,0,0.12);
-            position: relative;
-            background-image: radial-gradient(circle at 50% 50%, rgba(252, 209, 22, 0.03) 0%, transparent 70%);
+            box-shadow: none !important;
+            max-width: 100% !important;
+            border-width: 8px !important;
+            margin: 0 !important;
         }
+    }
+</style>
 
-        .cert-inner-border {
-            border: 2px solid #009E49;
-            padding: 35px;
-            position: relative;
-        }
-
-        .cert-header {
-            text-align: center;
-            border-bottom: 2px solid #EF2B2D;
-            padding-bottom: 20px;
-            margin-bottom: 30px;
-        }
-
-        .flag-strip {
-            height: 6px;
-            background: linear-gradient(90deg, #EF2B2D 0%, #EF2B2D 50%, #009E49 50%, #009E49 100%);
-            margin-bottom: 15px;
-        }
-
-        .cert-title {
-            font-family: 'Cinzel', serif;
-            font-weight: 800;
-            font-size: 26pt;
-            color: #009E49;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            margin-top: 10px;
-            margin-bottom: 5px;
-            text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
-        }
-
-        .cert-subtitle {
-            font-family: 'Cinzel', serif;
-            font-weight: 700;
-            font-size: 14pt;
-            color: #EF2B2D;
-            letter-spacing: 3px;
-            text-transform: uppercase;
-        }
-
-        .cert-body {
-            font-size: 11.5pt;
-            line-height: 1.85;
-            text-align: justify;
-            margin: 30px 0;
-        }
-
-        .club-highlight {
-            font-size: 15pt;
-            font-weight: 700;
-            color: #000;
-            text-align: center;
-            padding: 12px;
-            background-color: #f8f9fa;
-            border-left: 5px solid #EF2B2D;
-            border-right: 5px solid #009E49;
-            margin: 20px 0;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-        }
-
-        .cert-footer {
-            margin-top: 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-        }
-
-        .stamp-box {
-            width: 140px;
-            height: 140px;
-            border: 2px dashed #009E49;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-align: center;
-            font-size: 8.5pt;
-            color: #009E49;
-            font-weight: 600;
-            padding: 10px;
-            transform: rotate(-12deg);
-            opacity: 0.85;
-        }
-
-        .signature-box {
-            text-align: center;
-            min-width: 220px;
-        }
-
-        .signature-title {
-            font-weight: 700;
-            font-size: 10pt;
-            text-transform: uppercase;
-            color: #333;
-            margin-bottom: 50px;
-        }
-
-        .signature-name {
-            font-weight: 700;
-            font-size: 11pt;
-            color: #000;
-            border-top: 1px solid #1a1a1a;
-            padding-top: 5px;
-        }
-
-        .cert-barcode {
-            font-family: monospace;
-            font-size: 8.5pt;
-            color: #666;
-            text-align: center;
-            margin-top: 25px;
-            border-top: 1px dashed #ccc;
-            padding-top: 10px;
-        }
-
-        @media print {
-            body {
-                background: none;
-                padding: 0;
-            }
-            .no-print {
-                display: none !important;
-            }
-            .certificate-container {
-                box-shadow: none;
-                max-width: 100%;
-                border-width: 8px;
-            }
-        }
-    </style>
-</head>
-<body>
-
-    <!-- Barre d'action non imprimable -->
-    <div class="container max-w-900 mb-4 no-print text-center">
-        <div class="d-flex justify-content-between align-items-center bg-white p-3 rounded-4 shadow-sm border">
-            <div>
-                <a href="javascript:history.back()" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
-                    <i class="bi bi-arrow-left me-1"></i>Retour
-                </a>
-            </div>
-            <div>
-                <h6 class="mb-0 fw-bold text-dark">Attestation Officielle d'Affiliation — {{ club.nom_club }}</h6>
-                <small class="text-muted">Saison {{ annee.libelle }}</small>
-            </div>
-            <div>
-                <button onclick="window.print()" class="btn btn-danger btn-sm rounded-pill px-4 fw-bold shadow-sm">
-                    <i class="bi bi-printer-fill me-2"></i>Imprimer / Enregistrer PDF
-                </button>
-            </div>
+<!-- Barre d'action d'en-tête -->
+<div class="d-flex justify-content-between align-items-center mb-4 no-print flex-wrap gap-3">
+    <div class="d-flex align-items-center gap-3">
+        <a href="{% url 'clubs:demandes_affiliation' %}" class="btn-action btn-action-edit flex-shrink-0" title="Retour" data-bs-toggle="tooltip">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+            <h4 class="fw-bold mb-0">Attestation Officielle d'Affiliation</h4>
+            <small class="text-muted">{{ club.nom_club }} — Saison {{ annee.libelle }}</small>
         </div>
     </div>
-
-    <!-- Document Officiel Attestation -->
-    <div class="certificate-container">
-        <div class="cert-inner-border">
-            
-            <div class="flag-strip"></div>
-
-            <div class="cert-header">
-                <div class="row align-items-center">
-                    <div class="col-3 text-start">
-                        {% if ligue.logo %}
-                        <img src="{{ ligue.logo.url }}" alt="{{ ligue.sigle }}" style="max-height: 80px;">
-                        {% endif %}
-                    </div>
-                    <div class="col-6 text-center">
-                        <small class="fw-bold text-uppercase d-block text-secondary" style="font-size: 8.5pt;">BURKINA FASO</small>
-                        <small class="font-monospace text-muted d-block" style="font-size: 7.5pt;">Unité - Progrès - Justice</small>
-                        <div class="cert-title">{{ ligue.sigle }}</div>
-                        <div class="cert-subtitle">Ligue du Kadiogo de Kung-Fu Wushu</div>
-                    </div>
-                    <div class="col-3 text-end">
-                        <span class="badge bg-dark font-monospace p-2">CODE: {{ club.code_club }}</span>
-                    </div>
-                </div>
-            </div>
-
-            <div class="text-center my-4">
-                <h2 class="fw-bold text-uppercase border-bottom border-top border-2 border-dark d-inline-block py-2 px-4" style="letter-spacing: 3px; font-family: 'Cinzel', serif;">
-                    ATTESTATION D'AFFILIATION
-                </h2>
-                <div class="text-muted small mt-1 font-monospace">N° d'enregistrement : LKKFW/AFF/{{ annee.libelle }}/{{ demande.id|stringformat:"04d" }}</div>
-            </div>
-
-            <div class="cert-body">
-                Le Président de la <strong>Ligue du Kadiogo de Kung-Fu Wushu ({{ ligue.sigle }})</strong>, sous le couvert de la Fédération Burkinabè de Kung-Fu Wushu, certifie par la présente que l'association sportive ci-après nommée :
-
-                <div class="club-highlight">
-                    {{ club.nom_club }}
-                    {% if club.sigle_club %}<span class="d-block fs-6 text-secondary font-monospace mt-1">({{ club.sigle_club }})</span>{% endif %}
-                </div>
-
-                située dans la localité de <strong>{{ club.localite }}</strong>{% if club.adresse %}, à l'adresse <strong>{{ club.adresse }}</strong>{% endif %}{% if club.nom_fondateur %}, représentée par <strong>{{ club.nom_fondateur }}</strong>{% endif %}, est régulièrement enregistrée et <strong>DÛMENT AFFILIÉE</strong> à la Ligue du Kadiogo pour la saison sportive :
-
-                <div class="text-center my-3">
-                    <span class="badge bg-danger fs-5 px-4 py-2 rounded-pill font-monospace">SAISON SPORTIVE {{ annee.libelle }}</span>
-                </div>
-
-                En foi de quoi, cette attestation lui est délivrée pour servir et valoir ce que de droit, lui conférant la pleine légitimité de participer aux championnats, stages, passages de grades et activités officiels organisés par la Ligue.
-            </div>
-
-            <div class="cert-footer">
-                <div class="stamp-box">
-                    <span>SCEAU OFFICIEL<br>DE LA LIGUE<br>DU KADIOGO</span>
-                </div>
-
-                <div class="text-center small">
-                    <div class="text-muted mb-1">Fait à Ouagadougou, le</div>
-                    <strong class="text-dark">{{ demande.date_approbation|date:"d F Y"|default:demande.date_demande|date:"d F Y" }}</strong>
-                </div>
-
-                <div class="signature-box">
-                    <div class="signature-title">Pour le Bureau Exécutif,<br>Le Président de la Ligue</div>
-                    <div class="signature-name">
-                        {{ ligue.get_nom_president|default:"Le Président" }}
-                    </div>
-                </div>
-            </div>
-
-            <div class="cert-barcode">
-                🔒 Document officiel délivré par le système de gestion de la Ligue du Kadiogo de Kung-Fu Wushu. Vérification d'authenticité : https://kadiogokungfu.teeritech.bf/clubs/affiliations/{{ demande.id }}/attestation/
-            </div>
-
-        </div>
+    <div>
+        <button onclick="window.print()" class="btn btn-danger rounded-pill px-4 fw-bold shadow-sm">
+            <i class="bi bi-printer-fill me-2"></i>Imprimer / PDF
+        </button>
     </div>
+</div>
 
-</body>
-</html>
+<!-- Document Attestation construit dans le Tableau de Bord -->
+<div class="certificate-container mb-5">
+    <div class="cert-inner-border">
+        
+        <div class="flag-strip"></div>
+
+        <div class="cert-header">
+            <div class="row align-items-center">
+                <div class="col-3 text-start">
+                    {% if club.logo %}
+                    <img src="{{ club.logo.url }}" alt="Logo Club {{ club.nom_club }}" style="max-height: 85px; max-width: 110px; object-fit: contain;">
+                    {% else %}
+                    <span class="badge bg-dark font-monospace p-2">CODE: {{ club.code_club }}</span>
+                    {% endif %}
+                </div>
+                <div class="col-6 text-center">
+                    <small class="fw-bold text-uppercase d-block text-secondary" style="font-size: 8.5pt;">{{ params.attestation_pays|default:"BURKINA FASO" }}</small>
+                    <small class="font-monospace text-muted d-block" style="font-size: 7.5pt;">{{ params.attestation_devise|default:"Unité - Progrès - Justice" }}</small>
+                    <div class="cert-title">{{ params.attestation_sigle_ligue|default:ligue.sigle|default:"LKKFW" }}</div>
+                    <div class="cert-subtitle">{{ params.attestation_sous_titre_ligue|default:"Ligue du Kadiogo de Kung-Fu Wushu" }}</div>
+                </div>
+                <div class="col-3 text-end">
+                    {% if ligue.logo %}
+                    <img src="{{ ligue.logo.url }}" alt="Logo Ligue {{ ligue.sigle }}" style="max-height: 85px; max-width: 110px; object-fit: contain;">
+                    {% else %}
+                    <img src="/static/img/logo.png" alt="Logo Ligue" style="max-height: 85px; max-width: 110px; object-fit: contain;" onerror="this.style.display='none'">
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="text-center my-4">
+            <h2 class="fw-bold text-uppercase border-bottom border-top border-2 border-dark d-inline-block py-2 px-4" style="letter-spacing: 3px; font-family: 'Cinzel', serif;">
+                {{ params.attestation_titre|default:"ATTESTATION D'AFFILIATION" }}
+            </h2>
+            <div class="text-muted small mt-1 font-monospace">{{ params.attestation_prefixe_enregistrement|default:"N° d'enregistrement :" }} {{ params.attestation_sigle_ligue|default:ligue.sigle|default:"LKKFW" }}/AFF/{{ annee.libelle }}/{{ demande.id|stringformat:"04d" }}</div>
+        </div>
+
+        <div class="cert-body">
+            Le Président de la <strong>{{ params.attestation_sous_titre_ligue|default:"Ligue du Kadiogo de Kung-Fu Wushu" }} ({{ params.attestation_sigle_ligue|default:ligue.sigle|default:"LKKFW" }})</strong>, sous le couvert de la Fédération Burkinabè de Kung-Fu Wushu, {{ params.attestation_texte_introduction|default:"certifie par la présente que l'association sportive ci-après nommée :" }}
+
+            <div class="club-highlight">
+                {{ club.nom_club }}
+                {% if club.sigle_club %}<span class="d-block fs-6 text-secondary font-monospace mt-1">({{ club.sigle_club }})</span>{% endif %}
+            </div>
+
+            située dans la localité de <strong>{{ club.localite }}</strong>{% if club.adresse %}, à l'adresse <strong>{{ club.adresse }}</strong>{% endif %}{% if club.nom_fondateur %}, représentée par <strong>{{ club.nom_fondateur }}</strong>{% endif %}, est régulièrement enregistrée et <strong>DÛMENT AFFILIÉE</strong> à la Ligue du Kadiogo pour la saison sportive :
+
+            <div class="text-center my-3">
+                <span class="badge bg-danger fs-5 px-4 py-2 rounded-pill font-monospace">SAISON SPORTIVE {{ annee.libelle }}</span>
+            </div>
+
+            {{ params.attestation_texte_conclusion|default:"En foi de quoi, cette attestation lui est délivrée pour servir et valoir ce que de droit, lui conférant la pleine légitimité de participer aux championnats, stages, passages de grades et activités officiels organisés par la Ligue." }}
+        </div>
+
+        <div class="cert-footer">
+            <div class="stamp-box">
+                <span>{{ params.attestation_texte_sceau|default:"SCEAU OFFICIEL DE LA LIGUE DU KADIOGO" }}</span>
+            </div>
+
+            <div class="text-center small">
+                <div class="text-muted mb-1">
+                    {{ params.attestation_ville_delivrance|default:"Fait à Ouagadougou, le" }}
+                    <strong class="text-dark">{% if demande.date_approbation %}{{ demande.date_approbation|date:"d F Y" }}{% else %}{{ demande.date_demande|date:"d F Y" }}{% endif %}</strong>
+                </div>
+            </div>
+
+            <div class="signature-box">
+                <div class="signature-title">{{ params.attestation_titre_signataire|default:"Pour le Bureau Exécutif,<br>Le Président de la Ligue" }}</div>
+                <div class="signature-name">
+                    {{ params.attestation_nom_signataire|default:ligue.get_nom_president|default:"Le Président de la Ligue" }}
+                </div>
+            </div>
+        </div>
+
+        <div class="cert-barcode">
+            🔒 Document officiel délivré par le système de gestion de la Ligue du Kadiogo de Kung-Fu Wushu.
+        </div>
+
+    </div>
+</div>
+{% endblock %}

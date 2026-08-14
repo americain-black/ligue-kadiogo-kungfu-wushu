@@ -145,13 +145,13 @@ class UtilisateurLigueEditionForm(forms.ModelForm):
         required=True
     )
     nouveau_mot_de_passe = forms.CharField(
-        label="Nouveau mot de passe (laisser vide pour conserver l'actuel)",
-        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Nouveau mot de passe (optionnel)'}),
+        label="Nouveau mot de passe",
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Nouveau mot de passe (optionnel)', 'autocomplete': 'new-password'}),
         required=False
     )
     confirmer_mot_de_passe = forms.CharField(
-        label="Confirmer le nouveau mot de passe",
-        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Confirmer mot de passe'}),
+        label="Confirmer le mot de passe",
+        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Confirmer le mot de passe', 'autocomplete': 'new-password'}),
         required=False
     )
 
@@ -188,6 +188,10 @@ class UtilisateurLigueEditionForm(forms.ModelForm):
         p1 = cleaned_data.get('nouveau_mot_de_passe')
         p2 = cleaned_data.get('confirmer_mot_de_passe')
         if p1 or p2:
+            if p1 and not p2:
+                raise forms.ValidationError("Veuillez confirmer le nouveau mot de passe dans le champ dédié.")
+            if p2 and not p1:
+                raise forms.ValidationError("Veuillez saisir le nouveau mot de passe.")
             if p1 != p2:
                 raise forms.ValidationError("Les nouveaux mots de passe ne correspondent pas.")
             validate_password(p1)

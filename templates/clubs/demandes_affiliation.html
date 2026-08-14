@@ -37,72 +37,83 @@
         </div>
     </div>
     <div class="d-flex gap-2">
-        <a href="{% url 'clubs:historique_affiliations' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3">
-            <i class="bi bi-archive-fill me-1 text-primary"></i>Historique complet
+        <a href="{% url 'clubs:modele_attestation' %}" class="btn btn-outline-danger btn-sm rounded-pill px-3 shadow-sm fw-semibold">
+            <i class="bi bi-file-earmark-pdf-fill me-1"></i>Modèle Attestation
         </a>
-        <a href="{% url 'clubs:parametres_affiliation' %}" class="btn btn-outline-dark btn-sm rounded-pill px-3">
-            <i class="bi bi-gear me-1"></i>Paramètres frais
+        <a href="{% url 'clubs:parametres_affiliation' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-sm fw-semibold">
+            <i class="bi bi-cash-coin me-1"></i>Frais d'affiliation
         </a>
     </div>
 </div>
 
-<!-- Cartes Statistiques & Filtres Rapides -->
+<!-- Cartes Statistiques KPI -->
 <div class="row g-3 mb-4">
     <div class="col-md-2 col-6">
-        <a href="?statut=EN_ATTENTE_VALID_LIGUE" class="text-decoration-none">
-            <div class="card p-3 border-0 shadow-sm rounded-3 text-center h-100 {% if statut_filtre == 'EN_ATTENTE_VALID_LIGUE' %}border-start border-4 border-warning bg-warning-subtle{% endif %}">
-                <span class="fs-4 fw-bold text-warning d-block">{{ nb_en_attente_ligue }}</span>
-                <small class="text-dark fw-semibold" style="font-size: 0.78rem;">À valider (Ligue)</small>
+        <div class="card p-3 border-0 shadow-sm rounded-3 bg-white border-start border-4 border-warning h-100">
+            <small class="text-muted fw-semibold d-block mb-1" style="font-size: 0.78rem;">À valider (Ligue)</small>
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="fs-2 fw-bold text-warning">{{ nb_en_attente_ligue }}</span>
+                <i class="bi bi-clock-history fs-4 text-warning opacity-50"></i>
             </div>
-        </a>
+            <small class="text-muted micro-text">demandes à valider</small>
+        </div>
     </div>
     <div class="col-md-2 col-6">
-        <a href="?statut=EN_ATTENTE_VALID_FINANCIER" class="text-decoration-none">
-            <div class="card p-3 border-0 shadow-sm rounded-3 text-center h-100 {% if statut_filtre == 'EN_ATTENTE_VALID_FINANCIER' %}border-start border-4 border-info bg-info-subtle{% endif %}">
-                <span class="fs-4 fw-bold text-info d-block">{{ nb_en_attente_financier }}</span>
-                <small class="text-dark fw-semibold" style="font-size: 0.78rem;">Valid. Financière</small>
+        <div class="card p-3 border-0 shadow-sm rounded-3 bg-white border-start border-4 border-info h-100">
+            <small class="text-muted fw-semibold d-block mb-1" style="font-size: 0.78rem;">Valid. Financière</small>
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="fs-2 fw-bold text-info">{{ nb_en_attente_financier }}</span>
+                <i class="bi bi-cash-stack fs-4 text-info opacity-50"></i>
             </div>
-        </a>
+            <small class="text-muted micro-text">en attente trésorerie</small>
+        </div>
     </div>
     <div class="col-md-2 col-6">
-        <a href="?statut=EN_ATTENTE_PAIEMENT" class="text-decoration-none">
-            <div class="card p-3 border-0 shadow-sm rounded-3 text-center h-100 {% if statut_filtre == 'EN_ATTENTE_PAIEMENT' %}border-start border-4 border-secondary bg-light{% endif %}">
-                <span class="fs-4 fw-bold text-secondary d-block">{{ nb_en_attente_paiement }}</span>
-                <small class="text-dark fw-semibold" style="font-size: 0.78rem;">En attente paiement</small>
+        <div class="card p-3 border-0 shadow-sm rounded-3 bg-white border-start border-4 border-secondary h-100">
+            <small class="text-muted fw-semibold d-block mb-1" style="font-size: 0.78rem;">En attente paiement</small>
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="fs-2 fw-bold text-secondary">{{ nb_en_attente_paiement }}</span>
+                <i class="bi bi-credit-card fs-4 text-secondary opacity-50"></i>
             </div>
-        </a>
+            <small class="text-muted micro-text">reçus non transmis</small>
+        </div>
     </div>
     <div class="col-md-2 col-6">
-        <a href="?statut=APPROUVEE" class="text-decoration-none">
-            <div class="card p-3 border-0 shadow-sm rounded-3 text-center h-100 {% if statut_filtre == 'APPROUVEE' %}border-start border-4 border-success bg-success-subtle{% endif %}">
-                <span class="fs-4 fw-bold text-success d-block">{{ nb_approuvees }}</span>
-                <small class="text-dark fw-semibold" style="font-size: 0.78rem;">Approuvées</small>
+        <div class="card p-3 border-0 shadow-sm rounded-3 bg-white border-start border-4 border-success h-100">
+            <small class="text-muted fw-semibold d-block mb-1" style="font-size: 0.78rem;">Approuvées</small>
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="fs-2 fw-bold text-success">{{ nb_approuvees }}</span>
+                <i class="bi bi-patch-check fs-4 text-success opacity-50"></i>
             </div>
-        </a>
+            <small class="text-muted micro-text">dossiers confirmés</small>
+        </div>
     </div>
     <div class="col-md-2 col-6">
-        <a href="?statut=REJETEE" class="text-decoration-none">
-            <div class="card p-3 border-0 shadow-sm rounded-3 text-center h-100 {% if statut_filtre == 'REJETEE' %}border-start border-4 border-danger bg-danger-subtle{% endif %}">
-                <span class="fs-4 fw-bold text-danger d-block">{{ nb_rejetees }}</span>
-                <small class="text-dark fw-semibold" style="font-size: 0.78rem;">Rejetées</small>
+        <div class="card p-3 border-0 shadow-sm rounded-3 bg-white border-start border-4 border-danger h-100">
+            <small class="text-muted fw-semibold d-block mb-1" style="font-size: 0.78rem;">Rejetées</small>
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="fs-2 fw-bold text-danger">{{ nb_rejetees }}</span>
+                <i class="bi bi-x-circle fs-4 text-danger opacity-50"></i>
             </div>
-        </a>
+            <small class="text-muted micro-text">dossiers non conformes</small>
+        </div>
     </div>
     <div class="col-md-2 col-6">
-        <a href="?statut=TOUS" class="text-decoration-none">
-            <div class="card p-3 border-0 shadow-sm rounded-3 text-center h-100 {% if statut_filtre == 'TOUS' %}border-start border-4 border-dark bg-dark text-white{% endif %}">
-                <span class="fs-4 fw-bold text-dark d-block">{{ nb_total }}</span>
-                <small class="text-muted fw-semibold" style="font-size: 0.78rem;">Toutes saisons</small>
+        <div class="card p-3 border-0 shadow-sm rounded-3 bg-white border-start border-4 border-dark h-100">
+            <small class="text-muted fw-semibold d-block mb-1" style="font-size: 0.78rem;">Total Demandes</small>
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="fs-2 fw-bold text-dark">{{ nb_total }}</span>
+                <i class="bi bi-folder2 fs-4 text-dark opacity-50"></i>
             </div>
-        </a>
+            <small class="text-muted micro-text">toutes saisons</small>
+        </div>
     </div>
 </div>
 
-<!-- Filtres de Recherche -->
+<!-- Filtres de Recherche par Sélections -->
 <div class="card border-0 shadow-sm p-3 mb-4 rounded-4">
     <form method="get" id="filterFormAffiliation" class="row g-3 align-items-center">
-        <input type="hidden" name="statut" value="{{ statut_filtre }}">
-        <div class="col-md-7">
+        <div class="col-md-5">
             <div class="position-relative">
                 <i class="bi bi-search text-danger position-absolute top-50 start-0 translate-middle-y ms-3 fs-6"></i>
                 <input type="text" 
@@ -110,12 +121,22 @@
                        id="searchInputAffiliation" 
                        value="{{ q }}" 
                        class="form-control rounded-pill ps-5 border-secondary-subtle" 
-                       placeholder="Recherche"
+                       placeholder="Recherche par club, sigle, code..."
                        oninput="filterTableRows(this)"
                        autocomplete="off">
             </div>
         </div>
-        <div class="col-md-5">
+        <div class="col-md-3">
+            <select name="statut" class="form-select rounded-pill px-3" onchange="this.form.submit()">
+                <option value="">-- Tous les statuts --</option>
+                <option value="EN_ATTENTE_VALID_LIGUE" {% if statut_filtre == 'EN_ATTENTE_VALID_LIGUE' %}selected{% endif %}>À valider (Ligue)</option>
+                <option value="EN_ATTENTE_VALID_FINANCIER" {% if statut_filtre == 'EN_ATTENTE_VALID_FINANCIER' %}selected{% endif %}>Validation Financière</option>
+                <option value="EN_ATTENTE_PAIEMENT" {% if statut_filtre == 'EN_ATTENTE_PAIEMENT' %}selected{% endif %}>En attente de paiement</option>
+                <option value="APPROUVEE" {% if statut_filtre == 'APPROUVEE' %}selected{% endif %}>Approuvées</option>
+                <option value="REJETEE" {% if statut_filtre == 'REJETEE' %}selected{% endif %}>Rejetées</option>
+            </select>
+        </div>
+        <div class="col-md-4">
             <select name="annee" class="form-select rounded-pill px-3" onchange="this.form.submit()">
                 <option value="">-- Toutes les saisons sportives --</option>
                 {% for annee in annees %}

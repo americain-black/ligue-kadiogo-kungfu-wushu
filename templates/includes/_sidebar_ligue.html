@@ -40,6 +40,9 @@
 <a href="{% url 'clubs:historique_affiliations' %}" class="nav-link ps-4 {% if request.resolver_match.url_name == 'historique_affiliations' %}active{% endif %}">
     <i class="bi bi-archive me-2"></i>Historique & Archives
 </a>
+<a href="{% url 'clubs:modele_attestation' %}" class="nav-link ps-4 {% if request.resolver_match.url_name == 'modele_attestation' %}active{% endif %}">
+    <i class="bi bi-file-earmark-pdf-fill me-2 text-danger"></i>Modèle Attestation
+</a>
 <a href="{% url 'clubs:parametres_affiliation' %}" class="nav-link ps-4 {% if request.resolver_match.url_name == 'parametres_affiliation' %}active{% endif %}">
     <i class="bi bi-cash-coin me-2"></i>Frais d'affiliation
 </a>

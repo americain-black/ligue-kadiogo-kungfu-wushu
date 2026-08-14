@@ -1,13 +1,20 @@
 import logging
+import threading
 from django.core.mail import EmailMultiAlternatives
 from django.conf import settings
 
 logger = logging.getLogger(__name__)
 
+def _envoyer_email_async(msg):
+    try:
+        msg.send(fail_silently=True)
+    except Exception as e:
+        logger.error(f"Erreur envoi email d'arrière-plan : {e}")
+
 def envoyer_email_notification(destinataires, sujet, titre_entete, contenu_html_ou_texte, motif_ou_details=None, reply_to=None):
     """
     Envoie un email de notification au format HTML propre aux couleurs de la Ligue.
-    Fonctionne sans faire planter l'application si le serveur SMTP n'est pas encore configuré ou en erreur.
+    Fonctionne de manière asynchrone en arrière-plan sans bloquer la requête HTTP.
     """
     if not destinataires:
         return False
@@ -79,8 +86,10 @@ def envoyer_email_notification(destinataires, sujet, titre_entete, contenu_html_
             reply_to=reply_to_list
         )
         msg.attach_alternative(html_body, "text/html")
-        msg.send(fail_silently=True)
+        # Envoie dans un thread d'arrière-plan sans bloquer la vue web
+        thread = threading.Thread(target=_envoyer_email_async, args=(msg,), daemon=True)
+        thread.start()
         return True
     except Exception as e:
-        logger.error(f"Erreur lors de l'envoi de l'email '{sujet}' à {destinataires}: {e}")
+        logger.error(f"Erreur préparation email '{sujet}' : {e}")
         return False

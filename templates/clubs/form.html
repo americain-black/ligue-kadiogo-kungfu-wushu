@@ -20,7 +20,7 @@
         </a>
     </div>
 
-    <form method="post" novalidate>
+    <form method="post" enctype="multipart/form-data" novalidate>
         {% csrf_token %}
 
         <!-- 1. Identification du club -->
@@ -46,7 +46,18 @@
                         {{ form.code_club }}
                         <div class="form-text small">Auto (ex: CL01) si vide</div>
                     </div>
-                    <div class="col-md-12">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold"><i class="bi bi-image me-1 text-primary"></i>{{ form.logo.label }}</label>
+                        {% if club and club.logo %}
+                        <div class="d-flex align-items-center gap-2 mb-2">
+                            <img src="{{ club.logo.url }}" alt="Logo {{ club.nom_club }}" class="rounded-circle shadow-sm" style="width: 48px; height: 48px; object-fit: cover;">
+                            <span class="badge bg-light text-dark border">Logo actuel</span>
+                        </div>
+                        {% endif %}
+                        {{ form.logo }}
+                        {% if form.logo.errors %}<div class="text-danger small mt-1">{{ form.logo.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-6">
                         <label class="form-label fw-semibold"><i class="bi bi-person-badge text-danger me-1"></i>{{ form.nom_fondateur.label }}</label>
                         {{ form.nom_fondateur }}
                         <div class="form-text small">{{ form.nom_fondateur.help_text }}</div>

@@ -268,6 +268,56 @@ class SessionExamen(models.Model):
     def __str__(self):
         return f"{self.titre} ({self.date_examen})"
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        try:
+            self.sync_actualite()
+        except Exception:
+            pass
+
+    def sync_actualite(self):
+        from apps.communication.models import Actualite
+        from django.utils import timezone
+
+        titre_actu = f"🎓 Session d'Examen : {self.titre}"
+        ligue = self.annee_sportive.ligue
+
+        if self.statut == 'CLOTUREE':
+            Actualite.objects.filter(ligue=ligue, titre=titre_actu).update(statut='BROUILLON', est_public=False)
+        else:
+            actu, created = Actualite.objects.get_or_create(
+                ligue=ligue,
+                titre=titre_actu,
+                defaults={
+                    'source': 'LIGUE',
+                    'statut': 'PUBLIEE',
+                    'est_public': True,
+                    'contenu': (
+                        f"La Ligue du Kadiogo annonce l'organisation de la session d'examen « {self.titre} ».\n\n"
+                        f"📍 Lieu de l'examen : {self.lieu}\n"
+                        f"📅 Date de passage : {self.date_examen.strftime('%d/%m/%Y')}\n"
+                        f"📝 Ouverture des inscriptions : {self.date_ouverture_inscriptions.strftime('%d/%m/%Y')}\n"
+                        f"🔒 Clôture des inscriptions : {self.date_cloture_inscriptions.strftime('%d/%m/%Y')}\n\n"
+                        f"Statut officiel : {self.get_statut_display()}"
+                    ),
+                    'date_publication': timezone.now()
+                }
+            )
+            if not created:
+                actu.statut = 'PUBLIEE'
+                actu.est_public = True
+                actu.contenu = (
+                    f"La Ligue du Kadiogo annonce l'organisation de la session d'examen « {self.titre} ».\n\n"
+                    f"📍 Lieu de l'examen : {self.lieu}\n"
+                    f"📅 Date de passage : {self.date_examen.strftime('%d/%m/%Y')}\n"
+                    f"📝 Ouverture des inscriptions : {self.date_ouverture_inscriptions.strftime('%d/%m/%Y')}\n"
+                    f"🔒 Clôture des inscriptions : {self.date_cloture_inscriptions.strftime('%d/%m/%Y')}\n\n"
+                    f"Statut officiel : {self.get_statut_display()}"
+                )
+                if not actu.date_publication:
+                    actu.date_publication = timezone.now()
+                actu.save()
+
     # ── Méthodes de workflow ──────────────────────────────────────────
 
     def ouvrir_inscriptions(self):

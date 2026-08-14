@@ -66,6 +66,43 @@
             </div>
         </form>
 
+        <!-- Banner des Sessions d'Examen Officielles Ouvertes / En cours -->
+        {% if sessions_examens and not q and not source_filtre and not club_id_filtre %}
+        <div class="mb-4">
+            <h5 class="fw-bold text-dark mb-3"><i class="bi bi-journal-check text-danger me-2"></i>Sessions d'Examen de la Ligue</h5>
+            <div class="row g-3">
+                {% for sess in sessions_examens %}
+                <div class="col-md-6 col-lg-4">
+                    <div class="card border-0 shadow-sm rounded-4 h-100 p-3 bg-white border-start border-4 border-danger">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="badge bg-danger px-3 py-2 rounded-pill font-monospace"><i class="bi bi-award me-1"></i>Examen officiel</span>
+                            {% if sess.statut == 'INSCRIPTIONS_OUVERTES' %}
+                            <span class="badge bg-success"><i class="bi bi-clock-history me-1"></i>Inscriptions Ouvertes</span>
+                            {% elif sess.statut == 'EN_PREPARATION' %}
+                            <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>En Préparation</span>
+                            {% elif sess.statut == 'EN_COURS' %}
+                            <span class="badge bg-primary"><i class="bi bi-play-circle me-1"></i>En Cours</span>
+                            {% else %}
+                            <span class="badge bg-secondary">{{ sess.get_statut_display }}</span>
+                            {% endif %}
+                        </div>
+                        <h6 class="fw-bold text-dark mb-2">{{ sess.titre }}</h6>
+                        <div class="small text-muted mb-2">
+                            <div><i class="bi bi-geo-alt-fill text-danger me-1"></i><strong>Lieu :</strong> {{ sess.lieu }}</div>
+                            <div><i class="bi bi-calendar-event text-danger me-1"></i><strong>Date Examen :</strong> {{ sess.date_examen|date:"d F Y" }}</div>
+                            <div><i class="bi bi-card-checklist me-1 text-primary"></i><strong>Inscriptions :</strong> {{ sess.date_ouverture_inscriptions|date:"d/m/Y" }} au {{ sess.date_cloture_inscriptions|date:"d/m/Y" }}</div>
+                        </div>
+                        <div class="mt-auto pt-2 border-top d-flex justify-content-between align-items-center">
+                            <span class="badge bg-light text-dark font-monospace border">Saison {{ sess.annee_sportive.libelle }}</span>
+                            <span class="text-danger small fw-bold"><i class="bi bi-check-circle-fill me-1"></i>Session active</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
         <!-- Liste des Actualités en Layout Horizontal Modernisé -->
         {% if actualites %}
         <div class="row g-4" id="grilleActualites">

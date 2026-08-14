@@ -136,21 +136,29 @@ def deconnexion(request):
 def tableau_de_bord(request):
     user = request.user
 
-    # is_superuser (createsuperuser) est traité comme Super Admin
+    # 1. Super Admin
     if user.is_superuser or user.est_super_admin():
         return redirect('accounts:dashboard_super_admin')
-    elif user.est_gest_ligue():
-        return redirect('accounts:dashboard_ligue')
-    elif user.est_gest_club():
-        return redirect('accounts:dashboard_club')
-    elif user.est_gest_financier():
+
+    # 2. Gestionnaire Financier (Caisse / Trésorerie de la ligue)
+    if user.a_le_role(Role.GEST_FINANCIER) and not user.a_le_role(Role.GEST_LIGUE):
         return redirect('accounts:dashboard_financier')
-    elif user.est_jury():
+
+    # 3. Gestionnaire de Club
+    if user.est_gest_club():
+        return redirect('accounts:dashboard_club')
+
+    # 4. Membre du Jury
+    if user.est_jury() and not user.a_le_role(Role.GEST_LIGUE):
         return redirect('accounts:dashboard_jury')
-    else:
-        messages.warning(request, "Aucun rôle attribué à votre compte. Contactez l'administrateur.")
-        logout(request)
-        return redirect('accounts:login')
+
+    # 5. Gestionnaire de Ligue (SG / Admin principal)
+    if user.est_gest_ligue():
+        return redirect('accounts:dashboard_ligue')
+
+    messages.warning(request, "Aucun rôle attribué à votre compte. Contactez l'administrateur.")
+    logout(request)
+    return redirect('accounts:login')
 
 
 @login_required
@@ -197,25 +205,29 @@ def dashboard_ligue(request):
     nb_clubs_en_attente = clubs_qs.filter(statut_club='EN_ATTENTE').count()
     nb_demandes_attente = demandes_qs.count()
 
-    # Toutes les sessions de la ligue, avec stats d'inscription
+    # Toutes les sessions de la ligue, avec stats d'inscription optimisées en 1 seule requête SQL
     sessions_qs = (
         SessionExamen.objects
         .filter(annee_sportive__ligue=ligue)
         .select_related('annee_sportive')
+        .annotate(
+            nb_inscrits=Count('inscriptions'),
+            nb_autorises=Count('inscriptions', filter=Q(inscriptions__statut='AUTORISE')),
+            nb_exclus=Count('inscriptions', filter=Q(inscriptions__statut='EXCLU')),
+            nb_en_attente=Count('inscriptions', filter=Q(inscriptions__statut='EN_ATTENTE_PAIEMENT')),
+        )
         .order_by('-date_examen')
     )
     sessions_list = []
     nb_licencies_total = 0
     for s in sessions_qs:
-        qs_i = Inscription.objects.filter(session=s)
-        nb_aut = qs_i.filter(statut='AUTORISE').count()
-        nb_licencies_total += nb_aut
+        nb_licencies_total += s.nb_autorises
         sessions_list.append({
             'session':       s,
-            'nb_inscrits':   qs_i.count(),
-            'nb_autorises':  nb_aut,
-            'nb_exclus':     qs_i.filter(statut='EXCLU').count(),
-            'nb_en_attente': qs_i.filter(statut='EN_ATTENTE_PAIEMENT').count(),
+            'nb_inscrits':   s.nb_inscrits,
+            'nb_autorises':  s.nb_autorises,
+            'nb_exclus':     s.nb_exclus,
+            'nb_en_attente': s.nb_en_attente,
         })
 
     nb_sessions_total  = len(sessions_list)
@@ -393,7 +405,7 @@ def creer_utilisateur(request):
     else:
         form = UtilisateurCreationForm()
     return render(request, 'super_admin/utilisateur_form.html', {
-        'form': form, 'titre': 'Créer un utilisateur'
+        'form': form, 'titre': 'Créer un Gestionnaire de Ligue'
     })
 
 
@@ -651,7 +663,7 @@ def mon_profil(request):
 
     if request.method == 'POST':
         if 'sauvegarder_club' in request.POST and club:
-            club_form = ClubProfilForm(request.POST, instance=club)
+            club_form = ClubProfilForm(request.POST, request.FILES, instance=club)
             if club_form.is_valid():
                 club_form.save()
                 messages.success(request, f"La présentation et les coordonnées du club « {club.nom_club} » ont été mises à jour.")

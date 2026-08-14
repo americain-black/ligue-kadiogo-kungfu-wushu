@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+{% block title %}Modèle d'Attestation Officielle — Ligue du Kadiogo{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation</span>
+<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<span class="sidebar-title mt-2">Gestion</span>
+<a href="{% url 'clubs:liste' %}" class="nav-link">
+    <i class="bi bi-building me-2"></i>Clubs
+</a>
+<a href="{% url 'exams:liste' %}" class="nav-link">
+    <i class="bi bi-journal-check me-2"></i>Sessions d'examen
+</a>
+<a href="{% url 'clubs:demandes_affiliation' %}" class="nav-link">
+    <i class="bi bi-file-earmark-check me-2"></i>Affiliations
+</a>
+<a href="{% url 'clubs:historique_affiliations' %}" class="nav-link ps-4">
+    <i class="bi bi-archive me-2"></i>Historique & Archives
+</a>
+<a href="{% url 'clubs:modele_attestation' %}" class="nav-link ps-4 active">
+    <i class="bi bi-file-earmark-pdf-fill me-2 text-danger"></i>Modèle Attestation
+</a>
+<a href="{% url 'clubs:parametres_affiliation' %}" class="nav-link ps-4">
+    <i class="bi bi-cash-coin me-2"></i>Frais d'affiliation
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <div class="d-flex align-items-center gap-3">
+        <a href="{% url 'clubs:demandes_affiliation' %}" class="btn-action btn-action-edit flex-shrink-0" title="Retour aux affiliations" data-bs-toggle="tooltip">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+            <h4 class="fw-bold mb-0">
+                <i class="bi bi-file-earmark-pdf-fill me-2 text-danger"></i>Personnalisation du Modèle d'Attestation
+            </h4>
+            <small class="text-muted">Rédigez et modifiez les textes, formules et signataires qui apparaîtront sur l'attestation officielle délivrée aux clubs.</small>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-12">
+        <div class="card shadow-sm border-0">
+            <div class="card-header bg-dark text-white py-3 d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-bold text-white"><i class="bi bi-pencil-square me-2 text-warning"></i>Formulaire de Configuration du Modèle</h6>
+                <span class="badge bg-danger font-monospace">Modifiable à tout moment</span>
+            </div>
+            <div class="card-body p-4">
+                <form method="post">
+                    {% csrf_token %}
+                    
+                    {% if form.non_field_errors %}
+                    <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+                    {% endif %}
+
+                    <!-- Section En-tête -->
+                    <div class="p-3 bg-light rounded-3 border mb-4">
+                        <h6 class="fw-bold text-dark mb-3"><i class="bi bi-card-heading text-primary me-2"></i>Textes de l'En-tête Officiel</h6>
+                        <div class="row g-3 align-items-end mb-3">
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold text-dark small">{{ form.attestation_pays.label }}</label>
+                                {{ form.attestation_pays }}
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-bold text-dark small">{{ form.attestation_devise.label }}</label>
+                                {{ form.attestation_devise }}
+                            </div>
+                            <div class="col-md-2">
+                                <label class="form-label fw-bold text-dark small">{{ form.attestation_sigle_ligue.label }}</label>
+                                {{ form.attestation_sigle_ligue }}
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold text-dark small">{{ form.attestation_sous_titre_ligue.label }}</label>
+                                {{ form.attestation_sous_titre_ligue }}
+                            </div>
+                        </div>
+                        <div class="row g-3 align-items-end">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-dark small">{{ form.attestation_prefixe_enregistrement.label }}</label>
+                                {{ form.attestation_prefixe_enregistrement }}
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold text-dark small">{{ form.attestation_ville_delivrance.label }}</label>
+                                {{ form.attestation_ville_delivrance }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-dark">{{ form.attestation_titre.label }}</label>
+                        {{ form.attestation_titre }}
+                        <div class="form-text small">Titre imprimé en haut de l'attestation officielle (ex: ATTESTATION D'AFFILIATION).</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-dark">{{ form.attestation_texte_introduction.label }}</label>
+                        {{ form.attestation_texte_introduction }}
+                        <div class="form-text small">Phrase qui fait suite à l'en-tête et certifie l'affiliation du club.</div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-dark">{{ form.attestation_texte_conclusion.label }}</label>
+                        {{ form.attestation_texte_conclusion }}
+                        <div class="form-text small">Paragraphe déclarant les droits conférés au club affilié.</div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-dark">{{ form.attestation_titre_signataire.label }}</label>
+                            {{ form.attestation_titre_signataire }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-dark">{{ form.attestation_nom_signataire.label }}</label>
+                            {{ form.attestation_nom_signataire }}
+                        </div>
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-12">
+                            <label class="form-label fw-bold text-dark">{{ form.attestation_texte_sceau.label }}</label>
+                            {{ form.attestation_texte_sceau }}
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-danger btn-lg px-4 fw-bold shadow-sm">
+                        <i class="bi bi-check-circle-fill me-2"></i>Enregistrer les modifications
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

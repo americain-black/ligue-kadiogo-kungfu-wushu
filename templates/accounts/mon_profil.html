@@ -184,25 +184,66 @@
 
         {% if club_form %}
         <!-- Club Form Card (For Club Managers) -->
-        <form method="post">
+        <form method="post" enctype="multipart/form-data">
             {% csrf_token %}
             <input type="hidden" name="sauvegarder_club" value="1">
             <div class="card border-0 shadow-sm mb-4">
                 <div class="card-header bg-white py-3 border-bottom border-danger border-2">
                     <h5 class="fw-bold mb-0 text-danger">
-                        <i class="bi bi-building me-2"></i>Fiche & Présentation de mon Club ({{ club.nom_club }})
+                        <i class="bi bi-building me-2"></i>Fiche, Logo & Présentation de mon Club ({{ club.nom_club }})
                     </h5>
-                    <small class="text-muted">Ces informations (présentation, horaires, coordonnées) seront affichées sur l'annuaire public.</small>
+                    <small class="text-muted">Ces informations (logo, récépissé, présentation, coordonnées) seront utilisées pour l'affiliation et l'annuaire public.</small>
                 </div>
                 <div class="card-body p-4">
                     <div class="row g-3">
-                        <div class="col-12">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label fw-semibold"><i class="bi bi-image text-primary me-1"></i>{{ club_form.logo.label }}</label>
+                            {% if club.logo %}
+                            <div class="d-flex align-items-center gap-3 mb-2">
+                                <img src="{{ club.logo.url }}" alt="Logo {{ club.nom_club }}" class="rounded-circle shadow-sm" style="width: 48px; height: 48px; object-fit: cover;">
+                                <span class="badge bg-light text-dark border">Logo actuel</span>
+                            </div>
+                            {% endif %}
+                            {{ club_form.logo }}
+                            {% if club_form.logo.errors %}<div class="text-danger small mt-1">{{ club_form.logo.errors.0 }}</div>{% endif %}
+                        </div>
+
+                        <div class="col-12 col-md-6">
                             <label class="form-label fw-semibold"><i class="bi bi-person-badge text-danger me-1"></i>{{ club_form.nom_fondateur.label }}</label>
                             {{ club_form.nom_fondateur }}
                             {% if club_form.nom_fondateur.errors %}<div class="text-danger small mt-1">{{ club_form.nom_fondateur.errors.0 }}</div>{% endif %}
                         </div>
 
-                        <div class="col-12">
+                        <!-- Section Récépissé Officiel -->
+                        <div class="col-12 mt-4">
+                            <div class="p-3 bg-light rounded-3 border">
+                                <h6 class="fw-bold text-dark mb-3"><i class="bi bi-file-earmark-text text-danger me-2"></i>Détails Officiels du Récépissé d'Existence</h6>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-semibold">{{ club_form.numero_recepisse.label }}</label>
+                                        {{ club_form.numero_recepisse }}
+                                        {% if club_form.numero_recepisse.errors %}<div class="text-danger small mt-1">{{ club_form.numero_recepisse.errors.0 }}</div>{% endif %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-semibold">{{ club_form.date_delivrance_recepisse.label }}</label>
+                                        {{ club_form.date_delivrance_recepisse }}
+                                        {% if club_form.date_delivrance_recepisse.errors %}<div class="text-danger small mt-1">{{ club_form.date_delivrance_recepisse.errors.0 }}</div>{% endif %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-semibold">{{ club_form.loi_reglementation.label }}</label>
+                                        {{ club_form.loi_reglementation }}
+                                        {% if club_form.loi_reglementation.errors %}<div class="text-danger small mt-1">{{ club_form.loi_reglementation.errors.0 }}</div>{% endif %}
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label small fw-semibold">{{ club_form.date_expiration_recepisse.label }}</label>
+                                        {{ club_form.date_expiration_recepisse }}
+                                        {% if club_form.date_expiration_recepisse.errors %}<div class="text-danger small mt-1">{{ club_form.date_expiration_recepisse.errors.0 }}</div>{% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 mt-3">
                             <label class="form-label fw-semibold"><i class="bi bi-card-text text-warning me-1"></i>{{ club_form.description.label }}</label>
                             {{ club_form.description }}
                             <div class="form-text small">{{ club_form.description.help_text }}</div>

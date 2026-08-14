@@ -279,6 +279,7 @@ def liste_resultats_ligue(request):
         'inscription__pratiquant',
         'inscription__pratiquant__club',
         'inscription__grade_vise',
+        'inscription__option',
         'inscription__session'
     ).order_by('inscription__grade_vise__id_grade', '-moyenne', 'inscription__pratiquant__nom', 'inscription__pratiquant__prenom')
 
@@ -340,6 +341,7 @@ def impression_groupee_bulletins(request):
         'inscription__pratiquant',
         'inscription__pratiquant__club',
         'inscription__grade_vise',
+        'inscription__option',
         'inscription__session',
         'inscription__session__annee_sportive__ligue'
     ).order_by('inscription__pratiquant__club__nom_club', 'inscription__pratiquant__nom')

@@ -44,6 +44,7 @@ def _ligue_site():
 
 def liste_actualites_publique(request):
     from apps.clubs.models import Club
+    from apps.exams.models import SessionExamen
     ligue = _ligue_site()
     q = request.GET.get('q', '').strip()
     source_filtre = request.GET.get('source', '').strip()
@@ -54,6 +55,14 @@ def liste_actualites_publique(request):
         .select_related('club', 'auteur')
         .order_by('-date_publication')
         if ligue else Actualite.objects.none()
+    )
+
+    sessions_examens = (
+        SessionExamen.objects.filter(annee_sportive__ligue=ligue)
+        .exclude(statut='CLOTUREE')
+        .select_related('annee_sportive')
+        .order_by('-date_examen')
+        if ligue else []
     )
 
     if source_filtre:
@@ -67,6 +76,7 @@ def liste_actualites_publique(request):
 
     return render(request, 'communication/actualites_publique.html', {
         'actualites': actualites,
+        'sessions_examens': sessions_examens,
         'q': q,
         'clubs': clubs,
         'source_filtre': source_filtre,

@@ -20,15 +20,17 @@ urlpatterns = [
     path('<int:pk>/supprimer/',           views.supprimer_club,       name='supprimer'),
     path('affiliations/',                 views.demandes_affiliation, name='demandes_affiliation'),
     path('affiliations/historique/',      views.historique_affiliations_ligue, name='historique_affiliations'),
+    path('affiliations/modele-attestation/', views.gerer_modele_attestation, name='modele_attestation'),
+    path('affiliations/parametres/',       views.gerer_parametres_affiliation, name='parametres_affiliation'),
     path('affiliations/<int:pk>/',         views.detail_demande_affiliation, name='detail_demande_affiliation'),
     path('affiliations/<int:pk>/valider/', views.valider_demande,     name='valider_demande'),
     path('affiliations/<int:pk>/rejeter/', views.rejeter_demande,     name='rejeter_demande'),
     path('affiliations/<int:pk>/attestation/', views.attestation_affiliation, name='attestation_affiliation'),
-    path('affiliations/parametres/',       views.gerer_parametres_affiliation, name='parametres_affiliation'),
 
     # Affiliation — côté Gestionnaire de Club
     path('mon-affiliation/',                        views.mon_affiliation,           name='mon_affiliation'),
     path('mon-affiliation/historique/',             views.historique_affiliations_club, name='mes_demandes_affiliation'),
+    path('mon-affiliation/recepisse/enregistrer/',   views.enregistrer_recepisse_club,  name='enregistrer_recepisse_club'),
     path('mon-affiliation/demarrer/',                views.demarrer_demande_affiliation, name='demarrer_demande_affiliation'),
     path('mon-affiliation/piece/ajouter/',           views.ajouter_piece_affiliation,  name='ajouter_piece_affiliation'),
     path('mon-affiliation/piece/<int:pk>/supprimer/', views.supprimer_piece_affiliation, name='supprimer_piece_affiliation'),

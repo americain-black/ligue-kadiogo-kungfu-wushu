@@ -1,5 +1,5 @@
 {% extends 'base.html' %}
-{% load static %}
+{% load static l10n %}
 
 {% block title %}Annuaire des clubs — Ligue du Kadiogo{% endblock %}
 
@@ -151,7 +151,8 @@
                 <div class="fw-bold"><i class="bi bi-map-fill text-warning me-2"></i>Carte Interactive des Clubs de la Ligue</div>
                 <small class="text-white-50"><i class="bi bi-geo-alt-fill text-danger me-1"></i>Cliquez sur un marqueur pour voir le club</small>
             </div>
-            <div id="mapClubs"></div>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css" />
+            <div id="mapClubs" style="height: 400px; width: 100%; min-height: 400px; background: #e5e3df; position: relative;"></div>
         </div>
 
         {% if clubs %}
@@ -161,12 +162,19 @@
                  data-recherche="{{ club.nom_club|lower }} {{ club.sigle_club|lower }} {{ club.localite|lower }} {{ club.adresse|lower }}">
                 <div class="lk-card-club-item">
                     <div class="head">
-                        <div>
-                            {% if club.sigle_club %}
-                            <span class="sigle-badge">{{ club.sigle_club }}</span>
+                        <div class="d-flex align-items-center gap-3">
+                            {% if club.logo %}
+                            <img src="{{ club.logo.url }}" alt="{{ club.nom_club }}" class="rounded-circle shadow-sm border border-2 border-white" style="width: 54px; height: 54px; object-fit: cover;">
                             {% else %}
-                            <span class="fw-bold text-muted small">CLUB</span>
+                            <div class="rounded-circle bg-dark text-white d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 54px; height: 54px; font-size: 1rem;">
+                                {{ club.sigle_club|default:club.nom_club|slice:":2"|upper }}
+                            </div>
                             {% endif %}
+                            <div>
+                                {% if club.sigle_club %}
+                                <span class="sigle-badge mb-1 d-inline-block">{{ club.sigle_club }}</span>
+                                {% endif %}
+                            </div>
                         </div>
                         <div>
                             {% if club.statut_club == 'AFFILIE' %}
@@ -186,7 +194,7 @@
                         <div class="lk-info-ligne text-danger">
                             <i class="bi bi-person-badge-fill"></i>
                             <div>
-                                <strong>Maître / Fondateur :</strong> {{ club.nom_fondateur }}
+                                <strong>Maître :</strong> {{ club.nom_fondateur }}
                             </div>
                         </div>
                         {% endif %}
@@ -243,7 +251,7 @@
                     <div class="foot">
                         <!-- Localisation Google Maps GPS / Itinéraire -->
                         {% if club.latitude and club.longitude %}
-                        <a href="https://www.google.com/maps/dir/?api=1&destination={{ club.latitude }},{{ club.longitude }}" 
+                        <a href="https://www.google.com/maps/dir/?api=1&destination={{ club.latitude|unlocalize }},{{ club.longitude|unlocalize }}" 
                            target="_blank" 
                            rel="noopener noreferrer" 
                            class="btn btn-outline-dark btn-voir-plus flex-fill"
@@ -312,7 +320,7 @@
                                             
                                             {% if club.nom_fondateur %}
                                             <div class="mb-3">
-                                                <small class="text-muted d-block">Maître Principal / Fondateur</small>
+                                                <small class="text-muted d-block">Maître Principal</small>
                                                 <strong class="text-danger fs-6"><i class="bi bi-person-badge me-1"></i>{{ club.nom_fondateur }}</strong>
                                             </div>
                                             {% endif %}
@@ -345,12 +353,21 @@
                                         </div>
 
                                         <div class="pt-3 border-top d-grid gap-2">
+                                            {% if club.latitude and club.longitude %}
+                                            <a href="https://www.google.com/maps/dir/?api=1&destination={{ club.latitude|unlocalize }},{{ club.longitude|unlocalize }}" 
+                                               target="_blank" 
+                                               rel="noopener noreferrer" 
+                                               class="btn btn-outline-dark btn-sm fw-bold">
+                                                <i class="bi bi-geo-alt-fill text-danger me-1"></i>Lancer l'itinéraire GPS précis sur la carte
+                                            </a>
+                                            {% else %}
                                             <a href="https://www.google.com/maps/search/?api=1&query={{ club.nom_club|urlencode }}+{{ club.localite|urlencode }}{% if club.adresse %}+{{ club.adresse|urlencode }}{% endif %}" 
                                                target="_blank" 
                                                rel="noopener noreferrer" 
                                                class="btn btn-outline-dark btn-sm fw-bold">
                                                 <i class="bi bi-geo-fill text-danger me-1"></i>Voir l'itinéraire sur la carte
                                             </a>
+                                            {% endif %}
                                             <button type="button" 
                                                     class="btn btn-danger btn-sm fw-bold" 
                                                     data-bs-toggle="modal" 
@@ -436,7 +453,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script>
-    (function () {
+    document.addEventListener('DOMContentLoaded', function () {
         const champ = document.getElementById('rechercheClub');
         const items = document.querySelectorAll('#grilleClubs .lk-club-item');
         const videMessage = document.getElementById('clubsAucunResultat');
@@ -477,12 +494,8 @@
             }).addTo(map);
 
             // Forcer le rendu immédiat et différé des tuiles pour éviter la carte blanche
-            map.invalidateSize();
-            [50, 200, 500, 1000, 2000].forEach(function (delai) {
-                setTimeout(function () {
-                    if (map) map.invalidateSize();
-                }, delai);
-            });
+            setTimeout(function () { map.invalidateSize(); }, 100);
+            setTimeout(function () { map.invalidateSize(); }, 500);
 
             window.addEventListener('resize', function () {
                 map.invalidateSize();
@@ -527,8 +540,8 @@
                     fondateur: "{{ club.nom_fondateur|default:''|escapejs }}",
                     localite: "{{ club.localite|escapejs }}",
                     tel: "{{ club.telephone|default:''|escapejs }}",
-                    lat: {{ club.latitude }},
-                    lng: {{ club.longitude }}
+                    lat: {{ club.latitude|unlocalize }},
+                    lng: {{ club.longitude|unlocalize }}
                 },
                 {% endif %}
                 {% endfor %}
@@ -560,6 +573,6 @@
                 L.marker([defaultLat, defaultLng], { icon: redPinIcon }).addTo(map).bindPopup("<b>Ligue du Kadiogo de Wushu</b><br>Ouagadougou, Burkina Faso");
             }
         }
-    })();
+    });
 </script>
 {% endblock %}

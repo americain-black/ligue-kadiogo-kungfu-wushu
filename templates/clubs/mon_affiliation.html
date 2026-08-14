@@ -37,16 +37,6 @@
         <h4 class="fw-bold mb-0">Mon affiliation</h4>
         <small class="text-muted">{{ club.nom_club }}{% if annee %} — {{ annee.libelle }}{% endif %}</small>
     </div>
-    <div class="d-flex gap-2">
-        <a href="{% url 'clubs:mes_demandes_affiliation' %}" class="btn btn-outline-dark btn-sm rounded-pill px-3">
-            <i class="bi bi-archive-fill me-1 text-primary"></i>Historique des Dossiers
-        </a>
-        {% if club %}
-        <a href="{% url 'accounts:mon_profil' %}" class="btn btn-outline-danger btn-sm rounded-pill px-3">
-            <i class="bi bi-person-gear me-1"></i>Mon Profil
-        </a>
-        {% endif %}
-    </div>
 </div>
 
 {% if not annee %}
@@ -56,30 +46,87 @@
 </div>
 
 {% elif not demande %}
-<div class="card p-4 text-center" style="max-width: 560px;">
-    <i class="bi bi-file-earmark-plus fs-1 text-primary mb-2"></i>
-    <h6 class="fw-bold">Aucune demande d'affiliation pour {{ annee.libelle }}</h6>
-    {% if params %}
-    <p class="text-muted small mb-3">
-        Montant des frais d'affiliation : <strong>{{ params.montant_frais_affiliation|floatformat:"0" }} FCFA</strong>
-    </p>
-    <form method="post" action="{% url 'clubs:demarrer_demande_affiliation' %}">
-        {% csrf_token %}
-        <button type="submit" class="btn btn-primary">
-            <i class="bi bi-play-circle me-1"></i>Démarrer ma demande d'affiliation
-        </button>
-    </form>
-    {% else %}
-    <p class="text-muted small mb-0">
-        Le montant des frais d'affiliation n'a pas encore été défini par votre ligue.
-        Vous pourrez démarrer votre demande dès qu'il sera disponible.
-    </p>
-    {% endif %}
-</div>
+<!-- Formulaire unique de demande d'affiliation avec saisie du récépissé -->
+<form method="post" action="{% url 'clubs:demarrer_demande_affiliation' %}">
+    {% csrf_token %}
+
+    <!-- 1. Détails du Récépissé Officiel d'Existence -->
+    <div class="card mb-4 shadow-sm border-0">
+        <div class="card-header d-flex justify-content-between align-items-center bg-light py-3 border-bottom border-danger border-2">
+            <h6 class="mb-0 fw-bold text-dark">
+                <i class="bi bi-file-earmark-text me-2 text-danger"></i>Détails du Récépissé Officiel d'Existence
+            </h6>
+            {% if club.numero_recepisse and club.date_delivrance_recepisse %}
+                {% if club.recepisse_est_valide %}
+                <span class="badge bg-success fs-6"><i class="bi bi-shield-check me-1"></i>Récépissé Valide</span>
+                {% else %}
+                <span class="badge bg-danger fs-6"><i class="bi bi-exclamation-octagon me-1"></i>Récépissé Expiré</span>
+                {% endif %}
+            {% else %}
+                <span class="badge bg-warning text-dark fs-6"><i class="bi bi-exclamation-circle me-1"></i>À renseigner pour l'affiliation</span>
+            {% endif %}
+        </div>
+        <div class="card-body p-4">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold text-dark">
+                        Numéro du Récépissé d'Existence <span class="text-danger">*</span>
+                    </label>
+                    <input type="text" name="numero_recepisse" class="form-control"
+                           value="{{ club.numero_recepisse|default:'' }}"
+                           placeholder="Ex: N° 2024-22/MSJE/RCEN/..." required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold text-dark">
+                        Date de délivrance officielle <span class="text-danger">*</span>
+                    </label>
+                    <input type="date" name="date_delivrance_recepisse" class="form-control"
+                           value="{{ club.date_delivrance_recepisse|date:'Y-m-d'|default:'' }}" required>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-semibold text-dark">Loi / Cadre Réglementaire</label>
+                    <input type="text" name="loi_reglementation" class="form-control"
+                           value="{{ club.loi_reglementation|default:'Loi N° 064-2015/CNT' }}"
+                           placeholder="Ex: Loi N° 064-2015/CNT">
+                </div>
+
+                {% if not club.recepisse_est_valide and club.date_delivrance_recepisse %}
+                <div class="col-12">
+                    <div class="alert alert-danger mb-0">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                        <strong>Récépissé expiré :</strong> La date de délivrance renseignée dépasse la durée de validité. Veuillez saisir la date de votre nouveau récépissé renouvelé.
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Validation & Soumission globale -->
+    <div class="card p-4 mb-4 border-0 shadow-sm">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+            <div>
+                <h6 class="fw-bold text-dark mb-1">Demande d'affiliation pour la saison {{ annee.libelle }}</h6>
+                {% if params %}
+                <span class="text-muted small">
+                    Montant des frais d'affiliation : <strong class="text-dark">{{ params.montant_frais_affiliation|floatformat:"0" }} FCFA</strong>
+                </span>
+                {% else %}
+                <span class="text-danger small">Le montant des frais d'affiliation n'a pas encore été défini par votre ligue.</span>
+                {% endif %}
+            </div>
+            {% if params %}
+            <button type="submit" class="btn btn-primary btn-lg px-4 fw-semibold">
+                <i class="bi bi-send-check me-2"></i>Démarrer et Soumettre ma demande d'affiliation
+            </button>
+            {% endif %}
+        </div>
+    </div>
+</form>
 
 {% else %}
 
-<!-- Statut de la demande -->
+<!-- 1. Statut de la demande -->
 <div class="card mb-4">
     <div class="card-header d-flex justify-content-between align-items-center">
         <h6 class="mb-0 fw-bold"><i class="bi bi-info-circle me-2"></i>Statut de la demande</h6>
@@ -129,16 +176,15 @@
         {% endif %}
 
         {% if demande.statut_affiliation == 'APPROUVEE' %}
-        <div class="alert alert-success mt-3 mb-0">
-            <i class="bi bi-check-circle me-2"></i>Votre club est affilié pour {{ annee.libelle }}.
+        <div class="alert alert-success mt-3 mb-0 d-flex justify-content-between align-items-center">
+            <div><i class="bi bi-check-circle me-2"></i>Votre club est régulièrement affilié pour la saison <strong>{{ annee.libelle }}</strong>.</div>
         </div>
         {% endif %}
     </div>
 </div>
 
+<!-- 2. Pièces justificatives (vient AVANT les détails du récépissé) -->
 {% if demande.statut_affiliation == 'EN_ATTENTE_PAIEMENT' and demande.nombre_soumissions > 0 %}
-
-<!-- Pièces justificatives -->
 <div class="card mb-4">
     <div class="card-header">
         <h6 class="mb-0 fw-bold"><i class="bi bi-paperclip me-2"></i>Pièces justificatives</h6>
@@ -199,33 +245,8 @@
         </form>
     </div>
 </div>
-
-<!-- Paiement -->
-<div class="card">
-    <div class="card-header">
-        <h6 class="mb-0 fw-bold"><i class="bi bi-cash-coin me-2"></i>Paiement</h6>
-    </div>
-    <div class="card-body">
-        {% if paiement and paiement.statut == 'REJETE' %}
-        <div class="alert alert-warning">
-            <i class="bi bi-exclamation-triangle me-2"></i>
-            <strong>Preuve de paiement rejetée :</strong> {{ paiement.motif_rejet }}
-        </div>
-        {% endif %}
-        <p class="text-muted small">
-            Montant à payer : <strong>{{ demande.montant_frais|floatformat:"0" }} FCFA</strong>
-        </p>
-        <a href="{% url 'payments:soumettre_paiement_affiliation' %}" class="btn btn-primary">
-            <i class="bi bi-send me-1"></i>
-            {% if paiement %}Resoumettre la preuve de paiement{% else %}Soumettre la preuve de paiement{% endif %}
-        </a>
-    </div>
-</div>
-
 {% elif pieces %}
-
-<!-- Lecture seule une fois le paiement soumis -->
-<div class="card">
+<div class="card mb-4">
     <div class="card-header">
         <h6 class="mb-0 fw-bold"><i class="bi bi-paperclip me-2"></i>Pièces justificatives</h6>
     </div>
@@ -250,6 +271,79 @@
                 </tbody>
             </table>
         </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- 3. Détails du Récépissé Officiel d'Existence (vient APRES les pièces justificatives) -->
+<div class="card mb-4 shadow-sm border-0">
+    <div class="card-header d-flex justify-content-between align-items-center bg-light py-3 border-bottom border-danger border-2">
+        <h6 class="mb-0 fw-bold text-dark">
+            <i class="bi bi-file-earmark-text me-2 text-danger"></i>Détails du Récépissé Officiel d'Existence
+        </h6>
+        {% if club.numero_recepisse and club.date_delivrance_recepisse %}
+            {% if club.recepisse_est_valide %}
+            <span class="badge bg-success fs-6"><i class="bi bi-shield-check me-1"></i>Récépissé Valide</span>
+            {% else %}
+            <span class="badge bg-danger fs-6"><i class="bi bi-exclamation-octagon me-1"></i>Récépissé Expiré</span>
+            {% endif %}
+        {% else %}
+            <span class="badge bg-warning text-dark fs-6"><i class="bi bi-exclamation-circle me-1"></i>À renseigner</span>
+        {% endif %}
+    </div>
+    <div class="card-body p-4">
+        <form method="post" action="{% url 'clubs:enregistrer_recepisse_club' %}" class="row g-3">
+            {% csrf_token %}
+            <div class="col-md-4">
+                <label class="form-label small fw-semibold text-dark">Numéro du Récépissé d'Existence</label>
+                <input type="text" name="numero_recepisse" class="form-control"
+                       value="{{ club.numero_recepisse|default:'' }}"
+                       placeholder="Ex: N° 2024-22/MSJE/RCEN/...">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small fw-semibold text-dark">Date de délivrance officielle</label>
+                <input type="date" name="date_delivrance_recepisse" class="form-control"
+                       value="{{ club.date_delivrance_recepisse|date:'Y-m-d'|default:'' }}">
+            </div>
+            <div class="col-md-4">
+                <label class="form-label small fw-semibold text-dark">Loi / Cadre Réglementaire</label>
+                <input type="text" name="loi_reglementation" class="form-control"
+                       value="{{ club.loi_reglementation|default:'Loi N° 064-2015/CNT' }}"
+                       placeholder="Ex: Loi N° 064-2015/CNT">
+            </div>
+
+            {% if not club.recepisse_est_valide and club.date_delivrance_recepisse %}
+            <div class="col-12">
+                <div class="alert alert-danger mb-0">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                    <strong>Récépissé expiré :</strong> La date de délivrance renseignée dépasse la durée de validité. Veuillez saisir la date de votre nouveau récépissé renouvelé.
+                </div>
+            </div>
+            {% endif %}
+        </form>
+    </div>
+</div>
+
+<!-- 4. Paiement -->
+{% if demande.statut_affiliation == 'EN_ATTENTE_PAIEMENT' and demande.nombre_soumissions > 0 %}
+<div class="card">
+    <div class="card-header">
+        <h6 class="mb-0 fw-bold"><i class="bi bi-cash-coin me-2"></i>Paiement</h6>
+    </div>
+    <div class="card-body">
+        {% if paiement and paiement.statut == 'REJETE' %}
+        <div class="alert alert-warning">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <strong>Preuve de paiement rejetée :</strong> {{ paiement.motif_rejet }}
+        </div>
+        {% endif %}
+        <p class="text-muted small">
+            Montant à payer : <strong>{{ demande.montant_frais|floatformat:"0" }} FCFA</strong>
+        </p>
+        <a href="{% url 'payments:soumettre_paiement_affiliation' %}" class="btn btn-primary">
+            <i class="bi bi-send me-1"></i>
+            {% if paiement %}Resoumettre la preuve de paiement{% else %}Soumettre la preuve de paiement{% endif %}
+        </a>
     </div>
 </div>
 {% endif %}

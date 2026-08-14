@@ -40,27 +40,43 @@
 <!-- Cartes Statistiques Globales -->
 <div class="row g-3 mb-4">
     <div class="col-md-3 col-6">
-        <div class="card p-3 border-0 shadow-sm rounded-3 bg-dark text-white text-center">
-            <span class="fs-3 fw-bold d-block">{{ nb_total }}</span>
-            <small class="text-white-50">Total Dossiers Historiques</small>
+        <div class="card p-3 border-0 shadow-sm rounded-3 bg-white border-start border-4 border-dark h-100">
+            <small class="text-muted fw-semibold d-block mb-1" style="font-size: 0.8rem;">Total Dossiers Historiques</small>
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="fs-2 fw-bold text-dark">{{ nb_total }}</span>
+                <i class="bi bi-archive fs-4 text-dark opacity-50"></i>
+            </div>
+            <small class="text-muted micro-text">toutes demandes enregistrées</small>
         </div>
     </div>
     <div class="col-md-3 col-6">
-        <div class="card p-3 border-0 shadow-sm rounded-3 bg-success text-white text-center">
-            <span class="fs-3 fw-bold d-block">{{ nb_approuvees }}</span>
-            <small class="text-white-50">Clubs Affiliés (Approuvés)</small>
+        <div class="card p-3 border-0 shadow-sm rounded-3 bg-white border-start border-4 border-success h-100">
+            <small class="text-muted fw-semibold d-block mb-1" style="font-size: 0.8rem;">Clubs Affiliés (Approuvés)</small>
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="fs-2 fw-bold text-success">{{ nb_approuvees }}</span>
+                <i class="bi bi-patch-check-fill fs-4 text-success opacity-50"></i>
+            </div>
+            <small class="text-muted micro-text">affiliations approuvées</small>
         </div>
     </div>
     <div class="col-md-3 col-6">
-        <div class="card p-3 border-0 shadow-sm rounded-3 bg-danger text-white text-center">
-            <span class="fs-3 fw-bold d-block">{{ nb_rejetees }}</span>
-            <small class="text-white-50">Demandes Rejetées</small>
+        <div class="card p-3 border-0 shadow-sm rounded-3 bg-white border-start border-4 border-danger h-100">
+            <small class="text-muted fw-semibold d-block mb-1" style="font-size: 0.8rem;">Demandes Rejetées</small>
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="fs-2 fw-bold text-danger">{{ nb_rejetees }}</span>
+                <i class="bi bi-x-circle-fill fs-4 text-danger opacity-50"></i>
+            </div>
+            <small class="text-muted micro-text">dossiers non validés</small>
         </div>
     </div>
     <div class="col-md-3 col-6">
-        <div class="card p-3 border-0 shadow-sm rounded-3 bg-warning text-dark text-center">
-            <span class="fs-3 fw-bold d-block">{{ nb_en_cours }}</span>
-            <small class="text-dark-50">En Cours de Traitement</small>
+        <div class="card p-3 border-0 shadow-sm rounded-3 bg-white border-start border-4 border-warning h-100">
+            <small class="text-muted fw-semibold d-block mb-1" style="font-size: 0.8rem;">En Cours de Traitement</small>
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="fs-2 fw-bold text-warning">{{ nb_en_cours }}</span>
+                <i class="bi bi-hourglass-split fs-4 text-warning opacity-50"></i>
+            </div>
+            <small class="text-muted micro-text">dossiers en cours d'étude</small>
         </div>
     </div>
 </div>

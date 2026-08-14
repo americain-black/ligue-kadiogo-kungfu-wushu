@@ -488,9 +488,15 @@
                     <div class="d-flex justify-content-between align-items-start mb-2">
                         <h5 class="mb-0">{{ session.titre }}</h5>
                         {% if session.statut == 'INSCRIPTIONS_OUVERTES' %}
-                        <span class="badge bg-success">Inscriptions ouvertes</span>
+                        <span class="badge bg-success"><i class="bi bi-clock-history me-1"></i>Inscriptions ouvertes</span>
+                        {% elif session.statut == 'EN_COURS' %}
+                        <span class="badge bg-primary"><i class="bi bi-play-circle me-1"></i>Session en cours</span>
+                        {% elif session.statut == 'INSCRIPTIONS_CLOSES' %}
+                        <span class="badge bg-danger"><i class="bi bi-lock-fill me-1"></i>Inscriptions closes</span>
+                        {% elif session.statut == 'EN_PREPARATION' %}
+                        <span class="badge bg-warning text-dark"><i class="bi bi-hourglass-split me-1"></i>En préparation</span>
                         {% else %}
-                        <span class="badge bg-warning text-dark">Bientôt disponible</span>
+                        <span class="badge bg-secondary">{{ session.get_statut_display }}</span>
                         {% endif %}
                     </div>
                     <div class="text-muted small mb-1">

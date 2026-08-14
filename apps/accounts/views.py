@@ -65,8 +65,8 @@ def accueil(request):
         contexte['sessions'] = (
             SessionExamen.objects.filter(
                 annee_sportive__ligue=ligue,
-                statut__in=['INSCRIPTIONS_OUVERTES', 'EN_PREPARATION'],
             )
+            .exclude(statut='CLOTUREE')
             .select_related('annee_sportive')
             .order_by('date_examen')[:6]
         )

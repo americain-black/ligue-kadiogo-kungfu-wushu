@@ -95,3 +95,50 @@ class Pratiquant(models.Model):
 
     def get_grade_display(self):
         return self.grade_actuel.nom if self.grade_actuel else "Sans grade"
+
+
+class HistoriquePassageGrade(models.Model):
+    """
+    Rappel des moyennes/passages de grade antérieurs d'un licencié
+    (saisis manuellement par la Ligue pour l'historique antérieur).
+    """
+
+    pratiquant = models.ForeignKey(
+        Pratiquant,
+        on_delete=models.CASCADE,
+        related_name='historique_passages'
+    )
+    date_passage = models.DateField(
+        null=True, blank=True,
+        verbose_name="Date du passage",
+        help_text="Date à laquelle le passage de grade a eu lieu"
+    )
+    grade_libelle = models.CharField(
+        max_length=100,
+        verbose_name="Grade",
+        help_text="Grade visé ou obtenu (ex : JAUNE, BLEUE, ROUGE...)"
+    )
+    moyenne = models.DecimalField(
+        max_digits=4, decimal_places=2,
+        verbose_name="Moyenne sur 20"
+    )
+    rang = models.CharField(
+        max_length=30, blank=True, default="—",
+        verbose_name="Rang",
+        help_text="Ex : 1er, 3 Ex, 5è..."
+    )
+    mention = models.CharField(
+        max_length=50, blank=True, default="—",
+        verbose_name="Mention",
+        help_text="Ex : Bien, Passable, Assez-bien..."
+    )
+    date_ajout = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Historique de passage de grade"
+        verbose_name_plural = "Historiques de passage de grade"
+        ordering = ['-date_passage', '-date_ajout']
+
+    def __str__(self):
+        return f"{self.pratiquant} — {self.grade_libelle} : {self.moyenne}/20"
+

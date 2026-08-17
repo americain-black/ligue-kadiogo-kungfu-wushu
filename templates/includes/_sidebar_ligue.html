@@ -2,6 +2,10 @@
 <a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard_ligue' or request.resolver_match.url_name == 'tableau_de_bord' %}active{% endif %}">
     <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
 </a>
+<a href="{% url 'ligues:reporting_dashboard' %}" class="nav-link {% if request.resolver_match.namespace == 'ligues' and request.resolver_match.url_name == 'reporting_dashboard' %}active{% endif %}">
+    <i class="bi bi-graph-up-arrow me-2 text-primary"></i>Statistiques & Reporting
+</a>
+
 
 <span class="sidebar-title mt-2">Gestion</span>
 <a href="{% url 'clubs:liste' %}" class="nav-link {% if request.resolver_match.namespace == 'clubs' and request.resolver_match.url_name != 'demandes_affiliation' and request.resolver_match.url_name != 'parametres_affiliation' %}active{% endif %}">

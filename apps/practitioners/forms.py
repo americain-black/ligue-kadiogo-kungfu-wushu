@@ -1,5 +1,5 @@
 from django import forms
-from .models import Pratiquant, Grade
+from .models import Pratiquant, Grade, HistoriquePassageGrade
 
 
 class PratiquantForm(forms.ModelForm):
@@ -75,3 +75,17 @@ class PratiquantForm(forms.ModelForm):
         if commit:
             pratiquant.save()
         return pratiquant
+
+
+class HistoriquePassageGradeForm(forms.ModelForm):
+    class Meta:
+        model = HistoriquePassageGrade
+        fields = ['date_passage', 'grade_libelle', 'moyenne', 'rang', 'mention']
+        widgets = {
+            'date_passage': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
+            'grade_libelle': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: JAUNE, BLEUE, ROUGE...'}),
+            'moyenne': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0', 'max': '20', 'placeholder': 'Ex: 14.50'}),
+            'rang': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 1er, 3 Ex, 5è...'}),
+            'mention': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Bien, Passable...'}),
+        }
+

@@ -392,6 +392,9 @@
                 <p class="lead" id="heroTagline">{% if ligue and ligue.soustitre_hero_accueil %}{{ ligue.soustitre_hero_accueil }}{% else %}Affiliations, inscriptions aux examens, évaluations et publication des résultats{% endif %}</p>
             </div>
             <div class="d-flex gap-3 justify-content-center flex-wrap mt-3">
+                <a href="{% url 'ligues:statistiques_publiques' %}" class="btn btn-or shadow-sm">
+                    <i class="bi bi-pie-chart-fill me-1"></i>Statistiques de la Ligue
+                </a>
                 <a href="{% url 'results:consultation_publique' %}" class="btn btn-outline-blanc">
                     <i class="bi bi-award me-1"></i>Voir les résultats
                 </a>

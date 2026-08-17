@@ -906,9 +906,9 @@ def organigramme_visuel_club(request, club_pk):
     """
     from apps.ligues.models import VoletOrganigramme
     club = get_object_or_404(Club, pk=club_pk)
-    volets = VoletOrganigramme.objects.filter(club=club).prefetch_related('membres')
+    volets = VoletOrganigramme.objects.filter(ligue=club.ligue).prefetch_related('membres').all()
     for volet in volets:
-        membres = list(volet.membres.filter(actif=True).order_by('ordre', 'nom'))
+        membres = list(volet.membres.filter(actif=True, club=club).order_by('ordre', 'nom'))
         niveaux_dict = {}
         for m in membres:
             niveaux_dict.setdefault(m.ordre, []).append(m)
@@ -921,4 +921,5 @@ def organigramme_visuel_club(request, club_pk):
         'club': club,
         'volets': volets,
     })
+
 

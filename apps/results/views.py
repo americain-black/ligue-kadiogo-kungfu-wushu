@@ -41,7 +41,10 @@ def _lignes_notation(inscription):
 def _rappel_moyennes(resultat):
     """
     Historique des résultats précédents du candidat (autres grades déjà
-    passés), du plus ancien au plus récent, pour la ligne « Rappel moyenne ».
+    passés), combinant les résultats automatiques du système et les passages
+    historiques saisis manuellement.
+    Garantit toujours la présence de lignes (avec complément par des lignes vides)
+    afin d'afficher la grille complète avec ses bordures dans le PDF.
     """
     pratiquant = resultat.inscription.pratiquant
     precedents = (
@@ -53,15 +56,34 @@ def _rappel_moyennes(resultat):
     lignes = []
     for r in precedents:
         rang, total = r.rang()
+        rang_str = f"{rang} Ex" if rang else "—"
         lignes.append({
             'date': r.inscription.session.date_examen,
-            'grade': r.inscription.grade_vise,
+            'grade': str(r.inscription.grade_vise),
             'moyenne': r.moyenne,
-            'rang': rang,
-            'total': total,
+            'rang': rang_str,
             'mention': r.mention(),
         })
-    return lignes
+
+    # Ajout des historiques manuels s'il y en a
+    for h in pratiquant.historique_passages.all():
+        lignes.append({
+            'date': h.date_passage,
+            'grade': h.grade_libelle,
+            'moyenne': h.moyenne,
+            'rang': h.rang or "—",
+            'mention': h.mention or "—",
+        })
+
+    # Complément pour avoir toujours un tableau de 4 lignes de quadrillage
+    lignes_vides_count = max(0, 4 - len(lignes))
+    lignes_vides = list(range(lignes_vides_count))
+
+    return {
+        'lignes': lignes,
+        'lignes_vides': lignes_vides,
+    }
+
 
 
 def _stats_cohorte(resultat):

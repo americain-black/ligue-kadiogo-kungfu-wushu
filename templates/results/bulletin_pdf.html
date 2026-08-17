@@ -21,31 +21,37 @@
         padding-bottom: 4px;
         margin-bottom: 6px;
     }
-    .entete .bloc { width: 36%; font-size: 8pt; font-weight: bold; text-transform: uppercase; text-align: center; }
+    .entete .bloc { width: 34%; font-size: 8pt; font-weight: bold; text-transform: uppercase; text-align: center; }
     .entete .bloc.droite { text-align: center; }
     .entete .bloc .trait { border-top: 1px dashed #444; margin: 3px auto; width: 70%; }
     .entete .bloc .devise { font-size: 7.5pt; font-weight: normal; font-style: italic; text-transform: none; display: block; }
+    
+    /* Logo bien agrandi */
     .entete .logo {
-        width: 24%;
+        width: 28%;
         text-align: center;
     }
-    .entete .logo img { max-height: 70px; max-width: 70px; object-fit: contain; }
+    .entete .logo img { max-height: 115px; max-width: 115px; object-fit: contain; }
     .entete .logo .sigle-badge {
         display: inline-block;
-        width: 56px; height: 56px;
+        width: 80px; height: 80px;
         border-radius: 50%;
-        border: 2px solid #222;
-        line-height: 52px;
+        border: 2.5px solid #222;
+        line-height: 75px;
         font-weight: bold;
-        font-size: 9.5pt;
+        font-size: 13pt;
     }
 
+    /* ── Titre "BULLETIN DE NOTE" : Texte Bleu assorti à la ligne rubrique ── */
     .titre-bulletin {
         text-align: center;
         font-size: 15pt;
         font-weight: bold;
-        letter-spacing: 1.5px;
-        margin: 8px 0 10px;
+        letter-spacing: 2px;
+        margin: 10px 0 12px;
+        color: #547b9a;
+        background: transparent;
+        text-transform: uppercase;
     }
 
     .ligne-session {
@@ -58,7 +64,7 @@
         font-weight: bold;
     }
 
-    /* ── Identité du candidat (Encadré Arrondi comme le modèle) ──────── */
+    /* ── Identité du candidat (Sans coupure de libellé) ───────────────── */
     .identite-box {
         border: 1.5px solid #333;
         border-radius: 8px;
@@ -72,11 +78,19 @@
         font-size: 9pt;
     }
     table.identite td {
-        padding: 3.5px 4px;
+        padding: 4px 3px;
         vertical-align: middle;
     }
-    table.identite .label { color: #333; }
-    table.identite .valeur { font-weight: bold; color: #000; }
+    table.identite td.label {
+        color: #222;
+        white-space: nowrap;
+        font-weight: normal;
+        padding-right: 4px;
+    }
+    table.identite td.valeur {
+        font-weight: bold;
+        color: #000;
+    }
 
     /* ── Tableau des notes (Bleu acier officiel) ───────────────────────── */
     table.notes {
@@ -121,9 +135,9 @@
         overflow: hidden;
     }
     table.bloc-resultat > tbody > tr > td { vertical-align: top; border: none; }
-    table.bloc-resultat .col-stats   { width: 30%; border-right: 1.5px solid #222; padding: 0; }
-    table.bloc-resultat .col-decision{ width: 33%; border-right: 1.5px solid #222; text-align: center; padding: 8px 6px; }
-    table.bloc-resultat .col-rappel  { width: 37%; padding: 6px 8px; }
+    table.bloc-resultat .col-stats   { width: 28%; border-right: 1.5px solid #222; padding: 0; }
+    table.bloc-resultat .col-decision{ width: 32%; border-right: 1.5px solid #222; text-align: center; padding: 8px 6px; }
+    table.bloc-resultat .col-rappel  { width: 40%; padding: 6px 6px; }
 
     table.stats { width: 100%; border-collapse: collapse; font-size: 8.5pt; }
     table.stats td { padding: 4px 8px; border-bottom: 1px solid #ccc; }
@@ -135,11 +149,10 @@
     .col-decision .mention { font-size: 12pt; font-weight: bold; margin-bottom: 14px; color: #111; }
     .col-decision .decision { font-size: 13pt; font-weight: bold; color: #000; display: inline-block; }
 
-    .col-rappel .titre-rappel { font-size: 8pt; font-weight: bold; text-align: center; margin-bottom: 4px; color: #333; }
+    .col-rappel .titre-rappel { font-size: 8.5pt; font-weight: bold; text-align: center; margin-bottom: 4px; color: #222; }
     table.rappel-tab { width: 100%; border-collapse: collapse; font-size: 7.5pt; }
-    table.rappel-tab th, table.rappel-tab td { border: 1px solid #bbb; padding: 3px 4px; text-align: center; }
-    table.rappel-tab th { background: #f0f0f0; font-weight: bold; }
-    .col-rappel .vide { font-size: 8pt; color: #888; text-align: center; padding: 12px 0; }
+    table.rappel-tab th, table.rappel-tab td { border: 1px solid #888; padding: 3px 2px; text-align: center; height: 16px; }
+    table.rappel-tab th { background: #eef3f7; font-weight: bold; color: #111; }
 
     /* ── Signature Zone ────────────────────────────────────────────────── */
     .signature-zone {
@@ -149,7 +162,7 @@
         margin-bottom: 18px;
     }
     .signature-zone .titre-fonction { margin-top: 4px; font-weight: bold; }
-    .signature-zone .nom-signataire { margin-top: 40px; font-weight: bold; font-size: 9.5pt; }
+    .signature-zone .nom-signataire { margin-top: 65px; font-weight: bold; font-size: 9.5pt; }
 
     /* ── Pied de page ─────────────────────────────────────────────────── */
     .pied {
@@ -171,11 +184,14 @@
         background: transparent;
         margin-bottom: 3px;
     }
+    /* Mention en bas à gauche et en GRAS */
     .pied .avertissement {
-        text-align: center;
-        font-style: italic;
-        font-size: 7pt;
-        color: #555;
+        text-align: left;
+        font-weight: bold;
+        font-style: normal;
+        font-size: 7.5pt;
+        color: #111;
+        margin-top: 2px;
     }
 </style>
 </head>
@@ -211,26 +227,26 @@
         <span class="pointille">&nbsp;&nbsp;{{ inscription.session.titre }}....................................................................................&nbsp;&nbsp;</span>
     </div>
 
-    <!-- Encadré d'identité identique au modèle -->
+    <!-- Encadré d'identité sans coupure de libellé -->
     <div class="identite-box">
         <table class="identite">
             <tr>
-                <td style="width: 12%;" class="label">Matricule :</td>
-                <td style="width: 88%;" colspan="5" class="valeur">{{ inscription.pratiquant.matricule|default:"—" }}</td>
+                <td style="width: 13%;" class="label">Matricule :</td>
+                <td style="width: 87%;" colspan="5" class="valeur">{{ inscription.pratiquant.matricule|default:"—" }}</td>
             </tr>
             <tr>
-                <td style="width: 12%;" class="label">Nom :</td>
-                <td style="width: 38%;" class="valeur" style="text-transform: uppercase;">{{ inscription.pratiquant.nom }}</td>
+                <td style="width: 13%;" class="label">Nom :</td>
+                <td style="width: 37%;" class="valeur" style="text-transform: uppercase;">{{ inscription.pratiquant.nom }}</td>
                 <td style="width: 14%;" class="label">Prénom (s) :</td>
                 <td style="width: 36%;" colspan="3" class="valeur">{{ inscription.pratiquant.prenom }}</td>
             </tr>
             <tr>
-                <td class="label">Date de naissance :</td>
-                <td class="valeur">{{ inscription.pratiquant.date_naissance|date:"d/m/Y" }}</td>
-                <td class="label">Lieu de naissance :</td>
-                <td class="valeur">{{ inscription.pratiquant.lieu_naissance|default:"Ouagadougou" }}</td>
+                <td style="width: 17%;" class="label">Date de naissance :</td>
+                <td style="width: 18%;" class="valeur">{{ inscription.pratiquant.date_naissance|date:"d/m/Y" }}</td>
+                <td style="width: 17%;" class="label">Lieu de naissance :</td>
+                <td style="width: 23%;" class="valeur">{{ inscription.pratiquant.lieu_naissance|default:"Ouagadougou" }}</td>
                 <td style="width: 8%;" class="label">Sexe :</td>
-                <td style="width: 14%;" class="valeur">{{ inscription.pratiquant.get_sexe_display }}</td>
+                <td style="width: 17%;" class="valeur">{{ inscription.pratiquant.get_sexe_display }}</td>
             </tr>
             <tr>
                 <td class="label">Club :</td>
@@ -241,7 +257,7 @@
                 <td colspan="5" class="valeur">{{ inscription.pratiquant.club.nom_fondateur|default:"—" }}</td>
             </tr>
             <tr>
-                <td class="label">Grade détenue :</td>
+                <td class="label">Grade détenu :</td>
                 <td class="valeur">{{ inscription.get_grade_detenu }}</td>
                 <td class="label">Grade Postulé :</td>
                 <td class="valeur"><strong>{{ inscription.grade_vise }}</strong></td>
@@ -307,26 +323,37 @@
             </td>
             <td class="col-rappel">
                 <div class="titre-rappel">Rappel moyenne</div>
-                {% if rappel %}
                 <table class="rappel-tab">
                     <thead>
-                        <tr><th>Date</th><th>Grade</th><th>Moy.</th><th>Rang</th><th>Mention</th></tr>
+                        <tr>
+                            <th style="width: 22%;">Date</th>
+                            <th style="width: 28%;">Grade</th>
+                            <th style="width: 16%;">Moy.</th>
+                            <th style="width: 14%;">Rang</th>
+                            <th style="width: 20%;">Mention</th>
+                        </tr>
                     </thead>
                     <tbody>
-                        {% for r in rappel %}
+                        {% for r in rappel.lignes %}
                         <tr>
-                            <td>{{ r.date|date:"d/m/Y" }}</td>
+                            <td>{% if r.date %}{{ r.date|date:"d/m/Y" }}{% else %}—{% endif %}</td>
                             <td>{{ r.grade }}</td>
-                            <td>{{ r.moyenne }}</td>
-                            <td>{% if r.rang %}{{ r.rang }}{% else %}—{% endif %}</td>
+                            <td>{{ r.moyenne|floatformat:2 }}</td>
+                            <td>{{ r.rang }}</td>
                             <td>{{ r.mention }}</td>
+                        </tr>
+                        {% endfor %}
+                        {% for _ in rappel.lignes_vides %}
+                        <tr>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
+                            <td>&nbsp;</td>
                         </tr>
                         {% endfor %}
                     </tbody>
                 </table>
-                {% else %}
-                <div class="vide">Premier passage de grade</div>
-                {% endif %}
             </td>
         </tr>
     </table>

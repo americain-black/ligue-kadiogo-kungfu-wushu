@@ -19,6 +19,7 @@
                 <li class="nav-item"><a class="nav-link {% if '/communication/actualites/' in request.path %}active{% endif %}" href="{% url 'communication:actualites_publiques' %}">Actualités</a></li>
                 <li class="nav-item"><a class="nav-link {% if '/communication/documents/' in request.path %}active{% endif %}" href="{% url 'communication:documents_publics' %}">Documents</a></li>
                 <li class="nav-item"><a class="nav-link {% if '/resultats/' in request.path %}active{% endif %}" href="{% url 'results:consultation_publique' %}">Résultats</a></li>
+                <li class="nav-item"><a class="nav-link {% if '/statistiques-publiques/' in request.path %}active{% endif %}" href="{% url 'ligues:statistiques_publiques' %}"><i class="bi bi-pie-chart me-1"></i>Statistiques</a></li>
 
                 <!-- Menu Déroulant "À PROPOS" (Survol Desktop + Touch Mobile) -->
                 <li class="nav-item dropdown lk-dropdown-hover">

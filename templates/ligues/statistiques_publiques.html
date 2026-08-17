@@ -1,0 +1,315 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Statistiques publiques — Ligue du Kadiogo{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/lk_public.css' %}" rel="stylesheet">
+{% endblock %}
+
+{% block content_public %}
+
+{% include 'includes/_lk_navbar.html' %}
+
+<!-- BANNIÈRE HEADER CONFORME AUX AUTRES PAGES PUBLIQUES -->
+<section class="lk-banner-header shadow-sm">
+    <div class="container">
+        <div class="lk-page-title-accent">
+            STATISTIQUES & CHIFFRES CLÉS
+        </div>
+        <div class="lk-breadcrumb ms-3">
+            <a href="{% url 'accounts:accueil' %}">Home</a> &nbsp;.&nbsp; <span>Statistiques publiques</span>
+        </div>
+    </div>
+</section>
+
+<!-- CONTENU PRINCIPAL DE LA PAGE -->
+<section class="py-4 bg-light min-vh-50" id="statistiquesPubliques">
+    <div class="container">
+
+        <!-- FILTRE DE SAISON & SOUS-TITRE -->
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+            <div>
+                <h5 class="fw-bold mb-1 text-dark">
+                    <i class="bi bi-pie-chart-fill text-danger me-2"></i>Vue d'Ensemble & Transparence
+                </h5>
+                <p class="text-muted small mb-0">
+                    Statistiques officielles de la {{ ligue.nom_ligue }} ({{ ligue.sigle }}) — Année Sportive {% if saison_active %}{{ saison_active.annee_debut }}-{{ saison_active.annee_fin }}{% else %}Globale{% endif %}
+                </p>
+            </div>
+            {% if saisons %}
+            <form method="get" class="d-flex align-items-center">
+                <select name="saison" class="form-select form-select-sm fw-bold border-danger shadow-sm" onchange="this.form.submit()">
+                    <option value="">-- Toutes les Saisons --</option>
+                    {% for s in saisons %}
+                    <option value="{{ s.pk }}" {% if saison_active and saison_active.pk == s.pk %}selected{% endif %}>
+                        Saison {{ s.annee_debut }}-{{ s.annee_fin }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </form>
+            {% endif %}
+        </div>
+
+        <!-- CARTE CHIFFRES CLÉS (KPIS) -->
+        <div class="row g-4 mb-4">
+            <!-- KPI 1 : Pratiquants -->
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm rounded-4 h-100 text-center p-3 border-start border-4 border-primary">
+                    <div class="text-primary fs-2 mb-1"><i class="bi bi-people-fill"></i></div>
+                    <h3 class="fw-bold mb-0 text-dark">{{ total_pratiquants }}</h3>
+                    <p class="text-muted small mb-0 fw-semibold">Licenciés Validés</p>
+                    <small class="text-muted opacity-75 fs-7">{{ hommes_count }} H / {{ femmes_count }} F (Session & Dossier validé)</small>
+                </div>
+            </div>
+
+            <!-- KPI 2 : Clubs -->
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm rounded-4 h-100 text-center p-3 border-start border-4 border-success">
+                    <div class="text-success fs-2 mb-1"><i class="bi bi-shield-check"></i></div>
+                    <h3 class="fw-bold mb-0 text-dark">{{ total_clubs }}</h3>
+                    <p class="text-muted small mb-0 fw-semibold">Clubs Affiliés</p>
+                    <small class="text-muted opacity-75 fs-7">Région du Kadiogo</small>
+                </div>
+            </div>
+
+            <!-- KPI 3 : Parité -->
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm rounded-4 h-100 text-center p-3 border-start border-4 border-warning">
+                    <div class="text-warning fs-2 mb-1"><i class="bi bi-gender-ambiguous"></i></div>
+                    <h3 class="fw-bold mb-0 text-dark">{{ taux_parite_femmes }}%</h3>
+                    <p class="text-muted small mb-0 fw-semibold">Pratiquantes Féminines</p>
+                    <small class="text-muted opacity-75 fs-7">Engagement Parité</small>
+                </div>
+            </div>
+
+            <!-- KPI 4 : Réussite Examens -->
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm rounded-4 h-100 text-center p-3 border-start border-4 border-danger">
+                    <div class="text-danger fs-2 mb-1"><i class="bi bi-trophy-fill"></i></div>
+                    <h3 class="fw-bold mb-0 text-dark">{{ taux_reussite }}%</h3>
+                    <p class="text-muted small mb-0 fw-semibold">Taux de Réussite</p>
+                    <small class="text-muted opacity-75 fs-7">{{ total_admis }} admis / {{ total_candidats }} candidats</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 1 : GRAPHIQUES DE BASE -->
+        <div class="row g-4 mb-4">
+            <!-- Graphique 1 : Pyramide des Grades -->
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm rounded-4 h-100">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h6 class="fw-bold mb-0 text-dark">
+                            <i class="bi bi-award-fill text-danger me-2"></i>Répartition des Licenciés par Grade
+                        </h6>
+                    </div>
+                    <div class="card-body p-3 d-flex align-items-center justify-content-center">
+                        <div style="width: 100%; max-height: 280px;">
+                            <canvas id="chartGradesPublic"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Graphique 2 : Inscrits aux examens par Club -->
+            <div class="col-md-6">
+                <div class="card border-0 shadow-sm rounded-4 h-100">
+                    <div class="card-header bg-white border-0 py-3">
+                        <h6 class="fw-bold mb-0 text-dark">
+                            <i class="bi bi-bar-chart-line-fill text-success me-2"></i>Nombre de Candidats Inscrits par Club (Top 10)
+                        </h6>
+                    </div>
+                    <div class="card-body p-3">
+                        <div style="width: 100%; max-height: 280px;">
+                            <canvas id="chartClubsPublic"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 2 : ÉVOLUTION CLAIRE PAR ANNÉE SPORTIVE (CADRE UNIFIÉ AVEC ONGLETS DE SAISONS) -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card-header bg-white border-0 py-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                <div>
+                    <h5 class="fw-bold mb-0 text-dark">
+                        <i class="bi bi-graph-up-arrow text-danger me-2"></i>Évolution des Inscriptions par Année (Session 1 vs Session 2)
+                    </h5>
+                    <small class="text-muted">Cliquez sur une saison pour voir la progression de la Session 1 à la Session 2 (Garçons vs Filles)</small>
+                </div>
+                
+                <!-- Onglets interactifs par Année Sportive -->
+                <ul class="nav nav-pills card-header-pills" id="pills-tab" role="tablist">
+                    {% for item in saisons_evolution_list %}
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link fw-bold px-3 py-1 me-1 {% if forloop.first %}active bg-danger text-white{% else %}text-dark bg-light{% endif %}"
+                                id="tab-saison-{{ item.saison.id }}"
+                                data-bs-toggle="pill"
+                                data-bs-target="#pane-saison-{{ item.saison.id }}"
+                                type="button"
+                                role="tab">
+                            <i class="bi bi-calendar-event me-1"></i>Saison {{ item.saison.libelle }}
+                        </button>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            
+            <div class="card-body p-4">
+                {% if saisons_evolution_list %}
+                <div class="tab-content" id="pills-tabContent">
+                    {% for item in saisons_evolution_list %}
+                    <div class="tab-pane fade {% if forloop.first %}show active{% endif %}" 
+                         id="pane-saison-{{ item.saison.id }}" 
+                         role="tabpanel">
+                         
+                        <!-- Résumé rapide des 2 sessions de cette saison -->
+                        <div class="row g-3 mb-4">
+                            {% for sess in item.sessions %}
+                            <div class="col-md-6">
+                                <div class="bg-light p-3 rounded-3 text-center border">
+                                    <h6 class="fw-bold text-dark mb-2">{{ sess.titre }}</h6>
+                                    <div class="d-flex justify-content-center gap-3">
+                                        <span class="badge bg-primary fs-6 px-3 py-2"><i class="bi bi-gender-male me-1"></i>Garçons (H) : {{ sess.hommes }}</span>
+                                        <span class="badge bg-danger fs-6 px-3 py-2"><i class="bi bi-gender-female me-1"></i>Filles (F) : {{ sess.femmes }}</span>
+                                        <span class="badge bg-dark fs-6 px-3 py-2"><i class="bi bi-people-fill me-1"></i>Total : {{ sess.total }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Graphique en Courbes lisses Session 1 -> Session 2 pour cette saison -->
+                        <div style="width: 100%; height: 320px;">
+                            <canvas id="chartSaison_{{ item.saison.id }}"></canvas>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-calendar-x fs-1 d-block mb-2 text-secondary"></i>
+                    <h6 class="fw-bold">Aucune session d'examen à afficher</h6>
+                    <p class="small mb-0 opacity-75">Les courbes d'évolution s'afficheront automatiquement dès que des sessions et des candidats seront enregistrés par la Ligue.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+</section>
+
+{% include 'includes/_lk_footer.html' %}
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chart.js CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 1. Chart Grades (Doughnut)
+    const gradeLabels = {{ grade_labels_json|safe }};
+    const gradeData   = {{ grade_data_json|safe }};
+    const gradeColors = {{ grade_colors_json|safe }};
+    const ctxGrades   = document.getElementById('chartGradesPublic');
+    if (ctxGrades && gradeLabels.length > 0) {
+        new Chart(ctxGrades, {
+            type: 'doughnut',
+            data: {
+                labels: gradeLabels,
+                datasets: [{
+                    data: gradeData,
+                    backgroundColor: gradeColors,
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'right' }
+                }
+            }
+        });
+    }
+
+    // 2. Chart Clubs (Bar Chart)
+    const clubLabels = {{ club_labels_json|safe }};
+    const clubData   = {{ club_data_json|safe }};
+    const ctxClubs   = document.getElementById('chartClubsPublic');
+    if (ctxClubs && clubLabels.length > 0) {
+        new Chart(ctxClubs, {
+            type: 'bar',
+            data: {
+                labels: clubLabels,
+                datasets: [{
+                    label: 'Candidats inscrits aux examens',
+                    data: clubData,
+                    backgroundColor: '#2bb673',
+                    borderRadius: 6,
+                    barThickness: 22,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, ticks: { precision: 0 } }
+                }
+            }
+        });
+    }
+
+    // 3. Graphiques d'Évolution Distincts par Année Sportive (Session 1 -> Session 2 pour F et G)
+    {% for item in saisons_evolution_list %}
+    const ctxSaison_{{ item.saison.id }} = document.getElementById('chartSaison_{{ item.saison.id }}');
+    if (ctxSaison_{{ item.saison.id }}) {
+        new Chart(ctxSaison_{{ item.saison.id }}, {
+            type: 'line',
+            data: {
+                labels: {{ item.labels_json|safe }},
+                datasets: [
+                    {
+                        label: 'Garçons (H)',
+                        data: {{ item.hommes_json|safe }},
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.12)',
+                        fill: true,
+                        tension: 0.35,
+                        pointRadius: 6,
+                        pointHoverRadius: 8,
+                        borderWidth: 3
+                    },
+                    {
+                        label: 'Filles (F)',
+                        data: {{ item.femmes_json|safe }},
+                        borderColor: '#ec4899',
+                        backgroundColor: 'rgba(236, 72, 153, 0.15)',
+                        fill: true,
+                        tension: 0.35,
+                        pointRadius: 6,
+                        pointHoverRadius: 8,
+                        borderWidth: 3
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, ticks: { precision: 0 } }
+                },
+                plugins: {
+                    legend: { position: 'top' }
+                }
+            }
+        });
+    }
+    {% endfor %}
+});
+</script>
+{% endblock %}

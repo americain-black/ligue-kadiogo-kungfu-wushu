@@ -1,0 +1,381 @@
+{% extends 'base.html' %}
+
+{% block title %}Reporting & Analytics — {{ ligue.sigle }}{% endblock %}
+
+{% block sidebar %}
+<span class="sidebar-title">Navigation Ligue</span>
+<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+</a>
+<a href="{% url 'ligues:reporting_dashboard' %}" class="nav-link active">
+    <i class="bi bi-graph-up-arrow me-2"></i>Statistiques & Reporting
+</a>
+<span class="sidebar-title mt-3">Gestion</span>
+<a href="{% url 'clubs:liste' %}" class="nav-link">
+    <i class="bi bi-shield-shaded me-2"></i>Clubs affiliés
+</a>
+<a href="{% url 'practitioners:liste' %}" class="nav-link">
+    <i class="bi bi-people me-2"></i>Licenciés
+</a>
+<a href="{% url 'exams:liste' %}" class="nav-link">
+    <i class="bi bi-journal-check me-2"></i>Sessions d'examen
+</a>
+{% endblock %}
+
+{% block content %}
+<!-- En-tête du Tableau de Bord Reporting -->
+<div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+    <div>
+        <div class="d-flex align-items-center gap-2">
+            <h4 class="fw-bold mb-0">Reporting</h4>
+            <span class="badge bg-primary rounded-pill px-3 py-2 fs-6">
+                <i class="bi bi-pie-chart-fill me-1"></i>Vue Décisionnelle
+            </span>
+        </div>
+        <p class="text-muted mb-0 small mt-1">
+            Analyse statistique en temps réel — {{ ligue.nom_ligue }} ({{ ligue.sigle }})
+        </p>
+    </div>
+
+    <!-- Actions & Filtre par Saison -->
+    <div class="d-flex flex-wrap align-items-center gap-2">
+        <form method="get" class="d-flex align-items-center me-1">
+            <select name="saison" class="form-select form-select-sm fw-bold border-primary shadow-sm" onchange="this.form.submit()">
+                <option value="">-- Toutes les saisons --</option>
+                {% for s in saisons %}
+                <option value="{{ s.pk }}" {% if saison_active and saison_active.pk == s.pk %}selected{% endif %}>
+                    Saison {{ s.annee_debut }}-{{ s.annee_fin }} {% if s.courante %}(En cours){% endif %}
+                </option>
+                {% endfor %}
+            </select>
+        </form>
+
+        <a href="{% url 'ligues:export_rapport_pdf' %}{% if saison_active %}?saison={{ saison_active.pk }}{% endif %}" 
+           class="btn btn-primary btn-sm shadow-sm fw-bold" target="_blank">
+            <i class="bi bi-file-earmark-pdf-fill me-1"></i>Rapport Annuel (PDF)
+        </a>
+    </div>
+</div>
+
+<!-- 4 CARTES KPI PRINCIPALES -->
+<div class="row g-3 mb-4">
+    <!-- KPI 1 : Licenciés -->
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm rounded-4 h-100 p-3 bg-white border-start border-4 border-primary">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="text-uppercase text-muted fw-bold small">Pratiquants Actifs</span>
+                <div class="bg-primary bg-opacity-10 text-primary p-2 rounded-circle">
+                    <i class="bi bi-people-fill fs-5"></i>
+                </div>
+            </div>
+            <h2 class="fw-extrabold mb-1 text-dark">{{ total_pratiquants }}</h2>
+            <div class="d-flex align-items-center gap-2 mt-2">
+                <span class="badge bg-info text-dark rounded-pill">
+                    <i class="bi bi-gender-male me-1"></i>{{ hommes_count }} H
+                </span>
+                <span class="badge bg-danger bg-opacity-75 text-white rounded-pill">
+                    <i class="bi bi-gender-female me-1"></i>{{ femmes_count }} F ({{ taux_parite_femmes }}%)
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <!-- KPI 2 : Clubs -->
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm rounded-4 h-100 p-3 bg-white border-start border-4 border-success">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="text-uppercase text-muted fw-bold small">Clubs Affiliés</span>
+                <div class="bg-success bg-opacity-10 text-success p-2 rounded-circle">
+                    <i class="bi bi-shield-shaded fs-5"></i>
+                </div>
+            </div>
+            <h2 class="fw-extrabold mb-1 text-dark">{{ total_clubs }}</h2>
+            <p class="text-muted small mb-0 mt-2">
+                <i class="bi bi-check-circle-fill text-success me-1"></i>Clubs déclarés et actifs
+            </p>
+        </div>
+    </div>
+
+    <!-- KPI 3 : Taux de Réussite Examens -->
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm rounded-4 h-100 p-3 bg-white border-start border-4 border-warning">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="text-uppercase text-muted fw-bold small">Taux de Réussite</span>
+                <div class="bg-warning bg-opacity-10 text-warning p-2 rounded-circle">
+                    <i class="bi bi-trophy-fill fs-5"></i>
+                </div>
+            </div>
+            <h2 class="fw-extrabold mb-1 text-dark">{{ taux_reussite }}%</h2>
+            <p class="text-muted small mb-0 mt-2">
+                <span class="fw-bold text-success">{{ total_admis }} admis</span> / {{ total_candidats }} candidats
+            </p>
+        </div>
+    </div>
+
+    <!-- KPI 4 : Sessions & Moyenne Générale -->
+    <div class="col-md-3">
+        <div class="card border-0 shadow-sm rounded-4 h-100 p-3 bg-white border-start border-4 border-info">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="text-uppercase text-muted fw-bold small">Moyenne Générale</span>
+                <div class="bg-info bg-opacity-10 text-info p-2 rounded-circle">
+                    <i class="bi bi-journal-check fs-5"></i>
+                </div>
+            </div>
+            <h2 class="fw-extrabold mb-1 text-dark">{{ moyenne_generale_examens }}/20</h2>
+            <p class="text-muted small mb-0 mt-2">
+                Sur <span class="fw-bold">{{ total_sessions }} session(s)</span> organisée(s)
+            </p>
+        </div>
+    </div>
+</div>
+
+<!-- SECTION GRAPHIQUES (CHART.JS) -->
+<div class="row g-4 mb-4">
+    <!-- Graphique 1 : Répartition par Grade -->
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold mb-0 text-dark">
+                    <i class="bi bi-award-fill text-primary me-2"></i>Répartition des Licenciés par Grade
+                </h6>
+            </div>
+            <div class="card-body p-3 d-flex align-items-center justify-content-center">
+                <div style="width: 100%; max-height: 280px;">
+                    <canvas id="chartGrades"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Graphique 2 : Inscrits par Club -->
+    <div class="col-md-6">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                <h6 class="fw-bold mb-0 text-dark">
+                    <i class="bi bi-bar-chart-line-fill text-success me-2"></i>Nombre de Candidats Inscrits aux Examens par Club (Top 10)
+                </h6>
+            </div>
+            <div class="card-body p-3">
+                <div style="width: 100%; max-height: 280px;">
+                    <canvas id="chartClubs"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Graphique 3 : Parité Hommes / Femmes -->
+    <div class="col-md-4">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-white border-0 py-3">
+                <h6 class="fw-bold mb-0 text-dark">
+                    <i class="bi bi-gender-ambiguous text-danger me-2"></i>Parité Genre (H / F)
+                </h6>
+            </div>
+            <div class="card-body p-3 d-flex align-items-center justify-content-center">
+                <div style="width: 100%; max-height: 240px;">
+                    <canvas id="chartGenre"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Graphique 4 : Performance par Rubrique d'Épreuve -->
+    <div class="col-md-8">
+        <div class="card border-0 shadow-sm rounded-4 h-100">
+            <div class="card-header bg-white border-0 py-3">
+                <h6 class="fw-bold mb-0 text-dark">
+                    <i class="bi bi-speedometer text-warning me-2"></i>Note Moyenne par Rubrique d'Épreuve (sur 5)
+                </h6>
+            </div>
+            <div class="card-body p-3">
+                <div style="width: 100%; max-height: 240px;">
+                    <canvas id="chartRubriques"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- TABLEAU DÉTAILLÉ DES SESSIONS D'EXAMEN -->
+<div class="card border-0 shadow-sm rounded-4 mb-4">
+    <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+        <h6 class="fw-bold mb-0 text-dark">
+            <i class="bi bi-table me-2 text-primary"></i>Détail Synthétique des Sessions d'Examen
+        </h6>
+    </div>
+    <div class="card-body p-0">
+        {% if sessions_stats %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">Intitulé de la Session</th>
+                        <th class="text-center">Date</th>
+                        <th class="text-center">Candidats</th>
+                        <th class="text-center">Admis</th>
+                        <th class="text-center">Taux de réussite</th>
+                        <th class="text-center pe-4">Moyenne Globale</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in sessions_stats %}
+                    <tr>
+                        <td class="ps-4 fw-bold text-dark">{{ s.titre }}</td>
+                        <td class="text-center">{{ s.date|date:"d/m/Y" }}</td>
+                        <td class="text-center fw-bold">{{ s.candidats }}</td>
+                        <td class="text-center"><span class="badge bg-success px-3 py-1">{{ s.admis }}</span></td>
+                        <td class="text-center">
+                            <div class="d-flex align-items-center justify-content-center gap-2">
+                                <div class="progress flex-grow-1" style="height: 6px; max-width: 80px;">
+                                    <div class="progress-bar bg-success" style="width: {{ s.taux }}%;"></div>
+                                </div>
+                                <span class="fw-bold small">{{ s.taux }}%</span>
+                            </div>
+                        </td>
+                        <td class="text-center pe-4 font-monospace fw-bold text-primary">{{ s.moyenne }}/20</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="p-4 text-center text-muted">
+            <i class="bi bi-info-circle me-1"></i>Aucune session d'examen enregistrée pour cette période.
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Chargement de Chart.js via CDN -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 1. Chart Grades (Doughnut) - Triés par ordre officiel avec couleurs par niveau (ROUGE = nuances de rouge, etc.)
+    const gradeLabels = {{ grade_labels_json|safe }};
+    const gradeData   = {{ grade_data_json|safe }};
+    const gradeColors = {{ grade_colors_json|safe }};
+    const ctxGrades   = document.getElementById('chartGrades');
+    if (ctxGrades && gradeLabels.length > 0) {
+        new Chart(ctxGrades, {
+            type: 'doughnut',
+            data: {
+                labels: gradeLabels,
+                datasets: [{
+                    data: gradeData,
+                    backgroundColor: gradeColors,
+                    borderWidth: 2,
+                    borderColor: '#ffffff'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'right' }
+                }
+            }
+        });
+    }
+
+    // 2. Chart Clubs (Bar Chart)
+    const clubLabels = {{ club_labels_json|safe }};
+    const clubData   = {{ club_data_json|safe }};
+    const ctxClubs   = document.getElementById('chartClubs');
+    if (ctxClubs && clubLabels.length > 0) {
+        new Chart(ctxClubs, {
+            type: 'bar',
+            data: {
+                labels: clubLabels,
+                datasets: [{
+                    label: 'Candidats inscrits aux examens',
+                    data: clubData,
+                    backgroundColor: '#2bb673',
+                    borderRadius: 6,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: { beginAtZero: true, ticks: { precision: 0 } }
+                }
+            }
+        });
+    }
+
+    // 3. Chart Genre (Pie Chart - Couleurs d'origine : Bleu Hommes / Rose Femmes)
+    const genreData = {{ genre_data_json|safe }};
+    const ctxGenre  = document.getElementById('chartGenre');
+    if (ctxGenre) {
+        new Chart(ctxGenre, {
+            type: 'pie',
+            data: {
+                labels: ['Hommes', 'Femmes'],
+                datasets: [{
+                    data: genreData,
+                    backgroundColor: ['#3b82f6', '#ec4899'], // Couleurs d'origine : Bleu (Hommes) / Rose (Femmes)
+                    borderColor: '#ffffff',
+                    borderWidth: 2,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'bottom' }
+                }
+            }
+        });
+    }
+
+    // 4. Chart Rubriques (Bar Chart Vertical sous forme de bâtonnées fines multi-couleurs)
+    const rubriqueLabels = {{ rubrique_labels_json|safe }};
+    const rubriqueData   = {{ rubrique_data_json|safe }};
+    const ctxRubriques   = document.getElementById('chartRubriques');
+    if (ctxRubriques && rubriqueLabels.length > 0) {
+        const vibrantColors = [
+            '#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6',
+            '#06b6d4', '#ec4899', '#f97316', '#14b8a6', '#6366f1'
+        ];
+        new Chart(ctxRubriques, {
+            type: 'bar',
+            data: {
+                labels: rubriqueLabels,
+                datasets: [{
+                    label: 'Note Moyenne / 5',
+                    data: rubriqueData,
+                    backgroundColor: vibrantColors.slice(0, rubriqueLabels.length),
+                    borderRadius: 4,
+                    barThickness: 22,
+                    maxBarThickness: 26,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        ticks: {
+                            maxRotation: 25,
+                            minRotation: 15,
+                            font: { size: 10 }
+                        }
+                    },
+                    y: {
+                        min: 0,
+                        max: 5,
+                        ticks: { stepSize: 1 }
+                    }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

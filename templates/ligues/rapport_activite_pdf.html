@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Rapport d'Activité — {{ ligue.sigle }}</title>
+<style>
+    @page { size: A4 portrait; margin: 1.2cm 1.5cm 2.0cm 1.5cm; }
+    * { box-sizing: border-box; }
+    body {
+        font-family: 'DejaVu Sans', Arial, sans-serif;
+        font-size: 9.5pt;
+        color: #111;
+        line-height: 1.35;
+    }
+
+    /* ── En-tête ──────────────────────────────────────────────────────── */
+    .entete {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding-bottom: 6px;
+        margin-bottom: 12px;
+        border-bottom: 2px solid #547b9a;
+    }
+    .entete .bloc { width: 34%; font-size: 8pt; font-weight: bold; text-transform: uppercase; text-align: center; }
+    .entete .bloc.droite { text-align: center; }
+    .entete .bloc .trait { border-top: 1px dashed #444; margin: 3px auto; width: 70%; }
+    .entete .bloc .devise { font-size: 7.5pt; font-weight: normal; font-style: italic; text-transform: none; display: block; }
+    
+    .entete .logo { width: 28%; text-align: center; }
+    .entete .logo img { max-height: 90px; max-width: 90px; object-fit: contain; }
+
+    /* ── Titre principal ──────────────────────────────────────────────── */
+    .titre-rapport {
+        text-align: center;
+        font-size: 14pt;
+        font-weight: bold;
+        color: #547b9a;
+        margin: 12px 0 6px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .sous-titre {
+        text-align: center;
+        font-size: 10pt;
+        color: #444;
+        margin-bottom: 16px;
+        font-weight: bold;
+    }
+
+    /* ── Tableaux & Sections ─────────────────────────────────────────── */
+    .section-title {
+        font-size: 11pt;
+        font-weight: bold;
+        color: #547b9a;
+        border-bottom: 1.5px solid #547b9a;
+        padding-bottom: 3px;
+        margin-top: 16px;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+    }
+
+    table.data-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 14px;
+        font-size: 9pt;
+    }
+    table.data-table th, table.data-table td {
+        border: 1px solid #777;
+        padding: 5px 8px;
+    }
+    table.data-table thead th {
+        background-color: #547b9a;
+        color: #ffffff;
+        font-weight: bold;
+        text-align: center;
+    }
+    table.data-table tbody tr:nth-child(even) { background-color: #f8fafc; }
+
+    /* ── Cartes Récapitulatives KPI (Tableau) ────────────────────────── */
+    table.kpi-grid {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 8px;
+        margin-bottom: 12px;
+    }
+    table.kpi-grid td {
+        width: 25%;
+        border: 1.5px solid #547b9a;
+        border-radius: 6px;
+        padding: 8px;
+        text-align: center;
+        background: #fdfdfd;
+    }
+    table.kpi-grid .kpi-label { font-size: 7.5pt; color: #555; text-transform: uppercase; font-weight: bold; }
+    table.kpi-grid .kpi-val { font-size: 14pt; font-weight: bold; color: #111; margin: 4px 0; }
+    table.kpi-grid .kpi-sub { font-size: 7.5pt; color: #444; }
+
+    /* ── Signature Zone ──────────────────────────────────────────────── */
+    .signatures {
+        margin-top: 30px;
+        display: flex;
+        justify-content: space-between;
+    }
+    .signatures .sig-box {
+        width: 45%;
+        text-align: center;
+    }
+    .signatures .sig-title { font-weight: bold; margin-bottom: 50px; text-decoration: underline; }
+
+    /* ── Pied de page ─────────────────────────────────────────────────── */
+    .pied {
+        position: fixed;
+        bottom: -1.2cm;
+        left: 0; right: 0;
+        text-align: center;
+        font-size: 7.5pt;
+        color: #444;
+        border-top: 1px solid #ccc;
+        padding-top: 4px;
+    }
+</style>
+</head>
+<body>
+
+    <!-- En-tête officiel -->
+    <div class="entete">
+        <div class="bloc">
+            {{ ligue.get_bulletin_header_gauche_ligne1 }}
+            <div class="trait"></div>
+            {{ ligue.get_bulletin_header_gauche_ligne2 }}
+        </div>
+        <div class="logo">
+            {% if ligue.logo %}
+            <img src="{{ ligue.logo.url }}" alt="{{ ligue.sigle }}">
+            {% else %}
+            <strong>{{ ligue.sigle }}</strong>
+            {% endif %}
+        </div>
+        <div class="bloc droite">
+            {{ ligue.get_bulletin_header_droite_ligne1 }}
+            <div class="trait"></div>
+            <span class="devise">{{ ligue.get_bulletin_header_droite_devise }}</span>
+        </div>
+    </div>
+
+    <!-- Titre -->
+    <div class="titre-rapport">Rapport d'Activité & Bilan Statistique</div>
+    <div class="sous-titre">
+        {% if saison_active %}Saison Sportive {{ saison_active.annee_debut }} — {{ saison_active.annee_fin }}{% else %}Bilan Global de la Ligue{% endif %}
+    </div>
+
+    <!-- Section 1 : KPIs -->
+    <div class="section-title">1. Synthèse des Indicateurs Clés</div>
+    <table class="kpi-grid">
+        <tr>
+            <td>
+                <div class="kpi-label">Pratiquants Actifs</div>
+                <div class="kpi-val">{{ total_pratiquants }}</div>
+                <div class="kpi-sub">{{ hommes_count }} Hommes / {{ femmes_count }} Femmes</div>
+            </td>
+            <td>
+                <div class="kpi-label">Clubs Affiliés</div>
+                <div class="kpi-val">{{ total_clubs }}</div>
+                <div class="kpi-sub">Clubs enregistrés</div>
+            </td>
+            <td>
+                <div class="kpi-label">Candidats Examens</div>
+                <div class="kpi-val">{{ total_candidats }}</div>
+                <div class="kpi-sub">{{ total_admis }} Admis au total</div>
+            </td>
+            <td>
+                <div class="kpi-label">Taux de Réussite</div>
+                <div class="kpi-val">{{ taux_reussite }}%</div>
+                <div class="kpi-sub">Réussite aux examens</div>
+            </td>
+        </tr>
+    </table>
+
+    <!-- Section 2 : Répartition des Candidats par Club -->
+    <div class="section-title">2. Répartition des Candidats Inscrits aux Examens par Club</div>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th style="width: 15%;">Code Club</th>
+                <th style="width: 60%; text-align: left;">Nom du Club</th>
+                <th style="width: 25%;">Candidats Inscrits</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for c in clubs_counts %}
+            <tr>
+                <td style="text-align: center; font-weight: bold;">{{ c.pratiquant__club__code_club|default:"—" }}</td>
+                <td>{{ c.pratiquant__club__nom_club }}</td>
+                <td style="text-align: center; font-weight: bold;">{{ c.nb_inscrits }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3" style="text-align: center;">Aucun candidat inscrit aux examens.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Section 3 : Répartition par Grade -->
+    <div class="section-title">3. Pyramide des Grades dans la Ligue</div>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th style="width: 70%; text-align: left;">Grade (Ceinture / Duan)</th>
+                <th style="width: 30%;">Effectif Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for g in grades_counts %}
+            <tr>
+                <td>{{ g.grade_actuel__nom|default:"Sans grade (Débutants)" }}</td>
+                <td style="text-align: center; font-weight: bold;">{{ g.total }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="2" style="text-align: center;">Aucune donnée de grade.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Section 4 : Sessions d'Examen -->
+    <div class="section-title">4. Bilan des Sessions d'Examen organisées</div>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th style="width: 45%; text-align: left;">Session d'Examen</th>
+                <th style="width: 20%;">Date</th>
+                <th style="width: 15%;">Examen par</th>
+                <th style="width: 20%;">Lieu</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for s in sessions %}
+            <tr>
+                <td>{{ s.titre }}</td>
+                <td style="text-align: center;">{{ s.date_examen|date:"d/m/Y" }}</td>
+                <td style="text-align: center;">{{ s.session_par }}</td>
+                <td style="text-align: center;">{{ s.lieu|default:"Ouagadougou" }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4" style="text-align: center;">Aucune session d'examen pour cette période.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Signatures -->
+    <div class="signatures">
+        <div class="sig-box">
+            <div class="sig-title">Le Secrétaire Général</div>
+        </div>
+        <div class="sig-box">
+            <div class="sig-title">Le Président de la Ligue</div>
+        </div>
+    </div>
+
+    <!-- Pied de page -->
+    <div class="pied">
+        {{ ligue.nom_ligue }} ({{ ligue.sigle }}) — Document Officiel de Synthèse et de Reporting — Généré le {% now "d/m/Y à H:i" %}
+    </div>
+
+</body>
+</html>

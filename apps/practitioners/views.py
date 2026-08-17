@@ -27,6 +27,20 @@ def gest_club_requis(view_func):
     return wrapper
 
 
+def gest_ligue_requis(view_func):
+    @login_required
+    def wrapper(request, *args, **kwargs):
+        if not (request.user.is_superuser or request.user.est_gest_ligue()):
+            messages.error(request, "Accès réservé au Gestionnaire de Ligue.")
+            return redirect('accounts:tableau_de_bord')
+        if not getattr(request.user, 'ligue', None) and not request.user.is_superuser:
+            messages.error(request, "Votre compte n'est rattaché à aucune ligue.")
+            return redirect('accounts:tableau_de_bord')
+        return view_func(request, *args, **kwargs)
+    return wrapper
+
+
+
 @login_required
 def liste_pratiquants(request):
     if hasattr(request.user, 'club') and request.user.club:
@@ -152,21 +166,66 @@ def modifier_pratiquant(request, pk):
     })
 
 
-@gest_club_requis
+@login_required
 def detail_pratiquant(request, pk):
-    club       = request.user.club
-    pratiquant = get_object_or_404(Pratiquant, pk=pk, club=club)
-    resultats  = (
+    user = request.user
+    if user.is_superuser or user.est_gest_ligue():
+        ligue = getattr(user, 'ligue', None)
+        if not ligue and user.is_superuser:
+            from apps.ligues.models import Ligue
+            ligue = Ligue.objects.first()
+        pratiquant = get_object_or_404(Pratiquant.objects.select_related('club', 'grade_actuel'), pk=pk, club__ligue=ligue)
+    elif user.est_gest_club() and hasattr(user, 'club') and user.club:
+        pratiquant = get_object_or_404(Pratiquant.objects.select_related('club', 'grade_actuel'), pk=pk, club=user.club)
+    else:
+        messages.error(request, "Accès refusé.")
+        return redirect('accounts:tableau_de_bord')
+
+    resultats = (
         pratiquant.inscriptions
         .filter(resultat__publie=True)
         .select_related('session', 'grade_vise', 'resultat')
         .order_by('-session__date_examen')
     )
+    historiques = pratiquant.historique_passages.all()
+    from .forms import HistoriquePassageGradeForm
+    historique_form = HistoriquePassageGradeForm()
+
     return render(request, 'practitioners/detail.html', {
         'pratiquant': pratiquant,
-        'club':       club,
-        'resultats':  resultats,
+        'club': pratiquant.club,
+        'resultats': resultats,
+        'historiques': historiques,
+        'historique_form': historique_form,
     })
+
+
+@gest_ligue_requis
+def ajouter_historique_passage(request, pk):
+    pratiquant = get_object_or_404(Pratiquant, pk=pk)
+    if request.method == 'POST':
+        from .forms import HistoriquePassageGradeForm
+        form = HistoriquePassageGradeForm(request.POST)
+        if form.is_valid():
+            h = form.save(commit=False)
+            h.pratiquant = pratiquant
+            h.save()
+            messages.success(request, f"Passage de grade « {h.grade_libelle} » ajouté à l'historique de {pratiquant.prenom} {pratiquant.nom}.")
+        else:
+            messages.error(request, "Veuillez corriger les erreurs du formulaire d'historique.")
+    return redirect('practitioners:detail', pk=pratiquant.pk)
+
+
+@gest_ligue_requis
+def supprimer_historique_passage(request, pk):
+    from .models import HistoriquePassageGrade
+    h = get_object_or_404(HistoriquePassageGrade, pk=pk)
+    pratiquant_pk = h.pratiquant_id
+    if request.method == 'POST':
+        h.delete()
+        messages.success(request, "Entrée d'historique supprimée.")
+    return redirect('practitioners:detail', pk=pratiquant_pk)
+
 
 
 @gest_club_requis

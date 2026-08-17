@@ -4,12 +4,18 @@
 
 {% block sidebar %}
 <span class="sidebar-title">Navigation</span>
-<a href="{% url 'accounts:dashboard_club' %}" class="nav-link">
-    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+{% if user.est_gest_ligue or user.is_superuser %}
+<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord Ligue
 </a>
+{% else %}
+<a href="{% url 'accounts:dashboard_club' %}" class="nav-link">
+    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord Club
+</a>
+{% endif %}
 <span class="sidebar-title mt-2">Gestion</span>
 <a href="{% url 'practitioners:liste' %}" class="nav-link active">
-    <i class="bi bi-people me-2"></i>Pratiquants
+    <i class="bi bi-people me-2"></i>Licenciés
 </a>
 <a href="{% url 'exams:club_sessions' %}" class="nav-link">
     <i class="bi bi-journal-check me-2"></i>Sessions d'examen
@@ -45,7 +51,7 @@
 
 <div class="row g-3">
     <div class="col-md-4 text-center">
-        <div class="card p-3">
+        <div class="card p-3 shadow-sm border-0">
             {% if pratiquant.photo %}
             <img src="{{ pratiquant.photo.url }}" alt="photo"
                  class="rounded-circle mx-auto d-block mb-3"
@@ -80,7 +86,7 @@
     </div>
 
     <div class="col-md-8">
-        <div class="card p-3">
+        <div class="card p-3 shadow-sm border-0">
             <h6 class="fw-bold mb-3 border-bottom pb-2">
                 <i class="bi bi-person me-2"></i>Informations personnelles
             </h6>
@@ -120,10 +126,116 @@
     </div>
 </div>
 
-<div class="card mt-4">
-    <div class="card-header">
-        <h6 class="fw-bold mb-0">
-            <i class="bi bi-graph-up me-2"></i>Résultats aux examens
+<!-- Section Historique Manuel des Moyennes (Rappel Moyenne Bulletin) -->
+<div class="card mt-4 shadow-sm border-0">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-3">
+        <h6 class="fw-bold mb-0 text-primary">
+            <i class="bi bi-clock-history me-2"></i>Historique des Passages de Grade (Rappel moyenne sur bulletin)
+        </h6>
+        {% if user.est_gest_ligue or user.is_superuser %}
+        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#modalAjoutHistorique">
+            <i class="bi bi-plus-circle me-1"></i>Ajouter un passage antérieur
+        </button>
+        {% endif %}
+    </div>
+    <div class="card-body p-0">
+        {% if historiques %}
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-3">Date</th>
+                        <th>Grade</th>
+                        <th class="text-center">Moyenne</th>
+                        <th class="text-center">Rang</th>
+                        <th class="text-center">Mention</th>
+                        {% if user.est_gest_ligue or user.is_superuser %}
+                        <th class="text-end pe-3">Action</th>
+                        {% endif %}
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for h in historiques %}
+                    <tr>
+                        <td class="ps-3 fw-bold">{% if h.date_passage %}{{ h.date_passage|date:"d/m/Y" }}{% else %}—{% endif %}</td>
+                        <td><span class="badge bg-outline-secondary text-dark border">{{ h.grade_libelle }}</span></td>
+                        <td class="text-center fw-bold text-primary">{{ h.moyenne }}/20</td>
+                        <td class="text-center">{{ h.rang }}</td>
+                        <td class="text-center"><span class="badge bg-info text-dark">{{ h.mention }}</span></td>
+                        {% if user.est_gest_ligue or user.is_superuser %}
+                        <td class="text-end pe-3">
+                            <form method="post" action="{% url 'practitioners:supprimer_historique' h.pk %}" class="d-inline" onsubmit="return confirm('Supprimer ce passage d\'historique ?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i>
+                                </button>
+                            </form>
+                        </td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="p-3 text-muted text-center">
+            <i class="bi bi-info-circle me-1"></i>Aucun passage de grade antérieur saisi manuellement. Les futurs examens réussis sur la plateforme apparaîtront automatiquement sur les bulletins.
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal Saisie Passage Historique -->
+{% if user.est_gest_ligue or user.is_superuser %}
+<div class="modal fade" id="modalAjoutHistorique" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="post" action="{% url 'practitioners:ajouter_historique' pratiquant.pk %}">
+                {% csrf_token %}
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Ajouter un passage de grade (Rappel moyenne)</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small">Saisissez les informations d'un passage de grade passé pour que la moyenne figure sur le rappel du bulletin PDF.</p>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Date du passage</label>
+                        {{ historique_form.date_passage }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Grade visé / obtenu</label>
+                        {{ historique_form.grade_libelle }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Moyenne obtenue (sur 20)</label>
+                        {{ historique_form.moyenne }}
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Rang</label>
+                            {{ historique_form.rang }}
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold">Mention</label>
+                            {{ historique_form.mention }}
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle me-1"></i>Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Examens Système -->
+<div class="card mt-4 shadow-sm border-0">
+    <div class="card-header bg-white py-3">
+        <h6 class="fw-bold mb-0 text-secondary">
+            <i class="bi bi-graph-up me-2"></i>Résultats aux examens du système
         </h6>
     </div>
     <div class="card-body p-0">
@@ -160,7 +272,7 @@
                             <i class="bi bi-eye me-1"></i>Détail
                         </a>
                         <a href="{% url 'results:bulletin_pdf' insc.resultat.pk %}" class="btn btn-sm btn-outline-primary">
-                            <i class="bi bi-file-earmark-pdf me-1"></i>Bulletin
+                            <i class="bi bi-file-earmark-pdf me-1"></i>Bulletin PDF
                         </a>
                     </td>
                 </tr>
@@ -170,7 +282,7 @@
         {% else %}
         <div class="text-center py-4 text-muted">
             <i class="bi bi-graph-up fs-2 opacity-25"></i>
-            <p class="mt-2 mb-0">Aucun résultat publié pour ce pratiquant.</p>
+            <p class="mt-2 mb-0">Aucun résultat d'examen enregistré via la plateforme.</p>
         </div>
         {% endif %}
     </div>

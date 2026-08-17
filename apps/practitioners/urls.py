@@ -15,6 +15,9 @@ urlpatterns = [
     path('<int:pk>/modifier/',    views.modifier_pratiquant,        name='modifier'),
     path('<int:pk>/toggle/',      views.toggle_actif_pratiquant,    name='toggle_actif'),
     path('<int:pk>/supprimer/',   views.supprimer_pratiquant,       name='supprimer'),
+    path('<int:pk>/historique/ajouter/', views.ajouter_historique_passage, name='ajouter_historique'),
+    path('historique/<int:pk>/supprimer/', views.supprimer_historique_passage, name='supprimer_historique'),
+
 
     # Grades (GEST_LIGUE)
     path('grades/',                        views.liste_grades,       name='grades'),

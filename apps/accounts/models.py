@@ -181,6 +181,27 @@ class Utilisateur(AbstractUser):
 
 
 
+    @property
+    def libelle_espace_role(self):
+        """Retourne la phrase d'espace dédiée selon le rôle de l'utilisateur."""
+        if self.is_superuser or self.a_le_role(Role.SUPER_ADMIN):
+            return "Espace réservé au Super Administrateur"
+        elif self.a_le_role(Role.GEST_LIGUE):
+            return "Espace dédié au Gestionnaire de la Ligue"
+        elif self.a_le_role(Role.GEST_TECHNIQUE):
+            return "Espace dédié à la Direction Technique"
+        elif self.a_le_role(Role.GEST_FINANCIER):
+            return "Espace dédié au Gestionnaire Financier"
+        elif self.a_le_role(Role.GEST_COM):
+            return "Espace dédié au Chargé de Communication"
+        elif self.a_le_role(Role.GEST_CLUB):
+            return "Espace dédié au Gestionnaire de Club"
+        elif self.a_le_role(Role.JURY):
+            return "Espace dédié au Membre du Jury"
+        elif self.est_gest_ligue():
+            return "Espace dédié au Gestionnaire de la Ligue"
+        return "Espace dédié au Pratiquant / Licencié"
+
     def get_roles_display(self):
         """Retourne la liste lisible des rôles de l'utilisateur."""
         return [r.get_nom_role_display() for r in self.roles.all()]

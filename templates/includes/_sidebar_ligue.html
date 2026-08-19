@@ -3,12 +3,12 @@
     <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
 </a>
 <a href="{% url 'ligues:reporting_dashboard' %}" class="nav-link {% if request.resolver_match.namespace == 'ligues' and request.resolver_match.url_name == 'reporting_dashboard' %}active{% endif %}">
-    <i class="bi bi-graph-up-arrow me-2 text-primary"></i>Statistiques & Reporting
+    <i class="bi bi-graph-up-arrow me-2 text-primary"></i>Statistiques
 </a>
 
 
 <span class="sidebar-title mt-2">Gestion</span>
-<a href="{% url 'clubs:liste' %}" class="nav-link {% if request.resolver_match.namespace == 'clubs' and request.resolver_match.url_name != 'demandes_affiliation' and request.resolver_match.url_name != 'parametres_affiliation' %}active{% endif %}">
+<a href="{% url 'clubs:liste' %}" class="nav-link {% if request.resolver_match.namespace == 'clubs' and 'affiliation' not in request.resolver_match.url_name and 'attestation' not in request.resolver_match.url_name and 'validation' not in request.resolver_match.url_name and 'rejeter' not in request.resolver_match.url_name %}active{% endif %}">
     <i class="bi bi-building me-2"></i>Clubs
 </a>
 <a href="{% url 'practitioners:liste' %}" class="nav-link {% if request.resolver_match.namespace == 'practitioners' and request.resolver_match.url_name == 'liste' %}active{% endif %}">
@@ -38,11 +38,11 @@
 <a href="{% url 'exams:modele_matricule' %}" class="nav-link {% if request.resolver_match.namespace == 'exams' and request.resolver_match.url_name == 'modele_matricule' %}active{% endif %}">
     <i class="bi bi-123 me-2"></i>Modèle de matricule
 </a>
-<a href="{% url 'clubs:demandes_affiliation' %}" class="nav-link {% if request.resolver_match.url_name == 'demandes_affiliation' %}active{% endif %}">
-    <i class="bi bi-file-earmark-check me-2"></i>Affiliations
+<a href="{% url 'clubs:demandes_affiliation' %}" class="nav-link {% if request.resolver_match.url_name == 'demandes_affiliation' or request.resolver_match.url_name == 'detail_demande_affiliation' or request.resolver_match.url_name == 'confirmer_validation' or request.resolver_match.url_name == 'rejeter_demande' %}active{% endif %}">
+    <i class="bi bi-file-earmark-check me-2"></i>Dossiers d'affiliation
 </a>
 <a href="{% url 'clubs:historique_affiliations' %}" class="nav-link ps-4 {% if request.resolver_match.url_name == 'historique_affiliations' %}active{% endif %}">
-    <i class="bi bi-archive me-2"></i>Historique & Archives
+    <i class="bi bi-archive me-2"></i>Historique d'affiliation
 </a>
 <a href="{% url 'clubs:modele_attestation' %}" class="nav-link ps-4 {% if request.resolver_match.url_name == 'modele_attestation' %}active{% endif %}">
     <i class="bi bi-file-earmark-pdf-fill me-2 text-danger"></i>Modèle Attestation

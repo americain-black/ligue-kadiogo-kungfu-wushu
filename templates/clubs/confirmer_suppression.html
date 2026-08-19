@@ -2,37 +2,7 @@
 {% block title %}Supprimer {{ club.nom_club }} — Ligue du Kadiogo{% endblock %}
 
 {% block sidebar %}
-<span class="sidebar-title">Navigation</span>
-<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
-    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
-</a>
-<span class="sidebar-title mt-2">Gestion</span>
-<a href="{% url 'clubs:liste' %}" class="nav-link active">
-    <i class="bi bi-building me-2"></i>Clubs
-</a>
-<a href="{% url 'exams:liste' %}" class="nav-link">
-    <i class="bi bi-journal-check me-2"></i>Sessions d'examen
-</a>
-<a href="{% url 'exams:tarifs_accueil' %}" class="nav-link ps-4">
-    <i class="bi bi-cash-coin me-2"></i>Tarifs d'examen
-</a>
-<a href="{% url 'exams:rubriques' %}" class="nav-link">
-    <i class="bi bi-list-task me-2"></i>Rubriques / Épreuves
-</a>
-<a href="{% url 'exams:options' %}" class="nav-link">
-    <i class="bi bi-tags me-2"></i>Options / Styles
-</a>
-<a href="{% url 'exams:modele_matricule' %}" class="nav-link">
-    <i class="bi bi-123 me-2"></i>Modèle de matricule
-</a>
-
-
-<a href="{% url 'clubs:demandes_affiliation' %}" class="nav-link">
-    <i class="bi bi-file-earmark-check me-2"></i>Affiliations
-</a>
-<a href="{% url 'clubs:parametres_affiliation' %}" class="nav-link ps-4">
-    <i class="bi bi-cash-coin me-2"></i>Frais d'affiliation
-</a>
+{% include 'includes/_sidebar_ligue.html' %}
 {% endblock %}
 
 {% block content %}

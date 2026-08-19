@@ -64,7 +64,7 @@ def envoyer_email_notification(destinataires, sujet, titre_entete, contenu_html_
                 {contenu_html_ou_texte}
                 {f'<div class="card-motif"><strong>Motif / Informations complémentaires :</strong><br>{motif_ou_details}</div>' if motif_ou_details else ''}
                 <p style="margin-top: 24px; font-size: 0.85rem; color: #64748b;">
-                    Ceci est un message automatique généré par la plateforme de la Ligue du Kadiogo de Kung-Fu Wushu (<a href="http://kadiogofunfu.bf" style="color:#dc2626;">kadiogofunfu.bf</a>).
+                    Ceci est un message automatique généré par la plateforme de la Ligue du Kadiogo de Kung-Fu Wushu (<a href="https://kadiogofungfu.bf" style="color:#dc2626;">kadiogofungfu.bf</a>).
                 </p>
             </div>
             <div class="footer">

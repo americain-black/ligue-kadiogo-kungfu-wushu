@@ -19,6 +19,51 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
     --lk-or:          #F59E0B; /* Doré / Warm Gold */
 }
 
+/* ── Logo cercle tournant et agrandi (effleure les bordures du header) ── */
+@keyframes lk-spin-logo {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.lk-logo-tournant {
+    height: 52px !important;
+    width: 52px !important;
+    object-fit: contain;
+    border-radius: 50% !important;
+    background: #0F172A;
+    border: 2.5px solid #F59E0B;
+    box-shadow: 0 0 14px rgba(245, 158, 11, 0.55);
+    padding: 2px;
+    animation: lk-spin-logo 12s linear infinite;
+    transition: box-shadow 0.3s ease;
+    margin-top: -2px;
+    margin-bottom: -2px;
+}
+
+.lk-logo-tournant:hover {
+    box-shadow: 0 0 20px rgba(245, 158, 11, 0.9);
+    animation-duration: 4s;
+}
+
+.lk-user-avatar-tournant {
+    height: 44px !important;
+    width: 44px !important;
+    object-fit: cover;
+    border-radius: 50% !important;
+    background: #0F172A;
+    border: 2.5px solid #F59E0B;
+    box-shadow: 0 0 12px rgba(245, 158, 11, 0.5);
+    padding: 2px;
+    animation: lk-spin-logo 12s linear infinite;
+    transition: box-shadow 0.3s ease;
+    flex-shrink: 0;
+}
+
+.lk-user-avatar-tournant:hover {
+    box-shadow: 0 0 18px rgba(245, 158, 11, 0.9);
+    animation-duration: 4s;
+}
+
 /* ── Navbar publique ─────────────────────────────────────────────────── */
 .lk-navbar {
     position: fixed !important;
@@ -29,8 +74,8 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
     z-index: 1050 !important;
     background-color: var(--lk-navbar-bg);
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
-    padding: 0.8rem 0;
-    border-bottom: 2px solid rgba(245, 158, 11, 0.3);
+    padding: 0.2rem 0 !important; /* Padding minimal pour que le cercle effleure la bordure sans agrandir le header */
+    border-bottom: 2px solid #ffffff;
     backdrop-filter: blur(10px);
 }
 .lk-navbar .navbar-brand {
@@ -175,32 +220,57 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
 }
 
 /* ── Drapeau flottant (Burkina Faso) ──────────────────────────────────── */
+/* ── Animation Mouvement de Vent réaliste sur les Drapeau(x) ───────────── */
+@keyframes lk-drapeau-vent {
+    0% {
+        transform: perspective(300px) rotateY(0deg) skewY(0deg) scale(1);
+    }
+    25% {
+        transform: perspective(300px) rotateY(16deg) skewY(-3deg) translateY(-1px) scale(1.02);
+    }
+    50% {
+        transform: perspective(300px) rotateY(0deg) skewY(0deg) scale(1);
+    }
+    75% {
+        transform: perspective(300px) rotateY(-14deg) skewY(2.5deg) translateY(1px) scale(0.98);
+    }
+    100% {
+        transform: perspective(300px) rotateY(0deg) skewY(0deg) scale(1);
+    }
+}
+
 .lk-drapeau {
     display: inline-block;
-    transform-origin: 0% 50%;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
-    animation: lk-drapeau-flotte 1.6s ease-in-out infinite;
-}
-@keyframes lk-drapeau-flotte {
-    0%   { transform: rotate(0deg) skewY(0deg); }
-    20%  { transform: rotate(-10deg) skewY(8deg); }
-    40%  { transform: rotate(4deg) skewY(-6deg); }
-    60%  { transform: rotate(-8deg) skewY(7deg); }
-    80%  { transform: rotate(6deg) skewY(-5deg); }
-    100% { transform: rotate(0deg) skewY(0deg); }
+    transform-origin: left center;
+    filter: drop-shadow(0 3px 6px rgba(0,0,0,0.35));
+    animation: lk-drapeau-vent 3.2s ease-in-out infinite;
+    backface-visibility: hidden;
+    will-change: transform;
 }
 @media (prefers-reduced-motion: reduce) {
     .lk-drapeau { animation: none; }
 }
 .lk-footer-devise {
-    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.8rem;
     font-weight: 700;
     font-style: italic;
+    font-size: 1.2rem;
     letter-spacing: 0.03em;
     color: var(--lk-or);
-    margin: 0.4rem 0 1.4rem;
+    margin: 1.2rem 0 1.6rem;
 }
-.lk-footer-devise .lk-drapeau { width: 30px; margin-right: 0.5rem; vertical-align: middle; }
+.lk-footer-devise .lk-drapeau {
+    width: 65px !important;
+    height: 44px !important;
+    vertical-align: middle;
+    border-radius: 5px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+    border: 1.5px solid rgba(255,255,255,0.25);
+    flex-shrink: 0;
+}
 
 /* ── Sections génériques ───────────────────────────────────────────────── */
 .lk-section { padding: 4rem 1rem; }
@@ -341,14 +411,43 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
     border-top: 3px solid #ffffff;
 }
 
+.lk-footer-logo-img {
+    width: 62px;
+    height: 62px;
+    object-fit: contain;
+    background: #ffffff;
+    padding: 3px;
+    border-radius: 50%;
+    border: 2px solid var(--lk-or, #F59E0B);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4), 0 0 10px rgba(245, 158, 11, 0.3);
+    animation: lkSpinLogo 15s linear infinite;
+    flex-shrink: 0;
+}
+
+@keyframes lkSpinLogo {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
 .lk-footer-brand {
     color: #fff;
-    font-weight: 800;
-    font-size: 1.2rem;
     display: flex;
     align-items: center;
     gap: 0.6rem;
-    margin-bottom: 0.9rem;
+    margin-bottom: 0;
+}
+
+.lk-footer-brand-title {
+    font-weight: 800;
+    font-size: clamp(0.78rem, 2.2vw, 1.05rem);
+    white-space: nowrap;
+    color: #ffffff;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
 }
 
 .lk-footer-brand i { color: var(--lk-or); font-size: 1.4rem; }
@@ -359,30 +458,91 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
     line-height: 1.65;
 }
 
+/* ── Social Media Buttons ────────────────────────────────────────── */
+.lk-footer-social-link {
+    color: #CBD5E1;
+    font-size: 1.15rem;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.08);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.lk-footer-social-link.facebook:hover {
+    background: #1877F2;
+    color: #ffffff !important;
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(24, 119, 242, 0.4);
+}
+
+.lk-footer-social-link.whatsapp:hover {
+    background: #25D366;
+    color: #ffffff !important;
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(37, 211, 102, 0.4);
+}
+
+.lk-footer-social-link.youtube:hover {
+    background: #FF0000;
+    color: #ffffff !important;
+    transform: translateY(-3px);
+    box-shadow: 0 4px 12px rgba(255, 0, 0, 0.4);
+}
+
+/* ── Section Title Block ─────────────────────────────────────────── */
+.lk-footer-titre-block {
+    display: flex;
+    align-items: center;
+    min-height: 70px;
+    width: 100%;
+    margin-bottom: 0.5rem;
+}
+
+@media (max-width: 767.98px) {
+    .lk-footer-titre-block {
+        justify-content: center;
+    }
+}
+
 .lk-footer-titre {
     color: #fff;
     font-weight: 700;
     font-size: 0.98rem;
-    margin-bottom: 1.1rem;
     text-transform: uppercase;
     letter-spacing: 0.05em;
     position: relative;
     padding-bottom: 0.4rem;
+    display: inline-block;
 }
+
 .lk-footer-titre::after {
     content: '';
     position: absolute;
     bottom: 0;
     left: 0;
-    width: 36px;
-    height: 2px;
-    background-color: #ffffff;
+    width: 100%;
+    height: 3px;
+    background-color: var(--lk-or, #F59E0B);
+    border-radius: 2px;
+}
+
+/* ── List Wrapper ────────────────────────────────────────────────── */
+.lk-footer-list-wrapper {
+    display: block;
+    width: 100%;
 }
 
 .lk-footer-liens {
     list-style: none;
     margin: 0;
     padding: 0;
+    display: inline-block;
+    text-align: left;
 }
 
 .lk-footer-liens li {

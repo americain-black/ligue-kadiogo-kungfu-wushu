@@ -392,14 +392,11 @@
                 <p class="lead" id="heroTagline">{% if ligue and ligue.soustitre_hero_accueil %}{{ ligue.soustitre_hero_accueil }}{% else %}Affiliations, inscriptions aux examens, évaluations et publication des résultats{% endif %}</p>
             </div>
             <div class="d-flex gap-3 justify-content-center flex-wrap mt-3">
-                <a href="{% url 'ligues:statistiques_publiques' %}" class="btn btn-or shadow-sm">
+                <a href="{% url 'ligues:statistiques_publiques' %}" class="btn btn-outline-blanc">
                     <i class="bi bi-pie-chart-fill me-1"></i>Statistiques de la Ligue
                 </a>
                 <a href="{% url 'results:consultation_publique' %}" class="btn btn-outline-blanc">
                     <i class="bi bi-award me-1"></i>Voir les résultats
-                </a>
-                <a href="#sessions" class="btn btn-outline-blanc">
-                    <i class="bi bi-calendar-event me-1"></i>Sessions à venir
                 </a>
             </div>
         </div>
@@ -603,21 +600,21 @@
         <div class="row g-3">
             {% for doc in documents|slice:":4" %}
             <div class="col-12 col-md-6">
-                <div class="p-3 bg-white border rounded-4 shadow-sm h-100 d-flex align-items-center justify-content-between gap-3">
+                <div class="p-3 bg-white border rounded-4 shadow-sm h-100 d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center justify-content-between gap-3">
                     <div class="d-flex align-items-center gap-3 min-w-0">
                         <div class="bg-danger bg-opacity-10 text-danger p-3 rounded-3 fs-3 flex-shrink-0">
                             <i class="bi bi-file-earmark-pdf-fill"></i>
                         </div>
-                        <div class="min-w-0">
-                            <h6 class="fw-bold text-dark mb-1 text-truncate">{{ doc.titre }}</h6>
-                            <div class="text-muted small">
-                                <span class="badge bg-light text-dark border me-2">{{ doc.get_type_document_display }}</span>
-                                <i class="bi bi-calendar3 me-1"></i>{{ doc.date_publication|date:"d/m/Y" }}
+                        <div class="min-w-0 flex-grow-1">
+                            <h6 class="fw-bold text-dark mb-1 text-wrap text-break">{{ doc.titre }}</h6>
+                            <div class="text-muted small d-flex flex-wrap align-items-center gap-1">
+                                <span class="badge bg-light text-dark border me-1">{{ doc.get_type_document_display }}</span>
+                                <span><i class="bi bi-calendar3 me-1"></i>{{ doc.date_publication|date:"d/m/Y" }}</span>
                             </div>
                         </div>
                     </div>
-                    <div class="d-flex align-items-center gap-2 flex-shrink-0">
-                        <a href="{{ doc.fichier.url }}" download class="btn btn-danger btn-voir-plus">
+                    <div class="d-flex align-items-center justify-content-end gap-2 flex-shrink-0">
+                        <a href="{{ doc.fichier.url }}" download class="btn btn-danger btn-voir-plus w-100 w-sm-auto">
                             <i class="bi bi-download me-1"></i>Télécharger
                         </a>
                     </div>

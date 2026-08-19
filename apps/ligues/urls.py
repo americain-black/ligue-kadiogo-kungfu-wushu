@@ -13,10 +13,12 @@ urlpatterns = [
     path('organigramme/',                              views.organigramme,        name='organigramme'),
     path('organigramme/visuel/',                        views.organigramme_visuel, name='organigramme_visuel'),
     path('organigramme/volet/creer/',                  views.ajouter_volet,       name='creer_volet'),
+    path('organigramme/volet/<int:pk>/modifier/',      views.modifier_volet,      name='modifier_volet'),
     path('organigramme/volet/<int:pk>/supprimer/',     views.supprimer_volet,     name='supprimer_volet'),
     path('organigramme/volet/<int:volet_pk>/membre/ajouter/', views.ajouter_membre, name='ajouter_membre'),
     path('organigramme/membre/<int:pk>/modifier/',     views.modifier_membre,     name='modifier_membre'),
-    path('organigramme/membre/<int:pk>/supprimer/',     views.supprimer_membre,    name='supprimer_membre'),
+    path('organigramme/membre/<int:pk>/supprimer/',    views.supprimer_membre,    name='supprimer_membre'),
+    path('organigramme/membre/<int:pk>/toggle-statut/', views.toggle_actif_membre, name='toggle_actif_membre'),
 
     # Édition des informations "À propos" et de la présentation
     path('editer-infos/', views.editer_infos_ligue, name='editer_infos'),

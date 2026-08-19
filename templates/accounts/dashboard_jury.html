@@ -62,8 +62,8 @@
             <tbody>
             {% for aff in affectations %}
             <tr>
-                <td class="ps-3">
-                    <strong class="text-dark d-block">{{ aff.session.titre }}</strong>
+                <td class="ps-3" style="max-width: 280px;">
+                    <strong class="text-dark d-block text-wrap mb-1" style="word-break: break-word; line-height: 1.35; font-size: 0.92rem;">{{ aff.session.titre }}</strong>
                     <span class="small text-muted"><i class="bi bi-calendar-range me-1"></i>Année {{ aff.session.annee_sportive.libelle }}</span>
                 </td>
                 <td>
@@ -99,15 +99,15 @@
                     {% endif %}
                 </td>
                 <td class="text-end pe-3">
-                    <div class="d-flex justify-content-end gap-2">
+                    <div class="d-flex justify-content-end align-items-center gap-2">
                         <a href="{% url 'accounts:detail_affectation_jury' aff.pk %}"
-                           class="btn btn-sm btn-outline-primary">
-                            <i class="bi bi-eye me-1"></i>Voir mon affectation
+                           class="btn-action btn-action-view" title="Voir mon affectation" data-bs-toggle="tooltip">
+                            <i class="bi bi-eye"></i>
                         </a>
                         {% if aff.session.statut == 'EN_COURS' %}
                         <a href="{% url 'evaluations:interface_notation' aff.session.pk %}"
-                           class="btn btn-sm btn-success">
-                            <i class="bi bi-pencil-square me-1"></i>Noter les candidats
+                           class="btn-action btn-action-edit bg-success text-white border-0" title="Noter les candidats" data-bs-toggle="tooltip">
+                            <i class="bi bi-pencil-square"></i>
                         </a>
                         {% endif %}
                     </div>

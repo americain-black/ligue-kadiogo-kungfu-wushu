@@ -10,6 +10,9 @@ class Ligue(models.Model):
     adresse_siege = models.CharField(max_length=200, blank=True)
     email_contact = models.EmailField(blank=True)
     telephone     = models.CharField(max_length=20, blank=True)
+    lien_facebook = models.URLField(max_length=300, blank=True, verbose_name="Lien Facebook Officiel", default="https://facebook.com/lkkfw")
+    lien_whatsapp = models.CharField(max_length=200, blank=True, verbose_name="Lien / Numéro WhatsApp", default="https://wa.me/22673868616")
+    lien_youtube  = models.URLField(max_length=300, blank=True, verbose_name="Lien YouTube Officiel", default="https://youtube.com")
     logo          = models.ImageField(upload_to='ligues/', null=True, blank=True)
     statut               = models.CharField(
         max_length=20,
@@ -208,6 +211,10 @@ class VoletOrganigramme(models.Model):
         verbose_name        = 'Volet organigramme'
         verbose_name_plural = 'Volets organigramme'
         ordering            = ['ordre', 'date_creation']
+
+    @property
+    def membres_ligue(self):
+        return self.membres.filter(club__isnull=True).order_by('ordre', 'nom')
 
     def __str__(self):
         return f"{self.ligue.sigle} — {self.nom_volet}"

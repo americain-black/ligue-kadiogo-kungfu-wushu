@@ -15,13 +15,16 @@
         box-shadow: 0 3px 12px rgba(15, 23, 42, 0.04);
         transition: all 0.25s ease;
         display: flex;
-        align-items: center;
-        gap: 1.2rem;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
     }
-    .lk-doc-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
-        border-color: rgba(220, 38, 38, 0.3);
+    @media (min-width: 576px) {
+        .lk-doc-card {
+            flex-direction: row;
+            align-items: center;
+            gap: 1.2rem;
+        }
     }
     .lk-doc-icon {
         width: 48px;
@@ -69,23 +72,25 @@
             <div class="col-lg-9 mx-auto" id="listeDocuments">
                 {% for doc in documents %}
                 <div class="lk-doc-card lk-doc-search-item" data-recherche="{{ doc.titre|lower }} {{ doc.get_type_document_display|lower }}">
-                    <div class="lk-doc-icon">
-                        <i class="bi bi-file-earmark-pdf-fill"></i>
-                    </div>
-                    <div class="flex-grow-1 min-w-0">
-                        <h6 class="fw-bold text-dark mb-1 text-truncate" style="font-size: 1.02rem;">{{ doc.titre }}</h6>
-                        <div class="text-muted small">
-                            <span class="badge bg-light text-dark border me-2">{{ doc.get_type_document_display }}</span>
-                            <i class="bi bi-calendar3 me-1"></i>Publié le {{ doc.date_publication|date:"d/m/Y" }}
+                    <div class="d-flex align-items-center gap-3 flex-grow-1 min-w-0">
+                        <div class="lk-doc-icon">
+                            <i class="bi bi-file-earmark-pdf-fill"></i>
+                        </div>
+                        <div class="flex-grow-1 min-w-0">
+                            <h6 class="fw-bold text-dark mb-1 text-wrap text-break" style="font-size: 1.02rem;">{{ doc.titre }}</h6>
+                            <div class="text-muted small d-flex flex-wrap align-items-center gap-1">
+                                <span class="badge bg-light text-dark border me-1">{{ doc.get_type_document_display }}</span>
+                                <span><i class="bi bi-calendar3 me-1"></i>Publié le {{ doc.date_publication|date:"d/m/Y" }}</span>
+                            </div>
                         </div>
                     </div>
                     <!-- Actions : Visualiser + Télécharger -->
-                    <div class="d-flex align-items-center gap-2 flex-shrink-0">
-                        <button type="button" class="btn btn-outline-dark btn-sm rounded-pill px-3 fw-semibold"
+                    <div class="d-flex align-items-center justify-content-end gap-2 flex-wrap flex-shrink-0 mt-2 mt-sm-0">
+                        <button type="button" class="btn btn-outline-dark btn-sm rounded-pill px-3 fw-semibold flex-grow-1 flex-sm-grow-0"
                                 onclick="visualiserDocument('{% url 'communication:apercu_document' doc.pk %}', '{{ doc.fichier.url }}', '{{ doc.titre|escapejs }}')">
                             <i class="bi bi-eye-fill me-1"></i>Visualiser
                         </button>
-                        <a href="{{ doc.fichier.url }}" download class="btn btn-danger btn-voir-plus">
+                        <a href="{{ doc.fichier.url }}" download class="btn btn-danger btn-voir-plus flex-grow-1 flex-sm-grow-0">
                             <i class="bi bi-download me-1"></i>Télécharger
                         </a>
                     </div>

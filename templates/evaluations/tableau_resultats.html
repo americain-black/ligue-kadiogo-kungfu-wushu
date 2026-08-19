@@ -26,20 +26,7 @@
 {% endblock %}
 
 {% block sidebar %}
-<span class="sidebar-title">Navigation</span>
-<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
-    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
-</a>
-<a href="{% url 'exams:detail' session.pk %}" class="nav-link">
-    <i class="bi bi-arrow-left me-2"></i>Détail session
-</a>
-<span class="sidebar-title mt-2">Évaluation</span>
-<a href="{% url 'evaluations:interface_notation' session.pk %}" class="nav-link">
-    <i class="bi bi-pencil-square me-2"></i>Interface notation
-</a>
-<a href="#" class="nav-link active">
-    <i class="bi bi-graph-up me-2"></i>Résultats temps réel
-</a>
+{% include 'includes/_sidebar_ligue.html' %}
 {% endblock %}
 
 {% block content %}

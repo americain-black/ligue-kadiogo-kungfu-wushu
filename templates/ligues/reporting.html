@@ -3,23 +3,7 @@
 {% block title %}Reporting & Analytics — {{ ligue.sigle }}{% endblock %}
 
 {% block sidebar %}
-<span class="sidebar-title">Navigation Ligue</span>
-<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
-    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
-</a>
-<a href="{% url 'ligues:reporting_dashboard' %}" class="nav-link active">
-    <i class="bi bi-graph-up-arrow me-2"></i>Statistiques & Reporting
-</a>
-<span class="sidebar-title mt-3">Gestion</span>
-<a href="{% url 'clubs:liste' %}" class="nav-link">
-    <i class="bi bi-shield-shaded me-2"></i>Clubs affiliés
-</a>
-<a href="{% url 'practitioners:liste' %}" class="nav-link">
-    <i class="bi bi-people me-2"></i>Licenciés
-</a>
-<a href="{% url 'exams:liste' %}" class="nav-link">
-    <i class="bi bi-journal-check me-2"></i>Sessions d'examen
-</a>
+{% include 'includes/_sidebar_ligue.html' %}
 {% endblock %}
 
 {% block content %}

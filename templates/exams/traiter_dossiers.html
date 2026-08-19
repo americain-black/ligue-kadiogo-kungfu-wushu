@@ -2,14 +2,7 @@
 {% block title %}Traitement des dossiers — {{ session.titre }}{% endblock %}
 
 {% block sidebar %}
-<span class="sidebar-title">Navigation</span>
-<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
-    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
-</a>
-<span class="sidebar-title mt-2">Examens</span>
-<a href="{% url 'exams:liste' %}" class="nav-link">
-    <i class="bi bi-journal-check me-2"></i>Sessions d'examen
-</a>
+{% include 'includes/_sidebar_ligue.html' %}
 {% endblock %}
 
 {% block extra_css %}

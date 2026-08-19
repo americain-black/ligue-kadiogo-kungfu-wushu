@@ -22,17 +22,7 @@
 {% if user.est_gest_ligue or user.is_superuser %}
 {% include 'includes/_sidebar_ligue.html' %}
 {% else %}
-<span class="sidebar-title">Navigation</span>
-<a href="{% url 'accounts:dashboard_club' %}" class="nav-link">
-    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
-</a>
-<span class="sidebar-title mt-2">Gestion</span>
-<a href="{% url 'practitioners:liste' %}" class="nav-link active">
-    <i class="bi bi-people me-2"></i>Licenciés
-</a>
-<a href="{% url 'exams:club_sessions' %}" class="nav-link">
-    <i class="bi bi-journal-check me-2"></i>Sessions d'examen
-</a>
+{% include 'includes/_sidebar_club.html' %}
 {% endif %}
 {% endblock %}
 

@@ -1,66 +1,93 @@
+{% load static %}
 <footer class="lk-footer">
     <div class="container">
-        <div class="row g-4">
+        <div class="row g-4 text-center text-md-start">
             <!-- Colonne 1 : Présentation -->
-            <div class="col-12 col-lg-4">
-                <div class="lk-footer-brand">
-                    <i class="bi bi-trophy-fill"></i>
-                    {% if ligue_site %}{{ ligue_site.nom_ligue }}{% else %}Ligue du Kadiogo de Kung-Fu Wushu{% endif %}
+            <div class="col-12 col-md-6 col-lg-4 mb-3 mb-lg-0">
+                <div class="lk-footer-titre-block">
+                    <div class="lk-footer-brand justify-content-center justify-content-md-start">
+                        {% if ligue_site and ligue_site.logo %}
+                            <img src="{{ ligue_site.logo.url }}" alt="Logo {{ ligue_site.sigle }}" class="me-2 shadow-sm lk-footer-logo-img">
+                        {% elif ligue and ligue.logo %}
+                            <img src="{{ ligue.logo.url }}" alt="Logo {{ ligue.sigle }}" class="me-2 shadow-sm lk-footer-logo-img">
+                        {% else %}
+                            <img src="{% static 'img/logo_ligue.png' %}" alt="Logo Ligue" class="me-2 shadow-sm lk-footer-logo-img" style="width: 40px; height: 40px; object-fit: contain; border-radius: 50%;">
+                        {% endif %}
+                        <span class="lk-footer-brand-title lk-footer-titre">{% if ligue_site %}{{ ligue_site.nom_ligue }}{% elif ligue %}{{ ligue.nom_ligue }}{% else %}Ligue du Kadiogo de Kung-Fu Wushu{% endif %}</span>
+                    </div>
                 </div>
-                <p class="lk-footer-texte">
+                <p class="lk-footer-texte mt-2">
                     Plateforme officielle de gestion administrative, des affiliations de clubs, des inscriptions d'athlètes et du suivi des examens de ceinture.
                 </p>
-                <div class="d-flex gap-3 mt-3">
-                    <a href="#" class="text-white-50 fs-5"><i class="bi bi-facebook"></i></a>
-                    <a href="#" class="text-white-50 fs-5"><i class="bi bi-whatsapp"></i></a>
-                    <a href="#" class="text-white-50 fs-5"><i class="bi bi-youtube"></i></a>
+                <div class="d-flex justify-content-center justify-content-md-start gap-2 mt-3">
+                    <a href="{% if ligue_site.lien_facebook %}{{ ligue_site.lien_facebook }}{% elif ligue.lien_facebook %}{{ ligue.lien_facebook }}{% else %}https://facebook.com{% endif %}" target="_blank" rel="noopener noreferrer" class="lk-footer-social-link facebook" title="Facebook Officiel">
+                        <i class="bi bi-facebook"></i>
+                    </a>
+                    <a href="{% if ligue_site.lien_whatsapp %}{{ ligue_site.lien_whatsapp }}{% elif ligue.lien_whatsapp %}{{ ligue.lien_whatsapp }}{% else %}https://wa.me/22673868616{% endif %}" target="_blank" rel="noopener noreferrer" class="lk-footer-social-link whatsapp" title="Discuter sur WhatsApp">
+                        <i class="bi bi-whatsapp"></i>
+                    </a>
+                    <a href="{% if ligue_site.lien_youtube %}{{ ligue_site.lien_youtube }}{% elif ligue.lien_youtube %}{{ ligue.lien_youtube }}{% else %}https://youtube.com{% endif %}" target="_blank" rel="noopener noreferrer" class="lk-footer-social-link youtube" title="Chaîne YouTube Officielle">
+                        <i class="bi bi-youtube"></i>
+                    </a>
                 </div>
             </div>
 
             <!-- Colonne 2 : Navigation -->
-            <div class="col-6 col-lg-3">
-                <div class="lk-footer-titre">Navigation</div>
-                <ul class="lk-footer-liens">
-                    <li><a href="{% url 'accounts:accueil' %}"><i class="bi bi-chevron-right me-1 small"></i>Accueil</a></li>
-                    <li><a href="{% url 'clubs:annuaire' %}"><i class="bi bi-chevron-right me-1 small"></i>Annuaire des clubs</a></li>
-                    <li><a href="{% url 'communication:actualites_publiques' %}"><i class="bi bi-chevron-right me-1 small"></i>Actualités</a></li>
-                    <li><a href="{% url 'communication:documents_publics' %}"><i class="bi bi-chevron-right me-1 small"></i>Documents officiels</a></li>
-                    <li><a href="{% url 'results:consultation_publique' %}"><i class="bi bi-chevron-right me-1 small"></i>Résultats des examens</a></li>
-                </ul>
+            <div class="col-12 col-md-6 col-lg-3 mb-3 mb-lg-0">
+                <div class="lk-footer-titre-block">
+                    <span class="lk-footer-titre">Navigation</span>
+                </div>
+                <div class="lk-footer-list-wrapper">
+                    <ul class="lk-footer-liens">
+                        <li><a href="{% url 'accounts:accueil' %}"><i class="bi bi-chevron-right me-1 small"></i>Accueil</a></li>
+                        <li><a href="{% url 'clubs:annuaire' %}"><i class="bi bi-chevron-right me-1 small"></i>Annuaire des clubs</a></li>
+                        <li><a href="{% url 'communication:actualites_publiques' %}"><i class="bi bi-chevron-right me-1 small"></i>Actualités</a></li>
+                        <li><a href="{% url 'communication:documents_publics' %}"><i class="bi bi-chevron-right me-1 small"></i>Documents officiels</a></li>
+                        <li><a href="{% url 'results:consultation_publique' %}"><i class="bi bi-chevron-right me-1 small"></i>Résultats des examens</a></li>
+                    </ul>
+                </div>
             </div>
 
             <!-- Colonne 3 : Espace membres -->
-            <div class="col-6 col-lg-2">
-                <div class="lk-footer-titre">Accès Rapide</div>
-                <ul class="lk-footer-liens">
-                    <li><a href="#" data-bs-toggle="offcanvas" data-bs-target="#loginPanel"><i class="bi bi-lock me-1 small"></i>Connexion</a></li>
-                    {% if user.is_authenticated %}
-                    <li><a href="{% url 'accounts:tableau_de_bord' %}"><i class="bi bi-speedometer2 me-1 small"></i>Tableau de bord</a></li>
-                    <li><a href="{% url 'accounts:mon_profil' %}"><i class="bi bi-person-gear me-1 small"></i>Mon Profil</a></li>
-                    {% endif %}
-                </ul>
+            <div class="col-12 col-md-6 col-lg-2 mb-3 mb-lg-0">
+                <div class="lk-footer-titre-block">
+                    <span class="lk-footer-titre">Accès Rapide</span>
+                </div>
+                <div class="lk-footer-list-wrapper">
+                    <ul class="lk-footer-liens">
+                        <li><a href="#" data-bs-toggle="offcanvas" data-bs-target="#loginPanel"><i class="bi bi-lock me-1 small"></i>Connexion</a></li>
+                        {% if user.is_authenticated %}
+                        <li><a href="{% url 'accounts:tableau_de_bord' %}"><i class="bi bi-speedometer2 me-1 small"></i>Tableau de bord</a></li>
+                        <li><a href="{% url 'accounts:mon_profil' %}"><i class="bi bi-person-gear me-1 small"></i>Mon Profil</a></li>
+                        {% endif %}
+                    </ul>
+                </div>
             </div>
 
             <!-- Colonne 4 : Contact -->
-            <div class="col-12 col-lg-3">
-                <div class="lk-footer-titre">Contact Officiel</div>
-                <ul class="lk-footer-liens">
-                    {% if ligue_site.adresse_siege %}
-                    <li><i class="bi bi-geo-alt-fill me-2 text-warning"></i>{{ ligue_site.adresse_siege }}</li>
-                    {% else %}
-                    <li><i class="bi bi-geo-alt-fill me-2 text-warning"></i>Ouagadougou, Burkina Faso</li>
-                    {% endif %}
+            <div class="col-12 col-md-6 col-lg-3 mb-3 mb-lg-0">
+                <div class="lk-footer-titre-block">
+                    <span class="lk-footer-titre">Contact Officiel</span>
+                </div>
+                <div class="lk-footer-list-wrapper">
+                    <ul class="lk-footer-liens">
+                        {% if ligue_site.adresse_siege %}
+                        <li><i class="bi bi-geo-alt-fill me-2 text-warning"></i>{{ ligue_site.adresse_siege }}</li>
+                        {% else %}
+                        <li><i class="bi bi-geo-alt-fill me-2 text-warning"></i>Ouagadougou, Burkina Faso</li>
+                        {% endif %}
 
-                    {% if ligue_site.telephone %}
-                    <li><i class="bi bi-telephone-fill me-2 text-warning"></i><a href="tel:{{ ligue_site.telephone }}">{{ ligue_site.telephone }}</a></li>
-                    {% endif %}
+                        {% if ligue_site.telephone %}
+                        <li><i class="bi bi-telephone-fill me-2 text-warning"></i><a href="tel:{{ ligue_site.telephone }}">{{ ligue_site.telephone }}</a></li>
+                        {% endif %}
 
-                    {% if ligue_site.email_contact %}
-                    <li><i class="bi bi-envelope-fill me-2 text-warning"></i><a href="mailto:{{ ligue_site.email_contact }}">{{ ligue_site.email_contact }}</a></li>
-                    {% else %}
-                    <li><i class="bi bi-envelope-fill me-2 text-warning"></i>contact@kadiogo-wushu.bf</li>
-                    {% endif %}
-                </ul>
+                        {% if ligue_site.email_contact %}
+                        <li><i class="bi bi-envelope-fill me-2 text-warning"></i><a href="mailto:{{ ligue_site.email_contact }}">{{ ligue_site.email_contact }}</a></li>
+                        {% else %}
+                        <li><i class="bi bi-envelope-fill me-2 text-warning"></i>contact@kadiogo-wushu.bf</li>
+                        {% endif %}
+                    </ul>
+                </div>
             </div>
         </div>
 

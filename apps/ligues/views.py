@@ -5,7 +5,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 # pyrefly: ignore [missing-import]
 from django.contrib import messages
-from django.db.models import Count, Avg, Q
+from django.db.models import Count, Avg, Q, Prefetch
 from django.http import HttpResponse
 from django.template.loader import render_to_string
 from weasyprint import HTML
@@ -95,7 +95,13 @@ def organigramme(request):
         messages.error(request, "Aucune ligue trouvée.")
         return redirect('accounts:accueil')
 
-    volets = ligue.volets.prefetch_related('membres__club').all()
+    volets = ligue.volets.prefetch_related(
+        Prefetch(
+            'membres',
+            queryset=MembreOrganigramme.objects.filter(club__isnull=True).select_related('club').order_by('ordre', 'nom'),
+            to_attr='membres_du_volet'
+        )
+    ).all()
     form_volet  = VoletOrganigrammeForm()
     form_membre = MembreOrganigrammeForm()
     peut_modifier = request.user.is_authenticated and (request.user.is_superuser or request.user.est_gest_ligue())
@@ -149,6 +155,20 @@ def ajouter_volet(request):
 
 
 @gest_ligue_requis
+def modifier_volet(request, pk):
+    volet = get_object_or_404(VoletOrganigramme, pk=pk, ligue=request.user.ligue)
+    if request.method == 'POST':
+        nom = request.POST.get('nom_volet', '').strip()
+        if nom:
+            volet.nom_volet = nom
+            volet.save()
+            messages.success(request, f"Volet renommé en « {nom} » avec succès.")
+        else:
+            messages.error(request, "Le nom du volet ne peut pas être vide.")
+    return redirect('ligues:organigramme')
+
+
+@gest_ligue_requis
 def supprimer_volet(request, pk):
     volet = get_object_or_404(VoletOrganigramme, pk=pk, ligue=request.user.ligue)
     if request.method == 'POST':
@@ -166,6 +186,7 @@ def ajouter_membre(request, volet_pk):
         if form.is_valid():
             membre = form.save(commit=False)
             membre.volet = volet
+            membre.club = None  # Garantit le rattachement exclusif à la Ligue
             membre.save()
             messages.success(request, f"{membre.prenom} {membre.nom} ajouté au volet « {volet.nom_volet} ».")
     return redirect('ligues:organigramme')
@@ -196,6 +217,17 @@ def supprimer_membre(request, pk):
         nom = f"{membre.prenom} {membre.nom}"
         membre.delete()
         messages.success(request, f"{nom} supprimé de l'organigramme.")
+    return redirect('ligues:organigramme')
+
+
+@gest_ligue_requis
+def toggle_actif_membre(request, pk):
+    membre = get_object_or_404(MembreOrganigramme, pk=pk, volet__ligue=request.user.ligue)
+    if request.method == 'POST':
+        membre.actif = not membre.actif
+        membre.save()
+        statut = "activé" if membre.actif else "désactivé"
+        messages.success(request, f"Membre « {membre.prenom} {membre.nom} » {statut}.")
     return redirect('ligues:organigramme')
 
 
@@ -301,7 +333,7 @@ def reporting_dashboard(request):
     grades_counts_dict = {g.nom: 0 for g in all_grades_qs}
     grades_counts_dict['Sans grade'] = 0
 
-    for p in pratiquants_qs.select_related('grade_actuel'):
+    for p in licencies_qs.select_related('grade_actuel'):
         gn = p.grade_actuel.nom if p.grade_actuel else 'Sans grade'
         grades_counts_dict[gn] = grades_counts_dict.get(gn, 0) + 1
 

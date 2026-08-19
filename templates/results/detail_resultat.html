@@ -2,8 +2,8 @@
 {% block title %}{{ inscription.pratiquant }} — Résultat{% endblock %}
 
 {% block sidebar %}
-<span class="sidebar-title">Navigation</span>
 {% if user.est_gest_club %}
+<span class="sidebar-title">Navigation</span>
 <a href="{% url 'accounts:dashboard_club' %}" class="nav-link">
     <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
 </a>
@@ -11,12 +11,7 @@
     <i class="bi bi-arrow-left me-2"></i>Résultats de la session
 </a>
 {% else %}
-<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
-    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
-</a>
-<a href="{% url 'evaluations:tableau_resultats' inscription.session.pk %}" class="nav-link">
-    <i class="bi bi-arrow-left me-2"></i>Résultats de la session
-</a>
+{% include 'includes/_sidebar_ligue.html' %}
 {% endif %}
 {% endblock %}
 

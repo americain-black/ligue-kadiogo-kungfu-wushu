@@ -3,29 +3,7 @@
 {% block title %}Dashboard Club — {{ club.nom_club|default:"Club" }}{% endblock %}
 
 {% block sidebar %}
-<span class="sidebar-title">Navigation</span>
-<a href="{% url 'accounts:dashboard_club' %}" class="nav-link active">
-    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
-</a>
-<span class="sidebar-title mt-2">Gestion</span>
-<a href="{% url 'clubs:mon_affiliation' %}" class="nav-link">
-    <i class="bi bi-file-earmark-check me-2"></i>Mon affiliation
-</a>
-<a href="{% url 'practitioners:liste' %}" class="nav-link">
-    <i class="bi bi-people me-2"></i>Licenciés
-</a>
-<a href="{% url 'exams:club_sessions' %}" class="nav-link">
-    <i class="bi bi-journal-check me-2"></i>Sessions d'examen
-</a>
-{% if club %}
-<a href="{% url 'clubs:organigramme' club.pk %}" class="nav-link">
-    <i class="bi bi-diagram-3 me-2"></i>Organigramme
-</a>
-{% endif %}
-<span class="sidebar-title mt-2">Communication</span>
-<a href="{% url 'communication:mes_actualites' %}" class="nav-link">
-    <i class="bi bi-newspaper me-2"></i>Mes actualités
-</a>
+{% include 'includes/_sidebar_club.html' %}
 {% endblock %}
 
 {% block content %}

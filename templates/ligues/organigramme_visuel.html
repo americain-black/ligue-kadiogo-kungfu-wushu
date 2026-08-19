@@ -5,16 +5,7 @@
 
 {% block sidebar %}
 {% if user.is_authenticated %}
-<span class="sidebar-title">Navigation</span>
-<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
-    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
-</a>
-<a href="{% url 'ligues:organigramme' %}" class="nav-link">
-    <i class="bi bi-diagram-3 me-2"></i>Organigramme (gestion)
-</a>
-<a href="{% url 'ligues:organigramme_visuel' %}" class="nav-link active">
-    <i class="bi bi-diagram-2 me-2"></i>Vue graphique
-</a>
+{% include 'includes/_sidebar_ligue.html' %}
 {% endif %}
 {% endblock %}
 

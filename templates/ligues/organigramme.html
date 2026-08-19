@@ -3,20 +3,7 @@
 {% block title %}Organigramme — {{ ligue.nom_ligue }}{% endblock %}
 
 {% block sidebar %}
-<span class="sidebar-title">Navigation</span>
-<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
-    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
-</a>
-<span class="sidebar-title mt-2">Gestion</span>
-<a href="{% url 'clubs:liste' %}" class="nav-link">
-    <i class="bi bi-building me-2"></i>Clubs
-</a>
-<a href="{% url 'clubs:demandes_affiliation' %}" class="nav-link">
-    <i class="bi bi-file-earmark-check me-2"></i>Affiliations
-</a>
-<a href="{% url 'ligues:organigramme' %}" class="nav-link active">
-    <i class="bi bi-diagram-3 me-2"></i>Organigramme
-</a>
+{% include 'includes/_sidebar_ligue.html' %}
 {% endblock %}
 
 {% block content %}
@@ -52,7 +39,7 @@
     <div class="card-header d-flex justify-content-between align-items-center bg-primary text-white">
         <h6 class="mb-0 fw-bold">
             <i class="bi bi-folder2-open me-2"></i>{{ volet.nom_volet }}
-            <span class="badge bg-light text-primary ms-2">{{ volet.membres_du_volet.count }} membre(s)</span>
+            <span class="badge bg-light text-primary ms-2">{{ volet.membres_du_volet|length }} membre(s)</span>
         </h6>
         <div class="d-flex gap-2">
             <button class="btn btn-sm btn-light"
@@ -267,16 +254,16 @@
                 </div>
                 <div class="modal-body">
                     <p>Voulez-vous supprimer le volet <strong>{{ volet.nom_volet }}</strong> ?</p>
-                    {% if volet.membres_du_volet.exists %}
+                    {% if volet.membres_du_volet %}
                     <div class="alert alert-warning">
                         <i class="bi bi-exclamation-triangle me-1"></i>
-                        Ce volet contient {{ volet.membres_du_volet.count }} membre(s). Supprimez-les d'abord.
+                        Ce volet contient {{ volet.membres_du_volet|length }} membre(s). Supprimez-les d'abord.
                     </div>
                     {% endif %}
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    {% if not volet.membres_du_volet.exists %}
+                    {% if not volet.membres_du_volet %}
                     <button type="submit" class="btn btn-danger">
                         <i class="bi bi-trash me-1"></i>Supprimer
                     </button>

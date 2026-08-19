@@ -1,25 +1,14 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Attestation d'Affiliation — {{ club.nom_club }} ({{ annee.libelle }}){% endblock %}
 
 {% block sidebar %}
-<span class="sidebar-title">Navigation</span>
-<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
-    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
-</a>
-<span class="sidebar-title mt-2">Gestion</span>
-<a href="{% url 'clubs:liste' %}" class="nav-link">
-    <i class="bi bi-building me-2"></i>Clubs
-</a>
-<a href="{% url 'exams:liste' %}" class="nav-link">
-    <i class="bi bi-journal-check me-2"></i>Sessions d'examen
-</a>
-<a href="{% url 'clubs:demandes_affiliation' %}" class="nav-link active">
-    <i class="bi bi-file-earmark-check me-2"></i>Affiliations
-</a>
-<a href="{% url 'clubs:historique_affiliations' %}" class="nav-link ps-4">
-    <i class="bi bi-archive me-2"></i>Historique & Archives
-</a>
+{% if user.est_gest_ligue or user.is_superuser %}
+    {% include 'includes/_sidebar_ligue.html' %}
+{% else %}
+    {% include 'includes/_sidebar_club.html' %}
+{% endif %}
 {% endblock %}
 
 {% block content %}
@@ -30,9 +19,9 @@
         max-width: 900px;
         margin: 0 auto;
         background: #ffffff;
-        border: 12px solid #009E49;
+        border: 10px solid #009E49;
         border-image: linear-gradient(135deg, #009E49 0%, #FCD116 50%, #EF2B2D 100%) 1;
-        padding: 45px 55px;
+        padding: 25px 35px;
         box-shadow: 0 15px 40px rgba(0,0,0,0.12);
         position: relative;
         background-image: radial-gradient(circle at 50% 50%, rgba(252, 209, 22, 0.03) 0%, transparent 70%);
@@ -40,85 +29,85 @@
 
     .cert-inner-border {
         border: 2px solid #009E49;
-        padding: 35px;
+        padding: 22px;
         position: relative;
     }
 
     .cert-header {
         text-align: center;
         border-bottom: 2px solid #EF2B2D;
-        padding-bottom: 20px;
-        margin-bottom: 30px;
+        padding-bottom: 12px;
+        margin-bottom: 18px;
     }
 
     .flag-strip {
-        height: 6px;
+        height: 5px;
         background: linear-gradient(90deg, #EF2B2D 0%, #EF2B2D 50%, #009E49 50%, #009E49 100%);
-        margin-bottom: 15px;
+        margin-bottom: 10px;
     }
 
     .cert-title {
         font-family: 'Cinzel', serif;
         font-weight: 800;
-        font-size: 24pt;
+        font-size: 20pt;
         color: #009E49;
         letter-spacing: 2px;
         text-transform: uppercase;
-        margin-top: 10px;
-        margin-bottom: 5px;
+        margin-top: 6px;
+        margin-bottom: 3px;
         text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
     }
 
     .cert-subtitle {
         font-family: 'Cinzel', serif;
         font-weight: 700;
-        font-size: 13pt;
+        font-size: 11pt;
         color: #EF2B2D;
-        letter-spacing: 3px;
+        letter-spacing: 2px;
         text-transform: uppercase;
     }
 
     .cert-body {
-        font-size: 11.5pt;
-        line-height: 1.85;
+        font-size: 10.5pt;
+        line-height: 1.65;
         text-align: justify;
-        margin: 30px 0;
+        margin: 18px 0;
     }
 
     .club-highlight {
-        font-size: 15pt;
+        font-size: 14pt;
         font-weight: 700;
         color: #000;
         text-align: center;
-        padding: 12px;
+        padding: 8px;
         background-color: #f8f9fa;
-        border-left: 5px solid #EF2B2D;
-        border-right: 5px solid #009E49;
-        margin: 20px 0;
+        border-left: 4px solid #EF2B2D;
+        border-right: 4px solid #009E49;
+        margin: 12px 0;
         text-transform: uppercase;
         letter-spacing: 1px;
     }
 
     .cert-footer {
-        margin-top: 40px;
+        margin-top: 20px;
         display: flex;
         justify-content: space-between;
         align-items: flex-end;
     }
 
     .stamp-box {
-        width: 140px;
-        height: 140px;
+        width: 115px;
+        height: 115px;
         border: 2px dashed #009E49;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         text-align: center;
-        font-size: 8.5pt;
+        font-size: 8pt;
         color: #009E49;
         font-weight: 600;
-        padding: 10px;
+        padding: 8px;
         transform: rotate(-12deg);
         opacity: 0.85;
     }
@@ -130,47 +119,91 @@
 
     .signature-title {
         font-weight: 700;
-        font-size: 10pt;
+        font-size: 9.5pt;
         text-transform: uppercase;
         color: #333;
-        margin-bottom: 50px;
+        margin-bottom: 45px;
     }
 
     .signature-name {
         font-weight: 700;
-        font-size: 11pt;
+        font-size: 10.5pt;
         color: #000;
-        border-top: 1px solid #1a1a1a;
-        padding-top: 5px;
+        padding-top: 4px;
     }
 
     .cert-barcode {
         font-family: monospace;
-        font-size: 8.5pt;
+        font-size: 7pt;
         color: #666;
         text-align: center;
-        margin-top: 25px;
+        margin-top: 15px;
         border-top: 1px dashed #ccc;
-        padding-top: 10px;
+        padding-top: 8px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
     @media print {
-        body {
+        @page {
+            size: A4 portrait;
+            margin: 6mm 10mm;
+        }
+        html, body {
             background: none !important;
             padding: 0 !important;
+            margin: 0 !important;
         }
-        .no-print, nav, .sidebar, header, footer, .navbar {
+        .no-print, nav, .sidebar, header, footer, .navbar, #sidebarToggle {
             display: none !important;
         }
         .main-content {
             margin-left: 0 !important;
             padding: 0 !important;
+            width: 100% !important;
         }
         .certificate-container {
             box-shadow: none !important;
             max-width: 100% !important;
-            border-width: 8px !important;
+            width: 100% !important;
+            border: none !important;
+            border-image: none !important;
+            background-image: none !important;
             margin: 0 !important;
+            padding: 0 !important;
+            box-sizing: border-box !important;
+            page-break-after: avoid !important;
+            page-break-before: avoid !important;
+            page-break-inside: avoid !important;
+        }
+        .cert-inner-border {
+            border: 1.5px solid #000000 !important;
+            padding: 15px 20px !important;
+        }
+        .cert-header {
+            margin-bottom: 10px !important;
+            padding-bottom: 6px !important;
+        }
+        .cert-body {
+            margin: 10px 0 !important;
+            line-height: 1.5 !important;
+            font-size: 10pt !important;
+        }
+        .club-highlight {
+            margin: 6px 0 !important;
+            padding: 5px !important;
+        }
+        .cert-footer {
+            margin-top: 10px !important;
+        }
+        .signature-title {
+            margin-bottom: 45px !important;
+        }
+        .stamp-box {
+            width: 100px !important;
+            height: 100px !important;
+            font-size: 7pt !important;
         }
     }
 </style>
@@ -203,9 +236,18 @@
             <div class="row align-items-center">
                 <div class="col-3 text-start">
                     {% if club.logo %}
-                    <img src="{{ club.logo.url }}" alt="Logo Club {{ club.nom_club }}" style="max-height: 85px; max-width: 110px; object-fit: contain;">
+                    <img src="{{ club.logo.url }}" alt="Logo Club {{ club.nom_club }}" class="rounded-circle shadow-sm" style="width: 100px; height: 100px; object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.12);">
+                    {% elif club.utilisateur and club.utilisateur.photo %}
+                    <img src="{{ club.utilisateur.photo.url }}" alt="Logo Club {{ club.nom_club }}" class="rounded-circle shadow-sm" style="width: 100px; height: 100px; object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.12);">
+                    {% elif user.photo and user.club == club or user.photo and not user.est_gest_ligue %}
+                    <img src="{{ user.photo.url }}" alt="Logo Club {{ club.nom_club }}" class="rounded-circle shadow-sm" style="width: 100px; height: 100px; object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.12);">
                     {% else %}
-                    <span class="badge bg-dark font-monospace p-2">CODE: {{ club.code_club }}</span>
+                    <div class="d-inline-flex align-items-center justify-content-center text-white fw-bold shadow-sm" style="width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, #1E293B 0%, #009E49 100%); box-shadow: 0 4px 12px rgba(0,0,0,0.12);">
+                        <div class="text-center">
+                            <i class="bi bi-shield-shaded fs-2 text-warning d-block mb-1"></i>
+                            <small class="font-monospace text-uppercase" style="font-size: 0.6rem; letter-spacing: 0.5px;">{{ club.sigle_club|default:"CLUB" }}</small>
+                        </div>
+                    </div>
                     {% endif %}
                 </div>
                 <div class="col-6 text-center">
@@ -216,16 +258,16 @@
                 </div>
                 <div class="col-3 text-end">
                     {% if ligue.logo %}
-                    <img src="{{ ligue.logo.url }}" alt="Logo Ligue {{ ligue.sigle }}" style="max-height: 85px; max-width: 110px; object-fit: contain;">
+                    <img src="{{ ligue.logo.url }}" alt="Logo Ligue {{ ligue.sigle }}" class="rounded-circle shadow-sm" style="width: 100px; height: 100px; object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.12);">
                     {% else %}
-                    <img src="/static/img/logo.png" alt="Logo Ligue" style="max-height: 85px; max-width: 110px; object-fit: contain;" onerror="this.style.display='none'">
+                    <img src="{% static 'img/logo_ligue.png' %}" alt="Logo Ligue {{ ligue.sigle }}" class="rounded-circle shadow-sm" style="width: 100px; height: 100px; object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.12);">
                     {% endif %}
                 </div>
             </div>
         </div>
 
         <div class="text-center my-4">
-            <h2 class="fw-bold text-uppercase border-bottom border-top border-2 border-dark d-inline-block py-2 px-4" style="letter-spacing: 3px; font-family: 'Cinzel', serif;">
+            <h2 class="fw-bold text-uppercase d-inline-block py-2 px-4" style="letter-spacing: 3px; font-family: 'Cinzel', serif;">
                 {{ params.attestation_titre|default:"ATTESTATION D'AFFILIATION" }}
             </h2>
             <div class="text-muted small mt-1 font-monospace">{{ params.attestation_prefixe_enregistrement|default:"N° d'enregistrement :" }} {{ params.attestation_sigle_ligue|default:ligue.sigle|default:"LKKFW" }}/AFF/{{ annee.libelle }}/{{ demande.id|stringformat:"04d" }}</div>
@@ -234,9 +276,12 @@
         <div class="cert-body">
             Le Président de la <strong>{{ params.attestation_sous_titre_ligue|default:"Ligue du Kadiogo de Kung-Fu Wushu" }} ({{ params.attestation_sigle_ligue|default:ligue.sigle|default:"LKKFW" }})</strong>, sous le couvert de la Fédération Burkinabè de Kung-Fu Wushu, {{ params.attestation_texte_introduction|default:"certifie par la présente que l'association sportive ci-après nommée :" }}
 
-            <div class="club-highlight">
-                {{ club.nom_club }}
-                {% if club.sigle_club %}<span class="d-block fs-6 text-secondary font-monospace mt-1">({{ club.sigle_club }})</span>{% endif %}
+            <div class="club-highlight py-3">
+                <div class="fs-3 fw-bold text-dark">{{ club.nom_club }}</div>
+                <div class="d-flex align-items-center justify-content-center gap-3 mt-2 font-monospace" style="font-size: 0.95rem;">
+                    {% if club.sigle_club %}<span class="text-secondary fw-semibold">({{ club.sigle_club }})</span>{% endif %}
+                    <span class="badge bg-dark px-3 py-1.5 text-warning font-monospace shadow-sm" style="letter-spacing: 0.5px;">CODE : {{ club.code_club }}</span>
+                </div>
             </div>
 
             située dans la localité de <strong>{{ club.localite }}</strong>{% if club.adresse %}, à l'adresse <strong>{{ club.adresse }}</strong>{% endif %}{% if club.nom_fondateur %}, représentée par <strong>{{ club.nom_fondateur }}</strong>{% endif %}, est régulièrement enregistrée et <strong>DÛMENT AFFILIÉE</strong> à la Ligue du Kadiogo pour la saison sportive :
@@ -269,7 +314,7 @@
         </div>
 
         <div class="cert-barcode">
-            🔒 Document officiel délivré par le système de gestion de la Ligue du Kadiogo de Kung-Fu Wushu.
+            🔒 Document officiel délivré par le Système Automatisé de gestion de la Ligue et des Membres Affiliés de Kung-Fu du Kadiogo.
         </div>
 
     </div>

@@ -22,22 +22,15 @@
 {% endblock %}
 
 {% block sidebar %}
-<span class="sidebar-title">Navigation</span>
 {% if est_gl %}
-<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
-    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
-</a>
+{% include 'includes/_sidebar_ligue.html' %}
 {% else %}
+<span class="sidebar-title">Navigation</span>
 <a href="{% url 'accounts:dashboard_jury' %}" class="nav-link">
     <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
 </a>
-{% endif %}
 <a href="{% url 'evaluations:interface_notation' session.pk %}" class="nav-link">
     <i class="bi bi-arrow-left me-2"></i>Liste des candidats
-</a>
-{% if est_gl %}
-<a href="{% url 'evaluations:tableau_resultats' session.pk %}" class="nav-link">
-    <i class="bi bi-graph-up me-2"></i>Résultats temps réel
 </a>
 {% endif %}
 {% endblock %}

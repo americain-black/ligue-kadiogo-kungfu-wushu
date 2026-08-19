@@ -3,26 +3,7 @@
 {% block title %}Traitement des Affiliations — Ligue du Kadiogo{% endblock %}
 
 {% block sidebar %}
-<span class="sidebar-title">Navigation</span>
-<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
-    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
-</a>
-<span class="sidebar-title mt-2">Gestion</span>
-<a href="{% url 'clubs:liste' %}" class="nav-link">
-    <i class="bi bi-building me-2"></i>Clubs
-</a>
-<a href="{% url 'exams:liste' %}" class="nav-link">
-    <i class="bi bi-journal-check me-2"></i>Sessions d'examen
-</a>
-<a href="{% url 'clubs:demandes_affiliation' %}" class="nav-link active">
-    <i class="bi bi-file-earmark-check me-2"></i>Affiliations
-</a>
-<a href="{% url 'clubs:historique_affiliations' %}" class="nav-link ps-4">
-    <i class="bi bi-archive me-2"></i>Historique & Archives
-</a>
-<a href="{% url 'clubs:parametres_affiliation' %}" class="nav-link ps-4">
-    <i class="bi bi-cash-coin me-2"></i>Frais d'affiliation
-</a>
+{% include 'includes/_sidebar_ligue.html' %}
 {% endblock %}
 
 {% block content %}
@@ -183,7 +164,6 @@ function filterTableRows(input) {
                     <th>Saison</th>
                     <th>Date Demande</th>
                     <th>Statut</th>
-                    <th>Pièces & Paiement</th>
                     <th class="text-end">Actions</th>
                 </tr>
             </thead>
@@ -201,7 +181,6 @@ function filterTableRows(input) {
                 <td><span class="badge bg-light text-dark border">{{ demande.annee_sportive.libelle }}</span></td>
                 <td>
                     <div class="small fw-semibold">{{ demande.date_demande|date:"d/m/Y" }}</div>
-                    <div class="text-muted micro-text">{{ demande.date_demande|timesince }}</div>
                 </td>
                 <td>
                     {% if demande.statut_affiliation == 'EN_ATTENTE_VALID_LIGUE' %}
@@ -219,26 +198,14 @@ function filterTableRows(input) {
                         <span class="badge bg-danger"><i class="bi bi-x-circle me-1"></i>Rejetée</span>
                     {% endif %}
                 </td>
-                <td>
-                    <div class="d-flex flex-column gap-1">
-                        <span class="badge bg-light text-secondary border w-auto" style="width: fit-content;">
-                            <i class="bi bi-paperclip me-1"></i>{{ demande.pieces_justificatives.count }} fichier(s)
-                        </span>
-                        {% if demande.paiement %}
-                        <span class="badge bg-success-subtle text-success border border-success-subtle w-auto" style="width: fit-content;">
-                            <i class="bi bi-currency-exchange me-1"></i>Payé ({{ demande.montant_frais|floatformat:0 }} F)
-                        </span>
-                        {% endif %}
-                    </div>
-                </td>
                 <td class="text-end">
                     <div class="btn-group">
                         <a href="{% url 'clubs:detail_demande_affiliation' demande.pk %}" class="btn btn-sm btn-outline-dark" title="Examiner la fiche du dossier">
-                            <i class="bi bi-folder2-open me-1"></i>Dossier
+                            <i class="bi bi-folder2-open me-1"></i>Fiche
                         </a>
                         {% if demande.statut_affiliation == 'APPROUVEE' %}
                         <a href="{% url 'clubs:attestation_affiliation' demande.pk %}" target="_blank" class="btn btn-sm btn-success" title="Voir / Imprimer l'Attestation Officielle">
-                            <i class="bi bi-file-earmark-pdf me-1"></i>Attestation
+                            <i class="bi bi-file-earmark-check me-1"></i>Attestation
                         </a>
                         {% endif %}
                     </div>

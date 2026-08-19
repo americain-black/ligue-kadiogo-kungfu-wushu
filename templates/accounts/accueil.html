@@ -549,7 +549,7 @@
                 <h2 class="fw-extrabold text-dark mb-1" style="font-weight: 800; font-family: 'Plus Jakarta Sans', sans-serif;">Actualités & Événements</h2>
                 <p class="lk-soustitre mb-0 text-muted" style="text-align: left !important;">Les dernières nouvelles, stages et compétitions de la ligue et des clubs</p>
             </div>
-            <a href="{% url 'communication:actualites_publiques' %}" class="btn btn-outline-dark btn-voir-plus">
+            <a href="{% url 'communication:actualites_publiques' %}" class="btn btn-outline-dark btn-voir-plus d-none d-md-inline-block">
                 Toutes les actualités <i class="bi bi-arrow-right ms-1"></i>
             </a>
         </div>
@@ -591,6 +591,13 @@
             </div>
             {% endfor %}
         </div>
+
+        <!-- Bouton Mobile uniquement (affiché sous les actualités sur smartphone) -->
+        <div class="mt-4 d-md-none text-center">
+            <a href="{% url 'communication:actualites_publiques' %}" class="btn btn-outline-dark btn-voir-plus w-100 py-2 shadow-sm">
+                Toutes les actualités <i class="bi bi-arrow-right ms-1"></i>
+            </a>
+        </div>
         {% else %}
         <div class="bg-white p-5 rounded-4 border shadow-sm text-center">
             <div class="mb-3">
@@ -614,7 +621,7 @@
                 <h2 class="fw-extrabold text-dark mb-1" style="font-weight: 800; font-family: 'Plus Jakarta Sans', sans-serif;">Documents Officiels</h2>
                 <p class="lk-soustitre mb-0 text-muted" style="text-align: left !important;">Règlements, formulaires de passage de grade et circulaires administratives</p>
             </div>
-            <a href="{% url 'communication:documents_publics' %}" class="btn btn-outline-dark btn-voir-plus">
+            <a href="{% url 'communication:documents_publics' %}" class="btn btn-outline-dark btn-voir-plus d-none d-md-inline-block">
                 Tous les documents <i class="bi bi-arrow-right ms-1"></i>
             </a>
         </div>
@@ -644,6 +651,13 @@
                 </div>
             </div>
             {% endfor %}
+        </div>
+
+        <!-- Bouton Mobile uniquement (affiché sous les documents sur smartphone) -->
+        <div class="mt-4 d-md-none text-center">
+            <a href="{% url 'communication:documents_publics' %}" class="btn btn-outline-dark btn-voir-plus w-100 py-2 shadow-sm">
+                Tous les documents <i class="bi bi-arrow-right ms-1"></i>
+            </a>
         </div>
         {% else %}
         <div class="bg-white p-5 rounded-4 border shadow-sm text-center">

@@ -153,13 +153,9 @@
                         <strong>Objectif général :</strong> {{ ligue.get_objectif_general|safe }}
                     </div>
                     <p class="fw-bold mb-2">Objectifs spécifiques :</p>
-                    <ul class="lk-list-custom mb-0">
-                        {% for obj in ligue.get_objectifs_specifiques_list %}
-                            <li>{{ obj }}</li>
-                        {% empty %}
-                            <li>{{ ligue.get_objectifs_specifiques|linebreaksbr }}</li>
-                        {% endfor %}
-                    </ul>
+                    <div class="lk-text-content">
+                        {{ ligue.get_objectifs_specifiques|safe }}
+                    </div>
                 </div>
             </div>
 
@@ -169,13 +165,9 @@
                 <div class="lk-section-heading">
                     VALEURS FONDAMENTALES
                 </div>
-                <ul class="lk-list-custom mt-3 mb-0">
-                    {% for val in ligue.get_valeurs_list %}
-                        <li>{{ val }}</li>
-                    {% empty %}
-                        <li>{{ ligue.get_valeurs|linebreaksbr }}</li>
-                    {% endfor %}
-                </ul>
+                <div class="lk-text-content mt-2">
+                    {{ ligue.get_valeurs|safe }}
+                </div>
             </div>
             {% endif %}
 

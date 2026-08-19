@@ -115,23 +115,20 @@ class Ligue(models.Model):
 
     def get_objectifs_specifiques(self):
         if self.objectifs_specifiques and self.objectifs_specifiques.strip():
-            return self.objectifs_specifiques
+            val = self.objectifs_specifiques
+            val = val.replace('&bull;', '<br>&bull;').replace('•', '<br>•')
+            val = val.replace('<p><br>', '<p>').replace('<p> <br>', '<p>')
+            return val
         return (
-            "• rassembler les clubs de Kung Fu Wushu de la ligue du Kadiogo ;\n"
-            "• offrir un cadre officiel de compétition et de sélection ;\n"
-            "• renforcer les capacités d’organisation sportive au niveau régional ;\n"
+            "• rassembler les clubs de Kung Fu Wushu de la ligue du Kadiogo ;<br>"
+            "• offrir un cadre officiel de compétition et de sélection ;<br>"
+            "• renforcer les capacités d’organisation sportive au niveau régional ;<br>"
             "• sensibiliser le public aux valeurs du Kung Fu Wushu : discipline, respect, persévérance"
         )
 
     def get_objectifs_specifiques_list(self):
         text = self.get_objectifs_specifiques()
-        lines = []
-        for raw_line in text.split('\n'):
-            subparts = [p.strip() for p in raw_line.replace(';', '\n').split('\n') if p.strip()]
-            for part in subparts:
-                part = part.lstrip('•').lstrip('➢').lstrip('-').strip()
-                if part:
-                    lines.append(part)
+        lines = [line.strip().lstrip('•').lstrip('➢').lstrip('-').strip() for line in text.split('\n') if line.strip()]
         return lines
 
     def get_mot_president(self):
@@ -157,23 +154,15 @@ class Ligue(models.Model):
 
     def get_valeurs(self):
         if self.valeurs and self.valeurs.strip():
-            return self.valeurs
+            val = self.valeurs
+            val = val.replace('&bull;', '<br>&bull;').replace('•', '<br>•')
+            val = val.replace('<p><br>', '<p>').replace('<p> <br>', '<p>')
+            return val
         return (
-            "• Discipline & Respect : Cultiver la rigueur morale, la fraternité et le respect des enseignants et camarades.\n"
-            "• Excellence Technique : Promouvoir la maîtrise martiale des Taolu (formes) et du Sanda (combat libre).\n"
+            "• Discipline & Respect : Cultiver la rigueur morale, la fraternité et le respect des enseignants et camarades.<br>"
+            "• Excellence Technique : Promouvoir la maîtrise martiale des Taolu (formes) et du Sanda (combat libre).<br>"
             "• Transparence & Gouvernance : Offrir une gestion numérique moderne des résultats et des inscriptions."
         )
-
-    def get_valeurs_list(self):
-        text = self.get_valeurs()
-        lines = []
-        for raw_line in text.split('\n'):
-            subparts = [p.strip() for p in raw_line.replace(';', '\n').split('\n') if p.strip()]
-            for part in subparts:
-                part = part.lstrip('•').lstrip('➢').lstrip('-').strip()
-                if part:
-                    lines.append(part)
-        return lines
 
     def get_titre_presentation(self):
         return self.titre_presentation or "Présentation de la Ligue"

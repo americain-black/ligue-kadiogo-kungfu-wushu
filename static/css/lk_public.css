@@ -296,11 +296,11 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
 }
 
 /* ── Bascule d'affichage responsive pour les boutons d'action de section ── */
-@media (max-width: 767.98px) {
+@media (max-width: 991.98px) {
     .lk-btn-header-desktop { display: none !important; }
     .lk-btn-footer-mobile  { display: block !important; }
 }
-@media (min-width: 768px) {
+@media (min-width: 992px) {
     .lk-btn-header-desktop { display: inline-block !important; }
     .lk-btn-footer-mobile  { display: none !important; }
 }

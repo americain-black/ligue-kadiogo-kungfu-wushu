@@ -506,6 +506,41 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
 @media (max-width: 767.98px) {
     .lk-footer-titre-block {
         justify-content: center;
+        min-height: auto;
+        margin-bottom: 0.75rem;
+    }
+    .lk-footer-brand {
+        flex-direction: column !important;
+        text-align: center !important;
+        justify-content: center !important;
+        gap: 0.5rem !important;
+    }
+    .lk-footer-brand-title {
+        white-space: normal !important;
+        text-align: center !important;
+        font-size: 0.95rem !important;
+        line-height: 1.35;
+    }
+    .lk-footer-logo-img {
+        margin-right: 0 !important;
+        margin-bottom: 4px !important;
+        width: 48px !important;
+        height: 48px !important;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .lk-navbar .container, .lk-navbar .container-fluid {
+        padding-left: 12px !important;
+        padding-right: 12px !important;
+    }
+    .lk-logo-tournant {
+        height: 40px !important;
+        width: 40px !important;
+    }
+    .lk-user-avatar-tournant {
+        height: 38px !important;
+        width: 38px !important;
     }
 }
 

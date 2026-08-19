@@ -125,7 +125,13 @@ class Ligue(models.Model):
 
     def get_objectifs_specifiques_list(self):
         text = self.get_objectifs_specifiques()
-        lines = [line.strip().lstrip('•').lstrip('➢').lstrip('-').strip() for line in text.split('\n') if line.strip()]
+        lines = []
+        for raw_line in text.split('\n'):
+            subparts = [p.strip() for p in raw_line.replace(';', '\n').split('\n') if p.strip()]
+            for part in subparts:
+                part = part.lstrip('•').lstrip('➢').lstrip('-').strip()
+                if part:
+                    lines.append(part)
         return lines
 
     def get_mot_president(self):
@@ -157,6 +163,17 @@ class Ligue(models.Model):
             "• Excellence Technique : Promouvoir la maîtrise martiale des Taolu (formes) et du Sanda (combat libre).\n"
             "• Transparence & Gouvernance : Offrir une gestion numérique moderne des résultats et des inscriptions."
         )
+
+    def get_valeurs_list(self):
+        text = self.get_valeurs()
+        lines = []
+        for raw_line in text.split('\n'):
+            subparts = [p.strip() for p in raw_line.replace(';', '\n').split('\n') if p.strip()]
+            for part in subparts:
+                part = part.lstrip('•').lstrip('➢').lstrip('-').strip()
+                if part:
+                    lines.append(part)
+        return lines
 
     def get_titre_presentation(self):
         return self.titre_presentation or "Présentation de la Ligue"

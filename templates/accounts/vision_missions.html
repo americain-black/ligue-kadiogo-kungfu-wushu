@@ -129,9 +129,13 @@
                     <div class="lk-section-heading">
                         VALEURS FONDAMENTALES
                     </div>
-                    <div class="text-secondary mt-3" style="font-size: 1.05rem; line-height: 1.8;">
-                        {{ ligue.get_valeurs|safe }}
-                    </div>
+                    <ul class="lk-list-custom mt-3 mb-0">
+                        {% for val in ligue.get_valeurs_list %}
+                            <li>{{ val }}</li>
+                        {% empty %}
+                            <li>{{ ligue.get_valeurs|linebreaksbr }}</li>
+                        {% endfor %}
+                    </ul>
                 </div>
                 {% endif %}
 

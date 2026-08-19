@@ -295,6 +295,16 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
     padding: 2rem 0;
 }
 
+/* ── Bascule d'affichage responsive pour les boutons d'action de section ── */
+@media (max-width: 767.98px) {
+    .lk-btn-header-desktop { display: none !important; }
+    .lk-btn-footer-mobile  { display: block !important; }
+}
+@media (min-width: 768px) {
+    .lk-btn-header-desktop { display: inline-block !important; }
+    .lk-btn-footer-mobile  { display: none !important; }
+}
+
 /* ── Page publique en hauteur pleine ──────────────────────────────────── */
 .lk-public-page {
     display: flex;

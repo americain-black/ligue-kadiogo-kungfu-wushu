@@ -514,10 +514,15 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
 }
 
 @media (max-width: 767.98px) {
+    .lk-footer {
+        padding: 2.5rem 1rem 1.5rem !important;
+        text-align: center !important;
+    }
     .lk-footer-titre-block {
-        justify-content: center;
-        min-height: auto;
-        margin-bottom: 0.75rem;
+        justify-content: center !important;
+        min-height: auto !important;
+        margin-bottom: 0.5rem !important;
+        margin-top: 0.5rem !important;
     }
     .lk-footer-brand {
         flex-direction: column !important;
@@ -534,8 +539,26 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
     .lk-footer-logo-img {
         margin-right: 0 !important;
         margin-bottom: 4px !important;
-        width: 48px !important;
-        height: 48px !important;
+        width: 52px !important;
+        height: 52px !important;
+    }
+    .lk-footer-list-wrapper {
+        text-align: center !important;
+    }
+    .lk-footer-liens {
+        display: inline-block !important;
+        text-align: center !important;
+        padding: 0 !important;
+    }
+    .lk-footer-liens li {
+        text-align: center !important;
+        margin-bottom: 0.65rem !important;
+    }
+    .lk-footer-texte {
+        text-align: center !important;
+        max-width: 480px;
+        margin-left: auto;
+        margin-right: auto;
     }
 }
 
@@ -551,6 +574,17 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
     .lk-user-avatar-tournant {
         height: 38px !important;
         width: 38px !important;
+    }
+    .lk-footer-devise {
+        font-size: 0.92rem !important;
+        flex-direction: column !important;
+        gap: 0.4rem !important;
+        text-align: center !important;
+        margin: 1rem 0 1.2rem !important;
+    }
+    .lk-footer-devise .lk-drapeau {
+        width: 50px !important;
+        height: 33px !important;
     }
 }
 

@@ -543,15 +543,18 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
         height: 52px !important;
     }
     .lk-footer-list-wrapper {
-        text-align: center !important;
+        display: flex !important;
+        justify-content: center !important;
+        width: 100% !important;
     }
     .lk-footer-liens {
         display: inline-block !important;
-        text-align: center !important;
+        text-align: left !important;
         padding: 0 !important;
+        margin: 0 auto !important;
     }
     .lk-footer-liens li {
-        text-align: center !important;
+        text-align: left !important;
         margin-bottom: 0.65rem !important;
     }
     .lk-footer-texte {

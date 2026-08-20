@@ -38,26 +38,7 @@
                     </div>
                 {% endif %}
             </div>
-            <h5 class="fw-bold mb-1">{{ user_obj.get_full_name|default:user_obj.username }}</h5>
-            <p class="text-muted small mb-3">@{{ user_obj.username }}</p>
-
-            <div class="d-flex flex-wrap gap-1 justify-content-center mb-3">
-                {% if user_obj.is_superuser or user_obj.est_super_admin %}
-                    <span class="badge bg-danger">Super Administrateur</span>
-                {% endif %}
-                {% if user_obj.est_gest_ligue %}
-                    <span class="badge bg-primary">Gestionnaire Ligue</span>
-                {% endif %}
-                {% if user_obj.est_gest_club %}
-                    <span class="badge bg-success">Gestionnaire Club</span>
-                {% endif %}
-                {% if user_obj.est_gest_financier %}
-                    <span class="badge bg-warning text-dark">Gestionnaire Financier</span>
-                {% endif %}
-                {% if user_obj.est_jury %}
-                    <span class="badge bg-info text-dark">Jury</span>
-                {% endif %}
-            </div>
+            <h5 class="fw-bold mb-3">{{ user_obj.get_full_name|default:user_obj.username }}</h5>
 
             <hr>
 

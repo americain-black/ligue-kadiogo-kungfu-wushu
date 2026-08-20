@@ -8,6 +8,7 @@ urlpatterns = [
     path('creer/',                    views.creer_ligue,         name='creer'),
     path('<int:pk>/modifier/',        views.modifier_ligue,      name='modifier'),
     path('<int:pk>/toggle-statut/',   views.toggle_actif_ligue,  name='toggle_statut'),
+    path('<int:pk>/supprimer/',       views.supprimer_ligue,     name='supprimer'),
 
     # Organigramme
     path('organigramme/',                              views.organigramme,        name='organigramme'),

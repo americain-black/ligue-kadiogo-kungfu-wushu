@@ -58,7 +58,7 @@ def creer_ligue(request):
             return redirect('ligues:liste')
     else:
         form = LigueForm()
-    return render(request, 'ligues/formulaire.html', {'form': form, 'titre': 'Créer une Ligue'})
+    return render(request, 'ligues/form.html', {'form': form, 'titre': 'Créer une Ligue'})
 
 
 @super_admin_requis
@@ -72,7 +72,7 @@ def modifier_ligue(request, pk):
             return redirect('ligues:liste')
     else:
         form = LigueForm(instance=ligue)
-    return render(request, 'ligues/formulaire.html', {'form': form, 'titre': 'Modifier la Ligue'})
+    return render(request, 'ligues/form.html', {'form': form, 'titre': 'Modifier la Ligue'})
 
 
 @super_admin_requis
@@ -83,6 +83,23 @@ def toggle_actif_ligue(request, pk):
     status = "activée" if ligue.actif else "désactivée"
     messages.success(request, f"Ligue « {ligue.nom_ligue} » {status}.")
     return redirect('ligues:liste')
+
+
+@super_admin_requis
+def supprimer_ligue(request, pk):
+    ligue = get_object_or_404(Ligue, pk=pk)
+    if request.method == 'POST':
+        nom = ligue.nom_ligue
+        ligue.delete()
+        messages.success(request, f"Ligue « {nom} » supprimée avec succès.")
+        return redirect('ligues:liste')
+    clubs = ligue.clubs.all()
+    nb_utilisateurs = ligue.utilisateurs.count()
+    return render(request, 'ligues/confirmer_suppression.html', {
+        'ligue': ligue,
+        'clubs': clubs,
+        'nb_utilisateurs': nb_utilisateurs,
+    })
 
 
 def organigramme(request):

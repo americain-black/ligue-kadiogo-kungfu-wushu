@@ -11,34 +11,51 @@
     /* En-tête des onglets avec la couleur du footer Slate Navy (#0F172A) */
     .lk-tabs-header {
         background-color: #0F172A !important;
-        border-bottom: 2px solid rgba(245, 158, 11, 0.4);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+    }
+
+    .lk-tabs-header .nav {
+        display: flex;
+        flex-wrap: nowrap !important;
+        gap: 0.5rem;
+        overflow-x: auto;
+        white-space: nowrap;
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* IE and Edge */
+        padding-bottom: 2px;
+    }
+    .lk-tabs-header .nav::-webkit-scrollbar {
+        display: none; /* Chrome, Safari, Opera */
     }
     
-    /* Boutons des onglets personnalisés avec contraste parfait */
+    /* Boutons sous forme de pilule (comme le bouton "Mon profil") */
     .lk-tabs-header .nav-link {
-        color: #e2e8f0 !important;
-        font-weight: 700;
-        font-size: 0.95rem;
-        border: none !important;
-        border-radius: 8px 8px 0 0 !important;
-        padding: 0.85rem 1.25rem;
+        color: #f8fafc !important;
+        font-weight: 600;
+        font-size: 0.84rem;
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+        border-radius: 50rem !important; /* Pilule / Pill shape */
+        padding: 0.45rem 0.95rem;
         transition: all 0.2s ease-in-out;
         background: transparent;
-        display: flex;
+        display: inline-flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 0.4rem;
+        white-space: nowrap;
     }
     
     .lk-tabs-header .nav-link:hover {
-        color: #FCD116 !important;
-        background-color: rgba(255, 255, 255, 0.12) !important;
+        color: #ffffff !important;
+        background-color: rgba(255, 255, 255, 0.15) !important;
+        border-color: rgba(255, 255, 255, 0.5) !important;
     }
     
     .lk-tabs-header .nav-link.active {
         color: #0F172A !important;
         background-color: #ffffff !important;
-        border-top: 3px solid #FCD116 !important;
-        box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.15);
+        border-color: #ffffff !important;
+        font-weight: 700;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
     }
 
     .lk-tabs-header .nav-link.active i {
@@ -70,7 +87,7 @@
     <div class="card shadow-sm border-0 rounded-4 overflow-hidden mb-4">
         <!-- En-tête des onglets -->
         <div class="card-header lk-tabs-header p-3">
-            <ul class="nav nav-tabs card-header-tabs border-0" id="infoTabs" role="tablist">
+            <ul class="nav nav-pills border-0" id="infoTabs" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active" id="pres-tab" data-bs-toggle="tab" data-bs-target="#tab-pres" type="button" role="tab">
                         <i class="bi bi-building text-warning"></i>Présentation & Historique
@@ -83,7 +100,7 @@
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="president-tab" data-bs-toggle="tab" data-bs-target="#tab-president" type="button" role="tab">
-                        <i class="bi bi-person-badge text-info"></i>Mot du Président / Présidente
+                        <i class="bi bi-person-badge text-info"></i>Mot du Président
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">

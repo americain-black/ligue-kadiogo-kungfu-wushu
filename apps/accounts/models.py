@@ -45,12 +45,12 @@ class Role(models.Model):
 
     ROLE_CHOICES = [
         (SUPER_ADMIN,    'Super Administrateur'),
-        (GEST_LIGUE,     'Gestionnaire Ligue (Administrateur Principal / SG)'),
-        (GEST_TECHNIQUE, 'Responsable Technique Ligue (Examens, Grades)'),
-        (GEST_FINANCIER, 'Gestionnaire Financier Ligue'),
-        (GEST_COM,       'Chargé de Communication Ligue'),
+        (GEST_LIGUE,     'Gestionnaire Ligue'),
+        (GEST_TECHNIQUE, 'Responsable Technique'),
+        (GEST_FINANCIER, 'Gestionnaire Financier'),
+        (GEST_COM,       'Chargé de Communication'),
         (GEST_CLUB,      'Gestionnaire Club'),
-        (JURY,           'Membre du Jury / Évaluateur'),
+        (JURY,           'Membre du Jury'),
     ]
 
     nom_role    = models.CharField(max_length=50, choices=ROLE_CHOICES, unique=True)

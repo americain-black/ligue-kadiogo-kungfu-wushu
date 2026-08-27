@@ -38,8 +38,9 @@ urlpatterns = [
          ),
          name='password_reset_complete'),
 
-    # Redirection selon rôle
+    # Redirection et basculement selon rôle
     path('tableau-de-bord/', views.tableau_de_bord, name='tableau_de_bord'),
+    path('changer-espace/<str:role_code>/', views.changer_espace_actif, name='changer_espace_actif'),
 
     # Dashboards par rôle
     path('super-admin/',     views.dashboard_super_admin, name='dashboard_super_admin'),

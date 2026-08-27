@@ -207,6 +207,40 @@
             padding: 0.9rem 1.2rem 0.3rem;
         }
 
+        /* ── Sélecteur d'Espace (Harmonisé avec la Sidebar) ── */
+        .space-switcher-btn {
+            background-color: var(--rouge-ligue) !important;
+            color: #ffffff !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2) !important;
+            transition: all 0.2s ease-in-out;
+        }
+        .space-switcher-btn:hover {
+            filter: brightness(1.1);
+            transform: translateY(-1px);
+        }
+        .space-dropdown-menu {
+            background-color: #1e2d3d !important;
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4) !important;
+        }
+        .space-dropdown-item {
+            color: #c8d6e5 !important;
+            transition: all 0.15s ease;
+            border-radius: 6px !important;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        .space-dropdown-item:hover {
+            background-color: rgba(229, 46, 46, 0.25) !important;
+            color: #ffffff !important;
+        }
+        .space-dropdown-item.active {
+            background-color: var(--rouge-ligue) !important;
+            color: #ffffff !important;
+            font-weight: 600 !important;
+        }
+
         /* ── Contenu ── */
         .main-content {
             padding: 1.5rem 2rem;
@@ -441,11 +475,45 @@
             </svg>
         </a>
 
-        <!-- Phrase du rôle utilisateur 100% centrée absolument au milieu du header -->
-        <div class="d-none d-lg-block text-center position-absolute start-50 translate-middle-x" style="pointer-events: none; z-index: 1;">
+        <!-- Sélecteur d'Espace & Rôle Dynamique 100% centré au milieu du header -->
+        <div class="d-none d-lg-block text-center position-absolute start-50 translate-middle-x" style="z-index: 1050;">
+            {% if espaces_disponibles|length > 1 %}
+            <div class="dropdown">
+                <button class="btn space-switcher-btn btn-sm rounded-pill dropdown-toggle px-3 py-1.5 fw-bold text-white shadow-sm" 
+                        type="button" 
+                        id="dropdownMenuEspaces" 
+                        data-bs-toggle="dropdown" 
+                        aria-expanded="false">
+                    <i class="bi {{ espace_actif_info.icone }} me-2 fs-6"></i>
+                    <span>{{ espace_actif_info.libelle }}</span>
+                </button>
+                <ul class="dropdown-menu space-dropdown-menu shadow-lg border-0 rounded-3 mt-2 p-2" 
+                    aria-labelledby="dropdownMenuEspaces" 
+                    style="min-width: 290px;">
+                    <li class="dropdown-header text-uppercase fw-bold small pb-2 border-bottom border-secondary mb-2" style="color: #7f9ab5 !important;">
+                        <i class="bi bi-arrow-repeat me-1"></i>Vos espaces disponibles ({{ espaces_disponibles|length }})
+                    </li>
+                    {% for esp in espaces_disponibles %}
+                    <li>
+                        <a class="dropdown-item space-dropdown-item py-2 px-3 d-flex align-items-center justify-content-between mb-1 {% if esp.code == role_actif %}active{% endif %}" 
+                           href="{% url 'accounts:changer_espace_actif' esp.code %}">
+                            <span class="d-flex align-items-center gap-2">
+                                <i class="bi {{ esp.icone }} fs-6"></i>
+                                <span>{{ esp.nom }}</span>
+                            </span>
+                            {% if esp.code == role_actif %}
+                                <span class="badge bg-white text-danger rounded-pill px-2 py-1 small fw-bold">Actif <i class="bi bi-check-circle-fill ms-1"></i></span>
+                            {% endif %}
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% else %}
             <span class="fw-bold text-white" style="font-family: 'Plus Jakarta Sans', 'Outfit', sans-serif; font-size: 0.95rem; font-weight: 700; font-style: normal; letter-spacing: 0.3px; text-shadow: 0 1px 3px rgba(0,0,0,0.5);">
-                <i class="bi bi-shield-check text-warning me-2 fs-6"></i>{{ user.libelle_espace_role }}
+                <i class="bi bi-shield-check text-warning me-2 fs-6"></i>{{ espace_actif_info.libelle|default:user.libelle_espace_role }}
             </span>
+            {% endif %}
         </div>
         <div class="ms-auto d-flex align-items-center gap-2">
             <span class="text-white-50 small d-none d-sm-inline me-1 d-flex align-items-center gap-2">
@@ -474,7 +542,17 @@
     <!-- Sidebar -->
     <div class="sidebar d-none d-md-block" id="mainSidebar">
         <div class="p-2 pt-3">
-            {% block sidebar %}{% endblock %}
+            {% block sidebar %}
+                {% if role_actif == 'GEST_CLUB' %}
+                    {% include 'includes/_sidebar_club.html' %}
+                {% elif role_actif == 'JURY' %}
+                    {% include 'includes/_sidebar_jury.html' %}
+                {% elif role_actif == 'GEST_FINANCIER' %}
+                    {% include 'includes/_sidebar_financier.html' %}
+                {% else %}
+                    {% include 'includes/_sidebar_ligue.html' %}
+                {% endif %}
+            {% endblock %}
         </div>
     </div>
 

@@ -478,6 +478,9 @@ def historique_affiliations_club(request):
     """
     Vue d'historique de toutes les demandes d'affiliation passées et présentes du Club.
     """
+    if not hasattr(request.user, 'club') or not request.user.club:
+        messages.warning(request, "Votre compte n'est rattaché à aucun club.")
+        return redirect('accounts:tableau_de_bord')
     club = request.user.club
     demandes = DemandeAffiliation.objects.filter(club=club).select_related('annee_sportive', 'approuve_par').order_by('-date_demande')
     

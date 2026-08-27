@@ -78,6 +78,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'apps.ligues.context_processors.ligue_active',
+                'apps.accounts.context_processors.role_et_espace_contexte',
             ],
         },
     },

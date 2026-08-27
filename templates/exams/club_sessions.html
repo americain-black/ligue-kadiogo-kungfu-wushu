@@ -1,13 +1,6 @@
 {% extends 'base.html' %}
 {% block title %}Sessions d'examen — {{ club.nom_club }}{% endblock %}
 
-{% block sidebar %}
-{% if user.est_gest_ligue or user.is_superuser %}
-{% include 'includes/_sidebar_ligue.html' %}
-{% else %}
-{% include 'includes/_sidebar_club.html' %}
-{% endif %}
-{% endblock %}
 
 {% block content %}
 <div class="d-flex align-items-start gap-3 mb-4">

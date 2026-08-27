@@ -19,10 +19,12 @@
 {% endblock %}
 
 {% block sidebar %}
-{% if user.est_gest_ligue or user.is_superuser %}
-{% include 'includes/_sidebar_ligue.html' %}
-{% else %}
+{% if role_actif == 'GEST_CLUB' %}
 {% include 'includes/_sidebar_club.html' %}
+{% elif role_actif == 'JURY' %}
+{% include 'includes/_sidebar_jury.html' %}
+{% else %}
+{% include 'includes/_sidebar_ligue.html' %}
 {% endif %}
 {% endblock %}
 

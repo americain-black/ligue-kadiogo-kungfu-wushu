@@ -133,28 +133,68 @@ def deconnexion(request):
 
 
 @login_required
+def changer_espace_actif(request, role_code):
+    """
+    Permet à un utilisateur ayant plusieurs rôles de basculer
+    son espace de travail actif (Ligue, Club, Jury, Financier, etc.).
+    """
+    user = request.user
+    roles_codes = set(user.roles.values_list('nom_role', flat=True))
+    if user.is_superuser:
+        roles_codes.add(Role.SUPER_ADMIN)
+    if user.est_gest_ligue():
+        roles_codes.add(Role.GEST_LIGUE)
+    if user.est_gest_club():
+        roles_codes.add(Role.GEST_CLUB)
+    if user.est_jury():
+        roles_codes.add(Role.JURY)
+
+    if role_code in roles_codes or user.is_superuser:
+        request.session['role_actif'] = role_code
+
+        URLS_DASHBOARD = {
+            Role.SUPER_ADMIN:    'accounts:dashboard_super_admin',
+            Role.GEST_LIGUE:     'accounts:dashboard_ligue',
+            Role.GEST_TECHNIQUE: 'accounts:dashboard_ligue',
+            Role.GEST_FINANCIER: 'accounts:dashboard_financier',
+            Role.GEST_COM:       'communication:liste_actualites',
+            Role.GEST_CLUB:      'accounts:dashboard_club',
+            Role.JURY:           'accounts:dashboard_jury',
+        }
+        target_url = URLS_DASHBOARD.get(role_code, 'accounts:tableau_de_bord')
+        return redirect(target_url)
+
+    messages.error(request, "Accès non autorisé à cet espace.")
+    return redirect('accounts:tableau_de_bord')
+
+
+@login_required
 def tableau_de_bord(request):
     user = request.user
+    role_actif = request.session.get('role_actif')
 
-    # 1. Super Admin
+    if role_actif == Role.SUPER_ADMIN and (user.is_superuser or user.est_super_admin()):
+        return redirect('accounts:dashboard_super_admin')
+    elif role_actif == Role.GEST_CLUB and user.est_gest_club():
+        return redirect('accounts:dashboard_club')
+    elif role_actif == Role.GEST_FINANCIER and user.a_le_role(Role.GEST_FINANCIER):
+        return redirect('accounts:dashboard_financier')
+    elif role_actif == Role.JURY and user.est_jury():
+        return redirect('accounts:dashboard_jury')
+    elif role_actif == Role.GEST_LIGUE and user.est_gest_ligue():
+        return redirect('accounts:dashboard_ligue')
+
+    # Fallback par défaut si pas encore en session
     if user.is_superuser or user.est_super_admin():
         return redirect('accounts:dashboard_super_admin')
-
-    # 2. Gestionnaire Financier (Caisse / Trésorerie de la ligue)
-    if user.a_le_role(Role.GEST_FINANCIER) and not user.a_le_role(Role.GEST_LIGUE):
-        return redirect('accounts:dashboard_financier')
-
-    # 3. Gestionnaire de Club
-    if user.est_gest_club():
-        return redirect('accounts:dashboard_club')
-
-    # 4. Membre du Jury
-    if user.est_jury() and not user.a_le_role(Role.GEST_LIGUE):
-        return redirect('accounts:dashboard_jury')
-
-    # 5. Gestionnaire de Ligue (SG / Admin principal)
     if user.est_gest_ligue():
         return redirect('accounts:dashboard_ligue')
+    if user.est_gest_club():
+        return redirect('accounts:dashboard_club')
+    if user.a_le_role(Role.GEST_FINANCIER):
+        return redirect('accounts:dashboard_financier')
+    if user.est_jury():
+        return redirect('accounts:dashboard_jury')
 
     messages.warning(request, "Aucun rôle attribué à votre compte. Contactez l'administrateur.")
     logout(request)

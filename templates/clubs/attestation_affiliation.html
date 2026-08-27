@@ -3,13 +3,6 @@
 
 {% block title %}Attestation d'Affiliation — {{ club.nom_club }} ({{ annee.libelle }}){% endblock %}
 
-{% block sidebar %}
-{% if user.est_gest_ligue or user.is_superuser %}
-    {% include 'includes/_sidebar_ligue.html' %}
-{% else %}
-    {% include 'includes/_sidebar_club.html' %}
-{% endif %}
-{% endblock %}
 
 {% block content %}
 <style>
@@ -211,9 +204,15 @@
 <!-- Barre d'action d'en-tête -->
 <div class="d-flex justify-content-between align-items-center mb-4 no-print flex-wrap gap-3">
     <div class="d-flex align-items-center gap-3">
+        {% if role_actif == 'GEST_CLUB' %}
+        <a href="{% url 'clubs:mon_affiliation' %}" class="btn-action btn-action-edit flex-shrink-0" title="Retour" data-bs-toggle="tooltip">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        {% else %}
         <a href="{% url 'clubs:demandes_affiliation' %}" class="btn-action btn-action-edit flex-shrink-0" title="Retour" data-bs-toggle="tooltip">
             <i class="bi bi-arrow-left"></i>
         </a>
+        {% endif %}
         <div>
             <h4 class="fw-bold mb-0">Attestation Officielle d'Affiliation</h4>
             <small class="text-muted">{{ club.nom_club }} — Saison {{ annee.libelle }}</small>

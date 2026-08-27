@@ -43,7 +43,9 @@ def gest_ligue_requis(view_func):
 
 @login_required
 def liste_pratiquants(request):
-    if hasattr(request.user, 'club') and request.user.club:
+    role_actif = request.session.get('role_actif')
+
+    if role_actif == 'GEST_CLUB' and hasattr(request.user, 'club') and request.user.club:
         club  = request.user.club
         ligue = club.ligue
         pratiquants = Pratiquant.objects.filter(club=club).select_related('grade_actuel', 'club')
@@ -51,6 +53,10 @@ def liste_pratiquants(request):
         ligue = request.user.ligue
         club  = None
         pratiquants = Pratiquant.objects.filter(club__ligue=ligue).select_related('grade_actuel', 'club')
+    elif hasattr(request.user, 'club') and request.user.club:
+        club  = request.user.club
+        ligue = club.ligue
+        pratiquants = Pratiquant.objects.filter(club=club).select_related('grade_actuel', 'club')
     elif request.user.is_superuser:
         from apps.ligues.models import Ligue
         ligue = Ligue.objects.first()
@@ -140,11 +146,32 @@ def ajouter_pratiquant(request):
     })
 
 
-@gest_club_requis
+@login_required
 def modifier_pratiquant(request, pk):
-    club       = request.user.club
-    ligue      = club.ligue
-    pratiquant = get_object_or_404(Pratiquant, pk=pk, club=club)
+    user = request.user
+    role_actif = request.session.get('role_actif')
+    if (user.is_superuser or user.est_gest_ligue()) and role_actif != 'GEST_CLUB':
+        ligue = getattr(user, 'ligue', None)
+        if not ligue and user.is_superuser:
+            from apps.ligues.models import Ligue
+            ligue = Ligue.objects.first()
+        pratiquant = get_object_or_404(Pratiquant, pk=pk, club__ligue=ligue)
+        club = pratiquant.club
+    elif user.est_gest_club() and hasattr(user, 'club') and user.club:
+        club = user.club
+        ligue = club.ligue
+        pratiquant = get_object_or_404(Pratiquant, pk=pk, club=club)
+    elif user.is_superuser or user.est_gest_ligue():
+        ligue = getattr(user, 'ligue', None)
+        if not ligue and user.is_superuser:
+            from apps.ligues.models import Ligue
+            ligue = Ligue.objects.first()
+        pratiquant = get_object_or_404(Pratiquant, pk=pk, club__ligue=ligue)
+        club = pratiquant.club
+    else:
+        messages.error(request, "Accès refusé.")
+        return redirect('accounts:tableau_de_bord')
+
     if request.method == 'POST':
         form = PratiquantForm(request.POST, request.FILES, instance=pratiquant, ligue=ligue)
         if form.is_valid():
@@ -154,7 +181,7 @@ def modifier_pratiquant(request, pk):
     else:
         form = PratiquantForm(instance=pratiquant, ligue=ligue)
     import json
-    grades_qs = Grade.objects.filter(ligue=ligue, actif=True).order_by('id_grade')
+    grades_qs = Grade.objects.filter(ligue=ligue, actif=True).order_by('id_grade') if ligue else Grade.objects.none()
     grades_json = json.dumps({str(g.pk): g.id_grade for g in grades_qs})
     return render(request, 'practitioners/form.html', {
         'form':        form,
@@ -169,7 +196,8 @@ def modifier_pratiquant(request, pk):
 @login_required
 def detail_pratiquant(request, pk):
     user = request.user
-    if user.is_superuser or user.est_gest_ligue():
+    role_actif = request.session.get('role_actif')
+    if (user.is_superuser or user.est_gest_ligue()) and role_actif != 'GEST_CLUB':
         ligue = getattr(user, 'ligue', None)
         if not ligue and user.is_superuser:
             from apps.ligues.models import Ligue
@@ -177,6 +205,12 @@ def detail_pratiquant(request, pk):
         pratiquant = get_object_or_404(Pratiquant.objects.select_related('club', 'grade_actuel'), pk=pk, club__ligue=ligue)
     elif user.est_gest_club() and hasattr(user, 'club') and user.club:
         pratiquant = get_object_or_404(Pratiquant.objects.select_related('club', 'grade_actuel'), pk=pk, club=user.club)
+    elif user.is_superuser or user.est_gest_ligue():
+        ligue = getattr(user, 'ligue', None)
+        if not ligue and user.is_superuser:
+            from apps.ligues.models import Ligue
+            ligue = Ligue.objects.first()
+        pratiquant = get_object_or_404(Pratiquant.objects.select_related('club', 'grade_actuel'), pk=pk, club__ligue=ligue)
     else:
         messages.error(request, "Accès refusé.")
         return redirect('accounts:tableau_de_bord')
@@ -227,11 +261,28 @@ def supprimer_historique_passage(request, pk):
     return redirect('practitioners:detail', pk=pratiquant_pk)
 
 
-
-@gest_club_requis
+@login_required
 def toggle_actif_pratiquant(request, pk):
-    club       = request.user.club
-    pratiquant = get_object_or_404(Pratiquant, pk=pk, club=club)
+    user = request.user
+    role_actif = request.session.get('role_actif')
+    if (user.is_superuser or user.est_gest_ligue()) and role_actif != 'GEST_CLUB':
+        ligue = getattr(user, 'ligue', None)
+        if not ligue and user.is_superuser:
+            from apps.ligues.models import Ligue
+            ligue = Ligue.objects.first()
+        pratiquant = get_object_or_404(Pratiquant, pk=pk, club__ligue=ligue)
+    elif user.est_gest_club() and hasattr(user, 'club') and user.club:
+        pratiquant = get_object_or_404(Pratiquant, pk=pk, club=user.club)
+    elif user.is_superuser or user.est_gest_ligue():
+        ligue = getattr(user, 'ligue', None)
+        if not ligue and user.is_superuser:
+            from apps.ligues.models import Ligue
+            ligue = Ligue.objects.first()
+        pratiquant = get_object_or_404(Pratiquant, pk=pk, club__ligue=ligue)
+    else:
+        messages.error(request, "Accès refusé.")
+        return redirect('accounts:tableau_de_bord')
+
     if request.method == 'POST':
         pratiquant.actif = not pratiquant.actif
         pratiquant.save()
@@ -240,24 +291,42 @@ def toggle_actif_pratiquant(request, pk):
     return redirect('practitioners:liste')
 
 
-@gest_club_requis
+@login_required
 def supprimer_pratiquant(request, pk):
-    club       = request.user.club
-    pratiquant = get_object_or_404(Pratiquant, pk=pk, club=club)
+    user = request.user
+    role_actif = request.session.get('role_actif')
+    if (user.is_superuser or user.est_gest_ligue()) and role_actif != 'GEST_CLUB':
+        ligue = getattr(user, 'ligue', None)
+        if not ligue and user.is_superuser:
+            from apps.ligues.models import Ligue
+            ligue = Ligue.objects.first()
+        pratiquant = get_object_or_404(Pratiquant, pk=pk, club__ligue=ligue)
+    elif user.est_gest_club() and hasattr(user, 'club') and user.club:
+        pratiquant = get_object_or_404(Pratiquant, pk=pk, club=user.club)
+    elif user.is_superuser or user.est_gest_ligue():
+        ligue = getattr(user, 'ligue', None)
+        if not ligue and user.is_superuser:
+            from apps.ligues.models import Ligue
+            ligue = Ligue.objects.first()
+        pratiquant = get_object_or_404(Pratiquant, pk=pk, club__ligue=ligue)
+    else:
+        messages.error(request, "Accès refusé.")
+        return redirect('accounts:tableau_de_bord')
+
     inscriptions = pratiquant.inscriptions.select_related('session', 'grade_vise').order_by('-session__date_examen')
     has_valide   = inscriptions.filter(statut__in=['PAIEMENT_VALIDE', 'AUTORISE']).exists()
 
     if request.method == 'POST':
         nom_complet = f"{pratiquant.prenom} {pratiquant.nom}"
         pratiquant.delete()   # CASCADE supprime aussi les inscriptions
-        messages.success(request, f"{nom_complet} supprimé définitivement du club.")
+        messages.success(request, f"{nom_complet} supprimé définitivement.")
         return redirect('practitioners:liste')
 
     return render(request, 'practitioners/confirmer_supprimer.html', {
         'pratiquant':   pratiquant,
         'inscriptions': inscriptions,
         'has_valide':   has_valide,
-        'club':         club,
+        'club':         pratiquant.club,
     })
 
 

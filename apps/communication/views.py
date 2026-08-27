@@ -459,11 +459,12 @@ def soumettre_actualite_club(request, pk):
 @gest_club_requis
 def supprimer_actualite_club(request, pk):
     actualite = get_object_or_404(
-        Actualite, pk=pk, club=request.user.club, statut='BROUILLON',
+        Actualite, pk=pk, club=request.user.club,
     )
     if request.method == 'POST':
+        nom = actualite.titre
         actualite.delete()
-        messages.success(request, "Actualité supprimée.")
+        messages.success(request, f"Actualité « {nom} » supprimée avec succès.")
         return redirect('communication:mes_actualites')
     return render(request, 'communication/confirmer_suppression_actualite_club.html', {
         'actualite': actualite, 'club': request.user.club,

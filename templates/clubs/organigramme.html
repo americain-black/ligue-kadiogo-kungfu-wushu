@@ -2,41 +2,6 @@
 
 {% block title %}Organigramme — {{ club.nom_club }}{% endblock %}
 
-{% block sidebar %}
-<span class="sidebar-title">Navigation</span>
-{% if user.est_gest_club %}
-<a href="{% url 'accounts:dashboard_club' %}" class="nav-link">
-    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
-</a>
-<span class="sidebar-title mt-2">Gestion</span>
-<a href="{% url 'practitioners:liste' %}" class="nav-link">
-    <i class="bi bi-people me-2"></i>Pratiquants
-</a>
-<a href="{% url 'exams:club_sessions' %}" class="nav-link">
-    <i class="bi bi-journal-check me-2"></i>Sessions d'examen
-</a>
-<a href="{% url 'clubs:organigramme' club.pk %}" class="nav-link active">
-    <i class="bi bi-diagram-3 me-2"></i>Organigramme
-</a>
-{% else %}
-<a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link">
-    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
-</a>
-<span class="sidebar-title mt-2">Gestion</span>
-<a href="{% url 'clubs:liste' %}" class="nav-link">
-    <i class="bi bi-building me-2"></i>Clubs
-</a>
-<a href="{% url 'clubs:demandes_affiliation' %}" class="nav-link">
-    <i class="bi bi-file-earmark-check me-2"></i>Affiliations
-</a>
-<a href="{% url 'clubs:parametres_affiliation' %}" class="nav-link ps-4">
-    <i class="bi bi-cash-coin me-2"></i>Frais d'affiliation
-</a>
-<a href="{% url 'ligues:organigramme' %}" class="nav-link">
-    <i class="bi bi-diagram-3 me-2"></i>Organigramme Ligue
-</a>
-{% endif %}
-{% endblock %}
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">

@@ -1578,14 +1578,18 @@ def liste_licencies_club(request, session_pk):
 @gest_ligue_requis
 def gerer_photos_session(request, pk):
     """
-    Gestion de l'album photo d'une session d'examen pour le gestionnaire de ligue.
-    Permet l'upload multiple, l'édition des légendes et la suppression.
+    Gestion ergonomique de l'album photo d'une session d'examen pour la ligue.
+    Prend en charge l'upload multiple, la pagination (8 par page), le basculement Grille/Tableau et la suppression en masse.
     """
+    from django.core.paginator import Paginator
+
     session = get_object_or_404(SessionExamen, pk=pk, annee_sportive__ligue=request.user.ligue)
-    photos = session.photos.all()
+    photos_all = session.photos.all()
 
     if request.method == 'POST':
         action = request.POST.get('action')
+        page_num = request.GET.get('page', 1)
+        mode_view = request.GET.get('mode', 'grid')
         
         if action == 'upload_multiple':
             files = request.FILES.getlist('images')
@@ -1600,13 +1604,13 @@ def gerer_photos_session(request, pk):
                         ajoute_par=request.user
                     )
                     count += 1
-                messages.success(request, f"{count} photo(s) ajoutée(s) avec succès à la galerie d'examen.")
-                return redirect('exams:gerer_photos_session', pk=session.pk)
+                messages.success(request, f"{count} photo(s) ajoutée(s) avec succès à l'album.")
+                return redirect(f"{reverse('exams:gerer_photos_session', kwargs={'pk': session.pk})}?mode={mode_view}")
             else:
                 messages.error(request, "Veuillez sélectionner au moins une image (ficher JPG, PNG, WEBP).")
 
         elif action == 'update_legendes':
-            for photo in photos:
+            for photo in photos_all:
                 legende_key = f'legende_{photo.id}'
                 ordre_key = f'ordre_{photo.id}'
                 if legende_key in request.POST:
@@ -1618,12 +1622,40 @@ def gerer_photos_session(request, pk):
                         pass
                 photo.save()
             messages.success(request, "Légendes et ordre des photos mis à jour.")
-            return redirect('exams:gerer_photos_session', pk=session.pk)
+            return redirect(f"{reverse('exams:gerer_photos_session', kwargs={'pk': session.pk})}?page={page_num}&mode={mode_view}")
+
+        elif action == 'delete_bulk':
+            selected_ids = request.POST.getlist('selected_photos')
+            if selected_ids:
+                photos_to_delete = PhotoSessionExamen.objects.filter(id__in=selected_ids, session=session)
+                count = 0
+                for p in photos_to_delete:
+                    if p.image:
+                        try:
+                            p.image.delete(save=False)
+                        except Exception:
+                            pass
+                    p.delete()
+                    count += 1
+                messages.success(request, f"{count} photo(s) supprimée(s) avec succès.")
+            else:
+                messages.warning(request, "Aucune photo sélectionnée pour la suppression.")
+            return redirect(f"{reverse('exams:gerer_photos_session', kwargs={'pk': session.pk})}?mode={mode_view}")
+
+    # Pagination : 8 photos par page
+    paginator = Paginator(photos_all, 8)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+    mode_affichage = request.GET.get('mode', 'grid')
 
     form_upload = MultipleImageUploadForm()
     return render(request, 'exams/gerer_photos.html', {
         'session': session,
-        'photos': photos,
+        'photos_all_count': photos_all.count(),
+        'photos': page_obj,
+        'page_obj': page_obj,
+        'paginator': paginator,
+        'mode_affichage': mode_affichage,
         'form_upload': form_upload,
     })
 

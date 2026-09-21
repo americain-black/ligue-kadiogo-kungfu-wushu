@@ -1,9 +1,8 @@
 # pyrefly: ignore [missing-import]
 from django.db import models
-# pyrefly: ignore [missing-import]
 from django.db.models import F
-# pyrefly: ignore [missing-import]
 from django.core.exceptions import ValidationError
+from django.conf import settings
 
 
 class AnneeSportive(models.Model):
@@ -346,6 +345,76 @@ class SessionExamen(models.Model):
             resultat.publier()
         self.statut = 'RESULTATS_PUBLIES'
         self.save()
+
+    def get_major_session(self):
+        """Retourne le candidat admis ayant la meilleure moyenne lors de cette session d'examen."""
+        from apps.results.models import Resultat
+        return Resultat.objects.filter(
+            inscription__session=self,
+            decision='ADMIS',
+            publie=True
+        ).select_related('inscription__pratiquant__club', 'inscription__grade_vise').order_by('-moyenne').first()
+
+    def get_meilleur_club_session(self):
+        """Retourne le club ayant le plus grand nombre d'admis lors de cette session d'examen."""
+        from apps.results.models import Resultat
+        from apps.clubs.models import Club
+        from django.db.models import Count
+        
+        top_club_dict = Resultat.objects.filter(
+            inscription__session=self,
+            decision='ADMIS',
+            publie=True,
+            inscription__pratiquant__club__isnull=False
+        ).values('inscription__pratiquant__club').annotate(
+            nb_admis=Count('id')
+        ).order_by('-nb_admis').first()
+
+        if top_club_dict:
+            club = Club.objects.filter(pk=top_club_dict['inscription__pratiquant__club']).first()
+            if club:
+                club.nb_admis_session = top_club_dict['nb_admis']
+                return club
+        return None
+
+
+class PhotoSessionExamen(models.Model):
+    """
+    Photo de l'album d'une session d'examen avec légende / commentaire.
+    """
+    session = models.ForeignKey(
+        SessionExamen,
+        on_delete=models.CASCADE,
+        related_name='photos'
+    )
+    image = models.ImageField(
+        upload_to='photos_examens/%Y/%m/',
+        verbose_name="Photo de l'examen"
+    )
+    legende = models.CharField(
+        max_length=255,
+        blank=True,
+        verbose_name="Légende / Commentaire",
+        help_text="Courte description ou commentaire sur la photo"
+    )
+    ordre = models.PositiveSmallIntegerField(
+        default=0,
+        verbose_name="Ordre d'affichage"
+    )
+    date_ajout = models.DateTimeField(auto_now_add=True)
+    ajoute_par = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True, blank=True
+    )
+
+    class Meta:
+        verbose_name = "Photo d'examen"
+        verbose_name_plural = "Photos d'examens"
+        ordering = ['ordre', '-date_ajout']
+
+    def __str__(self):
+        return f"Photo {self.id} — {self.session.titre}"
 
 
 class AffectationJury(models.Model):

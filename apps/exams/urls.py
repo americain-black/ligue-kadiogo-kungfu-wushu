@@ -63,6 +63,11 @@ urlpatterns = [
     path('<int:session_pk>/valider-club/<int:club_pk>/', views.valider_liste_club, name='valider_liste_club'),
     path('<int:pk>/licencies/',                    views.liste_licencies_gl,        name='licencies_gl'),
 
+    # ── Galerie & Photos d'Examens ────────────────────────────────────────────
+    path('galerie/', views.galerie_examens_publique, name='galerie_examens_publique'),
+    path('<int:pk>/photos/', views.gerer_photos_session, name='gerer_photos_session'),
+    path('photos/<int:photo_id>/supprimer/', views.supprimer_photo_session, name='supprimer_photo_session'),
+
     # ── GEST_CLUB ─────────────────────────────────────────────────────────────
     path('club/sessions/',                         views.sessions_ouvertes,         name='club_sessions'),
     path('club/<int:session_pk>/inscriptions/',    views.session_inscriptions_club, name='club_inscriptions'),

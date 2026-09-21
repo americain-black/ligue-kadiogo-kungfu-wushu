@@ -3,7 +3,8 @@ from django import forms
 
 from .models import (
     SessionExamen, Inscription, AffectationJury, AnneeSportive, TarifExamen,
-    Rubrique, RubriqueGrade, OptionExamen, ModeleMatricule, ParametresExamen, AnnonceExamenPrevisionnelle
+    Rubrique, RubriqueGrade, OptionExamen, ModeleMatricule, ParametresExamen, AnnonceExamenPrevisionnelle,
+    PhotoSessionExamen
 )
 from apps.practitioners.models import Grade
 
@@ -326,3 +327,45 @@ class AnnonceExamenPrevisionnelleForm(forms.ModelForm):
             'description': "Informations complémentaires",
             'est_actif': "Annonce active (visible publiquement)",
         }
+
+
+class PhotoSessionExamenForm(forms.ModelForm):
+    class Meta:
+        model = PhotoSessionExamen
+        fields = ['image', 'legende', 'ordre']
+        widgets = {
+            'image': forms.FileInput(attrs={'class': 'form-control'}),
+            'legende': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Remise des ceintures, Démonstration Taolu...'}),
+            'ordre': forms.NumberInput(attrs={'class': 'form-control', 'value': 0}),
+        }
+        labels = {
+            'image': "Sélectionner une photo",
+            'legende': "Légende / Commentaire",
+            'ordre': "Ordre d'affichage",
+        }
+
+
+class MultipleFileInput(forms.FileInput):
+    allow_multiple_selected = True
+
+
+class MultipleImageUploadForm(forms.Form):
+    images = forms.FileField(
+        widget=MultipleFileInput(attrs={
+            'multiple': True,
+            'class': 'form-control',
+            'accept': 'image/*'
+        }),
+        label="Sélectionner une ou plusieurs photos (JPG, PNG, WEBP)",
+        required=True
+    )
+    legende_commune = forms.CharField(
+        max_length=255,
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Optionnel : Commentaire à appliquer à toutes ces photos'
+        }),
+        label="Légende par défaut"
+    )
+

@@ -1,0 +1,288 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Galerie & Récapitulatif des Examens — Ligue du Kadiogo{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/lk_public.css' %}?v=2.0" rel="stylesheet">
+<style>
+    .lk-photo-card {
+        cursor: pointer;
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+    .lk-photo-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.15) !important;
+    }
+    .lk-photo-img {
+        height: 220px;
+        object-fit: cover;
+    }
+    .badge-major {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color: #ffffff;
+    }
+    .badge-club {
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        color: #ffffff;
+    }
+</style>
+{% endblock %}
+
+{% block content_public %}
+
+{% include 'includes/_lk_navbar.html' %}
+
+<!-- BANNIÈRE HEADER -->
+<section class="lk-banner-header shadow-sm">
+    <div class="container">
+        <div class="lk-page-title-accent">
+            GALERIE & MÉMOIRE DES EXAMENS
+        </div>
+        <div class="lk-breadcrumb ms-3">
+            <a href="{% url 'accounts:accueil' %}">Home</a> &nbsp;.&nbsp; <span>Galerie & Récapitulatif</span>
+        </div>
+    </div>
+</section>
+
+<!-- CONTENU PRINCIPAL -->
+<section class="py-4 bg-light min-vh-75" id="galerieExamensPublique">
+    <div class="container">
+
+        <!-- SÉLECTEUR D'EXAMEN & SAISON -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4 p-3 bg-white">
+            <div class="row g-3 align-items-center">
+                <div class="col-md-5">
+                    <label class="form-label small fw-bold text-muted mb-1"><i class="bi bi-calendar-event me-1"></i>Filtrer par Saison Sportive :</label>
+                    <form method="get" id="formSaison">
+                        <select name="saison" class="form-select border-danger fw-semibold" onchange="this.form.submit()">
+                            <option value="">-- Toutes les Saisons --</option>
+                            {% for s in saisons %}
+                            <option value="{{ s.pk }}" {% if request.GET.saison == s.pk|stringformat:"s" %}selected{% endif %}>
+                                Saison {{ s.libelle }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                </div>
+
+                <div class="col-md-7">
+                    <label class="form-label small fw-bold text-muted mb-1"><i class="bi bi-award-fill me-1"></i>Sélectionner un Examen :</label>
+                    <form method="get" id="formSession">
+                        {% if request.GET.saison %}
+                        <input type="hidden" name="saison" value="{{ request.GET.saison }}">
+                        {% endif %}
+                        <select name="session" class="form-select border-danger fw-bold text-dark bg-light" onchange="this.form.submit()">
+                            {% for sess in sessions %}
+                            <option value="{{ sess.pk }}" {% if session_active and session_active.pk == sess.pk %}selected{% endif %}>
+                                {{ sess.titre }} ({{ sess.date_examen|date:"d/m/Y" }} — {{ sess.lieu }})
+                            </option>
+                            {% empty %}
+                            <option value="">Aucune session disponible</option>
+                            {% endfor %}
+                        </select>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        {% if session_active %}
+        
+        <!-- CARTE RÉCAPITULATIF DE LA SESSION SÉLECTIONNÉE -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+            <div class="bg-dark text-white p-4 position-relative" style="background: linear-gradient(135deg, #1e2d3d 0%, #0f172a 100%);">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                    <div>
+                        <span class="badge bg-danger fs-7 px-3 py-1 mb-2 fw-semibold">Session Officielle Ligue</span>
+                        <h2 class="fw-bold text-white mb-1">{{ session_active.titre }}</h2>
+                        <p class="text-white-50 mb-0">
+                            <i class="bi bi-geo-alt-fill text-warning me-1"></i>{{ session_active.lieu }} &nbsp;|&nbsp; 
+                            <i class="bi bi-calendar3 text-warning me-1"></i>Organisé le {{ session_active.date_examen|date:"d F Y" }} &nbsp;|&nbsp;
+                            <i class="bi bi-shield-check text-warning me-1"></i>Saison {{ session_active.annee_sportive.libelle }}
+                        </p>
+                    </div>
+                    <div class="text-md-end">
+                        <span class="badge bg-light text-dark fs-6 px-3 py-2 fw-bold shadow-sm">
+                            <i class="bi bi-info-circle me-1"></i>Statut : {{ session_active.get_statut_display }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DISTINCTIONS ET PALMARÈS DE LA SESSION -->
+            <div class="card-body p-4 bg-white">
+                <div class="row g-4">
+                    
+                    <!-- Major / Meilleur Licencié -->
+                    <div class="col-md-6">
+                        <div class="card border-0 bg-light rounded-4 p-3 h-100 border-start border-4 border-warning shadow-sm">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="badge-major rounded-circle p-3 fs-2 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                                    <i class="bi bi-trophy-fill"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <span class="badge bg-warning text-dark fw-bold mb-1">👑 Major de la Session</span>
+                                    {% if major_session %}
+                                    <h5 class="fw-bold text-dark mb-0">{{ major_session.inscription.pratiquant.nom }} {{ major_session.inscription.pratiquant.prenom }}</h5>
+                                    <p class="small text-muted mb-0">
+                                        Club : <strong>{{ major_session.inscription.pratiquant.club.nom_club }}</strong> &nbsp;|&nbsp; 
+                                        Grade Visé : <strong>{{ major_session.inscription.grade_vise.nom }}</strong>
+                                    </p>
+                                    <div class="mt-1">
+                                        <span class="badge bg-dark fs-7">Moyenne : {{ major_session.moyenne }}/20</span>
+                                    </div>
+                                    {% else %}
+                                    <p class="text-muted small mb-0 mt-1">Non déterminé ou résultats non encore publiés.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Meilleur Club -->
+                    <div class="col-md-6">
+                        <div class="card border-0 bg-light rounded-4 p-3 h-100 border-start border-4 border-success shadow-sm">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="badge-club rounded-circle p-3 fs-2 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
+                                    <i class="bi bi-star-fill"></i>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <span class="badge bg-success text-white fw-bold mb-1">🏆 Club le Plus Performant</span>
+                                    {% if meilleur_club %}
+                                    <h5 class="fw-bold text-dark mb-0">{{ meilleur_club.nom_club }}</h5>
+                                    <p class="small text-muted mb-0">
+                                        Responsable : {{ meilleur_club.nom_responsable|default:"N/C" }}
+                                    </p>
+                                    <div class="mt-1">
+                                        <span class="badge bg-success fs-7">{{ meilleur_club.nb_admis_session }} candidat(s) admis</span>
+                                    </div>
+                                    {% else %}
+                                    <p class="text-muted small mb-0 mt-1">Non déterminé pour cette session.</p>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- STATISTIQUES EN 3 BLOCS -->
+                <div class="row g-3 mt-2">
+                    <div class="col-4">
+                        <div class="bg-light p-3 rounded-3 text-center border">
+                            <span class="text-muted small fw-semibold d-block">Candidats</span>
+                            <h4 class="fw-bold text-dark mb-0">{{ total_candidats }}</h4>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="bg-light p-3 rounded-3 text-center border border-success">
+                            <span class="text-success small fw-semibold d-block">Admis</span>
+                            <h4 class="fw-bold text-success mb-0">{{ total_admis }}</h4>
+                        </div>
+                    </div>
+                    <div class="col-4">
+                        <div class="bg-light p-3 rounded-3 text-center border border-danger">
+                            <span class="text-danger small fw-semibold d-block">Taux de Réussite</span>
+                            <h4 class="fw-bold text-danger mb-0">{{ taux_reussite }}%</h4>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ALBUM PHOTO INTERACTIF DE L'EXAMEN -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4">
+            <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                <h5 class="fw-bold mb-0 text-dark">
+                    <i class="bi bi-camera-fill text-danger me-2"></i>Album Photo de l'Examen ({{ photos_active.count }})
+                </h5>
+                <span class="text-muted small"><i class="bi bi-zoom-in me-1"></i>Cliquez sur une image pour l'agrandir</span>
+            </div>
+
+            <div class="card-body p-4">
+                {% if photos_active %}
+                <div class="row g-4">
+                    {% for photo in photos_active %}
+                    <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                        <div class="card border-0 shadow-sm rounded-3 overflow-hidden lk-photo-card h-100" 
+                             data-bs-toggle="modal" 
+                             data-bs-target="#photoModal"
+                             data-img="{{ photo.image.url }}"
+                             data-caption="{{ photo.legende|default:'Session d\'examen de la Ligue' }}"
+                             data-date="{{ photo.date_ajout|date:'d/m/Y' }}">
+                            
+                            <div class="position-relative overflow-hidden bg-dark">
+                                <img src="{{ photo.image.url }}" alt="{{ photo.legende }}" class="w-100 lk-photo-img">
+                                <div class="position-absolute bottom-0 start-0 end-0 p-2 text-white bg-dark bg-opacity-75">
+                                    <small class="d-block text-truncate fw-medium">
+                                        {% if photo.legende %}{{ photo.legende }}{% else %}<i class="opacity-50">Sans légende</i>{% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-images fs-1 d-block mb-2 text-secondary opacity-50"></i>
+                    <h6 class="fw-bold">Aucune photo enregistrée pour cet examen</h6>
+                    <p class="small mb-0">Les photos de cet examen seront bientôt ajoutées par l'équipe de la Ligue.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% else %}
+        <!-- AUCUN EXAMEN DISPONIBLE -->
+        <div class="card border-0 shadow-sm rounded-4 p-5 text-center text-muted">
+            <i class="bi bi-calendar-x fs-1 text-secondary opacity-50 mb-3 d-block"></i>
+            <h5 class="fw-bold">Aucun Examen Trouvé</h5>
+            <p class="small mb-0">Veuillez sélectionner une autre saison sportive.</p>
+        </div>
+        {% endif %}
+
+    </div>
+</section>
+
+<!-- MODAL VISIONNEUSE LIGHTBOX POUR PHOTOS -->
+<div class="modal fade" id="photoModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 rounded-4 overflow-hidden shadow-lg bg-dark">
+            <div class="modal-header border-0 text-white pb-0">
+                <h6 class="modal-title fw-bold" id="modalDateText"></h6>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center p-3">
+                <img src="" id="modalImg" class="img-fluid rounded-3 max-vh-75 shadow" alt="Photo Grand Format">
+                <div class="mt-3 bg-secondary bg-opacity-25 p-3 rounded-3 text-white">
+                    <p class="mb-0 fw-semibold fs-6" id="modalCaptionText"></p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include 'includes/_lk_footer.html' %}
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const photoModal = document.getElementById('photoModal');
+    if (photoModal) {
+        photoModal.addEventListener('show.bs.modal', function(event) {
+            const card = event.relatedTarget;
+            const imgSrc = card.getAttribute('data-img');
+            const caption = card.getAttribute('data-caption');
+            const dateStr = card.getAttribute('data-date');
+
+            document.getElementById('modalImg').src = imgSrc;
+            document.getElementById('modalCaptionText').textContent = caption;
+            document.getElementById('modalDateText').textContent = 'Photo du ' + dateStr;
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -16,8 +16,12 @@ from django.db.models import Sum, Count, Q
 
 # pyrefly: ignore [missing-import]
 from django.db import transaction
-from .models import SessionExamen, AffectationJury, Inscription, AnneeSportive, TarifExamen, Rubrique, RubriqueGrade, OptionExamen, ModeleMatricule, ParametresExamen
-from .forms import SessionExamenForm, MultiInscriptionForm, AffectationJuryForm, AnneeSportiveForm, TarifExamenForm, RubriqueForm, RubriqueGradeForm, OptionExamenForm, ModeleMatriculeForm, ParametresExamenForm
+from .models import SessionExamen, AffectationJury, Inscription, AnneeSportive, TarifExamen, Rubrique, RubriqueGrade, OptionExamen, ModeleMatricule, ParametresExamen, PhotoSessionExamen
+from .forms import (
+    SessionExamenForm, MultiInscriptionForm, AffectationJuryForm, AnneeSportiveForm,
+    TarifExamenForm, RubriqueForm, RubriqueGradeForm, OptionExamenForm,
+    ModeleMatriculeForm, ParametresExamenForm, PhotoSessionExamenForm, MultipleImageUploadForm
+)
 from apps.payments.models import PaiementExamen
 from apps.practitioners.models import Grade
 
@@ -1568,4 +1572,139 @@ def liste_licencies_club(request, session_pk):
         'grades':    grades,
         'grade_pk':  grade_pk,
         'nb_total':  qs.count(),
+    })
+
+
+@gest_ligue_requis
+def gerer_photos_session(request, pk):
+    """
+    Gestion de l'album photo d'une session d'examen pour le gestionnaire de ligue.
+    Permet l'upload multiple, l'édition des légendes et la suppression.
+    """
+    session = get_object_or_404(SessionExamen, pk=pk, annee_sportive__ligue=request.user.ligue)
+    photos = session.photos.all()
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        
+        if action == 'upload_multiple':
+            form_upload = MultipleImageUploadForm(request.POST, request.FILES)
+            if form_upload.is_valid():
+                files = request.FILES.getlist('images')
+                legende_commune = form_upload.cleaned_data.get('legende_commune', '').strip()
+                count = 0
+                for f in files:
+                    PhotoSessionExamen.objects.create(
+                        session=session,
+                        image=f,
+                        legende=legende_commune,
+                        ajoute_par=request.user
+                    )
+                    count += 1
+                messages.success(request, f"{count} photo(s) ajoutée(s) avec succès à la galerie d'examen.")
+                return redirect('exams:gerer_photos_session', pk=session.pk)
+            else:
+                messages.error(request, "Veuillez vérifier les fichiers envoyés.")
+
+        elif action == 'update_legendes':
+            for photo in photos:
+                legende_key = f'legende_{photo.id}'
+                ordre_key = f'ordre_{photo.id}'
+                if legende_key in request.POST:
+                    photo.legende = request.POST.get(legende_key, '').strip()
+                if ordre_key in request.POST:
+                    try:
+                        photo.ordre = int(request.POST.get(ordre_key, 0))
+                    except ValueError:
+                        pass
+                photo.save()
+            messages.success(request, "Légendes et ordre des photos mis à jour.")
+            return redirect('exams:gerer_photos_session', pk=session.pk)
+
+    form_upload = MultipleImageUploadForm()
+    return render(request, 'exams/gerer_photos.html', {
+        'session': session,
+        'photos': photos,
+        'form_upload': form_upload,
+    })
+
+
+@gest_ligue_requis
+def supprimer_photo_session(request, photo_id):
+    """
+    Suppression d'une photo de la galerie d'une session d'examen.
+    """
+    photo = get_object_or_404(PhotoSessionExamen, pk=photo_id, session__annee_sportive__ligue=request.user.ligue)
+    session_pk = photo.session.pk
+    if photo.image:
+        try:
+            photo.image.delete(save=False)
+        except Exception:
+            pass
+    photo.delete()
+    messages.success(request, "Photo supprimée de l'album.")
+    return redirect('exams:gerer_photos_session', pk=session_pk)
+
+
+def galerie_examens_publique(request):
+    """
+    Page publique "Examens & Galerie" (Vision d'ensemble des examens).
+    Accessible librement sans authentification.
+    """
+    from apps.ligues.models import Ligue
+    from apps.results.models import Resultat
+
+    ligue = Ligue.objects.filter(sigle='LKKFW').first() or Ligue.objects.first()
+    
+    if ligue:
+        saisons = AnneeSportive.objects.filter(ligue=ligue).order_by('-date_debut')
+        sessions = SessionExamen.objects.filter(annee_sportive__ligue=ligue).order_by('-date_examen')
+    else:
+        saisons = AnneeSportive.objects.none()
+        sessions = SessionExamen.objects.none()
+
+    saison_id = request.GET.get('saison')
+    if saison_id and str(saison_id).isdigit():
+        sessions = sessions.filter(annee_sportive_id=int(saison_id))
+
+    session_id = request.GET.get('session')
+    session_active = None
+    if session_id and str(session_id).isdigit():
+        session_active = sessions.filter(pk=int(session_id)).first()
+    
+    if not session_active:
+        session_active = sessions.filter(photos__isnull=False).distinct().first() or sessions.first()
+
+    photos_active = []
+    major_session = None
+    meilleur_club = None
+    total_candidats = 0
+    total_admis = 0
+    taux_reussite = 0
+
+    if session_active:
+        photos_active = session_active.photos.all()
+        major_session = session_active.get_major_session()
+        meilleur_club = session_active.get_meilleur_club_session()
+
+        results_qs = Resultat.objects.filter(
+            inscription__session=session_active,
+            inscription__statut__in=['VALIDEE', 'AUTORISE', 'PAIEMENT_VALIDE'],
+            publie=True
+        )
+        total_candidats = results_qs.count()
+        total_admis = results_qs.filter(decision='ADMIS').count()
+        taux_reussite = round((total_admis / total_candidats * 100), 1) if total_candidats > 0 else 0
+
+    return render(request, 'exams/galerie_publique.html', {
+        'ligue': ligue,
+        'saisons': saisons,
+        'sessions': sessions,
+        'session_active': session_active,
+        'photos_active': photos_active,
+        'major_session': major_session,
+        'meilleur_club': meilleur_club,
+        'total_candidats': total_candidats,
+        'total_admis': total_admis,
+        'taux_reussite': taux_reussite,
     })

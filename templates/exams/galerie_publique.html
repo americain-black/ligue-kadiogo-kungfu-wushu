@@ -196,7 +196,7 @@
                 <h5 class="fw-bold mb-0 text-dark">
                     <i class="bi bi-camera-fill text-danger me-2"></i>Album Photo de l'Examen ({{ photos_active.count }})
                 </h5>
-                <span class="text-muted small"><i class="bi bi-zoom-in me-1"></i>Cliquez sur une image pour l'agrandir</span>
+                <span class="text-muted small"><i class="bi bi-zoom-in me-1"></i>Cliquez sur une image pour l'agrandir et défiler</span>
             </div>
 
             <div class="card-body p-4">
@@ -207,9 +207,7 @@
                         <div class="card border-0 shadow-sm rounded-3 overflow-hidden lk-photo-card h-100" 
                              data-bs-toggle="modal" 
                              data-bs-target="#photoModal"
-                             data-img="{{ photo.image.url }}"
-                             data-caption="{{ photo.legende|default:'Session d\'examen de la Ligue' }}"
-                             data-date="{{ photo.date_ajout|date:'d/m/Y' }}">
+                             data-index="{{ forloop.counter0 }}">
                             
                             <div class="position-relative overflow-hidden bg-dark">
                                 <img src="{{ photo.image.url }}" alt="{{ photo.legende }}" class="w-100 lk-photo-img">
@@ -245,20 +243,44 @@
     </div>
 </section>
 
-<!-- MODAL VISIONNEUSE LIGHTBOX POUR PHOTOS -->
+<!-- MODAL VISIONNEUSE LIGHTBOX INTERACTIVE (AVEC NAVIGATION SUIVANT / PRÉCÉDENT) -->
 <div class="modal fade" id="photoModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered modal-lg">
-        <div class="modal-content border-0 rounded-4 overflow-hidden shadow-lg bg-dark">
-            <div class="modal-header border-0 text-white pb-0">
-                <h6 class="modal-title fw-bold" id="modalDateText"></h6>
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content border-0 rounded-4 overflow-hidden shadow-lg text-white" style="background-color: #0f172a;">
+            
+            <!-- En-tête modal -->
+            <div class="modal-header border-0 pb-0 d-flex justify-content-between align-items-center px-4 pt-3">
+                <div>
+                    <h6 class="modal-title fw-bold text-white mb-0" id="modalDateText">Photo</h6>
+                    <small class="text-white-50 fs-7" id="modalCounterText"></small>
+                </div>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body text-center p-3">
-                <img src="" id="modalImg" class="img-fluid rounded-3 max-vh-75 shadow" alt="Photo Grand Format">
-                <div class="mt-3 bg-secondary bg-opacity-25 p-3 rounded-3 text-white">
-                    <p class="mb-0 fw-semibold fs-6" id="modalCaptionText"></p>
+
+            <!-- Corps de la modal avec Flèches de navigation -->
+            <div class="modal-body p-2 p-md-4 position-relative d-flex align-items-center justify-content-center min-vh-50">
+                
+                <!-- Flèche Gauche (Précédent) -->
+                <button type="button" class="btn btn-outline-light rounded-circle shadow position-absolute start-0 ms-3 z-3 lk-nav-arrow" id="prevPhotoBtn" title="Photo précédente (Flèche Gauche ◄)">
+                    <i class="bi bi-chevron-left fs-4"></i>
+                </button>
+
+                <!-- Image grand format -->
+                <div class="text-center w-100 d-flex justify-content-center align-items-center" style="max-height: 75vh; overflow: hidden;">
+                    <img src="" id="modalImg" class="img-fluid rounded-3 shadow" style="max-height: 72vh; object-fit: contain;" alt="Photo Grand Format">
                 </div>
+
+                <!-- Flèche Droite (Suivant) -->
+                <button type="button" class="btn btn-outline-light rounded-circle shadow position-absolute end-0 me-3 z-3 lk-nav-arrow" id="nextPhotoBtn" title="Photo suivante (Flèche Droite ►)">
+                    <i class="bi bi-chevron-right fs-4"></i>
+                </button>
             </div>
+
+            <!-- Pied de page avec la légende/commentaire -->
+            <div class="modal-footer border-0 bg-dark bg-opacity-50 justify-content-center px-4 py-3">
+                <p class="mb-0 fw-semibold fs-6 text-center text-white" id="modalCaptionText"></p>
+            </div>
+
         </div>
     </div>
 </div>
@@ -268,19 +290,89 @@
 {% endblock %}
 
 {% block extra_js %}
+<style>
+    .lk-nav-arrow {
+        background-color: rgba(15, 23, 42, 0.75);
+        border: 1.5px solid rgba(255, 255, 255, 0.4);
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+    }
+    .lk-nav-arrow:hover {
+        background-color: #dc2626 !important;
+        border-color: #dc2626 !important;
+        transform: scale(1.1);
+    }
+</style>
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const photoModal = document.getElementById('photoModal');
-    if (photoModal) {
-        photoModal.addEventListener('show.bs.modal', function(event) {
-            const card = event.relatedTarget;
-            const imgSrc = card.getAttribute('data-img');
-            const caption = card.getAttribute('data-caption');
-            const dateStr = card.getAttribute('data-date');
+    const photos = [
+        {% for photo in photos_active %}
+        {
+            index: {{ forloop.counter0 }},
+            img: "{{ photo.image.url }}",
+            caption: "{{ photo.legende|default:'Session d\'examen de la Ligue'|escapejs }}",
+            date: "{{ photo.date_ajout|date:'d/m/Y' }}"
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
 
-            document.getElementById('modalImg').src = imgSrc;
-            document.getElementById('modalCaptionText').textContent = caption;
-            document.getElementById('modalDateText').textContent = 'Photo du ' + dateStr;
+    let currentIndex = 0;
+    const photoModalEl = document.getElementById('photoModal');
+    const modalImg = document.getElementById('modalImg');
+    const modalCaption = document.getElementById('modalCaptionText');
+    const modalDate = document.getElementById('modalDateText');
+    const modalCounter = document.getElementById('modalCounterText');
+    const prevBtn = document.getElementById('prevPhotoBtn');
+    const nextBtn = document.getElementById('nextPhotoBtn');
+
+    function updateModal(index) {
+        if (!photos.length) return;
+        if (index < 0) index = photos.length - 1;
+        if (index >= photos.length) index = 0;
+        currentIndex = index;
+
+        const currentPhoto = photos[currentIndex];
+        modalImg.src = currentPhoto.img;
+        modalCaption.textContent = currentPhoto.caption;
+        modalDate.textContent = 'Photo du ' + currentPhoto.date;
+        modalCounter.textContent = 'Photo ' + (currentIndex + 1) + ' sur ' + photos.length;
+    }
+
+    if (photoModalEl && photos.length > 0) {
+        photoModalEl.addEventListener('show.bs.modal', function(event) {
+            const card = event.relatedTarget;
+            const idx = parseInt(card.getAttribute('data-index') || '0', 10);
+            updateModal(idx);
+        });
+
+        if (prevBtn) {
+            prevBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                updateModal(currentIndex - 1);
+            });
+        }
+
+        if (nextBtn) {
+            nextBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                updateModal(currentIndex + 1);
+            });
+        }
+
+        // Navigation au clavier (Flèche Gauche ◄ et Flèche Droite ►)
+        document.addEventListener('keydown', function(e) {
+            if (photoModalEl.classList.contains('show')) {
+                if (e.key === 'ArrowLeft') {
+                    updateModal(currentIndex - 1);
+                } else if (e.key === 'ArrowRight') {
+                    updateModal(currentIndex + 1);
+                }
+            }
         });
     }
 });

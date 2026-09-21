@@ -1718,7 +1718,11 @@ def galerie_examens_publique(request):
         major_session = session_active.get_major_session()
         meilleur_club = session_active.get_meilleur_club_session()
 
-        total_licencies = session_active.inscriptions.count()
+        STATUTS_VALIDES = ['VALIDEE', 'AUTORISE', 'PAIEMENT_VALIDE']
+        total_licencies = session_active.inscriptions.filter(statut__in=STATUTS_VALIDES).count()
+        if total_licencies == 0:
+            total_licencies = session_active.inscriptions.count()
+
         results_qs = Resultat.objects.filter(
             inscription__session=session_active,
             publie=True

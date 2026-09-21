@@ -524,12 +524,17 @@ def statistiques_publiques(request):
     ligue = Ligue.objects.filter(sigle='LKKFW').first() or Ligue.objects.first()
 
     # Récupération uniquement des saisons sportives qui possèdent des sessions d'examen
-    saisons = AnneeSportive.objects.filter(ligue=ligue, sessions__isnull=False).distinct().order_by('-date_debut') if ligue else []
-    saison_id = request.GET.get('saison')
-    if saison_id:
-        saison_active = saisons.filter(pk=saison_id).first()
+    if ligue:
+        saisons = AnneeSportive.objects.filter(ligue=ligue, sessions__isnull=False).distinct().order_by('-date_debut')
     else:
-        saison_active = saisons.filter(statut='ACTIVE').first() or (saisons.first() if saisons else None)
+        saisons = AnneeSportive.objects.none()
+
+    saison_id = request.GET.get('saison')
+    saison_active = None
+    if saison_id and str(saison_id).isdigit():
+        saison_active = saisons.filter(pk=int(saison_id)).first()
+    if not saison_active:
+        saison_active = saisons.filter(statut='ACTIVE').first() or saisons.first()
 
     pratiquants_qs = Pratiquant.objects.filter(club__ligue=ligue, actif=True) if ligue else Pratiquant.objects.none()
     
@@ -577,12 +582,12 @@ def statistiques_publiques(request):
         if 'DUAN' in g or 'NOIR' in g: return '#1e293b'
         return '#64748b'
 
-    all_grades_qs = Grade.objects.filter(Q(ligue=ligue) | Q(ligue__isnull=True), actif=True).order_by('id_grade') if ligue else []
-    grades_counts_dict = {g.nom: 0 for g in all_grades_qs}
+    all_grades_qs = Grade.objects.filter(Q(ligue=ligue) | Q(ligue__isnull=True), actif=True).order_by('id_grade') if ligue else Grade.objects.none()
+    grades_counts_dict = {g.nom: 0 for g in all_grades_qs if g.nom}
     grades_counts_dict['Sans grade'] = 0
 
     for p in pratiquants_qs.select_related('grade_actuel'):
-        gn = p.grade_actuel.nom if p.grade_actuel else 'Sans grade'
+        gn = p.grade_actuel.nom if (p.grade_actuel and p.grade_actuel.nom) else 'Sans grade'
         grades_counts_dict[gn] = grades_counts_dict.get(gn, 0) + 1
 
     grade_labels = []
@@ -601,17 +606,20 @@ def statistiques_publiques(request):
         inscriptions_qs = inscriptions_qs.filter(session__annee_sportive=saison_active)
 
     clubs_inscrits = list(
-        inscriptions_qs.values('pratiquant__club__nom_club')
+        inscriptions_qs.filter(pratiquant__club__isnull=False)
+        .values('pratiquant__club__nom_club')
         .annotate(nb_inscrits=Count('id'))
         .order_by('-nb_inscrits')[:10]
     )
-    club_labels = [c['pratiquant__club__nom_club'] for c in clubs_inscrits if c['pratiquant__club__nom_club']]
-    club_data = [c['nb_inscrits'] for c in clubs_inscrits if c['pratiquant__club__nom_club']]
+    club_labels = [c['pratiquant__club__nom_club'] for c in clubs_inscrits if c.get('pratiquant__club__nom_club')]
+    club_data = [c['nb_inscrits'] for c in clubs_inscrits if c.get('pratiquant__club__nom_club')]
 
     # 5. Évolution Année par Année (Chaque Année avec sa Session 1 & Session 2 pour Hommes & Femmes)
     saisons_evolution_list = []
 
-    for s_obj in saisons.order_by('date_debut'):
+    saisons_iter = saisons.order_by('date_debut') if hasattr(saisons, 'order_by') else []
+
+    for s_obj in saisons_iter:
         sess_qs = SessionExamen.objects.filter(annee_sportive=s_obj).order_by('date_examen')
         sess_items = []
         for sess in sess_qs:
@@ -619,11 +627,11 @@ def statistiques_publiques(request):
             h_c = inscr_sess.filter(pratiquant__sexe='M').count()
             f_c = inscr_sess.filter(pratiquant__sexe='F').count()
             
-            # Nom simplifié de la session
-            titre_court = "Session 1 (Mi-Saison)" if ("Mi-Saison" in sess.titre or "Fév" in sess.titre) else "Session 2 (Fin de Saison)"
+            titre_sess = sess.titre or ""
+            titre_court = "Session 1 (Mi-Saison)" if ("Mi-Saison" in titre_sess or "Fév" in titre_sess) else "Session 2 (Fin de Saison)"
             sess_items.append({
                 'id': sess.id,
-                'titre': sess.titre,
+                'titre': titre_sess,
                 'titre_court': titre_court,
                 'hommes': h_c,
                 'femmes': f_c,

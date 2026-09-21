@@ -34,7 +34,7 @@
                     <i class="bi bi-pie-chart-fill text-danger me-2"></i>Vue d'Ensemble & Transparence
                 </h5>
                 <p class="text-muted small mb-0">
-                    Statistiques officielles de la {{ ligue.nom_ligue }} ({{ ligue.sigle }}) — Année Sportive {% if saison_active %}{{ saison_active.annee_debut }}-{{ saison_active.annee_fin }}{% else %}Globale{% endif %}
+                    Statistiques officielles de la {{ ligue.nom_ligue }} ({{ ligue.sigle }}) — Année Sportive {% if saison_active %}{{ saison_active.libelle }}{% else %}Globale{% endif %}
                 </p>
             </div>
             {% if saisons %}
@@ -43,7 +43,7 @@
                     <option value="">-- Toutes les Saisons --</option>
                     {% for s in saisons %}
                     <option value="{{ s.pk }}" {% if saison_active and saison_active.pk == s.pk %}selected{% endif %}>
-                        Saison {{ s.annee_debut }}-{{ s.annee_fin }}
+                        Saison {{ s.libelle }}
                     </option>
                     {% endfor %}
                 </select>

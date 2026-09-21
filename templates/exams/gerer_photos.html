@@ -38,12 +38,12 @@
             <div class="row g-3">
                 <div class="col-md-8">
                     <label class="form-label fw-semibold">Sélectionner une ou plusieurs images (JPG, PNG, WEBP)</label>
-                    {{ form_upload.images }}
+                    <input type="file" name="images" multiple class="form-control" accept="image/*" required>
                     <small class="text-muted d-block mt-1">Vous pouvez sélectionner plusieurs photos en même temps.</small>
                 </div>
                 <div class="col-md-4">
                     <label class="form-label fw-semibold">Légende / Commentaire par défaut</label>
-                    {{ form_upload.legende_commune }}
+                    <input type="text" name="legende_commune" class="form-control" placeholder="Optionnel : Commentaire à appliquer à toutes ces photos">
                 </div>
             </div>
 

@@ -1588,10 +1588,9 @@ def gerer_photos_session(request, pk):
         action = request.POST.get('action')
         
         if action == 'upload_multiple':
-            form_upload = MultipleImageUploadForm(request.POST, request.FILES)
-            if form_upload.is_valid():
-                files = request.FILES.getlist('images')
-                legende_commune = form_upload.cleaned_data.get('legende_commune', '').strip()
+            files = request.FILES.getlist('images')
+            legende_commune = request.POST.get('legende_commune', '').strip()
+            if files:
                 count = 0
                 for f in files:
                     PhotoSessionExamen.objects.create(
@@ -1604,7 +1603,7 @@ def gerer_photos_session(request, pk):
                 messages.success(request, f"{count} photo(s) ajoutée(s) avec succès à la galerie d'examen.")
                 return redirect('exams:gerer_photos_session', pk=session.pk)
             else:
-                messages.error(request, "Veuillez vérifier les fichiers envoyés.")
+                messages.error(request, "Veuillez sélectionner au moins une image (ficher JPG, PNG, WEBP).")
 
         elif action == 'update_legendes':
             for photo in photos:

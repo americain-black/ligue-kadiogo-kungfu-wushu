@@ -136,7 +136,7 @@ def ajouter_pratiquant(request):
         form = PratiquantForm(ligue=ligue)
     import json
     grades_qs = Grade.objects.filter(ligue=ligue, actif=True).order_by('id_grade')
-    grades_json = json.dumps({str(g.pk): g.id_grade for g in grades_qs})
+    grades_json = json.dumps({str(g.pk): {'id_grade': g.id_grade, 'est_grade_ligue': g.est_grade_ligue} for g in grades_qs})
     return render(request, 'practitioners/form.html', {
         'form':        form,
         'titre':       'Inscrire un licencié',
@@ -182,7 +182,7 @@ def modifier_pratiquant(request, pk):
         form = PratiquantForm(instance=pratiquant, ligue=ligue)
     import json
     grades_qs = Grade.objects.filter(ligue=ligue, actif=True).order_by('id_grade') if ligue else Grade.objects.none()
-    grades_json = json.dumps({str(g.pk): g.id_grade for g in grades_qs})
+    grades_json = json.dumps({str(g.pk): {'id_grade': g.id_grade, 'est_grade_ligue': g.est_grade_ligue} for g in grades_qs})
     return render(request, 'practitioners/form.html', {
         'form':        form,
         'titre':       f'Modifier — {pratiquant.prenom} {pratiquant.nom}',
@@ -348,29 +348,33 @@ def gest_ligue_requis(view_func):
 class GradeForm(django_forms.ModelForm):
     class Meta:
         model  = Grade
-        fields = ['nom', 'actif']
+        fields = ['nom', 'est_grade_ligue', 'actif']
         widgets = {
-            'nom':   django_forms.TextInput(attrs={
+            'nom':             django_forms.TextInput(attrs={
                 'class': 'form-control text-uppercase',
-                'placeholder': 'Ex : BLANC, ROUGE, ROUGE I, ROUGE II…',
+                'placeholder': 'Ex : BLANC, JAUNE, ROUGE, ROUGE I…',
             }),
-            'actif': django_forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'est_grade_ligue': django_forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'actif':           django_forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
         labels = {
-            'nom':   'Nom du grade',
-            'actif': 'Grade actif',
+            'nom':             'Nom du grade',
+            'est_grade_ligue': 'Grade Ligue',
+            'actif':           'Grade actif',
         }
 
 
 @gest_ligue_requis
 def liste_grades(request):
     ligue  = request.user.ligue
-    grades = Grade.objects.filter(ligue=ligue).order_by('id_grade')
+    grades = Grade.objects.filter(ligue=ligue).order_by('-est_grade_ligue', 'id_grade')
     return render(request, 'practitioners/grades_liste.html', {
         'grades':      grades,
         'ligue':       ligue,
         'nb_actifs':   grades.filter(actif=True).count(),
         'nb_inactifs': grades.filter(actif=False).count(),
+        'nb_ligue':    grades.filter(est_grade_ligue=True).count(),
+        'nb_club':     grades.filter(est_grade_ligue=False).count(),
     })
 
 

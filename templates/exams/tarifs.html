@@ -6,27 +6,32 @@
 {% endblock %}
 
 {% block content %}
-<div class="d-flex align-items-start gap-3 mb-4">
-    <button onclick="history.back()" class="btn-action btn-action-edit flex-shrink-0" title="Retour" data-bs-toggle="tooltip">
-        <i class="bi bi-arrow-left"></i>
-    </button>
-    <div>
-        <small class="text-muted">
-            <a href="{% url 'exams:annees_sportives' %}">Années sportives</a>
-            › {{ annee.libelle }} › Tarifs
-        </small>
-        <h4 class="fw-bold mb-0 mt-1">
-            <i class="bi bi-cash-coin me-2 text-success"></i>Tarifs d'examen — {{ annee.libelle }}
-        </h4>
-        <small class="text-muted">
-            {{ annee.date_debut|date:"d/m/Y" }} → {{ annee.date_fin|date:"d/m/Y" }}
-            {% if annee.statut == 'ACTIVE' %}
-            <span class="badge bg-success ms-2">Active</span>
-            {% else %}
-            <span class="badge bg-secondary ms-2">Clôturée</span>
-            {% endif %}
-        </small>
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div class="d-flex align-items-start gap-3">
+        <button onclick="history.back()" class="btn-action btn-action-edit flex-shrink-0" title="Retour" data-bs-toggle="tooltip">
+            <i class="bi bi-arrow-left"></i>
+        </button>
+        <div>
+            <small class="text-muted">
+                <a href="{% url 'exams:annees_sportives' %}">Années sportives</a>
+                › {{ annee.libelle }} › Tarifs
+            </small>
+            <h4 class="fw-bold mb-0 mt-1">
+                <i class="bi bi-cash-coin me-2 text-success"></i>Tarifs d'examen — {{ annee.libelle }}
+            </h4>
+            <small class="text-muted">
+                {{ annee.date_debut|date:"d/m/Y" }} → {{ annee.date_fin|date:"d/m/Y" }}
+                {% if annee.statut == 'ACTIVE' %}
+                <span class="badge bg-success ms-2">Active</span>
+                {% else %}
+                <span class="badge bg-secondary ms-2">Clôturée</span>
+                {% endif %}
+            </small>
+        </div>
     </div>
+    <a href="{% url 'exams:parametres_examen' %}" class="btn btn-outline-primary btn-sm">
+        <i class="bi bi-percent me-1"></i>Répartition % Ligue/Club
+    </a>
 </div>
 
 <div class="row g-4">
@@ -107,7 +112,7 @@
                         <div class="text-danger small">{{ form.grade.errors.as_text }}</div>
                         {% endif %}
                         {% if not tarif_en_edition %}
-                        <div class="form-text">Seuls les grades actifs de votre ligue sont affichés.</div>
+                        <div class="form-text">Seuls les grades officiels de la Ligue sont affichés.</div>
                         {% endif %}
                     </div>
                     <div class="mb-3">

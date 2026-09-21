@@ -8,54 +8,57 @@
 
 {% block extra_css %}
 <style>
-    /* En-tête des onglets avec la couleur du footer Slate Navy (#0F172A) */
+    /* En-tête des onglets rectangulaire avec couleur Slate Navy (#0F172A) */
     .lk-tabs-header {
         background-color: #0F172A !important;
         border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+        border-radius: 0 !important;
     }
 
     .lk-tabs-header .nav {
         display: flex;
-        flex-wrap: nowrap !important;
-        gap: 0.5rem;
-        overflow-x: auto;
-        white-space: nowrap;
-        scrollbar-width: none; /* Firefox */
-        -ms-overflow-style: none; /* IE and Edge */
-        padding-bottom: 2px;
+        flex-wrap: wrap !important;
+        gap: 0.35rem;
+        align-items: center;
     }
-    .lk-tabs-header .nav::-webkit-scrollbar {
-        display: none; /* Chrome, Safari, Opera */
+
+    .lk-tabs-header .nav-item {
+        flex: 1 1 auto;
     }
     
-    /* Boutons sous forme de pilule (comme le bouton "Mon profil") */
+    /* Boutons rectangulaires en texte pur inspirés de la barre latérale */
     .lk-tabs-header .nav-link {
-        color: #f8fafc !important;
-        font-weight: 600;
-        font-size: 0.84rem;
-        border: 1px solid rgba(255, 255, 255, 0.3) !important;
-        border-radius: 50rem !important; /* Pilule / Pill shape */
-        padding: 0.45rem 0.95rem;
+        color: #94a3b8 !important;
+        font-weight: 500;
+        font-size: 0.83rem;
+        border: none !important;
+        border-radius: 4px !important; /* Forme rectangulaire */
+        padding: 0.45rem 0.7rem;
         transition: all 0.2s ease-in-out;
         background: transparent;
         display: inline-flex;
         align-items: center;
-        gap: 0.4rem;
+        justify-content: center;
+        gap: 0.35rem;
+        width: 100%;
+        text-align: center;
         white-space: nowrap;
     }
     
-    .lk-tabs-header .nav-link:hover {
+    .lk-tabs-header .nav-link:hover:not(.active) {
         color: #ffffff !important;
-        background-color: rgba(255, 255, 255, 0.15) !important;
-        border-color: rgba(255, 255, 255, 0.5) !important;
+        background-color: rgba(255, 255, 255, 0.1) !important;
     }
     
     .lk-tabs-header .nav-link.active {
-        color: #0F172A !important;
-        background-color: #ffffff !important;
-        border-color: #ffffff !important;
+        color: #ffffff !important;
+        background-color: #dc2626 !important; /* Rouge Ligue */
         font-weight: 700;
-        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+        box-shadow: 0 2px 6px rgba(220, 38, 38, 0.4);
+    }
+
+    .lk-tabs-header .nav-link i {
+        opacity: 0.85;
     }
 
     .lk-tabs-header .nav-link.active i {
@@ -84,38 +87,38 @@
 <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
 
-    <div class="card shadow-sm border-0 rounded-4 overflow-hidden mb-4">
+    <div class="card shadow-sm border-0 rounded-2 overflow-hidden mb-4">
         <!-- En-tête des onglets -->
-        <div class="card-header lk-tabs-header p-3">
+        <div class="card-header lk-tabs-header p-2 p-md-3 rounded-0">
             <ul class="nav nav-pills border-0" id="infoTabs" role="tablist">
                 <li class="nav-item" role="presentation">
                     <button class="nav-link active" id="pres-tab" data-bs-toggle="tab" data-bs-target="#tab-pres" type="button" role="tab">
-                        <i class="bi bi-building text-warning"></i>Présentation & Historique
+                        <i class="bi bi-building me-2"></i>Présentation & Historique
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="missions-tab" data-bs-toggle="tab" data-bs-target="#tab-missions" type="button" role="tab">
-                        <i class="bi bi-bullseye text-danger"></i>Missions & Objectifs
+                        <i class="bi bi-bullseye me-2"></i>Missions & Objectifs
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="president-tab" data-bs-toggle="tab" data-bs-target="#tab-president" type="button" role="tab">
-                        <i class="bi bi-person-badge text-info"></i>Mot du Président
+                        <i class="bi bi-person-badge me-2"></i>Mot du Président
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="titles-tab" data-bs-toggle="tab" data-bs-target="#tab-titles" type="button" role="tab">
-                        <i class="bi bi-sliders text-warning"></i>Libellés des Boutons
+                        <i class="bi bi-sliders me-2"></i>Libellés des Boutons
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="contact-tab" data-bs-toggle="tab" data-bs-target="#tab-contact" type="button" role="tab">
-                        <i class="bi bi-geo-alt text-success"></i>Identité & Contact
+                        <i class="bi bi-geo-alt me-2"></i>Identité & Contact
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" id="bulletin-tab" data-bs-toggle="tab" data-bs-target="#tab-bulletin" type="button" role="tab">
-                        <i class="bi bi-file-earmark-pdf text-warning"></i>Configuration Bulletin
+                        <i class="bi bi-file-earmark-pdf me-2"></i>Configuration Bulletin
                     </button>
                 </li>
             </ul>

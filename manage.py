@@ -3,6 +3,20 @@
 import os
 import sys
 
+# Auto-fix Anaconda SQLite DLL loading on Windows
+if sys.platform == 'win32':
+    for dll_dir in [
+        r'C:\ProgramData\Anaconda3\Library\bin',
+        r'C:\ProgramData\Anaconda3\DLLs',
+        r'C:\ProgramData\Anaconda3',
+    ]:
+        if os.path.exists(dll_dir):
+            try:
+                os.add_dll_directory(dll_dir)
+            except Exception:
+                pass
+            os.environ['PATH'] = dll_dir + os.pathsep + os.environ.get('PATH', '')
+
 
 def main():
     """Run administrative tasks."""

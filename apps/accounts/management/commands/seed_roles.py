@@ -141,7 +141,7 @@ class Command(BaseCommand):
     help = "Initialise les rôles et permissions du système"
 
     def handle(self, *args, **kwargs):
-        self.stdout.write("\n── Création des permissions ──────────────────")
+        self.stdout.write("\n-- Creation des permissions ------------------")
         perms_cache = {}
         for code, nom, module in PERMISSIONS:
             perm, created = Permission.objects.update_or_create(
@@ -149,13 +149,13 @@ class Command(BaseCommand):
                 defaults={'nom_permission': nom, 'module': module}
             )
             perms_cache[code] = perm
-            s = "  ✓ créée      " if created else "  → mise à jour"
+            s = "  [+] creee    " if created else "  [=] mise a jour"
             self.stdout.write(f"{s} [{module}] {code}")
 
-        self.stdout.write("\n── Création des rôles ────────────────────────")
+        self.stdout.write("\n-- Creation des roles ------------------------")
         for role_code, role_label in Role.ROLE_CHOICES:
             role, created = Role.objects.get_or_create(nom_role=role_code)
-            s = "  ✓ créé      " if created else "  → existant  "
+            s = "  [+] cree    " if created else "  [=] existant  "
 
             codes = ROLE_PERMS.get(role_code, [])
             for code in codes:
@@ -168,5 +168,5 @@ class Command(BaseCommand):
             self.stdout.write(f"{s} {role_label} ({len(codes)} permissions)")
 
         self.stdout.write(self.style.SUCCESS(
-            "\n✅ Rôles et permissions initialisés avec succès !\n"
+            "\n[OK] Roles et permissions initialises avec succes !\n"
         ))

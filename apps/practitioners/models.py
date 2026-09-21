@@ -21,6 +21,11 @@ class Grade(models.Model):
         help_text="Identifiant séquentiel du grade (auto-incrémenté à la création)"
     )
     actif    = models.BooleanField(default=True)
+    est_grade_ligue = models.BooleanField(
+        default=False,
+        verbose_name="Grade officiel Ligue (>= ROUGE)",
+        help_text="Si coché, ce grade est officiel Ligue (>= ROUGE) et exige un bulletin justificatif si le licencié est inscrit directement à ce niveau."
+    )
 
     class Meta:
         verbose_name        = 'Grade'
@@ -31,6 +36,8 @@ class Grade(models.Model):
         return self.nom
 
     def save(self, *args, **kwargs):
+        if self.nom:
+            self.nom = self.nom.strip().upper()
         if not self.pk and self.id_grade == 0:
             # pyrefly: ignore [missing-import]
             from django.db.models import Max

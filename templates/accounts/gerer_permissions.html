@@ -1,0 +1,603 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Permissions & Habilitations — Ligue du Kadiogo{% endblock %}
+
+{% block sidebar %}
+{% include 'includes/_sidebar_ligue.html' %}
+{% endblock %}
+
+{% block content %}
+<style>
+
+/* ── Style Onglets Épurés (Identique à la Barre de Navigation de Gauche) ── */
+#permTabs .nav-link {
+    border-radius: 8px !important;
+    color: #c8d6e5 !important;
+    background-color: transparent !important;
+    border: none !important;
+    transition: all 0.2s ease-in-out !important;
+    font-weight: 500 !important;
+    font-size: 0.9rem !important;
+    padding: 0.55rem 1.25rem !important;
+}
+
+#permTabs .nav-link i {
+    color: inherit !important;
+    margin-right: 4px;
+}
+
+#permTabs .nav-link:hover {
+    background-color: rgba(220, 38, 38, 0.2) !important;
+    color: #ffffff !important;
+}
+
+#permTabs .nav-link.active {
+    background-color: var(--rouge-ligue, #DC2626) !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.35) !important;
+}
+
+/* ── Harmonie des Cartes & Interrupteurs (Charte Ligue) ── */
+.module-card-header {
+    background-color: #1e2d3d !important;
+    color: #ffffff !important;
+    border-bottom: 2px solid var(--rouge-ligue, #DC2626) !important;
+    border-radius: 0 !important;
+}
+
+.form-switch .form-check-input:checked {
+    background-color: var(--rouge-ligue, #DC2626) !important;
+    border-color: var(--rouge-ligue, #DC2626) !important;
+    box-shadow: 0 2px 6px rgba(220, 38, 38, 0.4) !important;
+}
+
+/* ── Style Matrice Globale Aérée & Fluide (Sans Scroll Horizontal Force) ── */
+.matrix-table {
+    border-collapse: separate !important;
+    border-spacing: 0 !important;
+    width: 100% !important;
+}
+
+.matrix-table thead th {
+    background-color: #1e2d3d !important;
+    color: #ffffff !important;
+    padding: 0.75rem 0.5rem !important;
+    font-size: 0.8rem !important;
+    letter-spacing: 0.3px !important;
+    font-weight: 700 !important;
+    white-space: nowrap !important;
+    border-bottom: 3px solid var(--rouge-ligue, #DC2626) !important;
+}
+
+.matrix-table td {
+    padding: 0.7rem 0.6rem !important;
+    vertical-align: middle !important;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.matrix-category-header {
+    background-color: #f1f5f9 !important;
+    color: #1e2d3d !important;
+    font-weight: 700 !important;
+    font-size: 0.85rem !important;
+    letter-spacing: 0.5px !important;
+    border-top: 1px solid #cbd5e1 !important;
+    border-bottom: 1px solid #cbd5e1 !important;
+}
+
+.matrix-category-header td {
+    padding: 0.65rem 0.8rem !important;
+}
+
+.matrix-table tbody tr:not(.matrix-category-header):hover {
+    background-color: #f8fafc !important;
+}
+
+.role-selector-btn {
+    border-radius: 0 !important;
+    transition: all 0.2s ease-in-out !important;
+}
+.role-selector-btn.active, .role-selector-btn:hover {
+    background-color: var(--rouge-ligue, #DC2626) !important;
+    border-color: var(--rouge-ligue, #DC2626) !important;
+    color: #ffffff !important;
+}
+
+@media (min-width: 992px) {
+    .border-end-lg {
+        border-right: 1px solid rgba(0, 0, 0, 0.1) !important;
+    }
+}
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h4 class="fw-bold mb-1">
+            <i class="bi bi-shield-lock-fill text-danger me-2"></i>Gestion des Permissions
+        </h4>
+
+        <small class="text-muted">Configuration claire et visuelle des 35 permissions système par rôle et par utilisateur.</small>
+    </div>
+</div>
+
+<div class="card shadow-sm border-0 rounded-0 overflow-hidden mb-4">
+    <!-- Barre d'onglets de navigation principale (Style Sidebar - Rectangulaire) -->
+    <div class="card-header p-2 p-md-3 border-0 rounded-0" style="background-color: #1e2d3d !important; border-radius: 0 !important;">
+        <ul class="nav nav-pills border-0 gap-2" id="permTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active d-inline-flex align-items-center gap-2" 
+                        id="by-role-tab" data-bs-toggle="tab" data-bs-target="#tab-by-role" type="button" role="tab">
+                    <i class="bi bi-sliders"></i>Permissions par rôle
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link d-inline-flex align-items-center gap-2" 
+                        id="matrix-tab" data-bs-toggle="tab" data-bs-target="#tab-matrix" type="button" role="tab">
+                    <i class="bi bi-grid-3x3-gap-fill"></i>Vue globale
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link d-inline-flex align-items-center gap-2" 
+                        id="inspector-tab" data-bs-toggle="tab" data-bs-target="#tab-inspector" type="button" role="tab">
+                    <i class="bi bi-person-badge-fill"></i>Permissions par utilisateur
+                </button>
+            </li>
+        </ul>
+    </div>
+
+    <div class="card-body p-3 p-md-4 bg-white">
+
+        <div class="tab-content" id="permTabsContent">
+            
+            <!-- VUE 1 : PERMISSIONS PAR RÔLE -->
+            <div class="tab-pane fade show active" id="tab-by-role" role="tabpanel">
+                
+                <!-- CARTE UNIQUE : SÉLECTION DU RÔLE (À GAUCHE) ET INFOS (À DROITE) -->
+                <div class="card border-0 bg-light p-3 p-md-4 rounded-0 shadow-sm mb-4 border-start border-4 border-danger">
+                    <div class="row align-items-center g-3">
+                        <!-- 1 : Sélection du rôle à gauche (menu déroulant) -->
+                        <div class="col-lg-6 pe-lg-4 border-end-lg">
+                            <label class="form-label fw-bold text-dark mb-2">
+                                <i class="bi bi-person-badge-fill me-1 text-danger"></i>Sélectionnez le rôle à configurer :
+                            </label>
+                            <select id="roleSelectDropdown" class="form-select rounded-0 px-3 shadow-sm py-2" onchange="onRoleSelectChange(this)">
+                                {% for r in roles %}
+                                <option value="role-block-{{ r.id }}" data-role-name="{{ r.get_nom_role_display }}">
+                                    {{ r.get_nom_role_display }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+
+                        <!-- 2 : Titre et Description du rôle sélectionné à droite -->
+                        <div class="col-lg-6 ps-lg-4">
+                            <div class="d-flex align-items-center gap-3">
+                                <div class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center fw-bold fs-4 shadow-sm flex-shrink-0" style="width: 48px; height: 48px;">
+                                    <i class="bi bi-shield-lock-fill"></i>
+                                </div>
+                                <div>
+                                    <h5 class="fw-bold mb-1 text-dark">
+                                        Permissions attribuées au : <span id="selectedRoleTitle" class="text-danger">{{ roles.first.get_nom_role_display }}</span>
+                                    </h5>
+                                    <small class="text-muted">Cochez ou décochez pour accorder ou retirer une autorisation spécifique à ce rôle.</small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bloques de permissions par rôle -->
+                {% for r in roles %}
+                <div class="role-permission-block {% if not forloop.first %}d-none{% endif %}" id="role-block-{{ r.id }}">
+                    <div class="row g-4">
+                        {% for mod in modules %}
+                        <div class="col-md-6 col-lg-4">
+                            <div class="card border-0 shadow-sm rounded-0 h-100 overflow-hidden">
+                                <div class="card-header module-card-header text-white py-2 px-3 d-flex justify-content-between align-items-center">
+                                    <span class="fw-bold small text-uppercase"><i class="bi bi-folder2-open me-2 text-danger"></i>{{ mod.label }}</span>
+                                    <span class="badge bg-secondary rounded-0" style="font-size:0.7rem;">{{ mod.permissions|length }}</span>
+                                </div>
+                                <div class="card-body p-3">
+                                    <div class="list-group list-group-flush">
+                                        {% for perm in mod.permissions %}
+                                        <div class="list-group-item px-0 py-2.5 border-bottom-0 d-flex justify-content-between align-items-center">
+                                            <div class="me-2">
+                                                <div class="fw-semibold text-dark fs-6">{{ perm.nom_permission }}</div>
+                                                <code class="text-muted opacity-75" style="font-size:0.75rem;">{{ perm.code }}</code>
+                                            </div>
+                                            <div>
+                                                <form method="post" action="{% url 'accounts:toggle_role_permission' %}" class="d-inline">
+                                                    {% csrf_token %}
+                                                    <input type="hidden" name="role_id" value="{{ r.id }}">
+                                                    <input type="hidden" name="permission_id" value="{{ perm.id }}">
+                                                    <div class="form-check form-switch m-0">
+                                                        <input class="form-check-input perm-switch-lg" 
+                                                               type="checkbox" 
+                                                               role="switch"
+                                                               data-role-id="{{ r.id }}"
+                                                               data-perm-id="{{ perm.id }}"
+                                                               data-role-name="{{ r.get_nom_role_display }}"
+                                                               data-perm-name="{{ perm.nom_permission }}"
+                                                               {% for r_id, p_id in rp_set %}
+                                                                   {% if r_id == r.id and p_id == perm.id %}checked{% endif %}
+                                                               {% endfor %}
+                                                               onchange="togglePermission(this)"
+                                                               style="width: 2.8em; height: 1.4em; cursor: pointer;">
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+
+            </div>
+
+            <!-- VUE 2 : MATRICE GLOBALE COMPACTE -->
+            <div class="tab-pane fade" id="tab-matrix" role="tabpanel">
+                <div class="card border-0 bg-light p-3 rounded-0 shadow-sm mb-4 border-start border-4 border-danger">
+                    <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-grid-3x3-gap-fill fs-5 text-danger"></i>
+                        <span class="text-dark fw-semibold">Vue globale synthétique des 35 permissions système réparties sur tous les rôles.</span>
+                    </div>
+                </div>
+
+                <div class="table-responsive rounded-0 border shadow-sm">
+                    <table class="table matrix-table align-middle mb-0">
+                        <thead>
+                            <tr>
+                                <th style="min-width: 200px;" class="ps-3">Permission</th>
+                                <th style="min-width: 140px;">Code Système</th>
+                                {% for role in roles %}
+                                <th class="text-center text-nowrap" style="min-width: 120px; font-size: 0.8rem;">
+                                    {{ role.get_nom_role_display }}
+                                </th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for mod in modules %}
+                            <tr class="matrix-category-header">
+                                <td colspan="{{ roles|length|add:2 }}" class="ps-3">
+                                    <i class="bi bi-folder2-open text-danger me-2 fs-6"></i>{{ mod.label|upper }}
+                                    <span class="badge bg-danger text-white rounded-0 ms-2" style="font-size:0.7rem;">{{ mod.permissions|length }}</span>
+                                </td>
+                            </tr>
+                            {% for perm in mod.permissions %}
+                            <tr>
+                                <td class="ps-3 fw-bold text-dark">{{ perm.nom_permission }}</td>
+                                <td><code class="bg-light text-secondary border px-2 py-1 font-monospace" style="font-size:0.78rem; border-radius: 3px;">{{ perm.code }}</code></td>
+                                {% for role in roles %}
+                                <td class="text-center">
+                                    <form method="post" action="{% url 'accounts:toggle_role_permission' %}" class="d-inline">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="role_id" value="{{ role.id }}">
+                                        <input type="hidden" name="permission_id" value="{{ perm.id }}">
+                                        <div class="form-check form-switch d-inline-block m-0">
+                                            <input class="form-check-input" 
+                                                   type="checkbox" 
+                                                   role="switch"
+                                                   data-role-id="{{ role.id }}"
+                                                   data-perm-id="{{ perm.id }}"
+                                                   data-role-name="{{ role.get_nom_role_display }}"
+                                                   data-perm-name="{{ perm.nom_permission }}"
+                                                   {% for r_id, p_id in rp_set %}
+                                                       {% if r_id == role.id and p_id == perm.id %}checked{% endif %}
+                                                   {% endfor %}
+                                                   onchange="togglePermission(this)"
+                                                   style="width: 2.8em; height: 1.4em; cursor: pointer;">
+                                        </div>
+                                    </form>
+                                </td>
+                                {% endfor %}
+                            </tr>
+                            {% endfor %}
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- VUE 3 : PERMISSIONS PAR UTILISATEUR -->
+            <div class="tab-pane fade" id="tab-inspector" role="tabpanel">
+                
+                <!-- CARTE UNIQUE : SÉLECTION DE L'UTILISATEUR (À GAUCHE) ET INFOS (À DROITE) -->
+                <div class="card border-0 bg-light p-3 p-md-4 rounded-0 shadow-sm mb-4 border-start border-4 border-danger">
+                    <div class="row align-items-center g-3">
+                        <!-- 1 : Sélection de l'utilisateur à gauche -->
+                        <div class="col-lg-5 pe-lg-4 border-end-lg">
+                            <label class="form-label fw-bold text-dark mb-2">
+                                <i class="bi bi-person-search me-2 text-danger"></i>Sélectionner un utilisateur :
+                            </label>
+                            <form method="get" action="#tab-inspector" id="userSelectForm">
+                                <select name="user_id" class="form-select rounded-0 px-3 shadow-sm py-2" onchange="this.form.submit()">
+                                    <option value="">-- Choisir un utilisateur dans la liste --</option>
+                                    {% for u in utilisateurs %}
+                                    <option value="{{ u.id }}" {% if utilisateur_selected and utilisateur_selected.id == u.id %}selected{% endif %}>
+                                        {{ u.get_full_name|default:u.username }} (@{{ u.username }})
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </form>
+                        </div>
+
+                        <!-- 2 : Informations de l'utilisateur à droite -->
+                        <div class="col-lg-7 ps-lg-4">
+                            {% if utilisateur_selected %}
+                            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+                                <div class="d-flex align-items-center gap-3">
+                                    <div class="bg-danger text-white rounded-circle d-flex align-items-center justify-content-center fw-bold fs-4 shadow-sm flex-shrink-0" style="width: 50px; height: 50px;">
+                                        {{ utilisateur_selected.first_name|first|default:utilisateur_selected.username|first|upper }}
+                                    </div>
+                                    <div>
+                                        <h5 class="fw-bold mb-0 text-dark">{{ utilisateur_selected.get_full_name|default:utilisateur_selected.username }}</h5>
+                                        <small class="text-muted">@{{ utilisateur_selected.username }}</small>
+                                        <div class="mt-1">
+                                            <small class="text-muted fw-semibold me-2">Rôle(s) :</small>
+                                            {% for r in utilisateur_selected.roles.all %}
+                                            <span class="badge bg-danger me-1 px-2.5 py-1.5 rounded-0 shadow-sm"><i class="bi bi-shield-check me-1"></i>{{ r.get_nom_role_display }}</span>
+                                            {% empty %}
+                                            <span class="badge bg-secondary rounded-0">Aucun rôle</span>
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="d-flex flex-column align-items-end gap-2">
+                                    <span class="badge bg-success rounded-0 px-3 py-2 fs-6 shadow-sm">
+                                        <span id="userPermCount">{{ effective_permission_ids|length }}</span> / 35 autorisée(s)
+                                    </span>
+                                    <a href="{% url 'accounts:gerer_roles' utilisateur_selected.id %}" class="btn btn-outline-danger btn-sm rounded-0 px-3 py-1.5 fw-semibold shadow-sm">
+                                        <i class="bi bi-sliders me-1"></i>Modifier les rôles
+                                    </a>
+                                </div>
+                            </div>
+                            {% else %}
+                            <div class="text-muted small">
+                                <i class="bi bi-info-circle me-1 text-primary"></i>Choisissez un utilisateur à gauche pour afficher son profil et personnaliser ses autorisations par module.
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                {% if utilisateur_selected %}
+                <!-- Grille de cartes de modules en 3 colonnes pleine largeur -->
+                <div class="row g-4">
+                    {% for mod in modules %}
+                    <div class="col-md-6 col-lg-4">
+                        <div class="card border-0 shadow-sm rounded-0 h-100 overflow-hidden">
+                            <div class="card-header module-card-header text-white py-2 px-3 d-flex justify-content-between align-items-center">
+                                <span class="fw-bold small text-uppercase"><i class="bi bi-folder2-open me-2 text-danger"></i>{{ mod.label }}</span>
+                                <span class="badge bg-secondary rounded-0" style="font-size:0.7rem;">{{ mod.permissions|length }}</span>
+                            </div>
+                            <div class="card-body p-3">
+                                <div class="list-group list-group-flush">
+                                    {% for perm in mod.permissions %}
+                                    <div class="list-group-item px-0 py-2 border-bottom-0 d-flex justify-content-between align-items-center">
+                                        <div class="me-2">
+                                            <div class="fw-semibold text-dark fs-6">{{ perm.nom_permission }}</div>
+                                            <div class="d-flex align-items-center gap-1 mt-0.5">
+                                                <code class="text-muted opacity-75" style="font-size:0.75rem;">{{ perm.code }}</code>
+                                                <span id="user-perm-badge-{{ perm.id }}">
+                                                    {% if perm.id in granted_permission_ids %}
+                                                    <span class="badge bg-primary text-white" style="font-size:0.65rem;">+ Surchargé</span>
+                                                    {% elif perm.id in revoked_permission_ids %}
+                                                    <span class="badge bg-danger text-white" style="font-size:0.65rem;">- Surchargé</span>
+                                                    {% elif perm.id in role_permission_ids %}
+                                                    <span class="badge bg-light text-dark border" style="font-size:0.65rem;"><i class="bi bi-shield-check text-success me-1"></i>Par rôle</span>
+                                                    {% endif %}
+                                                </span>
+                                            </div>
+                                        </div>
+                                        <div>
+                                            <div class="form-check form-switch m-0">
+                                                <input class="form-check-input perm-switch-lg" 
+                                                       type="checkbox" 
+                                                       role="switch"
+                                                       id="user-switch-{{ perm.id }}"
+                                                       {% if perm.id in effective_permission_ids %}checked{% endif %}
+                                                       onchange="toggleUserPermissionSwitch(this, {{ utilisateur_selected.id }}, {{ perm.id }})"
+                                                       style="width: 2.8em; height: 1.4em; cursor: pointer;">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                {% else %}
+                <div class="text-center py-5 text-muted bg-light rounded-4 border-0 shadow-sm mt-3">
+                    <i class="bi bi-person-bounding-box fs-1 text-danger opacity-50 d-block mb-2"></i>
+                    <h6 class="fw-bold text-dark">Sélectionnez un utilisateur ci-dessus</h6>
+                    <p class="mb-0 small text-muted">Choisissez un compte utilisateur pour personnaliser précisément ses autorisations par module.</p>
+                </div>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+<!-- Toast notification -->
+<div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1100">
+    <div id="permToast" class="toast align-items-center text-white bg-dark border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="d-flex">
+            <div class="toast-body" id="toastMessage">
+                Notification
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Fermer"></button>
+        </div>
+    </div>
+</div>
+
+<script>
+function onRoleSelectChange(selectEl) {
+    const selectedOption = selectEl.options[selectEl.selectedIndex];
+    const blockId = selectEl.value;
+    const roleTitle = selectedOption.getAttribute('data-role-name');
+
+    document.querySelectorAll('.role-permission-block').forEach(b => b.classList.add('d-none'));
+
+    const targetBlock = document.getElementById(blockId);
+    if (targetBlock) {
+        targetBlock.classList.remove('d-none');
+    }
+
+    const titleEl = document.getElementById('selectedRoleTitle');
+    if (titleEl && roleTitle) {
+        titleEl.textContent = roleTitle;
+    }
+}
+
+function selectRoleView(blockId, btnEl, roleTitle) {
+
+    document.querySelectorAll('.role-permission-block').forEach(b => b.classList.add('d-none'));
+    document.querySelectorAll('.role-selector-btn').forEach(b => {
+        b.classList.remove('btn-danger', 'active', 'text-white');
+        b.classList.add('btn-outline-secondary');
+    });
+    
+    const targetBlock = document.getElementById(blockId);
+    if (targetBlock) {
+        targetBlock.classList.remove('d-none');
+    }
+    btnEl.classList.remove('btn-outline-secondary');
+    btnEl.classList.add('btn-danger', 'active', 'text-white');
+
+    const titleEl = document.getElementById('selectedRoleTitle');
+    if (titleEl && roleTitle) {
+        titleEl.textContent = roleTitle;
+    }
+}
+
+
+function togglePermission(checkbox) {
+    const form = checkbox.closest('form');
+    const roleId = checkbox.dataset.roleId;
+    const permId = checkbox.dataset.permId;
+
+    const csrfToken = form.querySelector('[name=csrfmiddlewaretoken]').value;
+    const formData = new FormData();
+    formData.append('role_id', roleId);
+    formData.append('permission_id', permId);
+
+    const sameCheckboxes = document.querySelectorAll(`input[data-role-id="${roleId}"][data-perm-id="${permId}"]`);
+
+    fetch('{% url "accounts:toggle_role_permission" %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            sameCheckboxes.forEach(cb => cb.checked = data.active);
+            showToast(data.message, data.active ? 'success' : 'warning');
+        } else {
+            sameCheckboxes.forEach(cb => cb.checked = !cb.checked);
+            showToast(data.message || "Erreur lors de la modification", 'danger');
+        }
+    })
+    .catch(err => {
+        sameCheckboxes.forEach(cb => cb.checked = !cb.checked);
+        showToast("Erreur réseau lors de la mise à jour.", 'danger');
+    });
+}
+
+function toggleUserPermissionSwitch(switchEl, userId, permId) {
+    const isChecked = switchEl.checked;
+    const actionType = isChecked ? 'enable' : 'disable';
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]')?.value || '{{ csrf_token }}';
+
+    switchEl.disabled = true;
+
+    const formData = new FormData();
+    formData.append('user_id', userId);
+    formData.append('permission_id', permId);
+    formData.append('action_type', actionType);
+
+    fetch('{% url "accounts:toggle_user_permission" %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrfToken,
+            'X-Requested-With': 'XMLHttpRequest'
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        switchEl.disabled = false;
+        if (data.status === 'success') {
+            switchEl.checked = data.is_effective;
+            showToast(data.message, data.is_effective ? 'success' : 'warning');
+
+            const countEl = document.getElementById('userPermCount');
+            if (countEl) countEl.textContent = data.effective_count;
+
+            const badgeEl = document.getElementById(`user-perm-badge-${permId}`);
+            if (badgeEl) {
+                if (data.is_granted) {
+                    badgeEl.className = 'badge bg-primary text-white';
+                    badgeEl.style.fontSize = '0.65rem';
+                    badgeEl.innerHTML = '+ Surchargé';
+                } else if (data.is_revoked) {
+                    badgeEl.className = 'badge bg-danger text-white';
+                    badgeEl.style.fontSize = '0.65rem';
+                    badgeEl.innerHTML = '- Surchargé';
+                } else if (data.role_has_it) {
+                    badgeEl.className = 'badge bg-light text-dark border';
+                    badgeEl.style.fontSize = '0.65rem';
+                    badgeEl.innerHTML = '<i class="bi bi-shield-check text-success me-1"></i>Par rôle';
+                } else {
+                    badgeEl.className = 'd-none';
+                }
+            }
+        } else {
+            switchEl.checked = !isChecked;
+            showToast(data.message || "Erreur lors de la modification.", 'danger');
+        }
+    })
+    .catch(err => {
+        switchEl.disabled = false;
+        switchEl.checked = !isChecked;
+        showToast("Erreur réseau.", 'danger');
+    });
+}
+
+function showToast(message, type) {
+    const toastEl = document.getElementById('permToast');
+    const toastMsg = document.getElementById('toastMessage');
+    toastEl.className = `toast align-items-center text-white border-0 shadow-lg bg-${type === 'success' ? 'success' : type === 'warning' ? 'warning text-dark' : 'danger'}`;
+    toastMsg.innerHTML = `<i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-triangle'} me-2"></i>` + message;
+    const toast = new bootstrap.Toast(toastEl, { delay: 3500 });
+    toast.show();
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    if (window.location.hash) {
+        const triggerEl = document.querySelector(`button[data-bs-target="${window.location.hash}"]`);
+        if (triggerEl) {
+            bootstrap.Tab.getInstance(triggerEl)?.show() || new bootstrap.Tab(triggerEl).show();
+        }
+    }
+});
+</script>
+{% endblock %}
+

@@ -35,7 +35,7 @@ def role_et_espace_contexte(request):
         })
 
     # 2. Gestionnaire Ligue (Administrateur Principal / SG)
-    if Role.GEST_LIGUE in noms_roles or user.est_gest_ligue():
+    if Role.GEST_LIGUE in noms_roles:
         espaces_disponibles.append({
             'code': Role.GEST_LIGUE,
             'nom': 'Gestion Ligue',

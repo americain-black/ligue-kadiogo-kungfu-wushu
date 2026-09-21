@@ -8,7 +8,6 @@ from django.contrib import messages
 from django.db.models import Count, Avg, Q, Prefetch
 from django.http import HttpResponse
 from django.template.loader import render_to_string
-from weasyprint import HTML
 
 from .models import Ligue, VoletOrganigramme, MembreOrganigramme
 from .forms import LigueForm, VoletOrganigrammeForm, MembreOrganigrammeForm, EditerInfosLigueForm
@@ -504,13 +503,17 @@ def export_rapport_pdf(request):
     }
 
     html_string = render_to_string('ligues/rapport_activite_pdf.html', context)
-    pdf_file = HTML(string=html_string).write_pdf()
-
-    response = HttpResponse(pdf_file, content_type='application/pdf')
-    saison_label = saison_active.libelle if saison_active else 'Global'
-    filename = f"Rapport_Activite_{ligue.sigle}_{saison_label}.pdf"
-    response['Content-Disposition'] = f'inline; filename="{filename}"'
-    return response
+    try:
+        from weasyprint import HTML
+        pdf_file = HTML(string=html_string).write_pdf()
+        response = HttpResponse(pdf_file, content_type='application/pdf')
+        saison_label = saison_active.libelle if saison_active else 'Global'
+        filename = f"Rapport_Activite_{ligue.sigle}_{saison_label}.pdf"
+        response['Content-Disposition'] = f'inline; filename="{filename}"'
+        return response
+    except Exception as e:
+        messages.error(request, f"Génération PDF indisponible (bibliothèques GTK manquantes) : {e}")
+        return redirect('ligues:tableau_de_bord')
 
 
 def statistiques_publiques(request):

@@ -351,10 +351,16 @@ def dashboard_club(request):
         if annee_active else None
     )
 
+    nb_candidats_autorises = Inscription.objects.filter(
+        pratiquant__club=club,
+        statut__in=['AUTORISE', 'PAIEMENT_VALIDE']
+    ).values('pratiquant').distinct().count()
+
     contexte = {
         'club':                   club,
         'nb_pratiquants':         Pratiquant.objects.filter(club=club, actif=True).count(),
         'nb_inactifs':            Pratiquant.objects.filter(club=club, actif=False).count(),
+        'nb_candidats_autorises': nb_candidats_autorises,
         'derniers_pratiquants':   Pratiquant.objects.filter(club=club).select_related('grade_actuel').order_by('-date_inscription')[:5],
         'sessions_avec_inscrits': sessions_avec_inscrits,
         'ticker_sessions':        ticker_sessions,
@@ -539,6 +545,218 @@ def supprimer_utilisateur(request, pk):
         'club_gere':         club_gere,
         'affectations_jury': affectations_jury,
     })
+
+
+@login_required
+def gerer_permissions(request):
+    """
+    Interface visuelle de gestion des 35 permissions par rôle et d'inspection par utilisateur.
+    Accessible au Super Admin et au Gestionnaire Principal de Ligue.
+    """
+    user = request.user
+    if not (user.is_superuser or user.est_gest_ligue_principal()):
+        messages.error(request, "Accès réservé au Gestionnaire de Ligue.")
+        return redirect('accounts:tableau_de_bord')
+
+    from .models import Permission, RolePermission, Role, Utilisateur
+    from collections import defaultdict
+
+    permissions_qs = Permission.objects.all().order_by('module', 'code')
+    roles_qs = Role.objects.exclude(nom_role=Role.SUPER_ADMIN).order_by('id') if not user.is_superuser else Role.objects.all().order_by('id')
+
+    # Cartographie actuelle sous forme de set (role_id, permission_id)
+    rp_set = set(RolePermission.objects.values_list('role_id', 'permission_id'))
+
+    # Structuration des permissions par module
+    modules_dict = defaultdict(list)
+    for perm in permissions_qs:
+        modules_dict[perm.module].append(perm)
+
+    # Noms d'affichage propres pour les modules
+    MODULE_LABELS = {
+        'systeme': 'Système & Administration',
+        'examens': 'Examens & Sessions',
+        'clubs': 'Clubs & Affiliations',
+        'paiements': 'Finances & Paiements',
+        'resultats': 'Résultats & Bulletins',
+        'communication': 'Communication & Documents',
+        'jury': 'Jury & Évaluations',
+        'pratiquants': 'Licenciés / Pratiquants',
+        'annees': 'Années Sportives',
+    }
+
+    modules_structurise = []
+    for mod_code, perms in modules_dict.items():
+        modules_structurise.append({
+            'code': mod_code,
+            'label': MODULE_LABELS.get(mod_code, mod_code.capitalize()),
+            'permissions': perms,
+        })
+
+    # Récupération des utilisateurs pour l'inspecteur d'habilitations
+    ligue = user.ligue
+    if user.is_superuser:
+        utilisateurs_qs = Utilisateur.objects.all().prefetch_related('roles', 'roles__permissions').order_by('last_name', 'first_name')
+    elif ligue:
+        utilisateurs_qs = Utilisateur.objects.filter(ligue=ligue).prefetch_related('roles', 'roles__permissions').order_by('last_name', 'first_name')
+    else:
+        utilisateurs_qs = Utilisateur.objects.none()
+
+    utilisateur_selected_id = request.GET.get('user_id')
+    utilisateur_selected = None
+    role_permission_ids = set()
+    granted_permission_ids = set()
+    revoked_permission_ids = set()
+    effective_permission_ids = set()
+
+    if utilisateur_selected_id:
+        utilisateur_selected = utilisateurs_qs.filter(pk=utilisateur_selected_id).first()
+        if utilisateur_selected:
+            role_permission_ids = set(Permission.objects.filter(roles__utilisateurs=utilisateur_selected).values_list('id', flat=True))
+            granted_permission_ids = set(utilisateur_selected.permissions_accordees.values_list('id', flat=True))
+            revoked_permission_ids = set(utilisateur_selected.permissions_refusees.values_list('id', flat=True))
+            effective_permission_ids = utilisateur_selected.get_effective_permission_ids()
+
+    contexte = {
+        'modules': modules_structurise,
+        'roles': roles_qs,
+        'rp_set': rp_set,
+        'utilisateurs': utilisateurs_qs,
+        'utilisateur_selected': utilisateur_selected,
+        'role_permission_ids': role_permission_ids,
+        'granted_permission_ids': granted_permission_ids,
+        'revoked_permission_ids': revoked_permission_ids,
+        'effective_permission_ids': effective_permission_ids,
+    }
+    return render(request, 'accounts/gerer_permissions.html', contexte)
+
+
+@login_required
+def toggle_role_permission(request):
+    """
+    Action pour ajouter ou retirer une permission d'un rôle (AJAX ou Form POST).
+    """
+    user = request.user
+    if not (user.is_superuser or user.est_gest_ligue_principal()):
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            from django.http import JsonResponse
+            return JsonResponse({'status': 'error', 'message': "Non autorisé."}, status=403)
+        messages.error(request, "Accès réservé au Gestionnaire de Ligue.")
+        return redirect('accounts:tableau_de_bord')
+
+    if request.method == 'POST':
+        from .models import Permission, RolePermission, Role
+        from django.http import JsonResponse
+
+        role_id = request.POST.get('role_id')
+        permission_id = request.POST.get('permission_id')
+
+        role = get_object_or_404(Role, pk=role_id)
+        permission = get_object_or_404(Permission, pk=permission_id)
+
+        rp = RolePermission.objects.filter(role=role, permission=permission).first()
+        if rp:
+            rp.delete()
+            active = False
+            msg = f"Permission « {permission.nom_permission} » retirée du rôle « {role.get_nom_role_display()} »."
+        else:
+            RolePermission.objects.create(role=role, permission=permission)
+            active = True
+            msg = f"Permission « {permission.nom_permission} » ajoutée au rôle « {role.get_nom_role_display()} »."
+
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({
+                'status': 'success',
+                'active': active,
+                'message': msg,
+                'role': role.get_nom_role_display(),
+                'permission': permission.nom_permission,
+            })
+
+        messages.success(request, msg)
+    return redirect('accounts:gerer_permissions')
+
+
+@login_required
+def toggle_user_permission(request):
+    """
+    Action pour accorder (+), retirer (-) ou réinitialiser une permission au niveau individuel d'un utilisateur.
+    """
+    user = request.user
+    if not (user.is_superuser or user.est_gest_ligue_principal()):
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            from django.http import JsonResponse
+            return JsonResponse({'status': 'error', 'message': "Non autorisé."}, status=403)
+        messages.error(request, "Accès réservé au Gestionnaire de Ligue.")
+        return redirect('accounts:tableau_de_bord')
+
+    if request.method == 'POST':
+        from .models import Permission, Utilisateur
+        from django.http import JsonResponse
+
+        target_user_id = request.POST.get('user_id')
+        permission_id = request.POST.get('permission_id')
+        action_type = request.POST.get('action_type')
+
+        target_user = get_object_or_404(Utilisateur, pk=target_user_id)
+        permission = get_object_or_404(Permission, pk=permission_id)
+
+        if not user.is_superuser and target_user.ligue != user.ligue:
+            if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+                return JsonResponse({'status': 'error', 'message': "Cet utilisateur n'appartient pas à votre ligue."}, status=403)
+            messages.error(request, "Non autorisé.")
+            return redirect('accounts:gerer_permissions')
+
+        role_has_it = Permission.objects.filter(pk=permission.pk, roles__utilisateurs=target_user).exists()
+
+        if action_type == 'grant' or action_type == 'enable':
+            target_user.permissions_refusees.remove(permission)
+            if not role_has_it:
+                target_user.permissions_accordees.add(permission)
+            msg = f"Permission « {permission.nom_permission} » activée pour {target_user.get_full_name() or target_user.username}."
+        elif action_type == 'revoke' or action_type == 'disable':
+            target_user.permissions_accordees.remove(permission)
+            if role_has_it:
+                target_user.permissions_refusees.add(permission)
+            msg = f"Permission « {permission.nom_permission} » désactivée pour {target_user.get_full_name() or target_user.username}."
+        elif action_type == 'reset':
+            target_user.permissions_accordees.remove(permission)
+            target_user.permissions_refusees.remove(permission)
+            msg = f"Permission « {permission.nom_permission} » réinitialisée aux droits du rôle."
+        else:
+            # Automatic toggle: if effectively active, disable it; if inactive, enable it
+            if target_user.a_la_permission(permission.code):
+                target_user.permissions_accordees.remove(permission)
+                if role_has_it:
+                    target_user.permissions_refusees.add(permission)
+            else:
+                target_user.permissions_refusees.remove(permission)
+                if not role_has_it:
+                    target_user.permissions_accordees.add(permission)
+            msg = f"Statut de la permission « {permission.nom_permission} » modifié."
+
+
+        is_effective = target_user.a_la_permission(permission.code)
+        is_granted = target_user.permissions_accordees.filter(pk=permission.pk).exists()
+        is_revoked = target_user.permissions_refusees.filter(pk=permission.pk).exists()
+        effective_count = len(target_user.get_effective_permission_ids())
+
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+            return JsonResponse({
+                'status': 'success',
+                'is_effective': is_effective,
+                'is_granted': is_granted,
+                'is_revoked': is_revoked,
+                'role_has_it': role_has_it,
+                'effective_count': effective_count,
+                'message': msg
+            })
+
+        messages.success(request, msg)
+        return redirect(f"/accounts/utilisateurs/permissions/?user_id={target_user.id}#tab-inspector")
+
+    return redirect('accounts:gerer_permissions')
+
 
 
 # ─── Gestion des Utilisateurs de la Ligue ──────────────────────────────────────

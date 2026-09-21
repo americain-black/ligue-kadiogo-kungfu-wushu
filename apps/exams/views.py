@@ -1323,7 +1323,7 @@ def inscrire_pratiquant(request, session_pk):
         statut='INSCRIPTIONS_OUVERTES',
     )
     ligue   = club.ligue
-    grades  = list(Grade.objects.filter(ligue=ligue, actif=True).order_by('id_grade'))
+    grades  = list(Grade.objects.filter(ligue=ligue, actif=True, est_grade_ligue=True).order_by('id_grade'))
     options = list(OptionExamen.objects.filter(ligue=ligue, actif=True))
     params  = ParametresExamen.objects.filter(ligue=ligue).first()
     pourcentage_ligue = float(params.pourcentage_ligue) if params else 100.0

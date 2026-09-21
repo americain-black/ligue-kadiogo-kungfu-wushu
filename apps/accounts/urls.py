@@ -67,6 +67,11 @@ urlpatterns = [
     path('utilisateurs/<int:pk>/toggle-statut/',   views.toggle_statut_utilisateur,name='toggle_statut_utilisateur'),
     path('utilisateurs/<int:pk>/supprimer/',       views.supprimer_utilisateur,    name='supprimer_utilisateur'),
 
+    # Gestion des permissions (Matrice Rôles x Permissions & Overrides Utilisateur)
+    path('utilisateurs/permissions/',              views.gerer_permissions,        name='gerer_permissions'),
+    path('utilisateurs/permissions/toggle/',       views.toggle_role_permission,   name='toggle_role_permission'),
+    path('utilisateurs/permissions/user-toggle/',  views.toggle_user_permission,   name='toggle_user_permission'),
+
     # Gestion des comptes par la Ligue (Équipe Ligue, Financiers, Jurys, Clubs)
     path('ligue/utilisateurs/',                        views.liste_utilisateurs_ligue,        name='liste_utilisateurs_ligue'),
     path('ligue/utilisateurs/creer/',                  views.creer_utilisateur_ligue,         name='creer_utilisateur_ligue'),

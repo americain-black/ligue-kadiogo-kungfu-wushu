@@ -9,9 +9,9 @@
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <div>
         <h4 class="fw-bold mb-1">
-            <i class="bi bi-people-fill text-danger me-2"></i>Équipe & Utilisateurs de la Ligue
+            <i class="bi bi-people-fill text-danger me-2"></i>Utilisateurs de la Ligue
         </h4>
-        <small class="text-muted">Gestion décentralisée des comptes (Directeurs Techniques, Financiers, Chargés de Com, Clubs, Jurys)</small>
+        <small class="text-muted">Gestion des comptes utilisateurs de la Ligue.</small>
     </div>
     <div>
         <a href="{% url 'accounts:creer_utilisateur_ligue' %}" class="btn btn-danger btn-sm rounded-pill px-3 shadow-sm">
@@ -54,7 +54,7 @@
 <div class="card border-0 shadow-sm rounded-3 overflow-hidden">
     <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
         <h6 class="fw-bold mb-0 text-dark">
-            <i class="bi bi-shield-lock me-2 text-danger"></i>Liste des utilisateurs rattachés ({{ utilisateurs.count }})
+            <i class="bi bi-shield-lock me-2 text-danger"></i>Liste des utilisateurs ({{ utilisateurs.count }})
         </h6>
     </div>
 
@@ -63,10 +63,11 @@
         <table class="table table-hover align-middle mb-0">
             <thead class="table-light small text-muted text-uppercase">
                 <tr>
-                    <th class="ps-3">Utilisateur</th>
-                    <th>Nom d'utilisateur</th>
-                    <th>Email & Téléphone</th>
-                    <th>Rôle(s) Attribué(s)</th>
+                    <th class="ps-3">Nom</th>
+                    <th>Prénom</th>
+                    <th>Sexe</th>
+                    <th>Rôle</th>
+                    <th>Téléphone</th>
                     <th class="text-center">Statut</th>
                     <th class="text-end pe-3">Actions</th>
                 </tr>
@@ -74,27 +75,14 @@
             <tbody>
                 {% for u in utilisateurs %}
                 <tr>
-                    <td class="ps-3">
-                        <div class="d-flex align-items-center gap-3">
-                            {% if u.photo %}
-                                <img src="{{ u.photo.url }}" class="rounded-circle" width="40" height="40" style="object-fit: cover;">
-                            {% else %}
-                                <div class="rounded-circle bg-danger bg-opacity-10 text-danger d-flex align-items-center justify-content-center fw-bold" style="width: 40px; height: 40px;">
-                                    {{ u.first_name|first|default:u.username|first|upper }}
-                                </div>
-                            {% endif %}
-                            <div>
-                                <div class="fw-bold text-dark">{{ u.get_full_name|default:u.username }}</div>
-                                <small class="text-muted">{{ u.civilite }}</small>
-                            </div>
-                        </div>
+                    <td class="ps-3 fw-bold text-dark">
+                        {{ u.last_name|default:"—" }}
+                    </td>
+                    <td class="fw-semibold text-dark">
+                        {{ u.first_name|default:"—" }}
                     </td>
                     <td>
-                        <span class="badge bg-light text-dark border font-monospace">@{{ u.username }}</span>
-                    </td>
-                    <td>
-                        <div><i class="bi bi-envelope me-1 text-muted"></i>{{ u.email|default:"Non renseigné" }}</div>
-                        <small class="text-muted"><i class="bi bi-telephone me-1"></i>{{ u.telephone|default:"—" }}</small>
+                        <span class="text-secondary small fw-medium">{{ u.civilite|default:"—" }}</span>
                     </td>
                     <td>
                         {% for r in u.roles.all %}
@@ -117,6 +105,13 @@
                             <span class="text-muted small">Aucun rôle</span>
                         {% endfor %}
                     </td>
+                    <td>
+                        {% if u.telephone %}
+                            <small class="text-dark"><i class="bi bi-telephone me-1 text-muted"></i>{{ u.telephone }}</small>
+                        {% else %}
+                            <span class="text-muted small">—</span>
+                        {% endif %}
+                    </td>
                     <td class="text-center">
                         {% if u.statut_compte %}
                             <span class="badge bg-success bg-opacity-10 text-success rounded-pill px-3 py-1">Actif</span>
@@ -125,8 +120,14 @@
                         {% endif %}
                     </td>
                     <td class="text-end pe-3">
-                        {% if u != user %}
                         <div class="d-flex justify-content-end gap-1">
+                            <a href="{% url 'accounts:gerer_permissions' %}?user_id={{ u.id }}#tab-inspector" 
+                               class="btn-action btn-action-perm" 
+                               title="Gérer les permissions"
+                               data-bs-toggle="tooltip" data-bs-placement="top">
+                                <i class="bi bi-shield-lock-fill"></i>
+                            </a>
+                            {% if u != user %}
                             <a href="{% url 'accounts:modifier_utilisateur_ligue' u.pk %}" 
                                class="btn-action btn-action-edit" 
                                title="Modifier les informations"
@@ -152,8 +153,10 @@
                                     data-bs-placement="top">
                                 <i class="bi bi-trash"></i>
                             </button>
+                            {% endif %}
                         </div>
 
+                        {% if u != user %}
                         <!-- Modal de Confirmation de Suppression -->
                         <div class="modal fade text-start" id="modalSupprimer{{ u.pk }}" tabindex="-1" aria-hidden="true">
                             <div class="modal-dialog modal-dialog-centered">
@@ -183,8 +186,6 @@
                                 </div>
                             </div>
                         </div>
-                        {% else %}
-                            <span class="badge bg-light text-muted border">Votre compte</span>
                         {% endif %}
                     </td>
                 </tr>

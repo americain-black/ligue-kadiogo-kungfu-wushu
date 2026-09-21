@@ -81,31 +81,31 @@
 {% endif %}
 
 <div class="row g-3 mb-4">
-    <div class="col-12 col-sm-6 col-md-4">
-        <div class="card stat-card p-3">
-            <div class="d-flex justify-content-between align-items-center">
+    <div class="col-6 col-md-3">
+        <div class="card stat-card p-3 h-100">
+            <div class="d-flex justify-content-between align-items-center h-100">
                 <div>
                     <div class="text-muted small">Licenciés actifs</div>
                     <div class="fs-3 fw-bold text-success">{{ nb_pratiquants }}</div>
                 </div>
-                <i class="bi bi-people fs-2 text-success opacity-50"></i>
+                <i class="bi bi-people fs-2 text-success opacity-50 ms-2"></i>
             </div>
         </div>
     </div>
-    <div class="col-12 col-sm-6 col-md-4">
-        <div class="card stat-card p-3">
-            <div class="d-flex justify-content-between align-items-center">
+    <div class="col-6 col-md-3">
+        <div class="card stat-card p-3 h-100">
+            <div class="d-flex justify-content-between align-items-center h-100">
                 <div>
                     <div class="text-muted small">Licenciés inactifs</div>
                     <div class="fs-3 fw-bold text-secondary">{{ nb_inactifs }}</div>
                 </div>
-                <i class="bi bi-person-x fs-2 text-secondary opacity-50"></i>
+                <i class="bi bi-person-x fs-2 text-secondary opacity-50 ms-2"></i>
             </div>
         </div>
     </div>
-    <div class="col-12 col-sm-12 col-md-4">
-        <div class="card stat-card p-3">
-            <div class="d-flex justify-content-between align-items-center">
+    <div class="col-6 col-md-3">
+        <div class="card stat-card p-3 h-100">
+            <div class="d-flex justify-content-between align-items-center h-100">
                 <div>
                     <div class="text-muted small">Statut du club</div>
                     <div class="mt-1">
@@ -118,7 +118,18 @@
                         {% endif %}
                     </div>
                 </div>
-                <i class="bi bi-building fs-2 text-primary opacity-50"></i>
+                <i class="bi bi-building fs-2 text-primary opacity-50 ms-2"></i>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card stat-card p-3 h-100">
+            <div class="d-flex justify-content-between align-items-center h-100">
+                <div>
+                    <div class="text-muted small">Dossiers examens validés</div>
+                    <div class="fs-3 fw-bold text-success">{{ nb_candidats_autorises }}</div>
+                </div>
+                <i class="bi bi-file-earmark-check fs-2 text-success opacity-50 ms-2"></i>
             </div>
         </div>
     </div>

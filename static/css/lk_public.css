@@ -11,8 +11,8 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
 
 /* ── Palette partagée des pages publiques (accueil, résultats...) ────── */
 :root {
-    --lk-navbar-bg:   #0F172A; /* Slate Navy Sombre */
-    --lk-footer-bg:   #0F172A;
+    --lk-navbar-bg:   #1e2d3d; /* Slate Navy Ligue */
+    --lk-footer-bg:   #1e2d3d;
     --lk-slate-card:  #1E293B;
     --lk-rouge:       #DC2626; /* Rouge Cramoisi Martial */
     --lk-rouge-fonce: #991B1B;
@@ -30,7 +30,7 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
     width: 52px !important;
     object-fit: contain;
     border-radius: 50% !important;
-    background: #0F172A;
+    background: #1e2d3d;
     border: 2.5px solid #F59E0B;
     box-shadow: 0 0 14px rgba(245, 158, 11, 0.55);
     padding: 2px;

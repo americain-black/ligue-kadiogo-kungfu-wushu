@@ -99,10 +99,10 @@ class MultiInscriptionForm(forms.Form):
             self.fields['pratiquants'].queryset = Pratiquant.objects.none()
 
         if ligue:
-            self.fields['grade_vise'].queryset = Grade.objects.filter(ligue=ligue, actif=True).order_by('id_grade')
+            self.fields['grade_vise'].queryset = Grade.objects.filter(ligue=ligue, actif=True, est_grade_ligue=True).order_by('id_grade')
             self.fields['option'].queryset = OptionExamen.objects.filter(ligue=ligue, actif=True)
         elif club:
-            self.fields['grade_vise'].queryset = Grade.objects.filter(ligue=club.ligue, actif=True).order_by('id_grade')
+            self.fields['grade_vise'].queryset = Grade.objects.filter(ligue=club.ligue, actif=True, est_grade_ligue=True).order_by('id_grade')
             self.fields['option'].queryset = OptionExamen.objects.filter(ligue=club.ligue, actif=True)
 
     def clean(self):
@@ -148,7 +148,7 @@ class TarifExamenForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self._annee = annee
         if ligue:
-            self.fields['grade'].queryset = Grade.objects.filter(ligue=ligue, actif=True).order_by('id_grade')
+            self.fields['grade'].queryset = Grade.objects.filter(ligue=ligue, est_grade_ligue=True, actif=True).order_by('id_grade')
         else:
             self.fields['grade'].queryset = Grade.objects.none()
 
@@ -259,7 +259,7 @@ class RubriqueGradeForm(forms.ModelForm):
             if self.instance and self.instance.pk:
                 deja = [g for g in deja if g != self.instance.grade_id]
             self.fields['grade'].queryset = (
-                Grade.objects.filter(ligue=ligue, actif=True)
+                Grade.objects.filter(ligue=ligue, est_grade_ligue=True, actif=True)
                 .exclude(pk__in=deja)
                 .order_by('id_grade')
             )

@@ -128,6 +128,20 @@ class Utilisateur(AbstractUser):
         blank=True
     )
 
+    # Permissions individuelles (surcharge par utilisateur)
+    permissions_accordees = models.ManyToManyField(
+        Permission,
+        related_name='utilisateurs_accordees',
+        blank=True,
+        verbose_name="Permissions accordées spécifiquement"
+    )
+    permissions_refusees = models.ManyToManyField(
+        Permission,
+        related_name='utilisateurs_refusees',
+        blank=True,
+        verbose_name="Permissions révoquées spécifiquement"
+    )
+
     class Meta:
         verbose_name = "Utilisateur"
         verbose_name_plural = "Utilisateurs"
@@ -143,19 +157,37 @@ class Utilisateur(AbstractUser):
 
     def a_la_permission(self, code_permission):
         """
-        Vérifie si l'utilisateur possède une permission donnée,
-        via l'un quelconque de ses rôles.
+        Vérifie si l'utilisateur possède une permission donnée :
+        1. Superuser a toutes les permissions
+        2. Si la permission est explicitement révoquée pour cet utilisateur -> False
+        3. Si la permission est explicitement accordée à cet utilisateur -> True
+        4. Sinon, vérifie si elle est héritée via l'un de ses rôles.
         """
+        if self.is_superuser:
+            return True
+        if self.permissions_refusees.filter(code=code_permission).exists():
+            return False
+        if self.permissions_accordees.filter(code=code_permission).exists():
+            return True
         return Permission.objects.filter(
             code=code_permission,
             roles__utilisateurs=self
         ).exists()
 
+    def get_effective_permission_ids(self):
+        """Retourne le set des IDs de permissions effectives de l'utilisateur."""
+        if self.is_superuser:
+            return set(Permission.objects.values_list('id', flat=True))
+        role_perm_ids = set(Permission.objects.filter(roles__utilisateurs=self).values_list('id', flat=True))
+        granted_ids = set(self.permissions_accordees.values_list('id', flat=True))
+        revoked_ids = set(self.permissions_refusees.values_list('id', flat=True))
+        return (role_perm_ids | granted_ids) - revoked_ids
+
     def est_super_admin(self):
         return self.a_le_role(Role.SUPER_ADMIN) or self.is_superuser
 
     def est_gest_ligue(self):
-        return self.is_superuser or self.a_le_role(Role.GEST_LIGUE) or self.a_le_role(Role.GEST_TECHNIQUE) or self.a_le_role(Role.GEST_FINANCIER) or self.a_le_role(Role.GEST_COM)
+        return self.is_superuser or self.a_le_role(Role.GEST_LIGUE)
 
     def est_gest_ligue_principal(self):
         return self.is_superuser or self.a_le_role(Role.GEST_LIGUE)

@@ -26,8 +26,11 @@
 <a href="{% url 'exams:liste' %}" class="nav-link {% if request.resolver_match.namespace == 'exams' and request.resolver_match.url_name == 'liste' %}active{% endif %}">
     <i class="bi bi-journal-check me-2"></i>Sessions d'examen
 </a>
-<a href="{% url 'exams:tarifs_accueil' %}" class="nav-link ps-4 {% if request.resolver_match.namespace == 'exams' and 'tarif' in request.resolver_match.url_name %}active{% endif %}">
+<a href="{% url 'exams:tarifs_accueil' %}" class="nav-link {% if request.resolver_match.namespace == 'exams' and 'tarif' in request.resolver_match.url_name %}active{% endif %}">
     <i class="bi bi-cash-coin me-2"></i>Tarifs d'examen
+</a>
+<a href="{% url 'exams:parametres_examen' %}" class="nav-link {% if request.resolver_match.namespace == 'exams' and request.resolver_match.url_name == 'parametres_examen' %}active{% endif %}">
+    <i class="bi bi-percent me-2"></i>Répartition % Examen
 </a>
 <a href="{% url 'exams:rubriques' %}" class="nav-link {% if request.resolver_match.namespace == 'exams' and request.resolver_match.url_name == 'rubriques' %}active{% endif %}">
     <i class="bi bi-list-task me-2"></i>Rubriques / Épreuves
@@ -67,10 +70,14 @@
     <i class="bi bi-diagram-3 me-2"></i>Organigramme ligue
 </a>
 
-<span class="sidebar-title mt-2">Institution & Présentation</span>
+<span class="sidebar-title mt-2">Configurations</span>
 <a href="{% url 'accounts:liste_utilisateurs_ligue' %}" class="nav-link {% if request.resolver_match.url_name == 'liste_utilisateurs_ligue' or request.resolver_match.url_name == 'creer_utilisateur_ligue' %}active{% endif %}">
-    <i class="bi bi-people-fill me-2 text-danger"></i>Équipe & Utilisateurs
+    <i class="bi bi-people-fill me-2 text-danger"></i>Utilisateurs
 </a>
+<a href="{% url 'accounts:gerer_permissions' %}" class="nav-link {% if request.resolver_match.url_name == 'gerer_permissions' %}active{% endif %}">
+    <i class="bi bi-shield-lock-fill me-2 text-warning"></i>Permissions
+</a>
+
 <a href="{% url 'ligues:editer_infos' %}" class="nav-link {% if request.resolver_match.namespace == 'ligues' and request.resolver_match.url_name == 'editer_infos' %}active{% endif %}">
-    <i class="bi bi-pencil-square me-2"></i>Présentation
+    <i class="bi bi-gear-fill me-2"></i>Paramètres
 </a>

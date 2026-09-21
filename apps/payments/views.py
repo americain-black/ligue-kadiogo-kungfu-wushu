@@ -374,12 +374,15 @@ def valider_paiement_examen(request, pk):
             acteur=request.user, montant=paiement.montant_paye
         )
         if paiement.club.email:
-            envoyer_email_notification(
-                destinataires=[paiement.club.email],
-                sujet=f"Paiement d'Examen Validé — {paiement.club.nom_club}",
-                titre_entete="Confirmation de Paiement aux Examens",
-                contenu_html_ou_texte=f"Le paiement de <strong>{paiement.montant_paye:,.0f} FCFA</strong> concernant la session <strong>{paiement.session.nom_session}</strong> pour le club <strong>{paiement.club.nom_club}</strong> a été validé. {nb} inscription(s) sont confirmées."
-            )
+            try:
+                envoyer_email_notification(
+                    destinataires=[paiement.club.email],
+                    sujet=f"Paiement d'Examen Validé — {paiement.club.nom_club}",
+                    titre_entete="Confirmation de Paiement aux Examens",
+                    contenu_html_ou_texte=f"Le paiement de <strong>{paiement.montant_paye:,.0f} FCFA</strong> concernant la session <strong>{paiement.session.titre}</strong> pour le club <strong>{paiement.club.nom_club}</strong> a été validé. {nb} inscription(s) sont confirmées."
+                )
+            except Exception:
+                pass
         messages.success(
             request,
             f"Paiement de « {paiement.club.nom_club} » validé. "
@@ -467,13 +470,16 @@ def rejeter_paiement_examen(request, pk):
                 acteur=request.user, montant=paiement.montant_paye, motif=motif
             )
             if paiement.club.email:
-                envoyer_email_notification(
-                    destinataires=[paiement.club.email],
-                    sujet=f"Rejet du Paiement d'Examen — {paiement.club.nom_club}",
-                    titre_entete="Paiement aux Examens Non Validé",
-                    contenu_html_ou_texte=f"Votre preuve de paiement pour la session d'examen <strong>{paiement.session.nom_session}</strong> du club <strong>{paiement.club.nom_club}</strong> a été rejetée par le service financier.",
-                    motif_ou_details=motif
-                )
+                try:
+                    envoyer_email_notification(
+                        destinataires=[paiement.club.email],
+                        sujet=f"Rejet du Paiement d'Examen — {paiement.club.nom_club}",
+                        titre_entete="Paiement aux Examens Non Validé",
+                        contenu_html_ou_texte=f"Votre preuve de paiement pour la session d'examen <strong>{paiement.session.titre}</strong> du club <strong>{paiement.club.nom_club}</strong> a été rejetée par le service financier.",
+                        motif_ou_details=motif
+                    )
+                except Exception:
+                    pass
             messages.warning(
                 request,
                 f"Paiement de « {paiement.club.nom_club} » rejeté. Le club peut resoumettre une preuve."

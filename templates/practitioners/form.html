@@ -110,7 +110,7 @@
                         {% else %}
                         <div class="form-text text-warning">
                             <i class="bi bi-exclamation-triangle me-1"></i>
-                            Obligatoire pour tout licencié ayant déjà un grade.
+                            Obligatoire uniquement pour les Grades Ligue (>= ROUGE). Optionnel pour les grades Club (Jaune, etc.).
                         </div>
                         {% endif %}
                     </div>
@@ -135,15 +135,16 @@
 </div>
 
 <script>
-const GRADES_ID = {{ grades_json|default:"{}"|safe }};
+const GRADES_INFO = {{ grades_json|default:"{}"|safe }};
 
 function verifierBulletin() {
     var gradeSelect  = document.getElementById('id_grade_actuel_nom');
     var blocBulletin = document.getElementById('bloc-bulletin');
     if (!gradeSelect || !blocBulletin) return;
-    var pk      = gradeSelect.value;
-    var idGrade = pk ? (GRADES_ID[pk] || 0) : 0;
-    blocBulletin.style.display = (idGrade >= 2) ? '' : 'none';
+    var pk   = gradeSelect.value;
+    var info = pk ? GRADES_INFO[pk] : null;
+    var estLigue = info ? (info.est_grade_ligue === true) : false;
+    blocBulletin.style.display = estLigue ? '' : 'none';
 }
 
 document.addEventListener('DOMContentLoaded', function() {

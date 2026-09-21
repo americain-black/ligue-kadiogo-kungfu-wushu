@@ -54,10 +54,9 @@ class PratiquantForm(forms.ModelForm):
         cleaned_data  = super().clean()
         grade_choisi  = cleaned_data.get('grade_actuel_nom')
         bulletin      = cleaned_data.get('bulletin_grade')
-        # Bulletin requis si création ET grade id_grade >= 2
-        # En modification, un bulletin déjà enregistré sur le licencié est accepté
-        est_creation = not (self.instance and self.instance.pk)
-        if grade_choisi and grade_choisi.id_grade >= 2:
+        # Bulletin requis uniquement si le grade est un Grade Ligue (est_grade_ligue = True, >= ROUGE)
+        # Optionnel pour tous les grades Club (Jaune, etc.)
+        if grade_choisi and grade_choisi.est_grade_ligue:
             bulletin_existant = (
                 self.instance and self.instance.pk and self.instance.bulletin_grade
             )
@@ -65,7 +64,7 @@ class PratiquantForm(forms.ModelForm):
                 self.add_error(
                     'bulletin_grade',
                     "Le bulletin / attestation du grade actuel est obligatoire "
-                    f"pour un licencié de grade « {grade_choisi} »."
+                    f"pour enregistrer un licencié de Grade Ligue « {grade_choisi} »."
                 )
         return cleaned_data
 

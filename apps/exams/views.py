@@ -1677,7 +1677,7 @@ def galerie_examens_publique(request):
     photos_active = []
     major_session = None
     meilleur_club = None
-    total_candidats = 0
+    total_licencies = 0
     total_admis = 0
     taux_reussite = 0
 
@@ -1686,14 +1686,14 @@ def galerie_examens_publique(request):
         major_session = session_active.get_major_session()
         meilleur_club = session_active.get_meilleur_club_session()
 
+        total_licencies = session_active.inscriptions.count()
         results_qs = Resultat.objects.filter(
             inscription__session=session_active,
-            inscription__statut__in=['VALIDEE', 'AUTORISE', 'PAIEMENT_VALIDE'],
             publie=True
         )
-        total_candidats = results_qs.count()
         total_admis = results_qs.filter(decision='ADMIS').count()
-        taux_reussite = round((total_admis / total_candidats * 100), 1) if total_candidats > 0 else 0
+        candidats_evalues = results_qs.count()
+        taux_reussite = round((total_admis / candidats_evalues * 100), 1) if candidats_evalues > 0 else 0
 
     return render(request, 'exams/galerie_publique.html', {
         'ligue': ligue,
@@ -1703,7 +1703,7 @@ def galerie_examens_publique(request):
         'photos_active': photos_active,
         'major_session': major_session,
         'meilleur_club': meilleur_club,
-        'total_candidats': total_candidats,
+        'total_licencies': total_licencies,
         'total_admis': total_admis,
         'taux_reussite': taux_reussite,
     })

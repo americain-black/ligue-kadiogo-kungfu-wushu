@@ -3,6 +3,38 @@
 
 {% block title %}Galerie Photo — {{ session.titre }}{% endblock %}
 
+{% block extra_css %}
+<style>
+    .lk-photo-card-preview {
+        cursor: pointer;
+        transition: transform 0.25s ease, box-shadow 0.25s ease;
+    }
+    .lk-photo-card-preview:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.15) !important;
+    }
+    .lk-photo-img-manager {
+        height: 180px;
+        object-fit: cover;
+    }
+    .lk-nav-arrow {
+        background-color: rgba(15, 23, 42, 0.75);
+        border: 1.5px solid rgba(255, 255, 255, 0.4);
+        width: 48px;
+        height: 48px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.2s ease;
+    }
+    .lk-nav-arrow:hover {
+        background-color: #dc2626 !important;
+        border-color: #dc2626 !important;
+        transform: scale(1.1);
+    }
+</style>
+{% endblock %}
+
 {% block sidebar %}
 {% include 'includes/_sidebar_ligue.html' %}
 {% endblock %}
@@ -53,10 +85,10 @@
     </div>
 </div>
 
-<!-- GESTION DE L'ALBUM PHOTO -->
+<!-- GESTION ET VISIONNEUSE DE L'ALBUM PHOTO -->
 <div class="card border-0 shadow-sm rounded-4">
     
-    <!-- BARRE D'ACTION HARMONISÉE -->
+    <!-- BARRE DE COMMANDE & BASCULEMENT DE MODE -->
     <div class="card-header bg-white border-0 py-3 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
         <div class="d-flex align-items-center gap-2">
             <h6 class="fw-bold mb-0 text-dark">
@@ -70,30 +102,35 @@
         {% if photos %}
         <div class="d-flex align-items-center gap-2 flex-wrap">
             <!-- Mode d'affichage Grille vs Tableau -->
-            <div class="btn-group btn-group-sm" role="group" aria-label="Mode d'affichage">
-                <a href="?mode=grid&page={{ page_obj.number }}" class="btn {% if mode_affichage != 'table' %}btn-danger{% else %}btn-outline-secondary{% endif %}" title="Vue Grille">
-                    <i class="bi bi-grid-fill me-1"></i>Grille
+            <div class="btn-group btn-group-sm me-2" role="group" aria-label="Mode d'affichage">
+                <a href="?mode=grid&page={{ page_obj.number }}" class="btn {% if mode_affichage != 'table' %}btn-danger{% else %}btn-outline-secondary{% endif %}" title="Vue Galerie Grille (Visionneuse & Faufilage)">
+                    <i class="bi bi-grid-fill me-1"></i>Grille (Galerie)
                 </a>
-                <a href="?mode=table&page={{ page_obj.number }}" class="btn {% if mode_affichage == 'table' %}btn-danger{% else %}btn-outline-secondary{% endif %}" title="Vue Tableau">
-                    <i class="bi bi-list-task me-1"></i>Tableau
+                <a href="?mode=table&page={{ page_obj.number }}" class="btn {% if mode_affichage == 'table' %}btn-danger{% else %}btn-outline-secondary{% endif %}" title="Vue Tableau (Édition & Légendes)">
+                    <i class="bi bi-list-task me-1"></i>Tableau (Édition)
                 </a>
             </div>
 
-            <!-- Bouton de suppression groupée -->
+            {% if mode_affichage == 'table' %}
+            <!-- Bouton de suppression groupée uniquement en mode Tableau -->
             <button type="button" class="btn btn-outline-danger btn-sm" id="btnDeleteBulk" onclick="confirmBulkDelete()">
                 <i class="bi bi-trash me-1"></i>Supprimer la sélection
             </button>
+            {% endif %}
         </div>
         {% endif %}
     </div>
     
     <div class="card-body p-4">
         {% if photos %}
+        
+        {% if mode_affichage == 'table' %}
+        
+        <!-- MODE 1 : VUE TABLEAU (ÉDITION DES LÉGENDES ET SUPPRESSIONS) -->
         <form method="post" id="formPhotos" action="{% url 'exams:gerer_photos_session' session.pk %}?page={{ page_obj.number }}&mode={{ mode_affichage }}">
             {% csrf_token %}
             <input type="hidden" name="action" id="formAction" value="update_legendes">
 
-            <!-- BARRE DE SÉLECTION -->
             <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom">
                 <div class="form-check">
                     <input class="form-check-input" type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this)">
@@ -101,10 +138,9 @@
                         Tout sélectionner
                     </label>
                 </div>
+                <small class="text-muted">Éditez les légendes et enregistrez vos modifications</small>
             </div>
 
-            {% if mode_affichage == 'table' %}
-            <!-- VUE TABLEAU COMPACTE -->
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0 border">
                     <thead class="table-light fs-7 text-uppercase">
@@ -153,60 +189,54 @@
                 </table>
             </div>
 
-            {% else %}
-
-            <!-- VUE GRILLE DE CARTES COMPACTES -->
-            <div class="row g-3">
-                {% for photo in photos %}
-                <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                    <div class="card h-100 border rounded-3 overflow-hidden shadow-sm position-relative">
-                        <!-- Image thumbnail compacte (140px) -->
-                        <div style="height: 140px; overflow: hidden;" class="bg-dark d-flex align-items-center justify-content-center position-relative">
-                            {% if photo.image %}
-                            <img src="{{ photo.image.url }}" alt="{{ photo.legende }}" class="w-100 h-100 object-fit-cover">
-                            {% else %}
-                            <i class="bi bi-image text-white fs-1"></i>
-                            {% endif %}
-                            
-                            <!-- Case à cocher -->
-                            <div class="position-absolute top-0 start-0 m-2">
-                                <input type="checkbox" name="selected_photos" value="{{ photo.id }}" class="form-check-input photo-select-cb shadow" style="width: 20px; height: 20px;">
-                            </div>
-
-                            <!-- Bouton Supprimer -->
-                            <a href="{% url 'exams:supprimer_photo_session' photo.id %}" 
-                               class="btn btn-danger btn-sm position-absolute top-0 end-0 m-2 rounded-circle p-1 lh-1 shadow-sm" 
-                               title="Supprimer"
-                               onclick="return confirm('Supprimer cette photo ?');">
-                                <i class="bi bi-x-lg fs-7"></i>
-                            </a>
-                        </div>
-                        
-                        <div class="card-body p-2 bg-light">
-                            <div class="mb-2">
-                                <input type="text" name="legende_{{ photo.id }}" value="{{ photo.legende }}" class="form-control form-control-sm" placeholder="Légende...">
-                            </div>
-                            <div class="d-flex align-items-center justify-content-between">
-                                <span class="fs-8 text-muted"><i class="bi bi-clock me-1"></i>{{ photo.date_ajout|date:"d/m/Y" }}</span>
-                                <div class="d-flex align-items-center gap-1">
-                                    <span class="fs-8 text-muted">Ordre:</span>
-                                    <input type="number" name="ordre_{{ photo.id }}" value="{{ photo.ordre }}" class="form-control form-control-sm text-center" style="width: 50px;">
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                {% endfor %}
-            </div>
-            {% endif %}
-
-            <!-- BOUTON D'ENREGISTREMENT -->
             <div class="mt-4 pt-3 border-top text-end">
                 <button type="button" class="btn btn-success px-4" onclick="submitLegendes()">
                     <i class="bi bi-check-lg me-1"></i>Enregistrer
                 </button>
             </div>
         </form>
+
+        {% else %}
+
+        <!-- MODE 2 : VUE GRILLE GALERIE (PHOTOS PROPRES ET VISIONNEUSE POUR FAULFILER) -->
+        <div class="text-muted small mb-3">
+            <i class="bi bi-zoom-in me-1 text-danger"></i>Cliquez sur une photo pour l'agrandir et défiler (faufiler) entre tous les clichés de la session.
+        </div>
+
+        <div class="row g-4">
+            {% for photo in photos %}
+            <div class="col-12 col-sm-6 col-md-4 col-lg-3">
+                <div class="card border-0 shadow-sm rounded-3 overflow-hidden lk-photo-card-preview h-100"
+                     data-bs-toggle="modal"
+                     data-bs-target="#photoModalManager"
+                     data-index="{{ forloop.counter0 }}">
+                    
+                    <div class="position-relative overflow-hidden bg-dark">
+                        {% if photo.image %}
+                        <img src="{{ photo.image.url }}" alt="{{ photo.legende }}" class="w-100 lk-photo-img-manager">
+                        {% else %}
+                        <div class="w-100 lk-photo-img-manager d-flex align-items-center justify-content-center text-white">
+                            <i class="bi bi-image fs-1"></i>
+                        </div>
+                        {% endif %}
+                        
+                        <div class="position-absolute bottom-0 start-0 end-0 p-2 text-white bg-dark bg-opacity-75">
+                            <small class="d-block text-truncate fw-medium">
+                                {% if photo.legende %}{{ photo.legende }}{% else %}<i class="opacity-50">Sans légende</i>{% endif %}
+                            </small>
+                        </div>
+                    </div>
+                    
+                    <div class="card-footer bg-light border-0 py-2 d-flex justify-content-between align-items-center fs-8 text-muted">
+                        <span><i class="bi bi-calendar3 me-1"></i>{{ photo.date_ajout|date:"d/m/Y" }}</span>
+                        <span>Ordre: <strong>{{ photo.ordre }}</strong></span>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        {% endif %}
 
         <!-- PAGINATION BOOTSTRAP -->
         {% if paginator.num_pages > 1 %}
@@ -246,6 +276,48 @@
         {% endif %}
     </div>
 </div>
+
+<!-- MODAL VISIONNEUSE LIGHTBOX POUR LE GESTIONNAIRE (POUR FAULFILER LES PHOTOS) -->
+<div class="modal fade" id="photoModalManager" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-xl">
+        <div class="modal-content border-0 rounded-4 overflow-hidden shadow-lg text-white" style="background-color: #0f172a;">
+            
+            <!-- En-tête modal -->
+            <div class="modal-header border-0 pb-0 d-flex justify-content-between align-items-center px-4 pt-3">
+                <div>
+                    <h6 class="modal-title fw-bold text-white mb-0" id="modalDateTextManager">Photo</h6>
+                    <small class="text-white-50 fs-7" id="modalCounterTextManager"></small>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+
+            <!-- Corps modal avec Flèches Précédent ◄ / Suivant ► -->
+            <div class="modal-body p-2 p-md-4 position-relative d-flex align-items-center justify-content-center min-vh-50">
+                
+                <!-- Flèche Gauche (Précédent) -->
+                <button type="button" class="btn btn-outline-light rounded-circle shadow position-absolute start-0 ms-3 z-3 lk-nav-arrow" id="prevPhotoBtnManager" title="Photo précédente (Flèche Gauche ◄)">
+                    <i class="bi bi-chevron-left fs-4"></i>
+                </button>
+
+                <!-- Image grand format -->
+                <div class="text-center w-100 d-flex justify-content-center align-items-center" style="max-height: 75vh; overflow: hidden;">
+                    <img src="" id="modalImgManager" class="img-fluid rounded-3 shadow" style="max-height: 72vh; object-fit: contain;" alt="Photo Grand Format">
+                </div>
+
+                <!-- Flèche Droite (Suivant) -->
+                <button type="button" class="btn btn-outline-light rounded-circle shadow position-absolute end-0 me-3 z-3 lk-nav-arrow" id="nextPhotoBtnManager" title="Photo suivante (Flèche Droite ►)">
+                    <i class="bi bi-chevron-right fs-4"></i>
+                </button>
+            </div>
+
+            <!-- Pied de page avec Légende -->
+            <div class="modal-footer border-0 bg-dark bg-opacity-50 justify-content-center px-4 py-3">
+                <p class="mb-0 fw-semibold fs-6 text-center text-white" id="modalCaptionTextManager"></p>
+            </div>
+
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -271,5 +343,73 @@ function confirmBulkDelete() {
         document.getElementById('formPhotos').submit();
     }
 }
+
+// LOGIQUE POUR LA VISIONNEUSE EN MODE GRILLE
+document.addEventListener('DOMContentLoaded', function() {
+    const photosList = [
+        {% for photo in photos %}
+        {
+            index: {{ forloop.counter0 }},
+            img: "{% if photo.image %}{{ photo.image.url }}{% endif %}",
+            caption: "{{ photo.legende|default:'Session d\'examen'|escapejs }}",
+            date: "{{ photo.date_ajout|date:'d/m/Y' }}"
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+
+    let currentIndex = 0;
+    const photoModalEl = document.getElementById('photoModalManager');
+    const modalImg = document.getElementById('modalImgManager');
+    const modalCaption = document.getElementById('modalCaptionTextManager');
+    const modalDate = document.getElementById('modalDateTextManager');
+    const modalCounter = document.getElementById('modalCounterTextManager');
+    const prevBtn = document.getElementById('prevPhotoBtnManager');
+    const nextBtn = document.getElementById('nextPhotoBtnManager');
+
+    function updateManagerModal(index) {
+        if (!photosList.length) return;
+        if (index < 0) index = photosList.length - 1;
+        if (index >= photosList.length) index = 0;
+        currentIndex = index;
+
+        const currentPhoto = photosList[currentIndex];
+        modalImg.src = currentPhoto.img;
+        modalCaption.textContent = currentPhoto.caption;
+        modalDate.textContent = 'Photo du ' + currentPhoto.date;
+        modalCounter.textContent = 'Photo ' + (currentIndex + 1) + ' sur ' + photosList.length;
+    }
+
+    if (photoModalEl && photosList.length > 0) {
+        photoModalEl.addEventListener('show.bs.modal', function(event) {
+            const card = event.relatedTarget;
+            const idx = parseInt(card.getAttribute('data-index') || '0', 10);
+            updateManagerModal(idx);
+        });
+
+        if (prevBtn) {
+            prevBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                updateManagerModal(currentIndex - 1);
+            });
+        }
+
+        if (nextBtn) {
+            nextBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                updateManagerModal(currentIndex + 1);
+            });
+        }
+
+        document.addEventListener('keydown', function(e) {
+            if (photoModalEl.classList.contains('show')) {
+                if (e.key === 'ArrowLeft') {
+                    updateManagerModal(currentIndex - 1);
+                } else if (e.key === 'ArrowRight') {
+                    updateManagerModal(currentIndex + 1);
+                }
+            }
+        });
+    }
+});
 </script>
 {% endblock %}

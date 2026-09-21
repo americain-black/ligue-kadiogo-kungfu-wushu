@@ -19,9 +19,6 @@
             <small class="text-muted">Session : <strong>{{ session.titre }}</strong> ({{ session.date_examen|date:"d/m/Y" }} — {{ session.lieu }})</small>
         </div>
     </div>
-    <a href="{% url 'exams:galerie_examens_publique' %}?session={{ session.pk }}" class="btn btn-ligue btn-sm" target="_blank" title="Voir sur le site public" data-bs-toggle="tooltip">
-        <i class="bi bi-eye me-1"></i>Aperçu public
-    </a>
 </div>
 
 <!-- FORMULAIRE D'UPLOAD MULTIPLE -->

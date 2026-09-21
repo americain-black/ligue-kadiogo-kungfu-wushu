@@ -1,83 +1,83 @@
 <span class="sidebar-title">Navigation</span>
 <a href="{% url 'accounts:dashboard_ligue' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard_ligue' or request.resolver_match.url_name == 'tableau_de_bord' %}active{% endif %}">
-    <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
+    <i class="bi bi-speedometer2 text-warning me-2"></i>Tableau de bord
 </a>
 <a href="{% url 'ligues:reporting_dashboard' %}" class="nav-link {% if request.resolver_match.namespace == 'ligues' and request.resolver_match.url_name == 'reporting_dashboard' %}active{% endif %}">
-    <i class="bi bi-graph-up-arrow me-2"></i>Statistiques
+    <i class="bi bi-graph-up-arrow text-warning me-2"></i>Statistiques
 </a>
 
 
 <span class="sidebar-title mt-2">Gestion</span>
 <a href="{% url 'clubs:liste' %}" class="nav-link {% if request.resolver_match.namespace == 'clubs' and 'affiliation' not in request.resolver_match.url_name and 'attestation' not in request.resolver_match.url_name and 'validation' not in request.resolver_match.url_name and 'rejeter' not in request.resolver_match.url_name %}active{% endif %}">
-    <i class="bi bi-building me-2"></i>Clubs
+    <i class="bi bi-building text-warning me-2"></i>Clubs
 </a>
 <a href="{% url 'practitioners:liste' %}" class="nav-link {% if request.resolver_match.namespace == 'practitioners' and request.resolver_match.url_name == 'liste' %}active{% endif %}">
-    <i class="bi bi-people me-2"></i>Licenciés
+    <i class="bi bi-people text-warning me-2"></i>Licenciés
 </a>
 <a href="{% url 'practitioners:grades' %}" class="nav-link {% if request.resolver_match.namespace == 'practitioners' and request.resolver_match.url_name == 'grades' %}active{% endif %}">
-    <i class="bi bi-award me-2"></i>Grades
+    <i class="bi bi-award text-warning me-2"></i>Grades
 </a>
 <a href="{% url 'results:liste_resultats_ligue' %}" class="nav-link {% if request.resolver_match.namespace == 'results' %}active{% endif %}">
-    <i class="bi bi-award-fill me-2"></i>Résultats & Bulletins
+    <i class="bi bi-award-fill text-warning me-2"></i>Résultats & Bulletins
 </a>
 <a href="{% url 'exams:annees_sportives' %}" class="nav-link {% if request.resolver_match.namespace == 'exams' and request.resolver_match.url_name == 'annees_sportives' %}active{% endif %}">
-    <i class="bi bi-calendar2-range me-2"></i>Années sportives
+    <i class="bi bi-calendar2-range text-warning me-2"></i>Années sportives
 </a>
 <a href="{% url 'exams:liste' %}" class="nav-link {% if request.resolver_match.namespace == 'exams' and request.resolver_match.url_name == 'liste' %}active{% endif %}">
-    <i class="bi bi-journal-check me-2"></i>Sessions d'examen
+    <i class="bi bi-journal-check text-warning me-2"></i>Sessions d'examen
 </a>
 <a href="{% url 'exams:tarifs_accueil' %}" class="nav-link {% if request.resolver_match.namespace == 'exams' and 'tarif' in request.resolver_match.url_name %}active{% endif %}">
-    <i class="bi bi-cash-coin me-2"></i>Tarifs d'examen
+    <i class="bi bi-cash-coin text-warning me-2"></i>Tarifs d'examen
 </a>
 <a href="{% url 'exams:parametres_examen' %}" class="nav-link {% if request.resolver_match.namespace == 'exams' and request.resolver_match.url_name == 'parametres_examen' %}active{% endif %}">
-    <i class="bi bi-percent me-2"></i>Répartition % Examen
+    <i class="bi bi-percent text-warning me-2"></i>Répartition % Examen
 </a>
 <a href="{% url 'exams:rubriques' %}" class="nav-link {% if request.resolver_match.namespace == 'exams' and request.resolver_match.url_name == 'rubriques' %}active{% endif %}">
-    <i class="bi bi-list-task me-2"></i>Rubriques / Épreuves
+    <i class="bi bi-list-task text-warning me-2"></i>Rubriques / Épreuves
 </a>
 <a href="{% url 'exams:options' %}" class="nav-link {% if request.resolver_match.namespace == 'exams' and request.resolver_match.url_name == 'options' %}active{% endif %}">
-    <i class="bi bi-tags me-2"></i>Options / Styles
+    <i class="bi bi-tags text-warning me-2"></i>Options / Styles
 </a>
 <a href="{% url 'exams:modele_matricule' %}" class="nav-link {% if request.resolver_match.namespace == 'exams' and request.resolver_match.url_name == 'modele_matricule' %}active{% endif %}">
-    <i class="bi bi-123 me-2"></i>Modèle de matricule
+    <i class="bi bi-123 text-warning me-2"></i>Modèle de matricule
 </a>
 <a href="{% url 'clubs:demandes_affiliation' %}" class="nav-link {% if request.resolver_match.url_name == 'demandes_affiliation' or request.resolver_match.url_name == 'detail_demande_affiliation' or request.resolver_match.url_name == 'confirmer_validation' or request.resolver_match.url_name == 'rejeter_demande' %}active{% endif %}">
-    <i class="bi bi-file-earmark-check me-2"></i>Dossiers d'affiliation
+    <i class="bi bi-file-earmark-check text-warning me-2"></i>Dossiers d'affiliation
 </a>
 <a href="{% url 'clubs:historique_affiliations' %}" class="nav-link ps-4 {% if request.resolver_match.url_name == 'historique_affiliations' %}active{% endif %}">
-    <i class="bi bi-archive me-2"></i>Historique d'affiliation
+    <i class="bi bi-archive text-warning me-2"></i>Historique d'affiliation
 </a>
 <a href="{% url 'clubs:modele_attestation' %}" class="nav-link ps-4 {% if request.resolver_match.url_name == 'modele_attestation' %}active{% endif %}">
-    <i class="bi bi-file-earmark-pdf-fill me-2"></i>Modèle Attestation
+    <i class="bi bi-file-earmark-pdf-fill text-warning me-2"></i>Modèle Attestation
 </a>
 <a href="{% url 'clubs:parametres_affiliation' %}" class="nav-link ps-4 {% if request.resolver_match.url_name == 'parametres_affiliation' %}active{% endif %}">
-    <i class="bi bi-cash-coin me-2"></i>Frais d'affiliation
+    <i class="bi bi-cash-coin text-warning me-2"></i>Frais d'affiliation
 </a>
 
 <span class="sidebar-title mt-2">Communication</span>
 <a href="{% url 'communication:liste_actualites' %}" class="nav-link {% if request.resolver_match.namespace == 'communication' and 'actualite' in request.resolver_match.url_name %}active{% endif %}">
-    <i class="bi bi-newspaper me-2"></i>Actualités
+    <i class="bi bi-newspaper text-warning me-2"></i>Actualités
 </a>
 <a href="{% url 'communication:liste_documents' %}" class="nav-link {% if request.resolver_match.namespace == 'communication' and 'document' in request.resolver_match.url_name %}active{% endif %}">
-    <i class="bi bi-file-earmark-text me-2"></i>Documents
+    <i class="bi bi-file-earmark-text text-warning me-2"></i>Documents
 </a>
 
 <span class="sidebar-title mt-2">Finances</span>
 <a href="{% url 'payments:paiements_valides_accueil' %}" class="nav-link {% if request.resolver_match.namespace == 'payments' %}active{% endif %}">
-    <i class="bi bi-cash-coin me-2"></i>Paiements validés
+    <i class="bi bi-cash-coin text-warning me-2"></i>Paiements validés
 </a>
 <a href="{% url 'ligues:organigramme' %}" class="nav-link {% if request.resolver_match.namespace == 'ligues' and request.resolver_match.url_name == 'organigramme' %}active{% endif %}">
-    <i class="bi bi-diagram-3 me-2"></i>Organigramme ligue
+    <i class="bi bi-diagram-3 text-warning me-2"></i>Organigramme ligue
 </a>
 
 <span class="sidebar-title mt-2">Configurations</span>
 <a href="{% url 'accounts:liste_utilisateurs_ligue' %}" class="nav-link {% if request.resolver_match.url_name == 'liste_utilisateurs_ligue' or request.resolver_match.url_name == 'creer_utilisateur_ligue' %}active{% endif %}">
-    <i class="bi bi-people-fill me-2"></i>Utilisateurs
+    <i class="bi bi-people-fill text-warning me-2"></i>Utilisateurs
 </a>
 <a href="{% url 'accounts:gerer_permissions' %}" class="nav-link {% if request.resolver_match.url_name == 'gerer_permissions' %}active{% endif %}">
-    <i class="bi bi-shield-lock-fill me-2"></i>Permissions
+    <i class="bi bi-shield-lock-fill text-warning me-2"></i>Permissions
 </a>
 
 <a href="{% url 'ligues:editer_infos' %}" class="nav-link {% if request.resolver_match.namespace == 'ligues' and request.resolver_match.url_name == 'editer_infos' %}active{% endif %}">
-    <i class="bi bi-gear-fill me-2"></i>Paramètres
+    <i class="bi bi-gear-fill text-warning me-2"></i>Paramètres
 </a>

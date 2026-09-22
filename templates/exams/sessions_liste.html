@@ -84,11 +84,6 @@
                        data-bs-toggle="tooltip" data-bs-placement="top">
                         <i class="bi bi-info-circle"></i>
                     </a>
-                    <a href="{% url 'exams:gerer_photos_session' session.pk %}"
-                       class="btn-action btn-action-edit" title="Galerie photo ({% if session.photos.count %}{{ session.photos.count }}{% else %}0{% endif %})"
-                       data-bs-toggle="tooltip" data-bs-placement="top">
-                        <i class="bi bi-images"></i>
-                    </a>
                     {% if session.statut == 'EN_PREPARATION' %}
                     <a href="{% url 'exams:modifier' session.pk %}"
                        class="btn-action btn-action-edit" title="Modifier"

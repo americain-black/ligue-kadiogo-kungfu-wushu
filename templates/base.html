@@ -103,17 +103,10 @@
 
         /* ── Typographie globale & Layout Ancré ── */
         html, body {
-            overflow: hidden !important;
-            height: 100vh !important;
-            margin: 0 !important;
-            padding: 0 !important;
-            scrollbar-width: none;
-            -ms-overflow-style: none;
-        }
-        html::-webkit-scrollbar, body::-webkit-scrollbar {
-            display: none !important;
-            width: 0 !important;
-            height: 0 !important;
+            margin: 0;
+            padding: 0;
+            overflow-x: hidden;
+            min-height: 100vh;
         }
         html { font-size: 16px; }
         body {

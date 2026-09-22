@@ -16,11 +16,11 @@ from django.db.models import Sum, Count, Q
 
 # pyrefly: ignore [missing-import]
 from django.db import transaction
-from .models import SessionExamen, AffectationJury, Inscription, AnneeSportive, TarifExamen, Rubrique, RubriqueGrade, OptionExamen, ModeleMatricule, ParametresExamen, PhotoSessionExamen
+from .models import SessionExamen, AffectationJury, Inscription, AnneeSportive, TarifExamen, Rubrique, RubriqueGrade, OptionExamen, ModeleMatricule, ParametresExamen, PhotoSessionExamen, AlbumPhoto
 from .forms import (
     SessionExamenForm, MultiInscriptionForm, AffectationJuryForm, AnneeSportiveForm,
     TarifExamenForm, RubriqueForm, RubriqueGradeForm, OptionExamenForm,
-    ModeleMatriculeForm, ParametresExamenForm, PhotoSessionExamenForm, MultipleImageUploadForm
+    ModeleMatriculeForm, ParametresExamenForm, PhotoSessionExamenForm, MultipleImageUploadForm, AlbumPhotoForm
 )
 from apps.payments.models import PaiementExamen
 from apps.practitioners.models import Grade
@@ -1576,10 +1576,183 @@ def liste_licencies_club(request, session_pk):
 
 
 @gest_ligue_requis
+def liste_albums(request):
+    """
+    Gestion globale des albums photos (Liste & Création d'un nouvel album).
+    """
+    from django.core.paginator import Paginator
+
+    albums_qs = AlbumPhoto.objects.all().select_related('session_examen').prefetch_related('photos')
+    
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        if action == 'creer_album':
+            form_album = AlbumPhotoForm(request.POST, request.FILES)
+            if form_album.is_valid():
+                album = form_album.save(commit=False)
+                album.cree_par = request.user
+                album.save()
+
+                files = request.FILES.getlist('images')
+                legende_commune = request.POST.get('legende_commune', '').strip()
+                count = 0
+                if files:
+                    for f in files:
+                        PhotoSessionExamen.objects.create(
+                            album=album,
+                            session=album.session_examen,
+                            image=f,
+                            legende=legende_commune,
+                            ajoute_par=request.user
+                        )
+                        count += 1
+                
+                messages.success(request, f"L'album « {album.titre} » a été créé avec succès ({count} photo(s) ajoutée(s)).")
+                return redirect('exams:gerer_photos_album', pk=album.pk)
+            else:
+                messages.error(request, "Veuillez corriger les erreurs du formulaire de création d'album.")
+    else:
+        form_album = AlbumPhotoForm()
+
+    active_tab = request.GET.get('tab', 'liste')
+    if request.method == 'POST' and request.POST.get('action') == 'creer_album':
+        active_tab = 'nouveau'
+
+    paginator = Paginator(albums_qs, 9)
+    page_obj = paginator.get_page(request.GET.get('page', 1))
+
+    form_upload = MultipleImageUploadForm()
+    return render(request, 'exams/gerer_albums.html', {
+        'albums': page_obj,
+        'page_obj': page_obj,
+        'form_album': form_album,
+        'form_upload': form_upload,
+        'active_tab': active_tab,
+        'total_albums': albums_qs.count(),
+    })
+
+
+@gest_ligue_requis
+def gerer_photos_album(request, pk):
+    """
+    Gestion des photos au sein d'un album spécifique.
+    """
+    from django.core.paginator import Paginator
+
+    album = get_object_or_404(AlbumPhoto, pk=pk)
+    photos_all = album.photos.all()
+
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        page_num = request.GET.get('page', 1)
+        mode_view = request.GET.get('mode', 'grid')
+
+        if action == 'upload_multiple':
+            files = request.FILES.getlist('images')
+            legende_commune = request.POST.get('legende_commune', '').strip()
+            if files:
+                count = 0
+                for f in files:
+                    PhotoSessionExamen.objects.create(
+                        album=album,
+                        session=album.session_examen,
+                        image=f,
+                        legende=legende_commune,
+                        ajoute_par=request.user
+                    )
+                    count += 1
+                messages.success(request, f"{count} photo(s) ajoutée(s) avec succès à l'album « {album.titre} ».")
+                return redirect(f"{reverse('exams:gerer_photos_album', kwargs={'pk': album.pk})}?mode={mode_view}")
+            else:
+                messages.error(request, "Veuillez sélectionner au moins une image.")
+
+        elif action == 'update_legendes':
+            for photo in photos_all:
+                legende_key = f'legende_{photo.id}'
+                ordre_key = f'ordre_{photo.id}'
+                if legende_key in request.POST:
+                    photo.legende = request.POST.get(legende_key, '').strip()
+                if ordre_key in request.POST:
+                    try:
+                        photo.ordre = int(request.POST.get(ordre_key, 0))
+                    except ValueError:
+                        pass
+                photo.save()
+            messages.success(request, "Légendes et ordre des photos mis à jour.")
+            return redirect(f"{reverse('exams:gerer_photos_album', kwargs={'pk': album.pk})}?page={page_num}&mode={mode_view}")
+
+        elif action == 'delete_bulk':
+            selected_ids = request.POST.getlist('selected_photos')
+            if selected_ids:
+                photos_to_delete = PhotoSessionExamen.objects.filter(id__in=selected_ids, album=album)
+                count = 0
+                for p in photos_to_delete:
+                    if p.image:
+                        try:
+                            p.image.delete(save=False)
+                        except Exception:
+                            pass
+                    p.delete()
+                    count += 1
+                messages.success(request, f"{count} photo(s) supprimée(s) de l'album.")
+            else:
+                messages.warning(request, "Aucune photo sélectionnée pour la suppression.")
+            return redirect(f"{reverse('exams:gerer_photos_album', kwargs={'pk': album.pk})}?mode={mode_view}")
+
+        elif action == 'modifier_album':
+            form_album = AlbumPhotoForm(request.POST, request.FILES, instance=album)
+            if form_album.is_valid():
+                form_album.save()
+                messages.success(request, "Informations de l'album mises à jour.")
+                return redirect('exams:gerer_photos_album', pk=album.pk)
+
+    paginator = Paginator(photos_all, 12)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+    mode_affichage = request.GET.get('mode', 'grid')
+
+    form_upload = MultipleImageUploadForm()
+    form_edit_album = AlbumPhotoForm(instance=album)
+
+    return render(request, 'exams/gerer_photos_album.html', {
+        'album': album,
+        'photos_all_count': photos_all.count(),
+        'photos': page_obj,
+        'page_obj': page_obj,
+        'paginator': paginator,
+        'mode_affichage': mode_affichage,
+        'form_upload': form_upload,
+        'form_edit_album': form_edit_album,
+    })
+
+
+@gest_ligue_requis
+def supprimer_album(request, pk):
+    """
+    Suppression complète d'un album photo et de ses images associées.
+    """
+    album = get_object_or_404(AlbumPhoto, pk=pk)
+    titre = album.titre
+    for photo in album.photos.all():
+        if photo.image:
+            try:
+                photo.image.delete(save=False)
+            except Exception:
+                pass
+    if album.couverture:
+        try:
+            album.couverture.delete(save=False)
+        except Exception:
+            pass
+    album.delete()
+    messages.success(request, f"L'album « {titre} » et ses photos ont été supprimés.")
+    return redirect('exams:liste_albums')
+
+
+@gest_ligue_requis
 def gerer_photos_session(request, pk):
     """
     Gestion ergonomique de l'album photo d'une session d'examen pour la ligue.
-    Prend en charge l'upload multiple, la pagination (8 par page), le basculement Grille/Tableau et la suppression en masse.
     """
     from django.core.paginator import Paginator
 
@@ -1642,7 +1815,6 @@ def gerer_photos_session(request, pk):
                 messages.warning(request, "Aucune photo sélectionnée pour la suppression.")
             return redirect(f"{reverse('exams:gerer_photos_session', kwargs={'pk': session.pk})}?mode={mode_view}")
 
-    # Pagination : 8 photos par page
     paginator = Paginator(photos_all, 8)
     page_number = request.GET.get('page', 1)
     page_obj = paginator.get_page(page_number)
@@ -1666,7 +1838,8 @@ def supprimer_photo_session(request, photo_id):
     Suppression d'une photo de la galerie d'une session d'examen.
     """
     photo = get_object_or_404(PhotoSessionExamen, pk=photo_id, session__annee_sportive__ligue=request.user.ligue)
-    session_pk = photo.session.pk
+    session_pk = photo.session.pk if photo.session else None
+    album_pk = photo.album.pk if photo.album else None
     if photo.image:
         try:
             photo.image.delete(save=False)
@@ -1674,12 +1847,14 @@ def supprimer_photo_session(request, photo_id):
             pass
     photo.delete()
     messages.success(request, "Photo supprimée de l'album.")
+    if album_pk:
+        return redirect('exams:gerer_photos_album', pk=album_pk)
     return redirect('exams:gerer_photos_session', pk=session_pk)
 
 
 def galerie_examens_publique(request):
     """
-    Page publique "Examens & Galerie" (Vision d'ensemble des examens).
+    Page publique "Galerie & Mémoire" (Consultation par Album Photo & Récapitulatif d'Examen).
     Accessible librement sans authentification.
     """
     from apps.ligues.models import Ligue
@@ -1687,26 +1862,31 @@ def galerie_examens_publique(request):
 
     ligue = Ligue.objects.filter(sigle='LKKFW').first() or Ligue.objects.first()
     
-    if ligue:
-        saisons = AnneeSportive.objects.filter(ligue=ligue).order_by('-date_debut')
-        sessions = SessionExamen.objects.filter(annee_sportive__ligue=ligue).order_by('-date_examen')
-    else:
-        saisons = AnneeSportive.objects.none()
-        sessions = SessionExamen.objects.none()
+    albums = AlbumPhoto.objects.all().prefetch_related('photos').select_related('session_examen')
+    saisons = AnneeSportive.objects.filter(ligue=ligue).order_by('-date_debut') if ligue else AnneeSportive.objects.none()
+    sessions = SessionExamen.objects.filter(annee_sportive__ligue=ligue).order_by('-date_examen') if ligue else SessionExamen.objects.none()
 
     saison_id = request.GET.get('saison')
     if saison_id and str(saison_id).isdigit():
         sessions = sessions.filter(annee_sportive_id=int(saison_id))
+        albums = albums.filter(Q(session_examen__annee_sportive_id=int(saison_id)) | Q(session_examen__isnull=True))
+
+    q = request.GET.get('q', '').strip()
+    if q:
+        albums = albums.filter(Q(titre__icontains=q) | Q(description__icontains=q))
+
+    album_id = request.GET.get('album')
+    album_actif = None
+    if album_id and str(album_id).isdigit():
+        album_actif = albums.filter(pk=int(album_id)).first()
 
     session_id = request.GET.get('session')
     session_active = None
     if session_id and str(session_id).isdigit():
         session_active = sessions.filter(pk=int(session_id)).first()
-    
     if not session_active:
-        session_active = sessions.filter(photos__isnull=False).distinct().first() or sessions.first()
+        session_active = sessions.first()
 
-    photos_active = []
     major_session = None
     meilleur_club = None
     total_licencies = 0
@@ -1714,32 +1894,28 @@ def galerie_examens_publique(request):
     taux_reussite = 0
 
     if session_active:
-        photos_active = session_active.photos.all()
         major_session = session_active.get_major_session()
         meilleur_club = session_active.get_meilleur_club_session()
-
         STATUTS_VALIDES = ['VALIDEE', 'AUTORISE', 'PAIEMENT_VALIDE']
         total_licencies = session_active.inscriptions.filter(statut__in=STATUTS_VALIDES).count()
         if total_licencies == 0:
             total_licencies = session_active.inscriptions.count()
-
-        results_qs = Resultat.objects.filter(
-            inscription__session=session_active,
-            publie=True
-        )
+        results_qs = Resultat.objects.filter(inscription__session=session_active, publie=True)
         total_admis = results_qs.filter(decision='ADMIS').count()
         candidats_evalues = results_qs.count()
         taux_reussite = round((total_admis / candidats_evalues * 100), 1) if candidats_evalues > 0 else 0
 
     return render(request, 'exams/galerie_publique.html', {
         'ligue': ligue,
+        'albums': albums,
+        'album_actif': album_actif,
         'saisons': saisons,
         'sessions': sessions,
         'session_active': session_active,
-        'photos_active': photos_active,
         'major_session': major_session,
         'meilleur_club': meilleur_club,
         'total_licencies': total_licencies,
         'total_admis': total_admis,
         'taux_reussite': taux_reussite,
+        'search_q': q,
     })

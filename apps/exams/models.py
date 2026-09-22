@@ -3,6 +3,7 @@ from django.db import models
 from django.db.models import F
 from django.core.exceptions import ValidationError
 from django.conf import settings
+from django.utils import timezone
 
 
 class AnneeSportive(models.Model):
@@ -378,18 +379,81 @@ class SessionExamen(models.Model):
         return None
 
 
+class AlbumPhoto(models.Model):
+    """
+    Album photo pour la ligue (événements, examens, stages, cérémonies, etc.).
+    Peut être associé optionnellement à une session d'examen.
+    """
+    titre = models.CharField(
+        max_length=200,
+        verbose_name="Titre de l'album"
+    )
+    description = models.TextField(
+        blank=True,
+        verbose_name="Description / Légende globale",
+        help_text="Présentation générale de l'album photo"
+    )
+    date_evenement = models.DateField(
+        default=timezone.now,
+        verbose_name="Date de l'événement"
+    )
+    session_examen = models.ForeignKey(
+        'SessionExamen',
+        on_delete=models.SET_NULL,
+        null=True, blank=True,
+        related_name='albums',
+        verbose_name="Session d'examen associée (optionnel)"
+    )
+    couverture = models.ImageField(
+        upload_to='albums/couvertures/%Y/%m/',
+        null=True, blank=True,
+        verbose_name="Image de couverture"
+    )
+    date_creation = models.DateTimeField(auto_now_add=True)
+    cree_par = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True, blank=True
+    )
+
+    class Meta:
+        verbose_name = "Album photo"
+        verbose_name_plural = "Albums photos"
+        ordering = ['-date_evenement', '-date_creation']
+
+    def __str__(self):
+        return self.titre
+
+    def get_couverture_url(self):
+        if self.couverture:
+            return self.couverture.url
+        first_photo = self.photos.first()
+        if first_photo and first_photo.image:
+            return first_photo.image.url
+        return None
+
+
 class PhotoSessionExamen(models.Model):
     """
-    Photo de l'album d'une session d'examen avec légende / commentaire.
+    Photo d'un album de la ligue, rattachée à un AlbumPhoto et/ou une SessionExamen.
     """
+    album = models.ForeignKey(
+        AlbumPhoto,
+        on_delete=models.CASCADE,
+        related_name='photos',
+        null=True, blank=True,
+        verbose_name="Album photo"
+    )
     session = models.ForeignKey(
         SessionExamen,
         on_delete=models.CASCADE,
-        related_name='photos'
+        related_name='photos',
+        null=True, blank=True,
+        verbose_name="Session d'examen (optionnel)"
     )
     image = models.ImageField(
         upload_to='photos_examens/%Y/%m/',
-        verbose_name="Photo de l'examen"
+        verbose_name="Photo de l'album"
     )
     legende = models.CharField(
         max_length=255,
@@ -409,12 +473,16 @@ class PhotoSessionExamen(models.Model):
     )
 
     class Meta:
-        verbose_name = "Photo d'examen"
-        verbose_name_plural = "Photos d'examens"
+        verbose_name = "Photo d'album"
+        verbose_name_plural = "Photos d'albums"
         ordering = ['ordre', '-date_ajout']
 
     def __str__(self):
-        return f"Photo {self.id} — {self.session.titre}"
+        if self.album:
+            return f"Photo {self.id} — Album: {self.album.titre}"
+        if self.session:
+            return f"Photo {self.id} — Examen: {self.session.titre}"
+        return f"Photo {self.id}"
 
 
 class AffectationJury(models.Model):

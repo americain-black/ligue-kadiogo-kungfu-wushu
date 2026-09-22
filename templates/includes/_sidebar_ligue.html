@@ -26,6 +26,9 @@
 <a href="{% url 'exams:liste' %}" class="nav-link {% if request.resolver_match.namespace == 'exams' and request.resolver_match.url_name == 'liste' %}active{% endif %}">
     <i class="bi bi-journal-check me-2"></i>Sessions d'examen
 </a>
+<a href="{% url 'exams:liste_albums' %}" class="nav-link {% if request.resolver_match.url_name == 'liste_albums' or request.resolver_match.url_name == 'gerer_photos_album' %}active{% endif %}">
+    <i class="bi bi-images me-2"></i>Galerie & Albums
+</a>
 <a href="{% url 'exams:tarifs_accueil' %}" class="nav-link {% if request.resolver_match.namespace == 'exams' and 'tarif' in request.resolver_match.url_name %}active{% endif %}">
     <i class="bi bi-cash-coin me-2"></i>Tarifs d'examen
 </a>

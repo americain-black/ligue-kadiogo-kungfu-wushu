@@ -1,11 +1,29 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Galerie & Récapitulatif des Examens — Ligue du Kadiogo{% endblock %}
+{% block title %}Galerie & Albums Photos — Ligue du Kadiogo{% endblock %}
 
 {% block extra_css %}
 <link href="{% static 'css/lk_public.css' %}?v=2.0" rel="stylesheet">
 <style>
+    .lk-album-card {
+        cursor: pointer;
+        transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+        border: 1px solid rgba(226, 232, 240, 0.8);
+    }
+    .lk-album-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 12px 25px rgba(15, 23, 42, 0.15) !important;
+        border-color: #f59e0b !important;
+    }
+    .lk-album-cover {
+        height: 220px;
+        object-fit: cover;
+        transition: transform 0.4s ease;
+    }
+    .lk-album-card:hover .lk-album-cover {
+        transform: scale(1.04);
+    }
     .lk-photo-card {
         cursor: pointer;
         transition: transform 0.25s ease, box-shadow 0.25s ease;
@@ -15,7 +33,7 @@
         box-shadow: 0 10px 20px rgba(0,0,0,0.15) !important;
     }
     .lk-photo-img {
-        height: 220px;
+        height: 200px;
         object-fit: cover;
     }
     .badge-major {
@@ -37,10 +55,10 @@
 <section class="lk-banner-header shadow-sm">
     <div class="container">
         <div class="lk-page-title-accent">
-            GALERIE & MÉMOIRE DES EXAMENS
+            GALERIE & MÉMOIRE DE LA LIGUE
         </div>
         <div class="lk-breadcrumb ms-3">
-            <a href="{% url 'accounts:accueil' %}">Home</a> &nbsp;.&nbsp; <span>Galerie & Récapitulatif</span>
+            <a href="{% url 'accounts:accueil' %}">Accueil</a> &nbsp;.&nbsp; <span>Galerie Photos & Albums</span>
         </div>
     </div>
 </section>
@@ -49,71 +67,163 @@
 <section class="py-4 bg-light min-vh-75" id="galerieExamensPublique">
     <div class="container">
 
-        <!-- SÉLECTEUR D'EXAMEN & SAISON -->
+        <!-- BARRE DE RECHERCHE & FILTRES -->
         <div class="card border-0 shadow-sm rounded-4 mb-4 p-3 bg-white">
-            <div class="row g-3 align-items-center">
+            <form method="get" class="row g-3 align-items-center">
                 <div class="col-md-5">
                     <label class="form-label small fw-bold text-muted mb-1"><i class="bi bi-calendar-event me-1"></i>Filtrer par Saison Sportive :</label>
-                    <form method="get" id="formSaison">
-                        <select name="saison" class="form-select border-danger fw-semibold" onchange="this.form.submit()">
-                            <option value="">-- Toutes les Saisons --</option>
-                            {% for s in saisons %}
-                            <option value="{{ s.pk }}" {% if request.GET.saison == s.pk|stringformat:"s" %}selected{% endif %}>
-                                Saison {{ s.libelle }}
-                            </option>
-                            {% endfor %}
-                        </select>
-                    </form>
+                    <select name="saison" class="form-select border-warning fw-semibold" onchange="this.form.submit()">
+                        <option value="">-- Toutes les Saisons --</option>
+                        {% for s in saisons %}
+                        <option value="{{ s.pk }}" {% if request.GET.saison == s.pk|stringformat:"s" %}selected{% endif %}>
+                            Saison {{ s.libelle }}
+                        </option>
+                        {% endfor %}
+                    </select>
                 </div>
 
                 <div class="col-md-7">
-                    <label class="form-label small fw-bold text-muted mb-1"><i class="bi bi-award-fill me-1"></i>Sélectionner un Examen :</label>
-                    <form method="get" id="formSession">
-                        {% if request.GET.saison %}
-                        <input type="hidden" name="saison" value="{{ request.GET.saison }}">
-                        {% endif %}
-                        <select name="session" class="form-select border-danger fw-bold text-dark bg-light" onchange="this.form.submit()">
-                            {% for sess in sessions %}
-                            <option value="{{ sess.pk }}" {% if session_active and session_active.pk == sess.pk %}selected{% endif %}>
-                                {{ sess.titre }} ({{ sess.date_examen|date:"d/m/Y" }} — {{ sess.lieu }})
-                            </option>
-                            {% empty %}
-                            <option value="">Aucune session disponible</option>
-                            {% endfor %}
-                        </select>
-                    </form>
+                    <label class="form-label small fw-bold text-muted mb-1"><i class="bi bi-search me-1"></i>Rechercher un Album par Titre :</label>
+                    <div class="input-group">
+                        <input type="text" name="q" value="{{ search_q }}" class="form-control border-warning fw-medium" placeholder="Ex: Stage National, Examen du 20/09, Cérémonie...">
+                        <button type="submit" class="btn btn-warning text-dark fw-bold px-4">
+                            <i class="bi bi-search me-1"></i>Rechercher
+                        </button>
+                    </div>
                 </div>
-            </div>
+            </form>
         </div>
 
-        {% if session_active %}
-        
-        <!-- CARTE RÉCAPITULATIF DE LA SESSION SÉLECTIONNÉE -->
+        {% if album_actif %}
+        <!-- VUE DÉTAILLÉE D'UN ALBUM PHOTO SÉLECTIONNÉ -->
         <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
             <div class="bg-dark text-white p-4 position-relative" style="background: linear-gradient(135deg, #1e2d3d 0%, #0f172a 100%);">
                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
                     <div>
-                        <span class="badge bg-danger fs-7 px-3 py-1 mb-2 fw-semibold">Session Officielle Ligue</span>
-                        <h2 class="fw-bold text-white mb-1">{{ session_active.titre }}</h2>
+                        <a href="{% url 'exams:galerie_examens_publique' %}" class="btn btn-sm btn-outline-light rounded-pill px-3 mb-2">
+                            <i class="bi bi-arrow-left me-1"></i>Retour à tous les albums
+                        </a>
+                        <h2 class="fw-bold text-white mb-1">{{ album_actif.titre }}</h2>
                         <p class="text-white-50 mb-0">
-                            <i class="bi bi-geo-alt-fill text-warning me-1"></i>{{ session_active.lieu }} &nbsp;|&nbsp; 
-                            <i class="bi bi-calendar3 text-warning me-1"></i>Organisé le {{ session_active.date_examen|date:"d F Y" }} &nbsp;|&nbsp;
-                            <i class="bi bi-shield-check text-warning me-1"></i>Saison {{ session_active.annee_sportive.libelle }}
+                            <i class="bi bi-calendar3 text-warning me-1"></i>Organisé le {{ album_actif.date_evenement|date:"d F Y" }} &nbsp;|&nbsp; 
+                            <i class="bi bi-camera-fill text-warning me-1"></i>{{ album_actif.photos.count }} photo(s) au total
                         </p>
+                        {% if album_actif.description %}
+                        <p class="text-light mt-2 mb-0 small opacity-90">{{ album_actif.description }}</p>
+                        {% endif %}
                     </div>
+                    {% if album_actif.session_examen %}
                     <div class="text-md-end">
-                        <span class="badge bg-light text-dark fs-6 px-3 py-2 fw-bold shadow-sm">
-                            <i class="bi bi-info-circle me-1"></i>Statut : {{ session_active.get_statut_display }}
+                        <span class="badge bg-danger fs-6 px-3 py-2 fw-bold shadow-sm">
+                            <i class="bi bi-journal-check me-1"></i>{{ album_actif.session_examen.titre }}
                         </span>
                     </div>
+                    {% endif %}
                 </div>
             </div>
 
-            <!-- DISTINCTIONS ET PALMARÈS DE LA SESSION -->
+            <div class="card-body p-4 bg-white">
+                {% if album_actif.photos.all %}
+                <div class="row g-4">
+                    {% for photo in album_actif.photos.all %}
+                    <div class="col-6 col-sm-4 col-md-3">
+                        <div class="card border-0 shadow-sm rounded-3 overflow-hidden lk-photo-card h-100" 
+                             data-bs-toggle="modal" 
+                             data-bs-target="#photoModal"
+                             data-index="{{ forloop.counter0 }}">
+                            
+                            <div class="position-relative overflow-hidden bg-dark">
+                                <img src="{{ photo.image.url }}" alt="{{ photo.legende }}" class="w-100 lk-photo-img">
+                                <div class="position-absolute bottom-0 start-0 end-0 p-2 text-white bg-dark bg-opacity-75">
+                                    <small class="d-block text-truncate fw-medium">
+                                        {% if photo.legende %}{{ photo.legende }}{% else %}<i class="opacity-50">Sans légende</i>{% endif %}
+                                    </small>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <div class="text-center py-5 text-muted">
+                    <i class="bi bi-images fs-1 d-block mb-2 text-secondary opacity-50"></i>
+                    <h6 class="fw-bold">Cet album ne contient aucune photo pour le moment.</h6>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {% else %}
+
+        <!-- GRILLE DE TOUS LES ALBUMS PHOTOS (PAR TITRE D'ALBUM) -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="fw-bold text-dark mb-0">
+                <i class="bi bi-images text-warning me-2"></i>Tous les Albums Photos ({{ albums.count }})
+            </h4>
+            <span class="text-muted small"><i class="bi bi-info-circle me-1"></i>Cliquez sur un album pour voir toutes ses photos</span>
+        </div>
+
+        {% if albums %}
+        <div class="row g-4 mb-5">
+            {% for album in albums %}
+            <div class="col-md-6 col-lg-4">
+                <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden lk-album-card" 
+                     onclick="window.location.href='?album={{ album.pk }}';">
+                    <div class="position-relative overflow-hidden bg-dark" style="height: 220px;">
+                        {% if album.get_couverture_url %}
+                        <img src="{{ album.get_couverture_url }}" class="w-100 lk-album-cover" alt="{{ album.titre }}">
+                        {% else %}
+                        <div class="w-100 h-100 d-flex flex-column align-items-center justify-content-center text-white-50">
+                            <i class="bi bi-image fs-1 mb-2"></i>
+                            <span class="small">Aucune photo</span>
+                        </div>
+                        {% endif %}
+                        <span class="badge bg-dark bg-opacity-75 position-absolute top-0 end-0 m-3 px-3 py-2 rounded-pill fs-7 fw-bold shadow">
+                            <i class="bi bi-camera-fill me-1 text-warning"></i>{{ album.photos.count }} photo(s)
+                        </span>
+                        {% if album.session_examen %}
+                        <span class="badge bg-danger position-absolute top-0 start-0 m-3 px-3 py-2 rounded-pill fs-8 fw-semibold shadow">
+                            <i class="bi bi-journal-check me-1"></i>{{ album.session_examen.titre }}
+                        </span>
+                        {% endif %}
+                    </div>
+                    <div class="card-body p-4 d-flex flex-column bg-white">
+                        <h5 class="fw-bold text-dark mb-1">{{ album.titre }}</h5>
+                        <p class="text-muted small mb-2">
+                            <i class="bi bi-calendar3 me-1 text-warning"></i>Organisé le {{ album.date_evenement|date:"d F Y" }}
+                        </p>
+                        {% if album.description %}
+                        <p class="small text-secondary text-truncate mb-3">{{ album.description }}</p>
+                        {% endif %}
+                        <div class="mt-auto pt-3 border-top d-flex justify-content-between align-items-center">
+                            <span class="fw-bold text-warning small">Voir les {{ album.photos.count }} photos <i class="bi bi-chevron-right ms-1"></i></span>
+                            <span class="btn btn-sm btn-outline-dark rounded-pill px-3">Ouvrir</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="card border-0 shadow-sm rounded-4 p-5 text-center text-muted mb-5">
+            <i class="bi bi-journal-x fs-1 text-secondary opacity-50 mb-3 d-block"></i>
+            <h5 class="fw-bold text-dark">Aucun Album Photo Trouvé</h5>
+            <p class="small mb-0">Aucun album photo ne correspond à votre recherche.</p>
+        </div>
+        {% endif %}
+
+        {% endif %}
+
+        <!-- RÉCAPITULATIF DES EXAMENS (SI SESSION ACTIVE) -->
+        {% if session_active %}
+        <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
+            <div class="bg-dark text-white p-3 px-4 position-relative" style="background: linear-gradient(135deg, #1e2d3d 0%, #0f172a 100%);">
+                <h5 class="fw-bold text-white mb-0">
+                    <i class="bi bi-trophy-fill text-warning me-2"></i>Palmarès & Chiffres Clés — {{ session_active.titre }}
+                </h5>
+            </div>
             <div class="card-body p-4 bg-white">
                 <div class="row g-4">
-                    
-                    <!-- Major / Meilleur Licencié -->
                     <div class="col-md-6">
                         <div class="card border-0 bg-light rounded-4 p-3 h-100 border-start border-4 border-warning shadow-sm">
                             <div class="d-flex align-items-center gap-3">
@@ -139,7 +249,6 @@
                         </div>
                     </div>
 
-                    <!-- Meilleur Club -->
                     <div class="col-md-6">
                         <div class="card border-0 bg-light rounded-4 p-3 h-100 border-start border-4 border-success shadow-sm">
                             <div class="d-flex align-items-center gap-3">
@@ -163,10 +272,8 @@
                             </div>
                         </div>
                     </div>
-
                 </div>
 
-                <!-- STATISTIQUES EN 3 BLOCS -->
                 <div class="row g-3 mt-2">
                     <div class="col-4">
                         <div class="bg-light p-3 rounded-3 text-center border">
@@ -189,55 +296,6 @@
                 </div>
             </div>
         </div>
-
-        <!-- ALBUM PHOTO INTERACTIF DE L'EXAMEN -->
-        <div class="card border-0 shadow-sm rounded-4 mb-4">
-            <div class="card-header bg-white border-0 py-3 d-flex justify-content-between align-items-center">
-                <h5 class="fw-bold mb-0 text-dark">
-                    <i class="bi bi-camera-fill text-danger me-2"></i>Album Photo de l'Examen ({{ photos_active.count }})
-                </h5>
-                <span class="text-muted small"><i class="bi bi-zoom-in me-1"></i>Cliquez sur une image pour l'agrandir et défiler</span>
-            </div>
-
-            <div class="card-body p-4">
-                {% if photos_active %}
-                <div class="row g-4">
-                    {% for photo in photos_active %}
-                    <div class="col-12 col-sm-6 col-md-4 col-lg-3">
-                        <div class="card border-0 shadow-sm rounded-3 overflow-hidden lk-photo-card h-100" 
-                             data-bs-toggle="modal" 
-                             data-bs-target="#photoModal"
-                             data-index="{{ forloop.counter0 }}">
-                            
-                            <div class="position-relative overflow-hidden bg-dark">
-                                <img src="{{ photo.image.url }}" alt="{{ photo.legende }}" class="w-100 lk-photo-img">
-                                <div class="position-absolute bottom-0 start-0 end-0 p-2 text-white bg-dark bg-opacity-75">
-                                    <small class="d-block text-truncate fw-medium">
-                                        {% if photo.legende %}{{ photo.legende }}{% else %}<i class="opacity-50">Sans légende</i>{% endif %}
-                                    </small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-                {% else %}
-                <div class="text-center py-5 text-muted">
-                    <i class="bi bi-images fs-1 d-block mb-2 text-secondary opacity-50"></i>
-                    <h6 class="fw-bold">Aucune photo enregistrée pour cet examen</h6>
-                    <p class="small mb-0">Les photos de cet examen seront bientôt ajoutées par l'équipe de la Ligue.</p>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-
-        {% else %}
-        <!-- AUCUN EXAMEN DISPONIBLE -->
-        <div class="card border-0 shadow-sm rounded-4 p-5 text-center text-muted">
-            <i class="bi bi-calendar-x fs-1 text-secondary opacity-50 mb-3 d-block"></i>
-            <h5 class="fw-bold">Aucun Examen Trouvé</h5>
-            <p class="small mb-0">Veuillez sélectionner une autre saison sportive.</p>
-        </div>
         {% endif %}
 
     </div>
@@ -248,7 +306,6 @@
     <div class="modal-dialog modal-dialog-centered modal-xl">
         <div class="modal-content border-0 rounded-4 overflow-hidden shadow-lg text-white" style="background-color: #0f172a;">
             
-            <!-- En-tête modal -->
             <div class="modal-header border-0 pb-0 d-flex justify-content-between align-items-center px-4 pt-3">
                 <div>
                     <h6 class="modal-title fw-bold text-white mb-0" id="modalDateText">Photo</h6>
@@ -257,26 +314,20 @@
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
 
-            <!-- Corps de la modal avec Flèches de navigation -->
             <div class="modal-body p-2 p-md-4 position-relative d-flex align-items-center justify-content-center min-vh-50">
-                
-                <!-- Flèche Gauche (Précédent) -->
                 <button type="button" class="btn btn-outline-light rounded-circle shadow position-absolute start-0 ms-3 z-3 lk-nav-arrow" id="prevPhotoBtn" title="Photo précédente (Flèche Gauche ◄)">
                     <i class="bi bi-chevron-left fs-4"></i>
                 </button>
 
-                <!-- Image grand format -->
                 <div class="text-center w-100 d-flex justify-content-center align-items-center" style="max-height: 75vh; overflow: hidden;">
                     <img src="" id="modalImg" class="img-fluid rounded-3 shadow" style="max-height: 72vh; object-fit: contain;" alt="Photo Grand Format">
                 </div>
 
-                <!-- Flèche Droite (Suivant) -->
                 <button type="button" class="btn btn-outline-light rounded-circle shadow position-absolute end-0 me-3 z-3 lk-nav-arrow" id="nextPhotoBtn" title="Photo suivante (Flèche Droite ►)">
                     <i class="bi bi-chevron-right fs-4"></i>
                 </button>
             </div>
 
-            <!-- Pied de page avec la légende/commentaire -->
             <div class="modal-footer border-0 bg-dark bg-opacity-50 justify-content-center px-4 py-3">
                 <p class="mb-0 fw-semibold fs-6 text-center text-white" id="modalCaptionText"></p>
             </div>
@@ -302,24 +353,29 @@
         transition: all 0.2s ease;
     }
     .lk-nav-arrow:hover {
-        background-color: #dc2626 !important;
-        border-color: #dc2626 !important;
+        background-color: #f59e0b !important;
+        border-color: #f59e0b !important;
+        color: #0f172a !important;
         transform: scale(1.1);
     }
 </style>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    {% if album_actif %}
     const photos = [
-        {% for photo in photos_active %}
+        {% for photo in album_actif.photos.all %}
         {
             index: {{ forloop.counter0 }},
             img: "{{ photo.image.url }}",
-            caption: "{{ photo.legende|default:'Session d\'examen de la Ligue'|escapejs }}",
+            caption: "{{ photo.legende|default:album_actif.titre|escapejs }}",
             date: "{{ photo.date_ajout|date:'d/m/Y' }}"
         }{% if not forloop.last %},{% endif %}
         {% endfor %}
     ];
+    {% else %}
+    const photos = [];
+    {% endif %}
 
     let currentIndex = 0;
     const photoModalEl = document.getElementById('photoModal');
@@ -364,7 +420,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
-        // Navigation au clavier (Flèche Gauche ◄ et Flèche Droite ►)
         document.addEventListener('keydown', function(e) {
             if (photoModalEl.classList.contains('show')) {
                 if (e.key === 'ArrowLeft') {

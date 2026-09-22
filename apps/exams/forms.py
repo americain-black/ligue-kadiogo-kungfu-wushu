@@ -4,7 +4,7 @@ from django import forms
 from .models import (
     SessionExamen, Inscription, AffectationJury, AnneeSportive, TarifExamen,
     Rubrique, RubriqueGrade, OptionExamen, ModeleMatricule, ParametresExamen, AnnonceExamenPrevisionnelle,
-    PhotoSessionExamen
+    PhotoSessionExamen, AlbumPhoto
 )
 from apps.practitioners.models import Grade
 
@@ -368,4 +368,25 @@ class MultipleImageUploadForm(forms.Form):
         }),
         label="Légende par défaut"
     )
+
+
+class AlbumPhotoForm(forms.ModelForm):
+    class Meta:
+        model = AlbumPhoto
+        fields = ['titre', 'description', 'date_evenement', 'session_examen', 'couverture']
+        widgets = {
+            'titre': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Stage National Wushu 2026, Remise de grades...'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Optionnel : Présentation générale de l\'album...'}),
+            'date_evenement': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
+            'session_examen': forms.Select(attrs={'class': 'form-select'}),
+            'couverture': forms.FileInput(attrs={'class': 'form-control'}),
+        }
+        labels = {
+            'titre': "Titre de l'album",
+            'description': "Description / Légende globale",
+            'date_evenement': "Date de l'événement",
+            'session_examen': "Session d'examen associée (optionnel)",
+            'couverture': "Image de couverture (optionnel)",
+        }
+
 

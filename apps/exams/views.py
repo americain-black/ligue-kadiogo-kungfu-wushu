@@ -1582,7 +1582,7 @@ def liste_albums(request):
     """
     from django.core.paginator import Paginator
 
-    albums_qs = AlbumPhoto.objects.all().select_related('session_examen').prefetch_related('photos').order_by('-date_evenement', '-created_at')
+    albums_qs = AlbumPhoto.objects.all().select_related('session_examen').prefetch_related('photos').order_by('-date_evenement', '-date_creation')
     total_albums = albums_qs.count()
 
     if request.method == 'POST':

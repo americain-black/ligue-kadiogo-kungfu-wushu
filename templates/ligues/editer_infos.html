@@ -364,9 +364,14 @@
                             {{ form.bulletin_pied_legal }}
                         </div>
 
-                        <div class="col-12">
+                        <div class="col-md-6">
                             <label class="form-label fw-bold text-dark"><i class="bi bi-exclamation-octagon text-danger me-1"></i> {{ form.bulletin_mention_exemplaire.label }}</label>
                             {{ form.bulletin_mention_exemplaire }}
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold text-dark"><i class="bi bi-shield-lock-fill text-success me-1"></i> {{ form.bulletin_prefixe_securite.label }}</label>
+                            {{ form.bulletin_prefixe_securite }}
                         </div>
                     </div>
                 </div>

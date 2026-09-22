@@ -1,0 +1,226 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Vérification & Authenticité du Bulletin — Ligue du Kadiogo{% endblock %}
+
+{% block extra_css %}
+<link href="{% static 'css/lk_public.css' %}?v=2.0" rel="stylesheet">
+<style>
+    .verification-card {
+        border-radius: 16px;
+        overflow: hidden;
+    }
+    .badge-certified {
+        background: linear-gradient(135deg, #059669 0%, #10b981 100%);
+        color: white;
+    }
+    .badge-invalid {
+        background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+        color: white;
+    }
+    .security-code-badge {
+        font-family: 'Courier New', Courier, monospace;
+        letter-spacing: 1.5px;
+        background-color: #f1f5f9;
+        border: 1px dashed #64748b;
+        color: #0f172a;
+        font-weight: bold;
+    }
+    .security-hash {
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 0.75rem;
+        word-break: break-all;
+        color: #64748b;
+    }
+</style>
+{% endblock %}
+
+{% block content_public %}
+
+{% include 'includes/_lk_navbar.html' %}
+
+<!-- BANNIÈRE HEADER -->
+<section class="lk-banner-header shadow-sm">
+    <div class="container">
+        <div class="lk-page-title-accent">
+            AUTHENTIFICATION NORMÉE & SÉCURISÉE
+        </div>
+        <div class="lk-breadcrumb ms-3">
+            <a href="{% url 'accounts:accueil' %}">Accueil</a> &nbsp;.&nbsp; <span>Vérification de Bulletin</span>
+        </div>
+    </div>
+</section>
+
+<!-- CONTENU DE VÉRIFICATION -->
+<section class="py-5 bg-light min-vh-75">
+    <div class="container" style="max-width: 920px;">
+
+        <!-- FORMULAIRE DE RECHERCHE PAR CODE -->
+        <div class="card border-0 shadow-sm rounded-4 mb-4 p-4 bg-white">
+            <h5 class="fw-bold text-dark mb-2">
+                <i class="bi bi-shield-check text-success me-2"></i>Vérification d'un Bulletin d'Examen
+            </h5>
+            <p class="text-muted small mb-3">
+                Entrez le code d'authentification figurant au bas du bulletin imprimé (ou scanné via QR Code) pour valider son authenticité auprès de la Ligue.
+            </p>
+
+            <form method="get" action="{% url 'results:verifier_bulletin_search' %}" class="row g-2 align-items-center">
+                <div class="col-md-9">
+                    <div class="input-group input-group-lg">
+                        <span class="input-group-text bg-light text-muted border-end-0">
+                            <i class="bi bi-qr-code-scan"></i>
+                        </span>
+                        <input type="text" name="code" class="form-control border-start-0 fw-bold text-dark" 
+                               placeholder="Ex : LK-BUL-2026-A8F9X2" 
+                               value="{{ code }}" required>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-danger btn-lg w-100 fw-bold">
+                        <i class="bi bi-search me-1"></i>Vérifier
+                    </button>
+                </div>
+            </form>
+        </div>
+
+        {% if resultat %}
+        
+        <!-- CARTE DE RÉSULTAT CERTIFIÉ -->
+        <div class="card border-0 shadow-lg verification-card mb-4">
+            
+            <!-- EN-TÊTE CERTIFIÉ -->
+            <div class="badge-certified p-4 text-center">
+                <div class="d-inline-flex align-items-center justify-content-center bg-white text-success rounded-circle shadow-sm mb-3" style="width: 70px; height: 70px;">
+                    <i class="bi bi-patch-check-fill fs-1"></i>
+                </div>
+                <h3 class="fw-bold mb-1">BULLETIN OFFICIELLEMENT CERTIFIÉ</h3>
+                <p class="mb-0 opacity-90">Ce document est enregistré et validé dans les registres officiels de la Ligue du Kadiogo.</p>
+            </div>
+
+            <div class="card-body p-4 p-md-5 bg-white">
+                
+                <!-- BLOC CODE ET SÉCURITÉ -->
+                <div class="alert alert-success border-0 bg-success bg-opacity-10 text-dark rounded-3 p-3 mb-4 d-flex flex-column flex-md-row justify-content-between align-items-center gap-3">
+                    <div>
+                        <span class="small text-muted d-block fw-semibold">Code d'Authentification Unique :</span>
+                        <span class="badge security-code-badge fs-6 px-3 py-2 mt-1">{{ resultat.code_verification }}</span>
+                    </div>
+                    <div class="text-md-end">
+                        <span class="small text-muted d-block fw-semibold">Délivré le :</span>
+                        <strong class="text-dark">{{ resultat.date_emission|date:"d F Y à H:i"|default:resultat.date_publication|date:"d F Y" }}</strong>
+                    </div>
+                </div>
+
+                <div class="row g-4">
+                    
+                    <!-- IDENTITÉ DU CANDIDAT -->
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded-3 h-100 border">
+                            <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">
+                                <i class="bi bi-person-badge-fill text-danger me-2"></i>Identité du Candidat
+                            </h6>
+                            <table class="table table-sm table-borderless mb-0">
+                                <tr>
+                                    <td class="text-muted small">Nom & Prénom :</td>
+                                    <td class="fw-bold text-dark">{{ resultat.inscription.pratiquant.nom }} {{ resultat.inscription.pratiquant.prenom }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted small">Matricule :</td>
+                                    <td><span class="badge bg-secondary">{{ resultat.inscription.pratiquant.matricule|default:"—" }}</span></td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted small">Club :</td>
+                                    <td class="fw-semibold text-dark">{{ resultat.inscription.pratiquant.club.nom_club }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted small">Date & Lieu Naiss. :</td>
+                                    <td class="text-dark">{{ resultat.inscription.pratiquant.date_naissance|date:"d/m/Y" }} à {{ resultat.inscription.pratiquant.lieu_naissance|default:"N/C" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- EXAMEN ET RÉSULTAT -->
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded-3 h-100 border">
+                            <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">
+                                <i class="bi bi-award-fill text-warning me-2"></i>Examen & Performances
+                            </h6>
+                            <table class="table table-sm table-borderless mb-0">
+                                <tr>
+                                    <td class="text-muted small">Session :</td>
+                                    <td class="fw-semibold text-dark">{{ resultat.inscription.session.titre }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted small">Grade Postulé :</td>
+                                    <td class="fw-bold text-dark">{{ resultat.inscription.grade_vise }}</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted small">Moyenne Générale :</td>
+                                    <td class="fs-5 fw-bold text-dark">{{ resultat.moyenne }}/20</td>
+                                </tr>
+                                <tr>
+                                    <td class="text-muted small">Mention & Décision :</td>
+                                    <td>
+                                        <span class="badge bg-dark me-1">{{ resultat.mention }}</span>
+                                        {% if resultat.decision == 'ADMIS' %}
+                                        <span class="badge bg-success fw-bold">ADMIS (E)</span>
+                                        {% else %}
+                                        <span class="badge bg-danger fw-bold">AJOURNÉ (E)</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- SIGNATURE CRYPTOGRAPHIQUE -->
+                <div class="mt-4 pt-3 border-top text-center">
+                    <span class="small text-muted d-block mb-1">Empreinte Cryptographique de Sécurité (SHA-256) :</span>
+                    <div class="security-hash">{{ resultat.hash_securite }}</div>
+                </div>
+
+            </div>
+            
+            <div class="card-footer bg-light border-0 text-center py-3">
+                <small class="text-muted">
+                    <i class="bi bi-building me-1"></i>Document officiel délivré par le Secrétariat Général de la Ligue du Kadiogo de Kung Fu Wushu.
+                </small>
+            </div>
+        </div>
+
+        {% elif erreur %}
+        
+        <!-- CARTE D'ERREUR OU FALSIFICATION -->
+        <div class="card border-0 shadow-lg verification-card mb-4">
+            <div class="badge-invalid p-4 text-center">
+                <div class="d-inline-flex align-items-center justify-content-center bg-white text-danger rounded-circle shadow-sm mb-3" style="width: 70px; height: 70px;">
+                    <i class="bi bi-x-circle-fill fs-1"></i>
+                </div>
+                <h3 class="fw-bold mb-1">DOCUMENT NON RECONNU</h3>
+                <p class="mb-0 opacity-90">Attention : Le code fourni n'existe pas dans le registre officiel de la Ligue.</p>
+            </div>
+
+            <div class="card-body p-4 text-center bg-white">
+                <div class="alert alert-danger bg-danger bg-opacity-10 border-0 text-danger p-3 rounded-3 mb-4">
+                    <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>{{ erreur }}
+                </div>
+                <p class="text-muted small">
+                    Si vous pensez qu'il s'agit d'une erreur de saisie, veuillez vérifier le code gravé sur le document ou contacter le Secrétariat Général de la Ligue.
+                </p>
+                <a href="{% url 'accounts:accueil' %}" class="btn btn-outline-secondary mt-2">
+                    <i class="bi bi-house me-1"></i>Retour à l'Accueil
+                </a>
+            </div>
+        </div>
+
+        {% endif %}
+
+    </div>
+</section>
+
+{% include 'includes/_lk_footer.html' %}
+
+{% endblock %}

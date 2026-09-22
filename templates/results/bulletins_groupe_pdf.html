@@ -128,6 +128,49 @@
     table.rappel-tab th, table.rappel-tab td { border: 1px solid #888; padding: 3px 2px; text-align: center; height: 16px; }
     table.rappel-tab th { background: #eef3f7; font-weight: bold; color: #111; }
 
+    /* ── Bloc Sécurité & Authentification PDF ────────────────────────── */
+    table.secu-signature {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+        margin-bottom: 14px;
+    }
+    table.secu-signature td { vertical-align: top; border: none; }
+    .col-secu-block {
+        width: 55%;
+        border: 1px solid #94a3b8;
+        border-radius: 6px;
+        padding: 6px 8px;
+        background-color: #f8fafc;
+    }
+    .secu-title {
+        font-size: 7.5pt;
+        font-weight: bold;
+        color: #0f172a;
+        text-transform: uppercase;
+        margin-bottom: 3px;
+        border-bottom: 1px solid #cbd5e1;
+        padding-bottom: 2px;
+    }
+    .secu-code {
+        font-family: 'Courier New', Courier, monospace;
+        font-size: 8.5pt;
+        font-weight: bold;
+        color: #0369a1;
+        margin-top: 2px;
+    }
+    .secu-text {
+        font-size: 7pt;
+        color: #475569;
+        line-height: 1.2;
+        margin-top: 2px;
+    }
+    .col-signature-block {
+        width: 45%;
+        text-align: right;
+        font-size: 9pt;
+    }
+
     /* ── Signature Zone ────────────────────────────────────────────────── */
     .signature-zone {
         text-align: right;
@@ -332,14 +375,38 @@
             </tr>
         </table>
 
-        <div class="signature-zone">
-            <div>Ouagadougou, le <span style="border-bottom: 1px dotted #333;">&nbsp;&nbsp;{% now "d/m/Y" %}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></div>
-            <div class="titre-fonction">{{ ligue.get_bulletin_signataire_titre }}</div>
-            <div class="nom-signataire">
-                {{ ligue.get_bulletin_signataire_nom }}<br>
-                <span style="font-size: 8.5pt; font-weight: normal; color: #444;">{{ ligue.get_bulletin_signataire_grade }}</span>
-            </div>
-        </div>
+        <!-- Zone Sécurité & Signature -->
+        <table class="secu-signature">
+            <tr>
+                <td class="col-secu-block">
+                    <div class="secu-title">AUTHENTICITÉ & SÉCURITÉ DU BULLETIN</div>
+                    <table style="width: 100%; border-collapse: collapse; margin-top: 3px;">
+                        <tr>
+                            <td style="width: 65px; vertical-align: middle; text-align: center;">
+                                {% if item.qr_code_url %}
+                                <img src="{{ item.qr_code_url }}" alt="QR Code Authentification" style="width: 60px; height: 60px; border: 1px solid #ccc; padding: 2px; background: #fff;">
+                                {% endif %}
+                            </td>
+                            <td style="vertical-align: middle; padding-left: 6px;">
+                                <div class="secu-text"><strong>Code d'Authentification :</strong></div>
+                                <div class="secu-code">{{ item.resultat.code_verification|default:"LK-BUL-OFFICIEL" }}</div>
+                                <div class="secu-text" style="margin-top: 3px;">
+                                    Scannez le QR Code ou vérifiez l'authenticité sur le portail officiel de la Ligue.
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+                <td class="col-signature-block">
+                    <div>Ouagadougou, le <span style="border-bottom: 1px dotted #333;">&nbsp;&nbsp;{% now "d/m/Y" %}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></div>
+                    <div class="titre-fonction" style="margin-top: 4px; font-weight: bold;">{{ ligue.get_bulletin_signataire_titre }}</div>
+                    <div class="nom-signataire" style="margin-top: 40px; font-weight: bold; font-size: 9.5pt;">
+                        {{ ligue.get_bulletin_signataire_nom }}<br>
+                        <span style="font-size: 8.5pt; font-weight: normal; color: #444;">{{ ligue.get_bulletin_signataire_grade }}</span>
+                    </div>
+                </td>
+            </tr>
+        </table>
 
         <div class="pied">
             <div class="pied-box">

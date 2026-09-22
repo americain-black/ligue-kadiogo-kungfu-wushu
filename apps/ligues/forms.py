@@ -33,7 +33,7 @@ class EditerInfosLigueForm(forms.ModelForm):
             'bulletin_header_gauche_ligne1', 'bulletin_header_gauche_ligne2',
             'bulletin_header_droite_ligne1', 'bulletin_header_droite_devise',
             'bulletin_signataire_titre', 'bulletin_signataire_nom', 'bulletin_signataire_grade',
-            'bulletin_pied_legal', 'bulletin_mention_exemplaire'
+            'bulletin_pied_legal', 'bulletin_mention_exemplaire', 'bulletin_prefixe_securite'
         ]
         widgets = {
             'nom_ligue':             forms.TextInput(attrs={'class': 'form-control'}),
@@ -69,6 +69,7 @@ class EditerInfosLigueForm(forms.ModelForm):
             'bulletin_signataire_grade':     forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'CN 3è Duan'}),
             'bulletin_pied_legal':           forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'LIGUE DU KADIOGO DE KUNG FU WUSHU (LKKFW) — Siège social...'}),
             'bulletin_mention_exemplaire':   forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ceci est un document original...'}),
+            'bulletin_prefixe_securite':     forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: LK-BUL'}),
         }
         labels = {
             'nom_ligue':             'Nom officiel de la Ligue',
@@ -101,6 +102,7 @@ class EditerInfosLigueForm(forms.ModelForm):
             'bulletin_signataire_grade':     'Bulletin - Grade du signataire (ex: CN 3è Duan)',
             'bulletin_pied_legal':           'Bulletin - Pied de page légal et adresse',
             'bulletin_mention_exemplaire':   'Bulletin - Mention bas de page (Exemplaire unique)',
+            'bulletin_prefixe_securite':     'Bulletin - Préfixe du Code de Sécurité / Authentification (ex: LK-BUL)',
         }
 
 

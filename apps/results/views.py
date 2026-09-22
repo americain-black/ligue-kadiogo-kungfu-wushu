@@ -220,6 +220,36 @@ def resultats_session_club(request, session_pk):
     })
 
 
+def verifier_bulletin(request, code_verification=None):
+    """
+    Page publique d'authentification et de vérification officielle d'un bulletin d'examen.
+    Accessible librement sans authentification par QR Code ou saisie manuelle du code.
+    """
+    code = (code_verification or request.GET.get('code', '')).strip()
+    resultat = None
+    erreur = None
+
+    if code:
+        resultat = Resultat.objects.filter(
+            code_verification__iexact=code
+        ).select_related(
+            'inscription__pratiquant',
+            'inscription__pratiquant__club',
+            'inscription__grade_vise',
+            'inscription__session',
+            'inscription__session__annee_sportive__ligue'
+        ).first()
+
+        if not resultat:
+            erreur = f"Aucun bulletin enregistré ne correspond au code « {code} ». Ce document pourrait être invalide, expiré ou falsifié."
+
+    return render(request, 'results/verifier_bulletin.html', {
+        'code': code,
+        'resultat': resultat,
+        'erreur': erreur,
+    })
+
+
 @login_required
 def telecharger_bulletin(request, pk):
     resultat = get_object_or_404(
@@ -235,12 +265,19 @@ def telecharger_bulletin(request, pk):
         return redirect('accounts:tableau_de_bord')
 
     from weasyprint import HTML
+    from django.urls import reverse
 
     inscription = resultat.inscription
     rang, total_rang = resultat.rang()
     lignes = _lignes_notation(inscription)
     total_coeff   = sum(l['rubrique_grade'].coefficient for l in lignes)
     total_pondere = sum(l['pondere'] for l in lignes if l['pondere'] is not None)
+
+    code_sec = resultat.get_or_create_code_securite()
+    verification_url = request.build_absolute_uri(
+        reverse('results:verifier_bulletin', kwargs={'code_verification': code_sec})
+    )
+    qr_code_url = f"https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={verification_url}"
 
     html_string = render(request, 'results/bulletin_pdf.html', {
         'resultat': resultat,
@@ -253,6 +290,8 @@ def telecharger_bulletin(request, pk):
         'total_rang': total_rang,
         'rappel': _rappel_moyennes(resultat),
         'stats': _stats_cohorte(resultat),
+        'verification_url': verification_url,
+        'qr_code_url': qr_code_url,
     }).content.decode('utf-8')
 
     pdf_bytes = HTML(string=html_string, base_url=request.build_absolute_uri('/')).write_pdf()
@@ -346,6 +385,7 @@ def impression_groupee_bulletins(request):
     ou tous les bulletins correspondant aux filtres actifs (Session / Club).
     """
     from weasyprint import HTML
+    from django.urls import reverse
     from django.db.models import Q
 
     ligue = getattr(request.user, 'ligue', None)
@@ -387,6 +427,13 @@ def impression_groupee_bulletins(request):
         lignes = _lignes_notation(insc)
         total_coeff   = sum(l['rubrique_grade'].coefficient for l in lignes)
         total_pondere = sum(l['pondere'] for l in lignes if l['pondere'] is not None)
+
+        code_sec = r.get_or_create_code_securite()
+        verification_url = request.build_absolute_uri(
+            reverse('results:verifier_bulletin', kwargs={'code_verification': code_sec})
+        )
+        qr_code_url = f"https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={verification_url}"
+
         bulletins_items.append({
             'resultat': r,
             'inscription': insc,
@@ -398,6 +445,8 @@ def impression_groupee_bulletins(request):
             'total_rang': total_rang,
             'rappel': _rappel_moyennes(r),
             'stats': _stats_cohorte(r),
+            'verification_url': verification_url,
+            'qr_code_url': qr_code_url,
         })
 
     html_string = render(request, 'results/bulletins_groupe_pdf.html', {

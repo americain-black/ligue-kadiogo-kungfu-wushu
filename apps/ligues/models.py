@@ -49,6 +49,7 @@ class Ligue(models.Model):
     bulletin_signataire_grade     = models.CharField(max_length=100, default="CN 3è Duan", blank=True, verbose_name="Grade/Titre du signataire")
     bulletin_pied_legal           = models.TextField(default="LIGUE DU KADIOGO DE KUNG FU WUSHU (LKKFW)\nSiège social : Ouagadougou, Récépissé n° : 2024-22/MSJE/RCEN/DRSL-CEN/SRRIS\nMail : ligueducentrekungfuwushu@gmail.com Tél : (+226) 65 08 92 62 / 73 86 86 16", blank=True, verbose_name="Pied de page légal du bulletin")
     bulletin_mention_exemplaire   = models.CharField(max_length=200, default="Ceci est un document original, il n'est délivré qu'en un seul exemplaire.", blank=True, verbose_name="Mention d'exemplaire unique (bas de page)")
+    bulletin_prefixe_securite     = models.CharField(max_length=30, default="LK-BUL", blank=True, verbose_name="Préfixe du Code de Sécurité / Authentification (ex: LK-BUL)")
 
     # Configuration de la Bannière d'Accueil (Textes & Animation)
     titre_hero_accueil = models.CharField(
@@ -205,6 +206,9 @@ class Ligue(models.Model):
 
     def get_bulletin_mention_exemplaire(self):
         return self.bulletin_mention_exemplaire or "Ceci est un document original, il n'est délivré qu'en un seul exemplaire."
+
+    def get_bulletin_prefixe_securite(self):
+        return self.bulletin_prefixe_securite or "LK-BUL"
 
 
 class VoletOrganigramme(models.Model):

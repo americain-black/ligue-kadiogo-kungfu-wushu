@@ -38,6 +38,17 @@ class Resultat(models.Model):
     date_calcul    = models.DateTimeField(auto_now_add=True)
     date_publication = models.DateTimeField(null=True, blank=True)
 
+    # Champs de sécurité et d'authentification
+    code_verification = models.CharField(
+        max_length=64, unique=True, null=True, blank=True,
+        help_text="Code unique d'authentification du bulletin"
+    )
+    hash_securite     = models.CharField(
+        max_length=64, blank=True,
+        help_text="Empreinte cryptographique SHA-256 de sécurité"
+    )
+    date_emission     = models.DateTimeField(null=True, blank=True)
+
     class Meta:
         verbose_name        = 'Résultat'
         verbose_name_plural = 'Résultats'
@@ -120,6 +131,7 @@ class Resultat(models.Model):
         from django.utils import timezone
         self.publie           = True
         self.date_publication = timezone.now()
+        self.get_or_create_code_securite()
         self.save()
 
         # Si admis, met à jour le grade du pratiquant
@@ -127,3 +139,34 @@ class Resultat(models.Model):
             pratiquant             = self.inscription.pratiquant
             pratiquant.grade_actuel = self.inscription.grade_vise
             pratiquant.save()
+
+    def get_or_create_code_securite(self):
+        """
+        Génère ou récupère un code d'authentification unique et son hash SHA-256.
+        Format du code: LK-BUL-<SESSION_ANNEE>-<RANDOM_HEX>
+        Exemple: LK-BUL-2026-F8A3B291
+        """
+        import uuid
+        import hashlib
+        from django.conf import settings
+        from django.utils import timezone
+
+        if not self.code_verification:
+            annee = self.inscription.session.date_examen.year if (self.inscription and self.inscription.session and self.inscription.session.date_examen) else timezone.now().year
+            prefixe = "LK-BUL"
+            if self.inscription and self.inscription.session and self.inscription.session.annee_sportive and self.inscription.session.annee_sportive.ligue:
+                prefixe = self.inscription.session.annee_sportive.ligue.get_bulletin_prefixe_securite()
+
+            rand_code = uuid.uuid4().hex[:8].upper()
+            code = f"{prefixe}-{annee}-{rand_code}"
+            
+            raw_data = f"{code}:{self.pk}:{self.inscription.pratiquant.matricule if self.inscription else ''}:{self.moyenne}:{settings.SECRET_KEY}"
+            hash_val = hashlib.sha256(raw_data.encode('utf-8')).hexdigest()
+            
+            self.code_verification = code
+            self.hash_securite = hash_val
+            if not self.date_emission:
+                self.date_emission = timezone.now()
+            self.save(update_fields=['code_verification', 'hash_securite', 'date_emission'])
+        return self.code_verification
+

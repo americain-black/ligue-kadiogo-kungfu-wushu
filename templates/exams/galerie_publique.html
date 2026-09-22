@@ -36,14 +36,6 @@
         height: 200px;
         object-fit: cover;
     }
-    .badge-major {
-        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
-        color: #ffffff;
-    }
-    .badge-club {
-        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-        color: #ffffff;
-    }
 </style>
 {% endblock %}
 
@@ -133,6 +125,9 @@
                              data-index="{{ forloop.counter0 }}">
                             
                             <div class="position-relative overflow-hidden bg-dark">
+                                <a href="{{ photo.image.url }}" download class="btn btn-sm btn-warning text-dark position-absolute top-0 end-0 m-2 rounded-pill px-2.5 py-1 fw-bold shadow-sm z-3" title="Télécharger la photo HD" onclick="event.stopPropagation();">
+                                    <i class="bi bi-download me-1"></i>Télécharger
+                                </a>
                                 <img src="{{ photo.image.url }}" alt="{{ photo.legende }}" class="w-100 lk-photo-img">
                                 <div class="position-absolute bottom-0 start-0 end-0 p-2 text-white bg-dark bg-opacity-75">
                                     <small class="d-block text-truncate fw-medium">
@@ -155,17 +150,29 @@
 
         {% else %}
 
-        <!-- GRILLE DE TOUS LES ALBUMS PHOTOS (PAR TITRE D'ALBUM) -->
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h4 class="fw-bold text-dark mb-0">
-                <i class="bi bi-images text-warning me-2"></i>Tous les Albums Photos ({{ albums.count }})
-            </h4>
-            <span class="text-muted small"><i class="bi bi-info-circle me-1"></i>Cliquez sur un album pour voir toutes ses photos</span>
+        <!-- AFFICHAGE DES ALBUMS PHOTOS (3 RÉCENTS PAR DÉFAUT OU TOUS) -->
+        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-sm-center gap-2 mb-3">
+            <div>
+                <h4 class="fw-bold text-dark mb-0">
+                    <i class="bi bi-images text-warning me-2"></i>
+                    {% if voir_tout %}
+                        Tous les Albums Photos ({{ total_albums_count }})
+                    {% else %}
+                        Les 3 Albums les plus récents
+                    {% endif %}
+                </h4>
+                <span class="text-muted small"><i class="bi bi-info-circle me-1"></i>Cliquez sur un album pour voir et télécharger toutes ses photos</span>
+            </div>
+            {% if voir_tout %}
+            <a href="{% url 'exams:galerie_examens_publique' %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                <i class="bi bi-filter me-1"></i>Afficher les 3 plus récents
+            </a>
+            {% endif %}
         </div>
 
         {% if albums %}
-        <div class="row g-4 mb-5">
-            {% for album in albums %}
+        <div class="row g-4 mb-4">
+            {% for album in voir_tout|yesno:"albums,albums_recents" %}
             <div class="col-md-6 col-lg-4">
                 <div class="card h-100 border-0 shadow-sm rounded-4 overflow-hidden lk-album-card" 
                      onclick="window.location.href='?album={{ album.pk }}';">
@@ -204,6 +211,15 @@
             </div>
             {% endfor %}
         </div>
+
+        {% if not voir_tout and total_albums_count > 3 %}
+        <div class="text-center my-4 pb-3">
+            <a href="?voir_tout=1" class="btn btn-warning text-dark fw-bold rounded-pill px-5 py-2.5 shadow-sm fs-6">
+                <i class="bi bi-grid-3x3-gap-fill me-2"></i>Voir tous les {{ total_albums_count }} albums photos
+            </a>
+        </div>
+        {% endif %}
+
         {% else %}
         <div class="card border-0 shadow-sm rounded-4 p-5 text-center text-muted mb-5">
             <i class="bi bi-journal-x fs-1 text-secondary opacity-50 mb-3 d-block"></i>
@@ -217,7 +233,7 @@
     </div>
 </section>
 
-<!-- MODAL VISIONNEUSE LIGHTBOX INTERACTIVE (AVEC NAVIGATION SUIVANT / PRÉCÉDENT) -->
+<!-- MODAL VISIONNEUSE LIGHTBOX INTERACTIVE AVEC TÉLÉCHARGEMENT HD -->
 <div class="modal fade" id="photoModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-xl">
         <div class="modal-content border-0 rounded-4 overflow-hidden shadow-lg text-white" style="background-color: #0f172a;">
@@ -227,7 +243,12 @@
                     <h6 class="modal-title fw-bold text-white mb-0" id="modalDateText">Photo</h6>
                     <small class="text-white-50 fs-7" id="modalCounterText"></small>
                 </div>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <div class="d-flex align-items-center gap-2">
+                    <a href="" id="modalDownloadBtn" download class="btn btn-sm btn-warning text-dark fw-bold rounded-pill px-3 py-1.5 shadow-sm">
+                        <i class="bi bi-download me-1"></i>Télécharger la photo
+                    </a>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
             </div>
 
             <div class="modal-body p-2 p-md-4 position-relative d-flex align-items-center justify-content-center min-vh-50">
@@ -299,6 +320,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const modalCaption = document.getElementById('modalCaptionText');
     const modalDate = document.getElementById('modalDateText');
     const modalCounter = document.getElementById('modalCounterText');
+    const modalDownload = document.getElementById('modalDownloadBtn');
     const prevBtn = document.getElementById('prevPhotoBtn');
     const nextBtn = document.getElementById('nextPhotoBtn');
 
@@ -310,6 +332,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
         const currentPhoto = photos[currentIndex];
         modalImg.src = currentPhoto.img;
+        if (modalDownload) modalDownload.href = currentPhoto.img;
         modalCaption.textContent = currentPhoto.caption;
         modalDate.textContent = 'Photo du ' + currentPhoto.date;
         modalCounter.textContent = 'Photo ' + (currentIndex + 1) + ' sur ' + photos.length;

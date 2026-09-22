@@ -1880,42 +1880,16 @@ def galerie_examens_publique(request):
     if album_id and str(album_id).isdigit():
         album_actif = albums.filter(pk=int(album_id)).first()
 
-    session_id = request.GET.get('session')
-    session_active = None
-    if session_id and str(session_id).isdigit():
-        session_active = sessions.filter(pk=int(session_id)).first()
-    if not session_active:
-        session_active = sessions.first()
-
-    major_session = None
-    meilleur_club = None
-    total_licencies = 0
-    total_admis = 0
-    taux_reussite = 0
-
-    if session_active:
-        major_session = session_active.get_major_session()
-        meilleur_club = session_active.get_meilleur_club_session()
-        STATUTS_VALIDES = ['VALIDEE', 'AUTORISE', 'PAIEMENT_VALIDE']
-        total_licencies = session_active.inscriptions.filter(statut__in=STATUTS_VALIDES).count()
-        if total_licencies == 0:
-            total_licencies = session_active.inscriptions.count()
-        results_qs = Resultat.objects.filter(inscription__session=session_active, publie=True)
-        total_admis = results_qs.filter(decision='ADMIS').count()
-        candidats_evalues = results_qs.count()
-        taux_reussite = round((total_admis / candidats_evalues * 100), 1) if candidats_evalues > 0 else 0
+    voir_tout = request.GET.get('voir_tout') == '1' or bool(q) or bool(saison_id)
+    albums_recents = albums[:3]
 
     return render(request, 'exams/galerie_publique.html', {
         'ligue': ligue,
         'albums': albums,
+        'albums_recents': albums_recents,
+        'total_albums_count': albums.count(),
+        'voir_tout': voir_tout,
         'album_actif': album_actif,
         'saisons': saisons,
-        'sessions': sessions,
-        'session_active': session_active,
-        'major_session': major_session,
-        'meilleur_club': meilleur_club,
-        'total_licencies': total_licencies,
-        'total_admis': total_admis,
-        'taux_reussite': taux_reussite,
         'search_q': q,
     })

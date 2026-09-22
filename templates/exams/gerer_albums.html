@@ -28,16 +28,16 @@
         <div class="card-header bg-white border-0 pt-3 pb-0 px-4">
             <ul class="nav nav-tabs card-header-tabs border-bottom-0" id="albumTabs" role="tablist">
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link fw-bold px-4 py-2 {% if active_tab != 'nouveau' %}active{% endif %}" 
-                            id="liste-tab" data-bs-toggle="tab" data-bs-target="#listeAlbums" type="button" role="tab">
+                    <a class="nav-link fw-bold px-4 py-2 {% if active_tab != 'nouveau' %}active{% endif %}" 
+                       id="liste-tab" href="{% url 'exams:liste_albums' %}?tab=liste" data-bs-toggle="tab" data-bs-target="#listeAlbums" role="tab" aria-controls="listeAlbums" aria-selected="{% if active_tab != 'nouveau' %}true{% else %}false{% endif %}">
                         <i class="bi bi-grid-fill me-2"></i>Liste des Albums ({{ total_albums }})
-                    </button>
+                    </a>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link fw-bold px-4 py-2 text-success {% if active_tab == 'nouveau' %}active{% endif %}" 
-                            id="nouveau-tab" data-bs-toggle="tab" data-bs-target="#nouveauAlbum" type="button" role="tab">
+                    <a class="nav-link fw-bold px-4 py-2 text-success {% if active_tab == 'nouveau' %}active{% endif %}" 
+                       id="nouveau-tab" href="{% url 'exams:liste_albums' %}?tab=nouveau" data-bs-toggle="tab" data-bs-target="#nouveauAlbum" role="tab" aria-controls="nouveauAlbum" aria-selected="{% if active_tab == 'nouveau' %}true{% else %}false{% endif %}">
                         <i class="bi bi-plus-circle-fill me-2"></i>Nouvel Album
-                    </button>
+                    </a>
                 </li>
             </ul>
         </div>

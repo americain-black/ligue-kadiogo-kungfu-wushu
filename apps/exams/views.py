@@ -1881,13 +1881,13 @@ def galerie_examens_publique(request):
         album_actif = albums.filter(pk=int(album_id)).first()
 
     voir_tout = request.GET.get('voir_tout') == '1' or bool(q) or bool(saison_id)
-    albums_recents = albums[:3]
+    total_albums_count = albums.count()
+    albums_list = albums if voir_tout else albums[:3]
 
     return render(request, 'exams/galerie_publique.html', {
         'ligue': ligue,
-        'albums': albums,
-        'albums_recents': albums_recents,
-        'total_albums_count': albums.count(),
+        'albums': albums_list,
+        'total_albums_count': total_albums_count,
         'voir_tout': voir_tout,
         'album_actif': album_actif,
         'saisons': saisons,

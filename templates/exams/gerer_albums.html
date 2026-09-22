@@ -28,14 +28,8 @@
         <div class="card-header bg-white border-0 pt-3 pb-0 px-4">
             <ul class="nav nav-tabs card-header-tabs border-bottom-0" id="albumTabs" role="tablist">
                 <li class="nav-item" role="presentation">
-                    <a class="nav-link fw-bold px-4 py-2 {% if not voir_tout and active_tab != 'nouveau' %}active{% endif %}" 
-                       href="{% url 'exams:liste_albums' %}">
-                        <i class="bi bi-clock-history me-2"></i>Aperçu Récents (3)
-                    </a>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <a class="nav-link fw-bold px-4 py-2 {% if voir_tout and active_tab != 'nouveau' %}active{% endif %}" 
-                       href="{% url 'exams:liste_albums' %}?voir_tout=1">
+                    <a class="nav-link fw-bold px-4 py-2 {% if active_tab != 'nouveau' %}active{% endif %}" 
+                       id="liste-tab" href="{% url 'exams:liste_albums' %}" data-bs-toggle="tab" data-bs-target="#listeAlbums" role="tab" aria-controls="listeAlbums" aria-selected="{% if active_tab != 'nouveau' %}true{% else %}false{% endif %}">
                         <i class="bi bi-grid-fill me-2"></i>Liste des Albums ({{ total_albums }})
                     </a>
                 </li>
@@ -51,33 +45,24 @@
         <div class="card-body p-4">
             <div class="tab-content" id="albumTabsContent">
 
-                <!-- ── ONGLET 1 : LISTE / APERÇU DES ALBUMS ── -->
+                <!-- ── ONGLET 1 : LISTE DES ALBUMS ── -->
                 <div class="tab-pane fade {% if active_tab != 'nouveau' %}show active{% endif %}" id="listeAlbums" role="tabpanel">
-                    {% if voir_tout %}
-                    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
-                        <h6 class="fw-bold text-dark mb-0">
-                            <i class="bi bi-folder2-open text-warning me-2"></i>Tous les albums photo ({{ total_albums }})
-                        </h6>
-                        <a href="{% url 'exams:liste_albums' %}" class="btn btn-sm btn-outline-secondary rounded-3">
-                            <i class="bi bi-arrow-left me-1"></i>Réduire aux 3 récents
-                        </a>
-                    </div>
-                    {% else %}
+
+                    {% if albums_recents %}
+                    <!-- SECTION 1 : APERÇU 3 RÉCENTS (CARTES) -->
                     <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
                         <h6 class="fw-bold text-dark mb-0">
                             <i class="bi bi-stars text-warning me-2"></i>Derniers albums créés (3 récents)
                         </h6>
                         {% if total_albums > 3 %}
-                        <a href="{% url 'exams:liste_albums' %}?voir_tout=1" class="btn btn-sm btn-outline-warning text-dark fw-bold rounded-3">
-                            Voir tous ({{ total_albums }}) <i class="bi bi-arrow-right ms-1"></i>
+                        <a href="#listeCompleteAlbums" class="btn btn-sm btn-outline-warning text-dark fw-bold rounded-3">
+                            Voir la liste complète ({{ total_albums }}) <i class="bi bi-arrow-down ms-1"></i>
                         </a>
                         {% endif %}
                     </div>
-                    {% endif %}
 
-                    {% if albums %}
-                    <div class="row g-4">
-                        {% for album in albums %}
+                    <div class="row g-4 mb-5">
+                        {% for album in albums_recents %}
                         <div class="col-md-6 col-lg-4">
                             <div class="card border-0 shadow-sm h-100 rounded-4 overflow-hidden position-relative border-top border-4 border-warning">
                                 <a href="{% url 'exams:gerer_photos_album' album.pk %}" class="text-decoration-none position-relative d-block" style="height: 200px; background-color: #1e2d3d;">
@@ -111,7 +96,7 @@
                                             <i class="bi bi-calendar3 me-1 text-warning"></i>{{ album.date_evenement|date:"d/m/Y" }}
                                         </p>
                                         {% if album.description %}
-                                        <p class="small text-secondary text-truncate mb-2">{{ album.description|striptags }}</p>
+                                        <small class="text-secondary text-truncate mb-2">{{ album.description|striptags }}</small>
                                         {% endif %}
                                     </div>
                                     <div class="mt-auto pt-3 border-top d-flex justify-content-between align-items-center">
@@ -128,29 +113,106 @@
                         </div>
                         {% endfor %}
                     </div>
-
-                    {% if not voir_tout and total_albums > 3 %}
-                    <div class="text-center mt-4 pt-2">
-                        <a href="{% url 'exams:liste_albums' %}?voir_tout=1" class="btn btn-warning text-dark fw-bold rounded-3 px-4 py-2 shadow-sm fs-6">
-                            <i class="bi bi-grid-3x3-gap-fill me-2"></i>Afficher la liste de tous les albums ({{ total_albums }})
-                        </a>
-                    </div>
                     {% endif %}
 
-                    <!-- PAGINATION -->
-                    {% if voir_tout and page_obj and page_obj.has_other_pages %}
+                    {% if albums %}
+                    <!-- SECTION 2 : LISTE TABLEAU DE TOUS LES ALBUMS -->
+                    <div class="d-flex justify-content-between align-items-center mb-3 pt-3 border-top" id="listeCompleteAlbums">
+                        <div>
+                            <h5 class="fw-bold text-dark mb-1">
+                                <i class="bi bi-table text-primary me-2"></i>Liste de Tous les Albums Photos
+                            </h5>
+                            <p class="text-muted small mb-0">Cliquez sur un album pour voir et gérer ses images.</p>
+                        </div>
+                        <span class="badge bg-primary fs-7 px-3 py-2 rounded-pill">
+                            {{ total_albums }} album(s) enregistré(s)
+                        </span>
+                    </div>
+
+                    <div class="table-responsive rounded-4 border bg-white shadow-sm mb-3">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th style="width: 80px;" class="ps-3">Vignette</th>
+                                    <th>Album & Description</th>
+                                    <th>Événement / Session</th>
+                                    <th>Date</th>
+                                    <th class="text-center">Photos</th>
+                                    <th style="width: 180px;" class="text-end pe-3">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for album in albums %}
+                                <tr>
+                                    <td class="ps-3">
+                                        <a href="{% url 'exams:gerer_photos_album' album.pk %}">
+                                            {% if album.get_couverture_url %}
+                                            <img src="{{ album.get_couverture_url }}" class="rounded-3 shadow-sm border" style="width: 60px; height: 45px; object-fit: cover;" alt="{{ album.titre }}">
+                                            {% else %}
+                                            <div class="bg-secondary text-white rounded-3 d-flex align-items-center justify-content-center shadow-sm" style="width: 60px; height: 45px;">
+                                                <i class="bi bi-image fs-6"></i>
+                                            </div>
+                                            {% endif %}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'exams:gerer_photos_album' album.pk %}" class="text-decoration-none text-dark fw-bold fs-6 d-block hover-warning">
+                                            {{ album.titre }}
+                                        </a>
+                                        {% if album.description %}
+                                        <small class="text-muted text-truncate d-block" style="max-width: 350px;">{{ album.description|striptags }}</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if album.session_examen %}
+                                        <span class="badge bg-danger rounded-pill px-3 py-1.5 fs-8">
+                                            <i class="bi bi-journal-check me-1"></i>{{ album.session_examen.titre }}
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-secondary rounded-pill px-3 py-1.5 fs-8">
+                                            <i class="bi bi-flag me-1"></i>Événement Général
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="small fw-semibold text-dark">
+                                            <i class="bi bi-calendar3 me-1 text-warning"></i>{{ album.date_evenement|date:"d/m/Y" }}
+                                        </span>
+                                    </td>
+                                    <td class="text-center">
+                                        <span class="badge bg-dark rounded-pill px-3 py-1.5 fs-8">
+                                            <i class="bi bi-camera-fill me-1 text-warning"></i>{{ album.photos.count }} photo(s)
+                                        </span>
+                                    </td>
+                                    <td class="text-end pe-3">
+                                        <a href="{% url 'exams:gerer_photos_album' album.pk %}" class="btn btn-sm btn-primary rounded-3 px-3 fw-bold me-1">
+                                            <i class="bi bi-images me-1"></i>Voir / Gérer
+                                        </a>
+                                        <a href="{% url 'exams:supprimer_album' album.pk %}" class="btn btn-sm btn-outline-danger rounded-3" 
+                                           onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet album et toutes ses photos ?');" title="Supprimer">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- PAGINATION DU TABLEAU -->
+                    {% if page_obj and page_obj.has_other_pages %}
                     <nav class="mt-4">
                         <ul class="pagination justify-content-center mb-0">
                             {% if page_obj.has_previous %}
-                            <li class="page-item"><a class="page-link" href="?voir_tout=1&page={{ page_obj.previous_page_number }}">Précédent</a></li>
+                            <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}#listeCompleteAlbums">Précédent</a></li>
                             {% endif %}
                             {% for page in page_obj.paginator.page_range %}
                             <li class="page-item {% if page == page_obj.number %}active{% endif %}">
-                                <a class="page-link" href="?voir_tout=1&page={{ page }}">{{ page }}</a>
+                                <a class="page-link" href="?page={{ page }}#listeCompleteAlbums">{{ page }}</a>
                             </li>
                             {% endfor %}
                             {% if page_obj.has_next %}
-                            <li class="page-item"><a class="page-link" href="?voir_tout=1&page={{ page_obj.next_page_number }}">Suivant</a></li>
+                            <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}#listeCompleteAlbums">Suivant</a></li>
                             {% endif %}
                         </ul>
                     </nav>

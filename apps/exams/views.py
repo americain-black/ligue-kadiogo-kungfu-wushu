@@ -1578,7 +1578,7 @@ def liste_licencies_club(request, session_pk):
 @gest_ligue_requis
 def liste_albums(request):
     """
-    Gestion globale des albums photos (Liste & Création d'un nouvel album).
+    Gestion globale des albums photos (Aperçu récent, Liste complète & Création d'un nouvel album).
     """
     from django.core.paginator import Paginator
 
@@ -1619,21 +1619,16 @@ def liste_albums(request):
     if request.method == 'POST' and request.POST.get('action') == 'creer_album':
         active_tab = 'nouveau'
 
-    voir_tout = request.GET.get('voir_tout') == '1' or active_tab == 'tous'
+    albums_recents = albums_qs[:3]
 
-    if voir_tout:
-        paginator = Paginator(albums_qs, 12)
-        page_obj = paginator.get_page(request.GET.get('page', 1))
-        albums_list = page_obj
-    else:
-        page_obj = None
-        albums_list = albums_qs[:3]
+    paginator = Paginator(albums_qs, 15)
+    page_obj = paginator.get_page(request.GET.get('page', 1))
 
     form_upload = MultipleImageUploadForm()
     return render(request, 'exams/gerer_albums.html', {
-        'albums': albums_list,
+        'albums_recents': albums_recents,
+        'albums': page_obj,
         'page_obj': page_obj,
-        'voir_tout': voir_tout,
         'total_albums': total_albums,
         'form_album': form_album,
         'form_upload': form_upload,

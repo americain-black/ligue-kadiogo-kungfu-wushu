@@ -214,89 +214,10 @@
 
         {% endif %}
 
-        <!-- RÉCAPITULATIF DES EXAMENS (SI SESSION ACTIVE) -->
-        {% if session_active %}
-        <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
-            <div class="bg-dark text-white p-3 px-4 position-relative" style="background: linear-gradient(135deg, #1e2d3d 0%, #0f172a 100%);">
-                <h5 class="fw-bold text-white mb-0">
-                    <i class="bi bi-trophy-fill text-warning me-2"></i>Palmarès & Chiffres Clés — {{ session_active.titre }}
-                </h5>
-            </div>
-            <div class="card-body p-4 bg-white">
-                <div class="row g-4">
-                    <div class="col-md-6">
-                        <div class="card border-0 bg-light rounded-4 p-3 h-100 border-start border-4 border-warning shadow-sm">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="badge-major rounded-circle p-3 fs-2 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
-                                    <i class="bi bi-trophy-fill"></i>
-                                </div>
-                                <div class="flex-grow-1">
-                                    <span class="badge bg-warning text-dark fw-bold mb-1">👑 Major de la Session</span>
-                                    {% if major_session %}
-                                    <h5 class="fw-bold text-dark mb-0">{{ major_session.inscription.pratiquant.nom }} {{ major_session.inscription.pratiquant.prenom }}</h5>
-                                    <p class="small text-muted mb-0">
-                                        Club : <strong>{{ major_session.inscription.pratiquant.club.nom_club }}</strong> &nbsp;|&nbsp; 
-                                        Grade Visé : <strong>{{ major_session.inscription.grade_vise.nom }}</strong>
-                                    </p>
-                                    <div class="mt-1">
-                                        <span class="badge bg-dark fs-7">Moyenne : {{ major_session.moyenne }}/20</span>
-                                    </div>
-                                    {% else %}
-                                    <p class="text-muted small mb-0 mt-1">Non déterminé ou résultats non encore publiés.</p>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="col-md-6">
-                        <div class="card border-0 bg-light rounded-4 p-3 h-100 border-start border-4 border-success shadow-sm">
-                            <div class="d-flex align-items-center gap-3">
-                                <div class="badge-club rounded-circle p-3 fs-2 d-flex align-items-center justify-content-center" style="width: 60px; height: 60px;">
-                                    <i class="bi bi-star-fill"></i>
-                                </div>
-                                <div class="flex-grow-1">
-                                    <span class="badge bg-success text-white fw-bold mb-1">🏆 Club le Plus Performant</span>
-                                    {% if meilleur_club %}
-                                    <h5 class="fw-bold text-dark mb-0">{{ meilleur_club.nom_club }}</h5>
-                                    <p class="small text-muted mb-0">
-                                        Responsable : {{ meilleur_club.nom_responsable|default:"N/C" }}
-                                    </p>
-                                    <div class="mt-1">
-                                        <span class="badge bg-success fs-7">{{ meilleur_club.nb_admis_session }} candidat(s) admis</span>
-                                    </div>
-                                    {% else %}
-                                    <p class="text-muted small mb-0 mt-1">Non déterminé pour cette session.</p>
-                                    {% endif %}
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="row g-3 mt-2">
-                    <div class="col-4">
-                        <div class="bg-light p-3 rounded-3 text-center border">
-                            <span class="text-muted small fw-semibold d-block">Licenciés Autorisés</span>
-                            <h4 class="fw-bold text-dark mb-0">{{ total_licencies }}</h4>
-                        </div>
-                    </div>
-                    <div class="col-4">
-                        <div class="bg-light p-3 rounded-3 text-center border border-success">
-                            <span class="text-success small fw-semibold d-block">Admis</span>
-                            <h4 class="fw-bold text-success mb-0">{{ total_admis }}</h4>
-                        </div>
-                    </div>
-                    <div class="col-4">
-                        <div class="bg-light p-3 rounded-3 text-center border border-danger">
-                            <span class="text-danger small fw-semibold d-block">Taux de Réussite</span>
-                            <h4 class="fw-bold text-danger mb-0">{{ taux_reussite }}%</h4>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
         {% endif %}
+
+    </div>
+</section>
 
     </div>
 </section>

@@ -1619,16 +1619,21 @@ def liste_albums(request):
     if request.method == 'POST' and request.POST.get('action') == 'creer_album':
         active_tab = 'nouveau'
 
-    albums_recents = albums_qs[:3]
+    view_mode = request.GET.get('view', 'cartes')
 
-    paginator = Paginator(albums_qs, 15)
-    page_obj = paginator.get_page(request.GET.get('page', 1))
+    if view_mode == 'liste':
+        paginator = Paginator(albums_qs, 10)
+        page_obj = paginator.get_page(request.GET.get('page', 1))
+        albums_display = page_obj
+    else:
+        page_obj = None
+        albums_display = albums_qs[:3]
 
     form_upload = MultipleImageUploadForm()
     return render(request, 'exams/gerer_albums.html', {
-        'albums_recents': albums_recents,
-        'albums': page_obj,
+        'albums': albums_display,
         'page_obj': page_obj,
+        'view_mode': view_mode,
         'total_albums': total_albums,
         'form_album': form_album,
         'form_upload': form_upload,

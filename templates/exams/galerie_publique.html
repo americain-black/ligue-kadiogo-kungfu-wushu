@@ -109,7 +109,7 @@
                             <i class="bi bi-camera-fill text-warning me-1"></i>{{ album_actif.photos.count }} photo(s) au total
                         </p>
                         {% if album_actif.description %}
-                        <p class="text-light mt-2 mb-0 small opacity-90">{{ album_actif.description }}</p>
+                        <div class="text-light mt-2 mb-0 small opacity-90">{{ album_actif.description|safe }}</div>
                         {% endif %}
                     </div>
                     {% if album_actif.session_examen %}
@@ -193,7 +193,7 @@
                             <i class="bi bi-calendar3 me-1 text-warning"></i>Organisé le {{ album.date_evenement|date:"d F Y" }}
                         </p>
                         {% if album.description %}
-                        <p class="small text-secondary text-truncate mb-3">{{ album.description }}</p>
+                        <p class="small text-secondary text-truncate mb-3">{{ album.description|striptags }}</p>
                         {% endif %}
                         <div class="mt-auto pt-3 border-top d-flex justify-content-between align-items-center">
                             <span class="fw-bold text-warning small">Voir les {{ album.photos.count }} photos <i class="bi bi-chevron-right ms-1"></i></span>

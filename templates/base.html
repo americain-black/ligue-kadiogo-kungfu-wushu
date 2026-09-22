@@ -212,17 +212,22 @@
         .sidebar-title {
             display: flex;
             align-items: center;
-            color: #ffffff;
-            background: linear-gradient(90deg, rgba(220, 38, 38, 0.28) 0%, rgba(255, 255, 255, 0.06) 100%);
-            border-left: 3.5px solid var(--rouge-ligue, #dc2626);
+            color: #f59e0b;
             font-size: 0.72rem;
-            font-weight: 800;
+            font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 1.5px;
-            padding: 0.45rem 0.8rem;
-            margin: 1.1rem 0.6rem 0.4rem;
-            border-radius: 4px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            padding: 0.75rem 0.8rem 0.35rem 0.8rem;
+            margin: 0.8rem 0.4rem 0.3rem 0.4rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            background: transparent;
+            box-shadow: none;
+        }
+        .sidebar-title:first-of-type,
+        .sidebar .sidebar-title:first-child {
+            border-top: none;
+            margin-top: 0.2rem;
+            padding-top: 0.4rem;
         }
 
         /* ── Boutons du Header Épurés (Identiques à la Navigation Latérale) ── */

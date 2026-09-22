@@ -1582,8 +1582,9 @@ def liste_albums(request):
     """
     from django.core.paginator import Paginator
 
-    albums_qs = AlbumPhoto.objects.all().select_related('session_examen').prefetch_related('photos')
-    
+    albums_qs = AlbumPhoto.objects.all().select_related('session_examen').prefetch_related('photos').order_by('-date_evenement', '-created_at')
+    total_albums = albums_qs.count()
+
     if request.method == 'POST':
         action = request.POST.get('action')
         if action == 'creer_album':
@@ -1618,18 +1619,27 @@ def liste_albums(request):
     if request.method == 'POST' and request.POST.get('action') == 'creer_album':
         active_tab = 'nouveau'
 
-    paginator = Paginator(albums_qs, 9)
-    page_obj = paginator.get_page(request.GET.get('page', 1))
+    voir_tout = request.GET.get('voir_tout') == '1' or active_tab == 'tous'
+
+    if voir_tout:
+        paginator = Paginator(albums_qs, 12)
+        page_obj = paginator.get_page(request.GET.get('page', 1))
+        albums_list = page_obj
+    else:
+        page_obj = None
+        albums_list = albums_qs[:3]
 
     form_upload = MultipleImageUploadForm()
     return render(request, 'exams/gerer_albums.html', {
-        'albums': page_obj,
+        'albums': albums_list,
         'page_obj': page_obj,
+        'voir_tout': voir_tout,
+        'total_albums': total_albums,
         'form_album': form_album,
         'form_upload': form_upload,
         'active_tab': active_tab,
-        'total_albums': albums_qs.count(),
     })
+
 
 
 @gest_ligue_requis

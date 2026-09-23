@@ -393,16 +393,22 @@ class AlbumPhoto(models.Model):
         verbose_name="Description / Légende globale",
         help_text="Présentation générale de l'album photo"
     )
+    type_evenement = models.CharField(
+        max_length=100,
+        blank=True,
+        default='',
+        verbose_name="Type d'événement"
+    )
     date_evenement = models.DateField(
         default=timezone.now,
         verbose_name="Date de l'événement"
     )
-    session_examen = models.ForeignKey(
-        'SessionExamen',
+    annee_sportive = models.ForeignKey(
+        'AnneeSportive',
         on_delete=models.SET_NULL,
         null=True, blank=True,
         related_name='albums',
-        verbose_name="Session d'examen associée (optionnel)"
+        verbose_name="Année sportive associée (optionnel)"
     )
     couverture = models.ImageField(
         upload_to='albums/couvertures/%Y/%m/',

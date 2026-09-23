@@ -17,8 +17,11 @@
             </h2>
             <p class="text-muted small mb-0">
                 <i class="bi bi-calendar3 me-1"></i>{{ album.date_evenement|date:"d F Y" }}
-                {% if album.session_examen %}
-                &nbsp;|&nbsp; <span class="badge bg-danger fs-8"><i class="bi bi-journal-check me-1"></i>{{ album.session_examen.titre }}</span>
+                {% if album.type_evenement %}
+                &nbsp;|&nbsp; <span class="badge bg-danger fs-8">{{ album.type_evenement }}</span>
+                {% endif %}
+                {% if album.annee_sportive %}
+                &nbsp;|&nbsp; <span class="badge bg-secondary fs-8">{{ album.annee_sportive.libelle }}</span>
                 {% endif %}
             </p>
         </div>
@@ -26,7 +29,7 @@
             <span class="badge bg-dark fs-6 px-3 py-2 rounded-3 shadow-sm">
                 <i class="bi bi-camera-fill me-1 text-warning"></i>{{ photos_all_count }} photo(s)
             </span>
-            <button class="btn btn-outline-primary btn-sm rounded-3" data-bs-toggle="modal" data-bs-target="#modalEditAlbum">
+            <button class="btn btn-outline-dark btn-sm rounded-3" data-bs-toggle="modal" data-bs-target="#modalEditAlbum">
                 <i class="bi bi-pencil-square me-1"></i>Modifier l'album
             </button>
         </div>
@@ -44,12 +47,12 @@
                 {% csrf_token %}
                 <input type="hidden" name="action" value="upload_multiple">
                 <div class="col-md-6">
-                    <label class="form-label small fw-bold text-muted mb-1">Photos (JPG, PNG, WEBP)</label>
+                    <label class="form-label small fw-bold text-muted mb-1">Photos</label>
                     <input type="file" name="images" multiple class="form-control" accept="image/*" required>
                 </div>
                 <div class="col-md-4">
-                    <label class="form-label small fw-bold text-muted mb-1">Légende / Commentaire par défaut</label>
-                    <input type="text" name="legende_commune" class="form-control" placeholder="Optionnel: Légende commune">
+                    <label class="form-label small fw-bold text-muted mb-1">Légende commune</label>
+                    <input type="text" name="legende_commune" class="form-control">
                 </div>
                 <div class="col-md-2 text-end pt-3">
                     <button type="submit" class="btn btn-success w-100 fw-bold rounded-3">
@@ -221,8 +224,12 @@
                         {{ form_edit_album.date_evenement }}
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Session d'Examen associée</label>
-                        {{ form_edit_album.session_examen }}
+                        <label class="form-label fw-bold">Type d'événement</label>
+                        {{ form_edit_album.type_evenement }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Année Sportive</label>
+                        {{ form_edit_album.annee_sportive }}
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold">Image de Couverture</label>
@@ -231,7 +238,7 @@
                 </div>
                 <div class="modal-footer border-top bg-light">
                     <button type="button" class="btn btn-secondary rounded-3" data-bs-dismiss="modal">Annuler</button>
-                    <button type="submit" class="btn btn-primary rounded-3 fw-bold">Enregistrer</button>
+                    <button type="submit" class="btn btn-ligue rounded-3 fw-bold">Enregistrer</button>
                 </div>
             </form>
         </div>

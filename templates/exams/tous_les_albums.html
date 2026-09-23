@@ -1,0 +1,176 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Tous les Albums Photos — Ligue du Kadiogo{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+
+    <!-- EN-TÊTE DE PAGE -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <a href="{% url 'exams:liste_albums' %}" class="btn btn-sm btn-outline-secondary rounded-3 mb-2">
+                <i class="bi bi-arrow-left me-1"></i>Retour aux 3 récents
+            </a>
+            <h2 class="fw-bold text-dark mb-0">
+                <i class="bi bi-list-task text-warning me-2"></i>Tous les Albums Photos ({{ total_albums }})
+            </h2>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+            <a href="{% url 'exams:creer_album' %}" class="btn btn-success fw-bold rounded-3 px-3 py-2 shadow-sm">
+                <i class="bi bi-plus-lg me-1"></i>Nouvel Album
+            </a>
+        </div>
+    </div>
+
+    <!-- RECHERCHE & TABLEAU -->
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body p-4">
+
+            <!-- BARRE DE RECHERCHE AUTOMATIQUE -->
+            <form method="get" class="mb-4">
+                <div class="row g-2 align-items-center">
+                    <div class="col-md-5">
+                        <div class="input-group">
+                            <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
+                            <input type="text" name="q" value="{{ search_q }}" class="form-control border-start-0" placeholder="Recherche automatique par titre ou mot-clé..." oninput="autoSearchAdmin(this)">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <button type="submit" class="btn btn-ligue fw-bold rounded-3 px-3">Rechercher</button>
+                        {% if search_q %}
+                        <a href="{% url 'exams:tous_les_albums' %}" class="btn btn-outline-secondary rounded-3 ms-1">Effacer</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </form>
+
+            <script>
+            let adminSearchTimer;
+            function autoSearchAdmin(input) {
+                clearTimeout(adminSearchTimer);
+                adminSearchTimer = setTimeout(() => {
+                    input.form.submit();
+                }, 400);
+            }
+            </script>
+
+            <!-- TABLEAU DES ALBUMS -->
+            {% if albums %}
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width: 70px;">Couverture</th>
+                            <th>Titre & Description</th>
+                            <th>Type d'événement</th>
+                            <th>Année sportive</th>
+                            <th>Date</th>
+                            <th>Photos</th>
+                            <th class="text-end" style="width: 190px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for album in albums %}
+                        <tr>
+                            <td>
+                                <a href="{% url 'exams:gerer_photos_album' album.pk %}" class="d-block rounded-3 overflow-hidden" style="width: 60px; height: 45px; background-color: #1e2d3d;">
+                                    {% if album.get_couverture_url %}
+                                    <img src="{{ album.get_couverture_url }}" class="w-100 h-100" style="object-fit: cover;" alt="{{ album.titre }}">
+                                    {% else %}
+                                    <div class="w-100 h-100 d-flex align-items-center justify-content-center text-white-50">
+                                        <i class="bi bi-image"></i>
+                                    </div>
+                                    {% endif %}
+                                </a>
+                            </td>
+                            <td>
+                                <h6 class="fw-bold text-dark mb-0">
+                                    <a href="{% url 'exams:gerer_photos_album' album.pk %}" class="text-dark text-decoration-none">
+                                        {{ album.titre }}
+                                    </a>
+                                </h6>
+                                {% if album.description %}
+                                <small class="text-muted d-block text-truncate" style="max-width: 300px;">{{ album.description|striptags }}</small>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if album.type_evenement %}
+                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-1 fs-8 fw-semibold">
+                                    {{ album.type_evenement }}
+                                </span>
+                                {% else %}
+                                <span class="text-muted small">--</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if album.annee_sportive %}
+                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-3 py-1 fs-8 fw-semibold">
+                                    {{ album.annee_sportive.libelle }}
+                                </span>
+                                {% else %}
+                                <span class="text-muted small">--</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <small class="fw-semibold text-dark">{{ album.date_evenement|date:"d/m/Y" }}</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-dark bg-opacity-75 rounded-pill px-2.5 py-1 fs-8 fw-bold">
+                                    {{ album.photos.count }} photo(s)
+                                </span>
+                            </td>
+                            <td class="text-end text-nowrap">
+                                <div class="d-inline-flex align-items-center justify-content-end gap-1">
+                                    <a href="{% url 'exams:gerer_photos_album' album.pk %}" class="btn btn-sm btn-ligue rounded-3 px-2 py-1 fw-semibold text-nowrap">
+                                        <i class="bi bi-images me-1"></i>Gérer les photos
+                                    </a>
+                                    <a href="{% url 'exams:supprimer_album' album.pk %}" class="btn btn-sm btn-outline-danger rounded-3 px-2 py-1"
+                                       onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet album et toutes ses photos ?');"
+                                       title="Supprimer l'album">
+                                        <i class="bi bi-trash"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- PAGINATION -->
+            {% if page_obj.has_other_pages %}
+            <nav class="d-flex justify-content-center mt-4">
+                <ul class="pagination pagination-sm mb-0">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if search_q %}&q={{ search_q }}{% endif %}">Précédent</a>
+                    </li>
+                    {% endif %}
+                    {% for i in page_obj.paginator.page_range %}
+                    <li class="page-item {% if page_obj.number == i %}active{% endif %}">
+                        <a class="page-link" href="?page={{ i }}{% if search_q %}&q={{ search_q }}{% endif %}">{{ i }}</a>
+                    </li>
+                    {% endfor %}
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if search_q %}&q={{ search_q }}{% endif %}">Suivant</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+
+            {% else %}
+            <div class="text-center py-5">
+                <i class="bi bi-folder-x fs-1 text-muted d-block mb-3"></i>
+                <h5 class="fw-bold text-dark">Aucun album trouvé</h5>
+                <p class="text-muted small">Aucun album ne correspond à votre recherche.</p>
+            </div>
+            {% endif %}
+
+        </div>
+    </div>
+
+</div>
+{% endblock %}

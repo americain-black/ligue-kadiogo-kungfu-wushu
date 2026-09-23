@@ -66,6 +66,8 @@ urlpatterns = [
     # ── Galerie & Albums Photos ────────────────────────────────────────────
     path('galerie/', views.galerie_examens_publique, name='galerie_examens_publique'),
     path('albums/', views.liste_albums, name='liste_albums'),
+    path('albums/creer/', views.creer_album, name='creer_album'),
+    path('albums/tous/', views.tous_les_albums, name='tous_les_albums'),
     path('albums/<int:pk>/photos/', views.gerer_photos_album, name='gerer_photos_album'),
     path('albums/<int:pk>/supprimer/', views.supprimer_album, name='supprimer_album'),
     path('<int:pk>/photos/', views.gerer_photos_session, name='gerer_photos_session'),

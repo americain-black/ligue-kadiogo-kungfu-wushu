@@ -1578,66 +1578,80 @@ def liste_licencies_club(request, session_pk):
 @gest_ligue_requis
 def liste_albums(request):
     """
-    Gestion globale des albums photos (Aperçu récent, Liste complète & Création d'un nouvel album).
+    Gestion globale des albums photos : Affichage uniquement des 3 récents.
+    """
+    albums_qs = AlbumPhoto.objects.all().select_related('annee_sportive').prefetch_related('photos').order_by('-date_evenement', '-date_creation')
+    total_albums = albums_qs.count()
+    recents_albums = albums_qs[:3]
+
+    return render(request, 'exams/gerer_albums.html', {
+        'albums': recents_albums,
+        'total_albums': total_albums,
+    })
+
+
+@gest_ligue_requis
+def tous_les_albums(request):
+    """
+    Vue liste complète de tous les albums photos (tableau / liste épurée avec pagination).
     """
     from django.core.paginator import Paginator
 
-    albums_qs = AlbumPhoto.objects.all().select_related('session_examen').prefetch_related('photos').order_by('-date_evenement', '-date_creation')
+    albums_qs = AlbumPhoto.objects.all().select_related('annee_sportive').prefetch_related('photos').order_by('-date_evenement', '-date_creation')
+    
+    q = request.GET.get('q', '').strip()
+    if q:
+        albums_qs = albums_qs.filter(Q(titre__icontains=q) | Q(description__icontains=q))
+
     total_albums = albums_qs.count()
+    paginator = Paginator(albums_qs, 15)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
 
+    return render(request, 'exams/tous_les_albums.html', {
+        'albums': page_obj,
+        'page_obj': page_obj,
+        'total_albums': total_albums,
+        'search_q': q,
+    })
+
+
+@gest_ligue_requis
+def creer_album(request):
+    """
+    Vue dédiée à la création d'un nouvel album photo.
+    """
     if request.method == 'POST':
-        action = request.POST.get('action')
-        if action == 'creer_album':
-            form_album = AlbumPhotoForm(request.POST, request.FILES)
-            if form_album.is_valid():
-                album = form_album.save(commit=False)
-                album.cree_par = request.user
-                album.save()
+        form_album = AlbumPhotoForm(request.POST, request.FILES)
+        if form_album.is_valid():
+            album = form_album.save(commit=False)
+            album.cree_par = request.user
+            album.save()
 
-                files = request.FILES.getlist('images')
-                legende_commune = request.POST.get('legende_commune', '').strip()
-                count = 0
-                if files:
-                    for f in files:
-                        PhotoSessionExamen.objects.create(
-                            album=album,
-                            session=album.session_examen,
-                            image=f,
-                            legende=legende_commune,
-                            ajoute_par=request.user
-                        )
-                        count += 1
-                
-                messages.success(request, f"L'album « {album.titre} » a été créé avec succès ({count} photo(s) ajoutée(s)).")
-                return redirect('exams:gerer_photos_album', pk=album.pk)
-            else:
-                messages.error(request, "Veuillez corriger les erreurs du formulaire de création d'album.")
+            files = request.FILES.getlist('images')
+            legende_commune = request.POST.get('legende_commune', '').strip()
+            count = 0
+            if files:
+                for f in files:
+                    PhotoSessionExamen.objects.create(
+                        album=album,
+                        image=f,
+                        legende=legende_commune,
+                        ajoute_par=request.user
+                    )
+                    count += 1
+
+            messages.success(request, f"L'album « {album.titre} » a été créé avec succès ({count} photo(s) ajoutée(s)).")
+            return redirect('exams:gerer_photos_album', pk=album.pk)
+        else:
+            messages.error(request, "Veuillez corriger les erreurs du formulaire de création d'album.")
     else:
         form_album = AlbumPhotoForm()
 
-    active_tab = request.GET.get('tab', 'liste')
-    if request.method == 'POST' and request.POST.get('action') == 'creer_album':
-        active_tab = 'nouveau'
-
-    view_mode = request.GET.get('view', 'cartes')
-
-    if view_mode == 'liste':
-        paginator = Paginator(albums_qs, 10)
-        page_obj = paginator.get_page(request.GET.get('page', 1))
-        albums_display = page_obj
-    else:
-        page_obj = None
-        albums_display = albums_qs[:3]
-
     form_upload = MultipleImageUploadForm()
-    return render(request, 'exams/gerer_albums.html', {
-        'albums': albums_display,
-        'page_obj': page_obj,
-        'view_mode': view_mode,
-        'total_albums': total_albums,
+    return render(request, 'exams/creer_album.html', {
         'form_album': form_album,
         'form_upload': form_upload,
-        'active_tab': active_tab,
     })
 
 
@@ -1665,7 +1679,6 @@ def gerer_photos_album(request, pk):
                 for f in files:
                     PhotoSessionExamen.objects.create(
                         album=album,
-                        session=album.session_examen,
                         image=f,
                         legende=legende_commune,
                         ajoute_par=request.user
@@ -1872,14 +1885,14 @@ def galerie_examens_publique(request):
 
     ligue = Ligue.objects.filter(sigle='LKKFW').first() or Ligue.objects.first()
     
-    albums = AlbumPhoto.objects.all().prefetch_related('photos').select_related('session_examen')
+    albums = AlbumPhoto.objects.all().prefetch_related('photos').select_related('annee_sportive')
     saisons = AnneeSportive.objects.filter(ligue=ligue).order_by('-date_debut') if ligue else AnneeSportive.objects.none()
     sessions = SessionExamen.objects.filter(annee_sportive__ligue=ligue).order_by('-date_examen') if ligue else SessionExamen.objects.none()
 
     saison_id = request.GET.get('saison')
     if saison_id and str(saison_id).isdigit():
         sessions = sessions.filter(annee_sportive_id=int(saison_id))
-        albums = albums.filter(Q(session_examen__annee_sportive_id=int(saison_id)) | Q(session_examen__isnull=True))
+        albums = albums.filter(Q(annee_sportive_id=int(saison_id)) | Q(annee_sportive__isnull=True))
 
     q = request.GET.get('q', '').strip()
     if q:

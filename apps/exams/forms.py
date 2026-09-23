@@ -373,20 +373,28 @@ class MultipleImageUploadForm(forms.Form):
 class AlbumPhotoForm(forms.ModelForm):
     class Meta:
         model = AlbumPhoto
-        fields = ['titre', 'description', 'date_evenement', 'session_examen', 'couverture']
+        fields = ['titre', 'type_evenement', 'description', 'date_evenement', 'annee_sportive', 'couverture']
         widgets = {
-            'titre': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Stage National Wushu 2026, Remise de grades...'}),
-            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Optionnel : Présentation générale de l\'album...'}),
+            'titre': forms.TextInput(attrs={'class': 'form-control'}),
+            'type_evenement': forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
             'date_evenement': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
-            'session_examen': forms.Select(attrs={'class': 'form-select'}),
+            'annee_sportive': forms.Select(attrs={'class': 'form-select'}),
             'couverture': forms.FileInput(attrs={'class': 'form-control'}),
         }
         labels = {
             'titre': "Titre de l'album",
-            'description': "Description / Légende globale",
+            'type_evenement': "Type d'événement",
+            'description': "Description",
             'date_evenement': "Date de l'événement",
-            'session_examen': "Session d'examen associée (optionnel)",
-            'couverture': "Image de couverture (optionnel)",
+            'annee_sportive': "Année sportive",
+            'couverture': "Image de couverture",
         }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        if 'annee_sportive' in self.fields:
+            self.fields['annee_sportive'].queryset = self.fields['annee_sportive'].queryset.order_by('-date_debut')
+            self.fields['annee_sportive'].empty_label = "-- Aucune --"
 
 

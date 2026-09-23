@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Nouveau Album Photo — Ligue du Kadiogo{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-3">
+
+    <!-- EN-TÊTE ET RETOUR -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <a href="{% url 'exams:liste_albums' %}" class="btn btn-sm btn-outline-secondary rounded-3 mb-2">
+                <i class="bi bi-arrow-left me-1"></i>Retour aux Albums
+            </a>
+            <h2 class="fw-bold text-dark mb-0">
+                <i class="bi bi-plus-circle-fill text-success me-2"></i>Créer un Nouvel Album Photo
+            </h2>
+        </div>
+    </div>
+
+    <!-- FORMULAIRE DE CRÉATION DE L'ALBUM -->
+    <div class="card border-0 shadow-sm rounded-4">
+        <div class="card-body p-4">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="creer_album">
+
+                <div class="row g-4">
+                    <div class="col-lg-7">
+                        <div class="p-3 bg-light rounded-4 border">
+                            <h5 class="fw-bold text-dark mb-3">
+                                <i class="bi bi-info-circle-fill text-warning me-2"></i>Informations de l'Album
+                            </h5>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-dark">Titre de l'Album <span class="text-danger">*</span></label>
+                                {{ form_album.titre }}
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-dark">Description</label>
+                                {{ form_album.description }}
+                            </div>
+
+                            <div class="row g-3">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold text-dark">Type d'événement</label>
+                                    {{ form_album.type_evenement }}
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label fw-bold text-dark">Année Sportive</label>
+                                    {{ form_album.annee_sportive }}
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-dark">Date de l'événement</label>
+                                {{ form_album.date_evenement }}
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-dark">Image de Couverture</label>
+                                {{ form_album.couverture }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-5">
+                        <div class="p-3 bg-light rounded-4 border h-100 d-flex flex-column">
+                            <h5 class="fw-bold text-dark mb-3">
+                                <i class="bi bi-cloud-upload-fill text-success me-2"></i>Charger des Photos
+                            </h5>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-dark">Sélectionner des Photos</label>
+                                <input type="file" name="images" multiple class="form-control" accept="image/*">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-bold text-dark">Légende par défaut</label>
+                                <input type="text" name="legende_commune" class="form-control">
+                            </div>
+
+                            <div class="mt-auto pt-4 border-top text-end">
+                                <a href="{% url 'exams:liste_albums' %}" class="btn btn-secondary me-2 rounded-3">Annuler</a>
+                                <button type="submit" class="btn btn-success px-4 py-2 fw-bold rounded-3 shadow-sm">
+                                    <i class="bi bi-check-circle-fill me-1"></i>Créer et Accéder à l'Album
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

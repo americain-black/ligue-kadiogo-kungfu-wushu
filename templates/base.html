@@ -347,8 +347,37 @@
             .sidebar.sidebar-open { left: 0; }
             .main-content {
                 margin-left: 0 !important;
-                padding: 1rem;
+                padding: 0.85rem 0.6rem !important;
             }
+            .navbar-ligue .navbar-brand span {
+                font-size: 0.95rem;
+            }
+            .space-switcher-btn {
+                padding: 0.25rem 0.5rem !important;
+                font-size: 0.8rem !important;
+            }
+            table:not(.no-responsive) {
+                display: block;
+                width: 100%;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+        }
+
+        @media (max-width: 575.98px) {
+            .card-body {
+                padding: 1rem !important;
+            }
+            .modal-dialog {
+                margin: 0.5rem;
+            }
+            .btn {
+                font-size: 0.85rem;
+            }
+            h1, .h1 { font-size: 1.5rem !important; }
+            h2, .h2 { font-size: 1.3rem !important; }
+            h3, .h3 { font-size: 1.15rem !important; }
+            h4, .h4 { font-size: 1.05rem !important; }
         }
 
         /* ── Cards ── */

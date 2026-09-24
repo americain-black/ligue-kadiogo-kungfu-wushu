@@ -250,6 +250,24 @@ def verifier_bulletin(request, code_verification=None):
     })
 
 
+def _render_pdf_ou_html(request, template_name, context, filename):
+    """
+    Tente de générer un PDF binaire avec WeasyPrint si disponible.
+    Si les dépendances système GTK (gobject-2.0-0) sont absentes de l'OS hôte (ex: Windows sans GTK),
+    rend la page HTML d'impression dédiée avec déclenchement automatique du dialogue d'impression navigateur.
+    """
+    try:
+        from weasyprint import HTML
+        html_string = render(request, template_name, context).content.decode('utf-8')
+        pdf_bytes = HTML(string=html_string, base_url=request.build_absolute_uri('/')).write_pdf()
+        response = HttpResponse(pdf_bytes, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+    except Exception:
+        context['auto_print'] = True
+        return render(request, template_name, context)
+
+
 @login_required
 def telecharger_bulletin(request, pk):
     resultat = get_object_or_404(
@@ -264,7 +282,6 @@ def telecharger_bulletin(request, pk):
         messages.error(request, "Vous n'êtes pas autorisé à télécharger ce bulletin.")
         return redirect('accounts:tableau_de_bord')
 
-    from weasyprint import HTML
     from django.urls import reverse
 
     inscription = resultat.inscription
@@ -279,7 +296,7 @@ def telecharger_bulletin(request, pk):
     )
     qr_code_url = f"https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={verification_url}"
 
-    html_string = render(request, 'results/bulletin_pdf.html', {
+    context = {
         'resultat': resultat,
         'inscription': inscription,
         'ligue': inscription.session.annee_sportive.ligue,
@@ -292,14 +309,10 @@ def telecharger_bulletin(request, pk):
         'stats': _stats_cohorte(resultat),
         'verification_url': verification_url,
         'qr_code_url': qr_code_url,
-    }).content.decode('utf-8')
-
-    pdf_bytes = HTML(string=html_string, base_url=request.build_absolute_uri('/')).write_pdf()
+    }
 
     nom_fichier = f"bulletin_{inscription.pratiquant.nom}_{inscription.pratiquant.prenom}.pdf".replace(' ', '_')
-    response = HttpResponse(pdf_bytes, content_type='application/pdf')
-    response['Content-Disposition'] = f'attachment; filename="{nom_fichier}"'
-    return response
+    return _render_pdf_ou_html(request, 'results/bulletin_pdf.html', context, nom_fichier)
 
 
 def gest_ligue_requis(view_func):
@@ -449,13 +462,8 @@ def impression_groupee_bulletins(request):
             'qr_code_url': qr_code_url,
         })
 
-    html_string = render(request, 'results/bulletins_groupe_pdf.html', {
+    context = {
         'bulletins_items': bulletins_items,
         'ligue': ligue,
-    }).content.decode('utf-8')
-
-    pdf_bytes = HTML(string=html_string, base_url=request.build_absolute_uri('/')).write_pdf()
-
-    response = HttpResponse(pdf_bytes, content_type='application/pdf')
-    response['Content-Disposition'] = 'attachment; filename="bulletins_groupe_impression.pdf"'
-    return response
+    }
+    return _render_pdf_ou_html(request, 'results/bulletins_groupe_pdf.html', context, "bulletins_groupe_impression.pdf")

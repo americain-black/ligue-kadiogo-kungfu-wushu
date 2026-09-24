@@ -954,12 +954,24 @@ def configurer_jury(request, session_pk, affectation_pk):
     ligue       = request.user.ligue
 
     from apps.practitioners.models import Grade as GradeModel
-    grades  = GradeModel.objects.filter(ligue=ligue).order_by('id_grade')
+    # Seuls les grades officiels de la Ligue (est_grade_ligue=True) sont évalués par les jurys de la Ligue
+    grades_qs = GradeModel.objects.filter(ligue=ligue, actif=True, est_grade_ligue=True)
+
+    # Si la session ou l'année a des tarifs/inscrits spécifiques, filtrer sur les grades visés
+    tarifs_grade_ids = set(session.annee_sportive.tarifs.values_list('grade_id', flat=True))
+    inscrits_grade_ids = set(session.inscriptions.values_list('grade_vise_id', flat=True))
+    grades_vises_ids = tarifs_grade_ids | inscrits_grade_ids
+
+    if grades_vises_ids:
+        grades = grades_qs.filter(pk__in=grades_vises_ids).order_by('id_grade')
+    else:
+        grades = grades_qs.order_by('id_grade')
+
     options = OptionExamen.objects.filter(ligue=ligue, actif=True).order_by('nom')
 
     rubrique_grades = (
         RubriqueGrade.objects
-        .filter(grade__ligue=ligue, actif=True)
+        .filter(grade__in=grades, actif=True)
         .select_related('rubrique', 'grade')
         .order_by('grade__id_grade', 'rubrique__nom')
     )

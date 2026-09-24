@@ -511,9 +511,9 @@ def export_rapport_pdf(request):
         filename = f"Rapport_Activite_{ligue.sigle}_{saison_label}.pdf"
         response['Content-Disposition'] = f'inline; filename="{filename}"'
         return response
-    except Exception as e:
-        messages.error(request, f"Génération PDF indisponible (bibliothèques GTK manquantes) : {e}")
-        return redirect('ligues:tableau_de_bord')
+    except Exception:
+        context['auto_print'] = True
+        return render(request, 'ligues/rapport_activite_pdf.html', context)
 
 
 def statistiques_publiques(request):

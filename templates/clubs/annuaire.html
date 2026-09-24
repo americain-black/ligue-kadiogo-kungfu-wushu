@@ -487,10 +487,10 @@
                 zoomControl: true
             });
 
-            // Utilisation des tuiles officielles OpenStreetMap (Haute fiabilité)
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-                maxZoom: 19,
-                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            // Utilisation des tuiles officielles OpenStreetMap France (Style exact OSM, gratuit, 100% fonctionnel sans clé API)
+            L.tileLayer('https://{s}.tile.openstreetmap.fr/osmfr/{z}/{x}/{y}.png', {
+                maxZoom: 20,
+                attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, <a href="https://openstreetmap.fr">OSM France</a>'
             }).addTo(map);
 
             // Forcer le rendu immédiat et différé des tuiles pour éviter la carte blanche

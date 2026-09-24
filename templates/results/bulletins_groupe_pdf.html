@@ -4,17 +4,48 @@
 <meta charset="utf-8">
 <title>Impression Groupée des Bulletins — {{ ligue.sigle }}</title>
 <style>
-    @page { size: A4 portrait; margin: 0.8cm 1.2cm 2.6cm 1.2cm; }
+    @media print {
+        .no-print-bar { display: none !important; }
+    }
+    @page {
+        size: A4 portrait;
+        margin: 0.6cm 0.8cm 0.6cm 0.8cm;
+    }
     * { box-sizing: border-box; }
     body {
-        font-family: 'DejaVu Sans', Arial, sans-serif;
-        font-size: 9.5pt;
-        color: #111;
-        line-height: 1.3;
+        font-family: 'DejaVu Sans', Arial, Helvetica, sans-serif;
+        font-size: 8.5pt;
+        color: #000000;
+        line-height: 1.25;
+        background-color: #ffffff;
+    }
+    html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+    }
+    @media print {
+        .no-print-bar { display: none !important; }
+        html, body {
+            height: 100% !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            overflow: hidden;
+        }
+        .bulletin-page {
+            height: 282mm !important;
+            min-height: 282mm !important;
+            max-height: 282mm !important;
+        }
     }
     .bulletin-page {
         page-break-after: always;
         position: relative;
+        width: 100%;
+        min-height: calc(100vh - 80px);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
     }
     .bulletin-page:last-child {
         page-break-after: avoid;
@@ -25,194 +56,196 @@
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding-bottom: 4px;
-        margin-bottom: 6px;
+        padding-bottom: 2px;
+        margin-bottom: 4px;
     }
-    .entete .bloc { width: 34%; font-size: 8pt; font-weight: bold; text-transform: uppercase; text-align: center; }
+    .entete .bloc {
+        width: 36%;
+        font-size: 8pt;
+        font-weight: bold;
+        text-transform: uppercase;
+        text-align: center;
+        color: #000000;
+    }
     .entete .bloc.droite { text-align: center; }
-    .entete .bloc .trait { border-top: 1px dashed #444; margin: 3px auto; width: 70%; }
+    .entete .bloc .trait { border-top: 1px dashed #000000; margin: 2px auto; width: 70%; }
     .entete .bloc .devise { font-size: 7.5pt; font-weight: normal; font-style: italic; text-transform: none; display: block; }
     
-    /* Logo bien agrandi */
-    .entete .logo { width: 28%; text-align: center; }
-    .entete .logo img { max-height: 115px; max-width: 115px; object-fit: contain; }
+    .entete .logo { width: 24%; text-align: center; }
+    .entete .logo img { max-height: 85px; max-width: 85px; object-fit: contain; }
     .entete .logo .sigle-badge {
         display: inline-block;
-        width: 80px; height: 80px;
+        width: 70px; height: 70px;
         border-radius: 50%;
-        border: 2.5px solid #222;
-        line-height: 75px;
+        border: 2px solid #000000;
+        line-height: 66px;
         font-weight: bold;
-        font-size: 13pt;
+        font-size: 12pt;
+        color: #000000;
     }
 
-    /* ── Titre "BULLETIN DE NOTE" : Texte Bleu assorti à la ligne rubrique ── */
-    .titre-bulletin {
+    .titre-bulletin-container {
         text-align: center;
-        font-size: 15pt;
-        font-weight: bold;
+        margin: 4px 0 6px;
+    }
+    .titre-bulletin {
+        display: inline-block;
+        font-size: 14pt;
+        font-weight: 900;
         letter-spacing: 2px;
-        margin: 10px 0 12px;
-        color: #547b9a;
-        background: transparent;
+        color: #0f172a;
+        text-transform: uppercase;
+        border-bottom: 2px solid #0f172a;
+        padding-bottom: 2px;
+    }
+
+    .ligne-session { font-size: 8.5pt; margin-bottom: 6px; color: #000000; }
+    .ligne-session .pointille { border-bottom: 1px dotted #000000; padding: 0 4px; font-weight: bold; }
+
+    .identite-box {
+        border: 1.5px solid #000000;
+        border-radius: 6px;
+        padding: 6px 10px;
+        margin-bottom: 8px;
+        background-color: #ffffff;
+    }
+    table.identite { width: 100%; border-collapse: collapse; font-size: 8.5pt; }
+    table.identite td { padding: 3px 2px; vertical-align: middle; }
+    table.identite td.label { color: #111111; white-space: nowrap; font-weight: normal; padding-right: 4px; }
+    table.identite td.valeur { font-weight: bold; color: #000000; }
+
+    table.notes { width: 100%; border-collapse: collapse; margin-bottom: 8px; font-size: 8.5pt; }
+    table.notes th, table.notes td { border: 1px solid #334155; padding: 4px 8px; }
+    table.notes thead th {
+        background-color: #0f172a;
+        color: #ffffff;
+        font-size: 9pt;
+        font-weight: bold;
+        text-align: center;
         text-transform: uppercase;
     }
-
-    .ligne-session { font-size: 9pt; margin-bottom: 10px; }
-    .ligne-session .pointille { border-bottom: 1px dotted #333; padding: 0 4px; font-weight: bold; }
-
-    /* ── Identité du candidat (Sans coupure de libellé) ───────────────── */
-    .identite-box {
-        border: 1.5px solid #333;
-        border-radius: 8px;
-        padding: 8px 12px;
-        margin-bottom: 12px;
-        background-color: #fff;
-    }
-    table.identite { width: 100%; border-collapse: collapse; font-size: 9pt; }
-    table.identite td { padding: 4px 3px; vertical-align: middle; }
-    table.identite td.label { color: #222; white-space: nowrap; font-weight: normal; padding-right: 4px; }
-    table.identite td.valeur { font-weight: bold; color: #000; }
-
-    /* ── Tableau des notes (Bleu acier officiel) ───────────────────────── */
-    table.notes { width: 100%; border-collapse: collapse; margin-bottom: 12px; font-size: 9pt; }
-    table.notes th, table.notes td { border: 1px solid #666; padding: 5px 10px; }
-    table.notes thead th {
-        background-color: #547b9a;
-        color: #ffffff;
-        font-size: 9.5pt;
-        font-weight: bold;
-        text-align: center;
-    }
-    table.notes td.rubrique-title { text-align: left; }
-    table.notes td.col-note { text-align: right; }
-    table.notes td.col-coef { text-align: center; }
-    table.notes td.col-pond { text-align: right; }
+    table.notes td.rubrique-title { text-align: left; font-weight: 600; color: #000; }
+    table.notes td.col-note { text-align: right; font-weight: 700; color: #000; }
+    table.notes td.col-coef { text-align: center; color: #000; }
+    table.notes td.col-pond { text-align: right; font-weight: 700; color: #000; }
     
-    table.notes tbody tr:nth-child(even) { background-color: #fcfcfc; }
+    table.notes tbody tr:nth-child(even) { background-color: #f8fafc; }
     
     table.notes tfoot td {
         font-weight: bold;
-        font-size: 9.5pt;
+        font-size: 9pt;
         background-color: #ffffff;
-        border-top: 2px solid #222;
-        border-bottom: 2px solid #222;
+        border-top: 2px solid #000000;
+        border-bottom: 2px solid #000000;
+        color: #000000;
     }
 
-    /* ── Bloc résultat ────────────────────────────────────────────────── */
     table.bloc-resultat {
         width: 100%;
         border-collapse: collapse;
-        border: 2px solid #222;
-        border-radius: 8px;
-        margin-bottom: 14px;
+        border: 1.5px solid #000000;
+        border-radius: 6px;
+        margin-bottom: 8px;
         overflow: hidden;
     }
     table.bloc-resultat > tbody > tr > td { vertical-align: top; border: none; }
-    table.bloc-resultat .col-stats   { width: 28%; border-right: 1.5px solid #222; padding: 0; }
-    table.bloc-resultat .col-decision{ width: 32%; border-right: 1.5px solid #222; text-align: center; padding: 8px 6px; }
-    table.bloc-resultat .col-rappel  { width: 40%; padding: 6px 6px; }
+    table.bloc-resultat .col-stats   { width: 28%; border-right: 1.5px solid #000000; padding: 0; }
+    table.bloc-resultat .col-decision{ width: 32%; border-right: 1.5px solid #000000; text-align: center; padding: 6px 4px; }
+    table.bloc-resultat .col-rappel  { width: 40%; padding: 4px 4px; }
 
-    table.stats { width: 100%; border-collapse: collapse; font-size: 8.5pt; }
-    table.stats td { padding: 4px 8px; border-bottom: 1px solid #ccc; }
-    table.stats td:first-child { color: #444; }
-    table.stats td:last-child { font-weight: bold; text-align: right; }
+    table.stats { width: 100%; border-collapse: collapse; font-size: 8pt; }
+    table.stats td { padding: 3px 6px; border-bottom: 1px solid #e2e8f0; }
+    table.stats td:first-child { color: #1e293b; font-weight: 500; }
+    table.stats td:last-child { font-weight: bold; text-align: right; color: #000; }
     table.stats tr:last-child td { border-bottom: none; }
 
-    .col-decision .label-sec { font-size: 8.5pt; color: #555; text-transform: uppercase; margin-bottom: 2px; }
-    .col-decision .mention { font-size: 12pt; font-weight: bold; margin-bottom: 14px; color: #111; }
-    .col-decision .decision { font-size: 13pt; font-weight: bold; color: #000; display: inline-block; }
+    .col-decision .label-sec { font-size: 8pt; color: #334155; text-transform: uppercase; margin-bottom: 2px; font-weight: 600; }
+    .col-decision .mention { font-size: 11pt; font-weight: 800; margin-bottom: 8px; color: #000000; }
+    .col-decision .decision { font-size: 12pt; font-weight: 900; color: #000000; display: inline-block; text-transform: uppercase; }
 
-    .col-rappel .titre-rappel { font-size: 8.5pt; font-weight: bold; text-align: center; margin-bottom: 4px; color: #222; }
+    .col-rappel .titre-rappel { font-size: 8pt; font-weight: bold; text-align: center; margin-bottom: 3px; color: #000; text-transform: uppercase; }
     table.rappel-tab { width: 100%; border-collapse: collapse; font-size: 7.5pt; }
-    table.rappel-tab th, table.rappel-tab td { border: 1px solid #888; padding: 3px 2px; text-align: center; height: 16px; }
-    table.rappel-tab th { background: #eef3f7; font-weight: bold; color: #111; }
+    table.rappel-tab th, table.rappel-tab td { border: 1px solid #64748b; padding: 2px; text-align: center; height: 14px; }
+    table.rappel-tab th { background: #e2e8f0; font-weight: bold; color: #000000; }
 
-    /* ── Bloc Sécurité & Authentification PDF ────────────────────────── */
     table.secu-signature {
         width: 100%;
         border-collapse: collapse;
-        margin-top: 10px;
-        margin-bottom: 14px;
+        margin-top: 4px;
+        margin-bottom: 6px;
     }
     table.secu-signature td { vertical-align: top; border: none; }
     .col-secu-block {
-        width: 55%;
-        border: 1px solid #94a3b8;
-        border-radius: 6px;
-        padding: 6px 8px;
-        background-color: #f8fafc;
+        width: 30%;
+        vertical-align: bottom;
     }
     .secu-title {
         font-size: 7.5pt;
-        font-weight: bold;
+        font-weight: 900;
         color: #0f172a;
         text-transform: uppercase;
-        margin-bottom: 3px;
-        border-bottom: 1px solid #cbd5e1;
+        margin-bottom: 2px;
+        border-bottom: none;
         padding-bottom: 2px;
+        letter-spacing: 0.5px;
     }
     .secu-code {
         font-family: 'Courier New', Courier, monospace;
         font-size: 8.5pt;
         font-weight: bold;
         color: #0369a1;
-        margin-top: 2px;
+        margin-top: 1px;
     }
     .secu-text {
         font-size: 7pt;
-        color: #475569;
+        color: #1e293b;
         line-height: 1.2;
         margin-top: 2px;
     }
     .col-signature-block {
-        width: 45%;
+        width: 42%;
         text-align: right;
-        font-size: 9pt;
+        font-size: 8.5pt;
+        color: #000000;
     }
 
-    /* ── Signature Zone ────────────────────────────────────────────────── */
-    .signature-zone {
-        text-align: right;
-        font-size: 9pt;
-        margin-top: 14px;
-        margin-bottom: 18px;
-    }
-    .signature-zone .titre-fonction { margin-top: 4px; font-weight: bold; }
-    .signature-zone .nom-signataire { margin-top: 65px; font-weight: bold; font-size: 9.5pt; }
+    .col-signature-block .titre-fonction { margin-top: 3px; font-weight: bold; }
+    .col-signature-block .nom-signataire { margin-top: 32px; font-weight: bold; font-size: 9pt; }
 
-    /* ── Pied de page ─────────────────────────────────────────────────── */
     .pied {
-        position: fixed;
-        bottom: -2.0cm;
-        left: 0;
-        right: 0;
         width: 100%;
         text-align: center;
-        font-size: 7.5pt;
-        color: #333;
+        font-size: 7pt;
+        color: #1e293b;
+        border-top: none;
+        padding-top: 2px;
+        margin-top: auto;
     }
     .pied-box {
-        border: none;
-        padding: 2px 0;
-        font-size: 7.5pt;
-        line-height: 1.35;
+        font-size: 7pt;
+        line-height: 1.25;
         text-align: center;
-        background: transparent;
-        margin-bottom: 3px;
+        margin-bottom: 2px;
+        font-weight: 500;
     }
-    /* Mention en bas à gauche et en GRAS */
     .pied .avertissement {
         text-align: left;
         font-weight: bold;
-        font-style: normal;
-        font-size: 7.5pt;
-        color: #111;
-        margin-top: 2px;
+        font-size: 7pt;
+        color: #000000;
     }
 </style>
 </head>
 <body>
+<div class="no-print-bar" style="background: #0f172a; color: white; padding: 10px 20px; display: flex; justify-content: space-between; align-items: center; font-family: system-ui, -apple-system, sans-serif; position: sticky; top: 0; z-index: 9999; margin-bottom: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.15);">
+    <div>
+        <strong style="font-size: 0.95rem;">📄 Impression Groupée des Bulletins</strong>
+        <span style="font-size: 0.85rem; opacity: 0.85; margin-left: 12px;">Appuyez sur Imprimer pour tout enregistrer en PDF (1 page par bulletin)</span>
+    </div>
+    <button onclick="window.print()" style="background: #dc2626; color: white; border: none; padding: 6px 16px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px;">
+        🖨️ Imprimer / Enregistrer en PDF
+    </button>
+</div>
 
     {% for item in bulletins_items %}
     <div class="bulletin-page">
@@ -378,24 +411,10 @@
         <!-- Zone Sécurité & Signature -->
         <table class="secu-signature">
             <tr>
-                <td class="col-secu-block">
-                    <div class="secu-title">AUTHENTICITÉ & SÉCURITÉ DU BULLETIN</div>
-                    <table style="width: 100%; border-collapse: collapse; margin-top: 3px;">
-                        <tr>
-                            <td style="width: 65px; vertical-align: middle; text-align: center;">
-                                {% if item.qr_code_url %}
-                                <img src="{{ item.qr_code_url }}" alt="QR Code Authentification" style="width: 60px; height: 60px; border: 1px solid #ccc; padding: 2px; background: #fff;">
-                                {% endif %}
-                            </td>
-                            <td style="vertical-align: middle; padding-left: 6px;">
-                                <div class="secu-text"><strong>Code d'Authentification :</strong></div>
-                                <div class="secu-code">{{ item.resultat.code_verification|default:"LK-BUL-OFFICIEL" }}</div>
-                                <div class="secu-text" style="margin-top: 3px;">
-                                    Scannez le QR Code ou vérifiez l'authenticité sur le portail officiel de la Ligue.
-                                </div>
-                            </td>
-                        </tr>
-                    </table>
+                <td class="col-secu-block" style="vertical-align: bottom;">
+                    {% if item.qr_code_url %}
+                    <img src="{{ item.qr_code_url }}" alt="QR Code Authentification" style="width: 65px; height: 65px; border: 1px solid #000; padding: 1px; background: #fff;">
+                    {% endif %}
                 </td>
                 <td class="col-signature-block">
                     <div>Ouagadougou, le <span style="border-bottom: 1px dotted #333;">&nbsp;&nbsp;{% now "d/m/Y" %}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></div>
@@ -418,5 +437,12 @@
     </div>
     {% endfor %}
 
+    {% if auto_print %}
+    <script>
+    window.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() { window.print(); }, 400);
+    });
+    </script>
+    {% endif %}
 </body>
 </html>

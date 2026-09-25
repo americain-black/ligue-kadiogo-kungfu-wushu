@@ -10,10 +10,7 @@
             <i class="bi bi-arrow-left me-1"></i>Retour
         </button>
         <div>
-            <h4 class="fw-bold mb-0">{{ club.nom_club }}
-                <span class="badge bg-light text-dark border font-monospace fs-6 ms-2" title="Code unique du club">{{ club.code_club }}</span>
-                {% if club.sigle_club %}<span class="badge bg-light text-dark border font-monospace fs-6 ms-1">{{ club.sigle_club }}</span>{% endif %}
-            </h4>
+            <h4 class="fw-bold mb-0">{{ club.nom_club }}</h4>
             <small class="text-muted">Fiche du club</small>
         </div>
     </div>
@@ -34,6 +31,10 @@
             <div class="row">
                 <div class="col-md-6">
                     <table class="table table-sm table-borderless mb-0">
+                        <tr><th class="text-muted" style="width:40%">Code du Club</th><td class="text-dark"><span class="badge bg-light text-dark border font-monospace">{{ club.code_club }}</span></td></tr>
+                        {% if club.sigle_club %}
+                        <tr><th class="text-muted" style="width:40%">Sigle</th><td class="text-dark fw-semibold"><span class="badge bg-secondary-subtle text-dark border font-monospace">{{ club.sigle_club }}</span></td></tr>
+                        {% endif %}
                         <tr><th class="text-muted" style="width:40%">Localité</th><td class="text-dark fw-semibold">{{ club.localite }}</td></tr>
                         <tr><th class="text-muted">Adresse</th><td class="text-dark">{{ club.adresse|default:"—" }}</td></tr>
                         <tr><th class="text-muted">Téléphone</th><td class="text-dark">{{ club.telephone|default:"—" }}</td></tr>
@@ -63,28 +64,50 @@
     </div>
 </div>
 
-<!-- Licenciés (statistiques uniquement) -->
+<!-- Licenciés & Statistiques (4 Cartes KPI avec bordure rouge) -->
 <div class="card p-3 mb-4 border-0 shadow-sm rounded-4">
     <h6 class="fw-bold mb-3 text-dark">
-        <i class="bi bi-people me-2 text-danger"></i>Licenciés
+        <i class="bi bi-people me-2 text-danger"></i>Licenciés & Activités
     </h6>
     <div class="row g-3">
         <div class="col-6 col-md-3">
-            <div class="text-center p-2 bg-light rounded-3">
-                <div class="fs-3 fw-bold text-dark">{{ nb_pratiquants }}</div>
-                <div class="text-muted small">Total</div>
+            <div class="card p-3 border-0 shadow-sm rounded-3 bg-white border-start border-4 border-danger h-100">
+                <small class="text-muted fw-semibold d-block mb-1" style="font-size: 0.8rem;">Total Licenciés</small>
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="fs-2 fw-bold text-dark">{{ nb_pratiquants }}</span>
+                    <i class="bi bi-people fs-4 text-danger opacity-50"></i>
+                </div>
+                <small class="text-muted micro-text">tous pratiquants</small>
             </div>
         </div>
         <div class="col-6 col-md-3">
-            <div class="text-center p-2 bg-light rounded-3">
-                <div class="fs-3 fw-bold text-dark">{{ nb_actifs }}</div>
-                <div class="text-muted small">Actifs</div>
+            <div class="card p-3 border-0 shadow-sm rounded-3 bg-white border-start border-4 border-danger h-100">
+                <small class="text-muted fw-semibold d-block mb-1" style="font-size: 0.8rem;">Licenciés Actifs</small>
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="fs-2 fw-bold text-dark">{{ nb_actifs }}</span>
+                    <i class="bi bi-check-circle fs-4 text-danger opacity-50"></i>
+                </div>
+                <small class="text-muted micro-text">dossiers validés</small>
             </div>
         </div>
         <div class="col-6 col-md-3">
-            <div class="text-center p-2 bg-light rounded-3">
-                <div class="fs-3 fw-bold text-dark">{{ nb_inactifs }}</div>
-                <div class="text-muted small">Inactifs</div>
+            <div class="card p-3 border-0 shadow-sm rounded-3 bg-white border-start border-4 border-danger h-100">
+                <small class="text-muted fw-semibold d-block mb-1" style="font-size: 0.8rem;">Licenciés Inactifs</small>
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="fs-2 fw-bold text-dark">{{ nb_inactifs }}</span>
+                    <i class="bi bi-pause-circle fs-4 text-danger opacity-50"></i>
+                </div>
+                <small class="text-muted micro-text">non actifs</small>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="card p-3 border-0 shadow-sm rounded-3 bg-white border-start border-4 border-danger h-100">
+                <small class="text-muted fw-semibold d-block mb-1" style="font-size: 0.8rem;">Demandes d'Affiliation</small>
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="fs-2 fw-bold text-dark">{{ demandes|length }}</span>
+                    <i class="bi bi-file-earmark-check fs-4 text-danger opacity-50"></i>
+                </div>
+                <small class="text-muted micro-text">historique soumissions</small>
             </div>
         </div>
     </div>

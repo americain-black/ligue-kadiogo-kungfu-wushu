@@ -1,12 +1,9 @@
 <span class="sidebar-title">Navigation</span>
-<a href="{% url 'accounts:dashboard_jury' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard_jury' and not request.GET.section %}active{% endif %}">
+<a href="{% url 'accounts:dashboard_jury' %}" class="nav-link {% if request.resolver_match.url_name == 'dashboard_jury' %}active{% endif %}">
     <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
 </a>
 
-<span class="sidebar-title mt-2">Évaluations</span>
-<a href="{% url 'accounts:dashboard_jury' %}#licencies-a-evaluer" class="nav-link">
+<span class="sidebar-title mt-2">Notation & Évaluation</span>
+<a href="{% url 'accounts:licencies_a_evaluer_jury' %}" class="nav-link {% if request.resolver_match.url_name == 'licencies_a_evaluer_jury' %}active{% endif %}">
     <i class="bi bi-people-fill me-2"></i>Licenciés à évaluer
-</a>
-<a href="{% url 'accounts:dashboard_jury' %}#sessions-affectees" class="nav-link">
-    <i class="bi bi-journal-check me-2"></i>Sessions affectées
 </a>

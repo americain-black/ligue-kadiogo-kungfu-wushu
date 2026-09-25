@@ -426,7 +426,76 @@ def dashboard_jury(request):
         for r in aff.rubriques.all():
             all_rubriques.add(r)
 
-    # Récupérer les candidats/licenciés autorisés pour les sessions du jury
+    inscriptions_qs = (
+        Inscription.objects.filter(session_id__in=sessions_ids, statut='AUTORISE')
+        .select_related('pratiquant', 'pratiquant__club', 'grade_vise', 'session')
+        .prefetch_related('notes')
+    )
+
+    inscriptions_autorisees = []
+    for insc in inscriptions_qs:
+        aff_session = next((a for a in affectations if a.session_id == insc.session_id), None)
+        if aff_session:
+            allowed_grades_ids = set(aff_session.grades.values_list('id', flat=True))
+            if aff_session.rubrique_grades.exists():
+                allowed_grades_ids.update(aff_session.rubrique_grades.values_list('grade_id', flat=True))
+
+            if allowed_grades_ids and insc.grade_vise_id not in allowed_grades_ids:
+                continue
+
+            inscriptions_autorisees.append(insc)
+
+    nb_licencies_total = len(inscriptions_autorisees)
+    nb_grades_total = len(all_grades) if all_grades else len(set(i.grade_vise for i in inscriptions_autorisees))
+    nb_rubriques_total = len(all_rubriques)
+
+    return render(request, 'accounts/dashboard_jury.html', {
+        'affectations':           affectations,
+        'sessions_en_cours':      sessions_en_cours,
+        'nb_licencies_a_noter':   nb_licencies_total,
+        'nb_grades_affectes':     nb_grades_total,
+        'nb_rubriques_affectees':  nb_rubriques_total,
+    })
+
+
+@login_required
+def licencies_a_evaluer_jury(request):
+    """
+    Page dédiée à la liste des licenciés à évaluer par le jury avec filtres par grade et club.
+    """
+    from apps.exams.models import AffectationJury, Inscription
+
+    affectations = (
+        AffectationJury.objects
+        .filter(jury=request.user)
+        .select_related('session', 'session__annee_sportive')
+        .prefetch_related('grades', 'options', 'rubriques', 'rubrique_grades__grade', 'rubrique_grades__rubrique')
+        .order_by('-session__date_examen')
+    )
+
+    all_grades = set()
+    all_rubriques = set()
+    sessions_ids = []
+    sessions_en_cours = []
+
+    for aff in affectations:
+        sessions_ids.append(aff.session_id)
+        if aff.session.statut == 'EN_COURS':
+            sessions_en_cours.append(aff.session)
+
+        if aff.grades.exists():
+            for g in aff.grades.all():
+                all_grades.add(g)
+        if aff.rubrique_grades.exists():
+            for rg in aff.rubrique_grades.all():
+                if rg.grade:
+                    all_grades.add(rg.grade)
+                if rg.rubrique:
+                    all_rubriques.add(rg.rubrique)
+
+        for r in aff.rubriques.all():
+            all_rubriques.add(r)
+
     inscriptions_qs = (
         Inscription.objects.filter(session_id__in=sessions_ids, statut='AUTORISE')
         .select_related('pratiquant', 'pratiquant__club', 'grade_vise', 'session')
@@ -448,7 +517,6 @@ def dashboard_jury(request):
             insc.deja_evalue = insc.notes.filter(affectation__jury=request.user).exists()
             inscriptions_autorisees.append(insc)
 
-    # Listes pour les filtres dropdown
     grades_filtre = sorted(list({i.grade_vise for i in inscriptions_autorisees}), key=lambda g: g.ordre if hasattr(g, 'ordre') else 0)
     clubs_filtre = sorted(list({i.pratiquant.club for i in inscriptions_autorisees if i.pratiquant and i.pratiquant.club}), key=lambda c: c.nom_club)
 
@@ -456,7 +524,7 @@ def dashboard_jury(request):
     nb_grades_total = len(all_grades) if all_grades else len(grades_filtre)
     nb_rubriques_total = len(all_rubriques)
 
-    return render(request, 'accounts/dashboard_jury.html', {
+    return render(request, 'accounts/licencies_a_evaluer_jury.html', {
         'affectations':           affectations,
         'sessions_en_cours':      sessions_en_cours,
         'inscriptions':           inscriptions_autorisees,

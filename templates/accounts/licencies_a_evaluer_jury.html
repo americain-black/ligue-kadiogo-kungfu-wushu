@@ -1,0 +1,245 @@
+{% extends 'base.html' %}
+{% block title %}Licenciés à Évaluer — Jury{% endblock %}
+
+{% block sidebar %}
+{% include 'includes/_sidebar_jury.html' %}
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h4 class="fw-bold mb-0">Licenciés à Évaluer</h4>
+        <small class="text-muted">Bonjour, {{ user.get_full_name|default:user.username }} — Liste officielle des candidats à noter</small>
+    </div>
+</div>
+
+<!-- 1. Cartes KPI (Charte Rouge) -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card p-3 border-0 shadow-sm rounded-3 bg-white border-start border-4 border-danger h-100">
+            <small class="text-muted fw-semibold d-block mb-1" style="font-size: 0.8rem;">Licenciés à noter</small>
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="fs-2 fw-bold text-dark">{{ nb_licencies_a_noter }}</span>
+                <i class="bi bi-people-fill fs-4 text-danger opacity-50"></i>
+            </div>
+            <small class="text-muted micro-text">dans votre périmètre</small>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card p-3 border-0 shadow-sm rounded-3 bg-white border-start border-4 border-danger h-100">
+            <small class="text-muted fw-semibold d-block mb-1" style="font-size: 0.8rem;">Grades attribués</small>
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="fs-2 fw-bold text-dark">{{ nb_grades_affectes }}</span>
+                <i class="bi bi-award-fill fs-4 text-danger opacity-50"></i>
+            </div>
+            <small class="text-muted micro-text">niveaux à évaluer</small>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card p-3 border-0 shadow-sm rounded-3 bg-white border-start border-4 border-danger h-100">
+            <small class="text-muted fw-semibold d-block mb-1" style="font-size: 0.8rem;">Rubriques & Épreuves</small>
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="fs-2 fw-bold text-dark">{{ nb_rubriques_affectees }}</span>
+                <i class="bi bi-list-check fs-4 text-danger opacity-50"></i>
+            </div>
+            <small class="text-muted micro-text">grilles de notation</small>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card p-3 border-0 shadow-sm rounded-3 bg-white border-start border-4 border-danger h-100">
+            <small class="text-muted fw-semibold d-block mb-1" style="font-size: 0.8rem;">Sessions attribuées</small>
+            <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="fs-2 fw-bold text-dark">{{ affectations|length }}</span>
+                <i class="bi bi-journal-check fs-4 text-danger opacity-50"></i>
+            </div>
+            <small class="text-muted micro-text">
+                {% if sessions_en_cours %}
+                <span class="text-success fw-bold"><i class="bi bi-circle-fill me-1" style="font-size:8px;"></i>{{ sessions_en_cours|length }} en cours</span>
+                {% else %}
+                sessions d'examen
+                {% endif %}
+            </small>
+        </div>
+    </div>
+</div>
+
+{% if sessions_en_cours %}
+<div class="alert alert-success d-flex justify-content-between align-items-center mb-4 shadow-sm border-0 rounded-3">
+    <div>
+        <i class="bi bi-broadcast fs-5 me-2 align-middle text-success"></i>
+        <strong>{{ sessions_en_cours|length }} session(s) d'examen en cours</strong> — La saisie des notes d'évaluation est actuellement ouverte.
+    </div>
+</div>
+{% endif %}
+
+<!-- 2. Liste des Licenciés à Évaluer (Filtrable) -->
+<div class="card p-3 shadow-sm border-0 mb-4 rounded-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+        <h6 class="fw-bold mb-0 text-dark">
+            <i class="bi bi-people me-2 text-danger"></i>Liste des Licenciés à Évaluer
+            <span class="badge bg-danger ms-1 rounded-pill" id="candidatsCount">{{ inscriptions|length }}</span>
+        </h6>
+    </div>
+
+    <!-- Barre de Filtres Interactifs -->
+    <div class="p-3 bg-light rounded-3 mb-3 border">
+        <div class="row g-2 align-items-center">
+            <div class="col-12 col-md-4">
+                <label class="form-label small fw-semibold text-muted mb-1"><i class="bi bi-award me-1"></i>Filtrer par Grade :</label>
+                <select id="filterGrade" class="form-select form-select-sm" onchange="filtrerLicencies()">
+                    <option value="">Tous les grades</option>
+                    {% for g in grades_filtre %}
+                    <option value="{{ g.nom_grade }}">{{ g.nom_grade }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-4">
+                <label class="form-label small fw-semibold text-muted mb-1"><i class="bi bi-building me-1"></i>Filtrer par Club :</label>
+                <select id="filterClub" class="form-select form-select-sm" onchange="filtrerLicencies()">
+                    <option value="">Tous les clubs</option>
+                    {% for c in clubs_filtre %}
+                    <option value="{{ c.nom_club }}">{{ c.nom_club }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-12 col-md-4">
+                <label class="form-label small fw-semibold text-muted mb-1"><i class="bi bi-search me-1"></i>Recherche rapide :</label>
+                <div class="input-group input-group-sm">
+                    <input type="text" id="filterSearch" class="form-control" placeholder="Rechercher nom, prénom..." onkeyup="filtrerLicencies()">
+                    <button type="button" class="btn btn-outline-secondary" onclick="reinitialiserFiltres()">
+                        <i class="bi bi-x-circle me-1"></i>Effacer
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tableau des Licenciés -->
+    {% if inscriptions %}
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0" id="tableLicencies">
+            <thead class="table-light">
+                <tr>
+                    <th class="ps-3">Licencié</th>
+                    <th>Club</th>
+                    <th>Grade visé</th>
+                    <th>Session</th>
+                    <th>Statut Notation</th>
+                    <th class="text-end pe-3">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for insc in inscriptions %}
+                <tr class="licencie-row"
+                    data-grade="{{ insc.grade_vise.nom_grade }}"
+                    data-club="{{ insc.pratiquant.club.nom_club }}"
+                    data-search="{{ insc.pratiquant.nom }} {{ insc.pratiquant.prenom }} {{ insc.pratiquant.code_pratiquant }}">
+                    <td class="ps-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="rounded-circle bg-danger-subtle text-danger fw-bold d-flex align-items-center justify-content-center" style="width: 36px; height: 36px; font-size: 0.85rem;">
+                                {{ insc.pratiquant.prenom|slice:":1" }}{{ insc.pratiquant.nom|slice:":1" }}
+                            </div>
+                            <div>
+                                <strong class="text-dark d-block mb-0">{{ insc.pratiquant.nom }} {{ insc.pratiquant.prenom }}</strong>
+                                {% if insc.pratiquant.code_pratiquant %}
+                                <small class="text-muted font-monospace micro-text">{{ insc.pratiquant.code_pratiquant }}</small>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge bg-light text-dark border font-monospace fw-normal">
+                            <i class="bi bi-building me-1 text-muted"></i>{{ insc.pratiquant.club.nom_club }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-3 py-1 rounded-pill">
+                            <i class="bi bi-award me-1"></i>{{ insc.grade_vise.nom_grade }}
+                        </span>
+                    </td>
+                    <td>
+                        <small class="text-dark fw-semibold d-block">{{ insc.session.titre }}</small>
+                        <small class="text-muted micro-text"><i class="bi bi-calendar-event me-1"></i>{{ insc.session.date_examen|date:"d/m/Y" }}</small>
+                    </td>
+                    <td>
+                        {% if insc.deja_evalue %}
+                        <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-1 rounded-pill">
+                            <i class="bi bi-check-circle-fill me-1"></i>Évalué
+                        </span>
+                        {% else %}
+                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-3 py-1 rounded-pill">
+                            <i class="bi bi-hourglass-split me-1"></i>À noter
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end pe-3">
+                        <a href="{% url 'evaluations:detail_candidat' insc.session.pk insc.pk %}"
+                           class="btn btn-danger btn-sm rounded-3 p-2 d-inline-flex align-items-center justify-content-center shadow-sm"
+                           style="width: 38px; height: 38px;" title="Évaluer / Noter" data-bs-toggle="tooltip">
+                            <i class="bi bi-pencil-square fs-5"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div id="noResultsMsg" class="text-center py-4 text-muted d-none">
+        <i class="bi bi-search fs-2 opacity-25 d-block mb-2"></i>
+        Aucun licencié ne correspond aux filtres sélectionnés.
+    </div>
+    {% else %}
+    <div class="text-center py-4 text-muted">
+        <i class="bi bi-people fs-2 opacity-25 d-block mb-2"></i>
+        Aucun licencié à évaluer dans votre périmètre pour le moment.
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function filtrerLicencies() {
+    const gradeFiltre = document.getElementById('filterGrade').value.toLowerCase();
+    const clubFiltre = document.getElementById('filterClub').value.toLowerCase();
+    const searchFiltre = document.getElementById('filterSearch').value.toLowerCase().trim();
+
+    const rows = document.querySelectorAll('.licencie-row');
+    let visibleCount = 0;
+
+    rows.forEach(row => {
+        const grade = (row.getAttribute('data-grade') || '').toLowerCase();
+        const club = (row.getAttribute('data-club') || '').toLowerCase();
+        const searchData = (row.getAttribute('data-search') || '').toLowerCase();
+
+        const matchGrade = !gradeFiltre || grade.includes(gradeFiltre);
+        const matchClub = !clubFiltre || club.includes(clubFiltre);
+        const matchSearch = !searchFiltre || searchData.includes(searchFiltre);
+
+        if (matchGrade && matchClub && matchSearch) {
+            row.classList.remove('d-none');
+            visibleCount++;
+        } else {
+            row.classList.add('d-none');
+        }
+    });
+
+    const countBadge = document.getElementById('candidatsCount');
+    if (countBadge) countBadge.textContent = visibleCount;
+
+    const noResultsMsg = document.getElementById('noResultsMsg');
+    if (noResultsMsg) {
+        if (visibleCount === 0 && rows.length > 0) {
+            noResultsMsg.classList.remove('d-none');
+        } else {
+            noResultsMsg.classList.add('d-none');
+        }
+    }
+}
+
+function reinitialiserFiltres() {
+    document.getElementById('filterGrade').value = '';
+    document.getElementById('filterClub').value = '';
+    document.getElementById('filterSearch').value = '';
+    filtrerLicencies();
+}
+</script>
+{% endblock %}

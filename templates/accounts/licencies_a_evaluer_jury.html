@@ -13,55 +13,6 @@
     </div>
 </div>
 
-<!-- 1. Cartes KPI (Charte Rouge) -->
-<div class="row g-3 mb-4">
-    <div class="col-6 col-md-3">
-        <div class="card p-3 border-0 shadow-sm rounded-3 bg-white border-start border-4 border-danger h-100">
-            <small class="text-muted fw-semibold d-block mb-1" style="font-size: 0.8rem;">Licenciés à noter</small>
-            <div class="d-flex justify-content-between align-items-center mb-1">
-                <span class="fs-2 fw-bold text-dark">{{ nb_licencies_a_noter }}</span>
-                <i class="bi bi-people-fill fs-4 text-danger opacity-50"></i>
-            </div>
-            <small class="text-muted micro-text">dans votre périmètre</small>
-        </div>
-    </div>
-    <div class="col-6 col-md-3">
-        <div class="card p-3 border-0 shadow-sm rounded-3 bg-white border-start border-4 border-danger h-100">
-            <small class="text-muted fw-semibold d-block mb-1" style="font-size: 0.8rem;">Grades attribués</small>
-            <div class="d-flex justify-content-between align-items-center mb-1">
-                <span class="fs-2 fw-bold text-dark">{{ nb_grades_affectes }}</span>
-                <i class="bi bi-award-fill fs-4 text-danger opacity-50"></i>
-            </div>
-            <small class="text-muted micro-text">niveaux à évaluer</small>
-        </div>
-    </div>
-    <div class="col-6 col-md-3">
-        <div class="card p-3 border-0 shadow-sm rounded-3 bg-white border-start border-4 border-danger h-100">
-            <small class="text-muted fw-semibold d-block mb-1" style="font-size: 0.8rem;">Rubriques & Épreuves</small>
-            <div class="d-flex justify-content-between align-items-center mb-1">
-                <span class="fs-2 fw-bold text-dark">{{ nb_rubriques_affectees }}</span>
-                <i class="bi bi-list-check fs-4 text-danger opacity-50"></i>
-            </div>
-            <small class="text-muted micro-text">grilles de notation</small>
-        </div>
-    </div>
-    <div class="col-6 col-md-3">
-        <div class="card p-3 border-0 shadow-sm rounded-3 bg-white border-start border-4 border-danger h-100">
-            <small class="text-muted fw-semibold d-block mb-1" style="font-size: 0.8rem;">Sessions attribuées</small>
-            <div class="d-flex justify-content-between align-items-center mb-1">
-                <span class="fs-2 fw-bold text-dark">{{ affectations|length }}</span>
-                <i class="bi bi-journal-check fs-4 text-danger opacity-50"></i>
-            </div>
-            <small class="text-muted micro-text">
-                {% if sessions_en_cours %}
-                <span class="text-success fw-bold"><i class="bi bi-circle-fill me-1" style="font-size:8px;"></i>{{ sessions_en_cours|length }} en cours</span>
-                {% else %}
-                sessions d'examen
-                {% endif %}
-            </small>
-        </div>
-    </div>
-</div>
 
 {% if sessions_en_cours %}
 <div class="alert alert-success d-flex justify-content-between align-items-center mb-4 shadow-sm border-0 rounded-3">

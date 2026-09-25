@@ -7,14 +7,19 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-    <div>
-        <h4 class="fw-bold mb-1">
-            <i class="bi bi-people-fill text-danger me-2"></i>Utilisateurs de la Ligue
-        </h4>
-        <small class="text-muted">Gestion des comptes utilisateurs de la Ligue.</small>
+    <div class="d-flex align-items-center gap-3">
+        <button onclick="history.back()" class="btn-retour">
+            <i class="bi bi-arrow-left me-1"></i>Retour
+        </button>
+        <div>
+            <h4 class="fw-bold mb-1">
+                <i class="bi bi-people-fill text-danger me-2"></i>Utilisateurs de la Ligue
+            </h4>
+            <small class="text-muted">Gestion des comptes utilisateurs de la Ligue.</small>
+        </div>
     </div>
     <div>
-        <a href="{% url 'accounts:creer_utilisateur_ligue' %}" class="btn btn-danger btn-sm rounded-pill px-3 shadow-sm">
+        <a href="{% url 'accounts:creer_utilisateur_ligue' %}" class="btn btn-danger btn-sm rounded-3 px-3 shadow-sm">
             <i class="bi bi-person-plus-fill me-1"></i>Créer un nouveau compte
         </a>
     </div>
@@ -30,7 +35,7 @@
                 <input type="text" 
                        name="q" 
                        value="{{ q }}" 
-                       class="form-control rounded-pill ps-5 border-secondary-subtle" 
+                       class="form-control rounded-3 ps-5 border-secondary-subtle" 
                        placeholder="Recherche par nom, prénom, identifiant ou email..."
                        oninput="filterUserRows(this)"
                        autocomplete="off">
@@ -38,7 +43,7 @@
         </div>
         <div class="col-md-5">
             <label class="form-label small fw-semibold text-muted mb-1">Filtrer par Rôle</label>
-            <select name="role" class="form-select rounded-pill px-3" onchange="this.form.submit()">
+            <select name="role" class="form-select rounded-3 px-3" onchange="this.form.submit()">
                 <option value="">-- Tous les rôles --</option>
                 {% for r in roles_choices %}
                 <option value="{{ r.nom_role }}" {% if role_filtre == r.nom_role %}selected{% endif %}>
@@ -86,21 +91,7 @@
                     </td>
                     <td>
                         {% for r in u.roles.all %}
-                            {% if r.nom_role == 'GEST_LIGUE' %}
-                                <span class="badge bg-danger">Ligue Admin</span>
-                            {% elif r.nom_role == 'GEST_TECHNIQUE' %}
-                                <span class="badge bg-primary">Directeur Technique</span>
-                            {% elif r.nom_role == 'GEST_FINANCIER' %}
-                                <span class="badge bg-success">Financier</span>
-                            {% elif r.nom_role == 'GEST_COM' %}
-                                <span class="badge bg-info text-dark">Communication</span>
-                            {% elif r.nom_role == 'GEST_CLUB' %}
-                                <span class="badge bg-secondary">Gestionnaire Club</span>
-                            {% elif r.nom_role == 'JURY' %}
-                                <span class="badge bg-warning text-dark">Jury</span>
-                            {% else %}
-                                <span class="badge bg-light text-dark border">{{ r.get_nom_role_display }}</span>
-                            {% endif %}
+                            <span class="badge bg-light text-dark border font-monospace me-1">{{ r.get_nom_role_display }}</span>
                         {% empty %}
                             <span class="text-muted small">Aucun rôle</span>
                         {% endfor %}

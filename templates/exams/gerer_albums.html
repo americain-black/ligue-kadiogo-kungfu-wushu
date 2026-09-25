@@ -8,21 +8,26 @@
 
     <!-- EN-TÊTE DE PAGE -->
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
-        <div>
-            <h2 class="fw-bold text-dark mb-1">
-                <i class="bi bi-images text-warning me-2"></i>Gestion des Albums Photos
-            </h2>
-            <p class="text-muted small mb-0">
-                Aperçu des 3 albums les plus récents de la Ligue.
-            </p>
+        <div class="d-flex align-items-center gap-3">
+            <button onclick="history.back()" class="btn-retour">
+                <i class="bi bi-arrow-left me-1"></i>Retour
+            </button>
+            <div>
+                <h2 class="fw-bold text-dark mb-1">
+                    <i class="bi bi-images text-danger me-2"></i>Gestion des Albums Photos
+                </h2>
+                <p class="text-muted small mb-0">
+                    Aperçu des 3 albums les plus récents de la Ligue.
+                </p>
+            </div>
         </div>
         <div class="d-flex align-items-center gap-2">
             {% if total_albums > 0 %}
-            <a href="{% url 'exams:tous_les_albums' %}" class="btn btn-outline-dark fw-bold rounded-3 px-3 py-2">
+            <a href="{% url 'exams:tous_les_albums' %}" class="btn btn-outline-danger fw-bold rounded-3 px-3 py-2">
                 <i class="bi bi-list-task me-1"></i>Voir tous les albums ({{ total_albums }})
             </a>
             {% endif %}
-            <a href="{% url 'exams:creer_album' %}" class="btn btn-success fw-bold rounded-3 px-3 py-2 shadow-sm">
+            <a href="{% url 'exams:creer_album' %}" class="btn btn-danger fw-bold rounded-3 px-3 py-2 shadow-sm">
                 <i class="bi bi-plus-lg me-1"></i>Nouvel Album
             </a>
         </div>
@@ -34,10 +39,10 @@
 
             <div class="d-flex justify-content-between align-items-center mb-4 pb-2 border-bottom">
                 <h5 class="fw-bold text-dark mb-0">
-                    <i class="bi bi-stars text-warning me-2"></i>3 Derniers Albums Récents
+                    <i class="bi bi-stars text-danger me-2"></i>3 Derniers Albums Récents
                 </h5>
                 {% if total_albums > 3 %}
-                <a href="{% url 'exams:tous_les_albums' %}" class="btn btn-sm btn-outline-warning text-dark fw-bold rounded-3">
+                <a href="{% url 'exams:tous_les_albums' %}" class="btn btn-sm btn-outline-danger text-dark fw-bold rounded-3">
                     Voir la liste complète ({{ total_albums }}) <i class="bi bi-arrow-right ms-1"></i>
                 </a>
                 {% endif %}
@@ -47,7 +52,7 @@
             <div class="row g-4 mb-4">
                 {% for album in albums %}
                 <div class="col-md-6 col-lg-4">
-                    <div class="card border-0 shadow-sm h-100 rounded-4 overflow-hidden position-relative border-top border-4 border-warning">
+                    <div class="card border-0 shadow-sm h-100 rounded-4 overflow-hidden position-relative border-top border-4 border-danger">
                         <a href="{% url 'exams:gerer_photos_album' album.pk %}" class="text-decoration-none position-relative d-block" style="height: 200px; background-color: #1e2d3d;">
                             {% if album.get_couverture_url %}
                             <img src="{{ album.get_couverture_url }}" class="w-100 h-100" style="object-fit: cover;" alt="{{ album.titre }}">
@@ -59,24 +64,24 @@
                             {% endif %}
 
                             {% if album.type_evenement %}
-                            <span class="badge bg-danger position-absolute top-0 start-0 m-3 px-3 py-2 rounded-pill fs-8 fw-semibold shadow">
+                            <span class="badge bg-light text-dark border font-monospace position-absolute top-0 start-0 m-3 px-3 py-1 shadow">
                                 {{ album.type_evenement }}
                             </span>
                             {% endif %}
 
-                            <span class="badge bg-dark bg-opacity-75 position-absolute top-0 end-0 m-3 px-3 py-2 rounded-pill fs-7 fw-bold shadow">
+                            <span class="badge bg-dark bg-opacity-75 position-absolute top-0 end-0 m-3 px-3 py-1 rounded-pill fs-7 fw-bold shadow">
                                 {{ album.photos.count }} photo(s)
                             </span>
                         </a>
 
                         <div class="card-body p-3 d-flex flex-column">
                             <h5 class="fw-bold text-dark mb-1">
-                                <a href="{% url 'exams:gerer_photos_album' album.pk %}" class="text-dark text-decoration-none hvr-warning">
+                                <a href="{% url 'exams:gerer_photos_album' album.pk %}" class="text-dark text-decoration-none">
                                     {{ album.titre }}
                                 </a>
                             </h5>
                             <p class="text-muted small mb-2">
-                                <i class="bi bi-calendar3 me-1 text-warning"></i>{{ album.date_evenement|date:"d F Y" }}
+                                <i class="bi bi-calendar3 me-1 text-danger"></i>{{ album.date_evenement|date:"d F Y" }}
                             </p>
                             {% if album.description %}
                             <p class="text-secondary small mb-3 text-truncate-2" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
@@ -85,7 +90,7 @@
                             {% endif %}
 
                             <div class="mt-auto pt-3 border-top d-flex justify-content-between align-items-center">
-                                <a href="{% url 'exams:gerer_photos_album' album.pk %}" class="btn btn-sm btn-ligue rounded-3 px-3 fw-bold">
+                                <a href="{% url 'exams:gerer_photos_album' album.pk %}" class="btn btn-sm btn-danger rounded-3 px-3 fw-bold">
                                     <i class="bi bi-images me-1"></i>Gérer les photos
                                 </a>
                                 <a href="{% url 'exams:supprimer_album' album.pk %}" class="btn btn-sm btn-outline-danger rounded-3 px-2"
@@ -102,7 +107,7 @@
 
             {% if total_albums > 3 %}
             <div class="text-center pt-3 border-top">
-                <a href="{% url 'exams:tous_les_albums' %}" class="btn btn-warning text-dark fw-bold rounded-3 px-4 py-2.5 shadow-sm fs-6">
+                <a href="{% url 'exams:tous_les_albums' %}" class="btn btn-outline-danger fw-bold rounded-3 px-4 py-2 shadow-sm fs-6">
                     <i class="bi bi-list-task me-2"></i>Afficher la liste complète de tous les albums ({{ total_albums }}) →
                 </a>
             </div>
@@ -113,7 +118,7 @@
                 <i class="bi bi-folder-plus fs-1 text-muted d-block mb-3"></i>
                 <h4 class="fw-bold text-dark">Aucun album photo trouvé</h4>
                 <p class="text-muted mb-3">Créez votre premier album pour y ajouter des photos.</p>
-                <a href="{% url 'exams:creer_album' %}" class="btn btn-success fw-bold rounded-3 px-4 py-2 shadow-sm">
+                <a href="{% url 'exams:creer_album' %}" class="btn btn-danger fw-bold rounded-3 px-4 py-2 shadow-sm">
                     <i class="bi bi-plus-lg me-1"></i>Créer le premier album
                 </a>
             </div>

@@ -202,7 +202,7 @@
                         <form method="post" action="{% url 'exams:valider_liste_club' session.pk club.pk %}"
                               onsubmit="return confirm('Autoriser la liste de {{ club.nom_club }} ? Cette action est irréversible.')">
                             {% csrf_token %}
-                            <button type="submit" class="btn btn-success fw-semibold">
+                            <button type="submit" class="btn btn-danger fw-semibold">
                                 <i class="bi bi-patch-check-fill me-2"></i>Autoriser la liste
                             </button>
                         </form>
@@ -322,11 +322,11 @@
                     </small>
                     <div class="d-grid gap-2">
                         <a href="{% url 'payments:valider_paiement_examen' paiement.pk %}"
-                           class="btn btn-success btn-sm">
+                           class="btn btn-danger btn-sm">
                             <i class="bi bi-check-circle me-1"></i>Valider le paiement
                         </a>
                         <a href="{% url 'payments:insuffisant_paiement_examen' paiement.pk %}"
-                           class="btn btn-warning btn-sm text-dark">
+                           class="btn btn-outline-danger btn-sm">
                             <i class="bi bi-exclamation-circle me-1"></i>Marquer insuffisant
                         </a>
                         <a href="{% url 'payments:rejeter_paiement_examen' paiement.pk %}"
@@ -467,7 +467,7 @@
                 <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Annuler</button>
                 <form method="post" action="{% url 'exams:reintegrer_inscription' insc.pk %}">
                     {% csrf_token %}
-                    <button type="submit" class="btn btn-success btn-sm">
+                    <button type="submit" class="btn btn-danger btn-sm">
                         <i class="bi bi-person-check me-1"></i>Confirmer la réintégration
                     </button>
                 </form>

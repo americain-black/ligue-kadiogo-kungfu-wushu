@@ -183,7 +183,7 @@
 
 {% if demande.statut_affiliation == 'EN_ATTENTE_VALID_LIGUE' %}
 <div class="d-flex gap-2 mt-4" style="max-width: 1000px;">
-    <a href="{% url 'clubs:valider_demande' demande.pk %}" class="btn btn-success">
+    <a href="{% url 'clubs:valider_demande' demande.pk %}" class="btn btn-danger">
         <i class="bi bi-check-lg me-1"></i>Approuver l'affiliation
     </a>
     <a href="{% url 'clubs:rejeter_demande' demande.pk %}" class="btn btn-outline-danger">
@@ -192,7 +192,7 @@
 </div>
 {% elif demande.statut_affiliation == 'APPROUVEE' %}
 <div class="d-flex gap-2 mt-4" style="max-width: 1000px;">
-    <a href="{% url 'clubs:attestation_affiliation' demande.pk %}" target="_blank" class="btn btn-success rounded-pill px-4 shadow-sm">
+    <a href="{% url 'clubs:attestation_affiliation' demande.pk %}" target="_blank" class="btn btn-danger rounded-3 px-4 shadow-sm">
         <i class="bi bi-file-earmark-pdf-fill me-2"></i>Imprimer / Télécharger l'Attestation Officielle d'Affiliation
     </a>
 </div>

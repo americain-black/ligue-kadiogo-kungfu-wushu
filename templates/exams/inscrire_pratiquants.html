@@ -192,11 +192,11 @@
     {% endif %}
 
     <div class="d-flex gap-2 justify-content-end">
-        <a href="{% url 'exams:club_inscriptions' session.pk %}" class="btn btn-outline-secondary">Annuler</a>
+        <a href="{% url 'exams:club_inscriptions' session.pk %}" class="btn btn-outline-danger">Annuler</a>
         <button type="submit" name="inscrire" value="1" id="btn-inscrire"
-                class="btn btn-success btn-lg" disabled>
+                class="btn btn-danger btn-lg" disabled>
             <i class="bi bi-plus-circle me-2"></i>Inscrire les sélectionnés
-            <span id="nb-selection" class="badge bg-white text-success ms-1" style="display:none;">0</span>
+            <span id="nb-selection" class="badge bg-white text-danger ms-1" style="display:none;">0</span>
         </button>
     </div>
 </form>

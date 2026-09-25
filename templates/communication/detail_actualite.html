@@ -53,24 +53,24 @@
 
     <div class="d-flex gap-2 border-top pt-3 mt-2">
         {% if actualite.source == 'LIGUE' and actualite.statut != 'PUBLIEE' %}
-        <a href="{% url 'communication:modifier_actualite' actualite.pk %}" class="btn btn-outline-secondary btn-sm">
+        <a href="{% url 'communication:modifier_actualite' actualite.pk %}" class="btn btn-outline-danger btn-sm">
             <i class="bi bi-pencil me-1"></i>Modifier
         </a>
         {% endif %}
         {% if actualite.statut == 'BROUILLON' or actualite.statut == 'EN_ATTENTE' %}
-        <a href="{% url 'communication:publier_actualite' actualite.pk %}" class="btn btn-success btn-sm">
+        <a href="{% url 'communication:publier_actualite' actualite.pk %}" class="btn btn-danger btn-sm">
             <i class="bi bi-check-lg me-1"></i>Publier
         </a>
         {% endif %}
         {% if actualite.source == 'CLUB' and actualite.statut == 'EN_ATTENTE' %}
-        <a href="{% url 'communication:rejeter_actualite' actualite.pk %}" class="btn btn-outline-warning btn-sm">
+        <a href="{% url 'communication:rejeter_actualite' actualite.pk %}" class="btn btn-outline-danger btn-sm">
             <i class="bi bi-x-lg me-1"></i>Rejeter
         </a>
         {% endif %}
         {% if actualite.statut == 'PUBLIEE' %}
         <form method="post" action="{% url 'communication:toggle_visibilite_actualite' actualite.pk %}">
             {% csrf_token %}
-            <button type="submit" class="btn btn-outline-primary btn-sm">
+            <button type="submit" class="btn btn-outline-danger btn-sm">
                 {% if actualite.est_public %}
                 <i class="bi bi-eye-slash me-1"></i>Rendre privée
                 {% else %}

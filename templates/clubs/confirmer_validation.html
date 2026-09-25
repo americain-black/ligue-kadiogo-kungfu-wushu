@@ -26,10 +26,10 @@
     </div>
     <form method="post" class="d-flex gap-2">
         {% csrf_token %}
-        <button type="submit" class="btn btn-success">
+        <button type="submit" class="btn btn-danger">
             <i class="bi bi-check-lg me-1"></i>Confirmer l'approbation
         </button>
-        <a href="{% url 'clubs:detail_demande_affiliation' demande.pk %}" class="btn btn-outline-secondary">Annuler</a>
+        <a href="{% url 'clubs:detail_demande_affiliation' demande.pk %}" class="btn btn-outline-danger">Annuler</a>
     </form>
 </div>
 {% endblock %}

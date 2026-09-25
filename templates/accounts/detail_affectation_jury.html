@@ -28,38 +28,38 @@
         </div>
     </div>
     {% if session.statut == 'EN_COURS' %}
-    <a href="{% url 'evaluations:interface_notation' session.pk %}" class="btn btn-success">
+    <a href="{% url 'evaluations:interface_notation' session.pk %}" class="btn btn-danger">
         <i class="bi bi-pencil-square me-1"></i>Accéder à la grille de notation
     </a>
     {% endif %}
 </div>
 
 <!-- Card 1 : Informations générales -->
-<div class="card p-4 shadow-sm border-0 mb-4 bg-white">
-    <h6 class="fw-bold text-primary mb-3">
+<div class="card p-4 shadow-sm border-0 mb-4 bg-white rounded-4">
+    <h6 class="fw-bold text-danger mb-3">
         <i class="bi bi-journal-text me-2"></i>Informations générales sur la session
     </h6>
     <div class="row g-3">
         <div class="col-md-6 col-lg-3">
-            <div class="p-2 bg-light rounded">
+            <div class="p-2 bg-light rounded-3">
                 <small class="text-muted d-block">Session d'examen</small>
                 <span class="fw-bold text-dark">{{ session.titre }}</span>
             </div>
         </div>
         <div class="col-md-6 col-lg-3">
-            <div class="p-2 bg-light rounded">
+            <div class="p-2 bg-light rounded-3">
                 <small class="text-muted d-block">Année sportive</small>
                 <span class="fw-semibold text-dark">{{ session.annee_sportive.libelle }}</span>
             </div>
         </div>
         <div class="col-md-6 col-lg-3">
-            <div class="p-2 bg-light rounded">
+            <div class="p-2 bg-light rounded-3">
                 <small class="text-muted d-block">Date de l'examen</small>
-                <span class="fw-semibold text-primary"><i class="bi bi-calendar-event me-1"></i>{{ session.date_examen|date:"d/m/Y" }}</span>
+                <span class="fw-semibold text-dark"><i class="bi bi-calendar-event me-1 text-danger"></i>{{ session.date_examen|date:"d/m/Y" }}</span>
             </div>
         </div>
         <div class="col-md-6 col-lg-3">
-            <div class="p-2 bg-light rounded">
+            <div class="p-2 bg-light rounded-3">
                 <small class="text-muted d-block">Lieu</small>
                 <span class="fw-semibold text-dark"><i class="bi bi-geo-alt me-1 text-danger"></i>{{ session.lieu }}</span>
             </div>
@@ -68,22 +68,22 @@
     <div class="mt-3 pt-3 border-top d-flex align-items-center gap-2">
         <strong class="small text-muted">Statut de la session :</strong>
         {% if session.statut == 'EN_COURS' %}
-            <span class="badge bg-success fs-6"><i class="bi bi-broadcast me-1"></i>En cours — Saisie des notes ouverte</span>
+            <span class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle px-3 py-1 rounded-pill"><i class="bi bi-broadcast me-1"></i>En cours — Saisie des notes ouverte</span>
         {% else %}
-            <span class="badge bg-secondary fs-6">{{ session.get_statut_display }}</span>
+            <span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle px-3 py-1 rounded-pill">{{ session.get_statut_display }}</span>
         {% endif %}
     </div>
 </div>
 
 <!-- Card 2 : Options / Styles attribués (si présents) -->
 {% if aff.options.all %}
-<div class="card p-4 shadow-sm border-0 mb-4 bg-white">
+<div class="card p-4 shadow-sm border-0 mb-4 bg-white rounded-4">
     <h6 class="fw-bold text-dark mb-2">
-        <i class="bi bi-tags me-2 text-info"></i>Options / Styles attribués
+        <i class="bi bi-tags me-2 text-danger"></i>Options / Styles attribués
     </h6>
     <div class="d-flex flex-wrap gap-2 mt-2">
         {% for opt in aff.options.all %}
-            <span class="badge bg-info text-dark px-3 py-2 fs-6">
+            <span class="badge bg-light text-dark border font-monospace px-3 py-2">
                 <i class="bi bi-tag-fill me-1"></i>{{ opt.nom }}
             </span>
         {% endfor %}
@@ -92,16 +92,16 @@
 {% endif %}
 
 <!-- Card 3 : Périmètre d'Évaluation (Grade & Rubriques concernées) -->
-<div class="card p-4 shadow-sm border-0 bg-white">
+<div class="card p-4 shadow-sm border-0 bg-white rounded-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h6 class="fw-bold text-dark mb-0">
-            <i class="bi bi-list-check me-2 text-success"></i>Périmètre d'évaluation attribué (Grades & Rubriques concernées)
+            <i class="bi bi-list-check me-2 text-danger"></i>Périmètre d'évaluation attribué (Grades & Rubriques concernées)
         </h6>
     </div>
 
     {% if aff.rubrique_grades.all %}
         <div class="table-responsive">
-            <table class="table table-hover table-bordered align-middle mb-0">
+            <table class="table table-hover align-middle mb-0">
                 <thead class="table-light">
                     <tr>
                         <th style="width: 35%;" class="ps-3 py-3">Grade concerné</th>
@@ -113,15 +113,15 @@
                     {% for group in grade_group_list %}
                     <tr>
                         <td class="ps-3 py-3">
-                            <span class="badge bg-primary px-3 py-2 fs-6">
-                                <i class="bi bi-award-fill me-1 text-warning"></i>{{ group.grouper.nom }}
+                            <span class="badge bg-light text-dark border font-monospace px-3 py-2">
+                                <i class="bi bi-award-fill me-1 text-danger"></i>{{ group.grouper.nom }}
                             </span>
                         </td>
                         <td class="py-3">
                             <div class="d-flex flex-wrap gap-2 align-items-center">
                                 {% for rg in group.list %}
-                                    <span class="badge bg-success bg-opacity-10 text-success border border-success px-3 py-2 fs-6">
-                                        <i class="bi bi-check-circle-fill me-1"></i>{{ rg.rubrique.nom }}
+                                    <span class="badge bg-light text-dark border font-monospace px-3 py-2">
+                                        <i class="bi bi-check-circle-fill me-1 text-danger"></i>{{ rg.rubrique.nom }}
                                     </span>
                                 {% endfor %}
                             </div>

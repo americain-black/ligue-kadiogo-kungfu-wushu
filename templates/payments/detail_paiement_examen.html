@@ -113,17 +113,17 @@
             {% endif %}
             <div class="d-flex gap-2 flex-wrap">
                 <a href="{% url 'payments:valider_paiement_examen' paiement.pk %}"
-                   class="btn btn-success btn-sm">
+                   class="btn btn-danger btn-sm">
                     <i class="bi bi-check-lg me-1"></i>Valider
                 </a>
                 {% if paiement.montant_paye < paiement.montant_attendu %}
                 <a href="{% url 'payments:insuffisant_paiement_examen' paiement.pk %}"
-                   class="btn btn-warning btn-sm text-dark">
+                   class="btn btn-outline-danger btn-sm">
                     <i class="bi bi-exclamation-triangle me-1"></i>Insuffisant
                 </a>
                 {% endif %}
                 <a href="{% url 'payments:rejeter_paiement_examen' paiement.pk %}"
-                   class="btn btn-danger btn-sm">
+                   class="btn btn-outline-danger btn-sm">
                     <i class="bi bi-x-lg me-1"></i>Rejeter
                 </a>
             </div>
@@ -166,7 +166,7 @@
             <h6 class="fw-bold mb-3">
                 <i class="bi bi-people me-2 text-muted"></i>
                 Licenciés inscrits — {{ paiement.club.nom_club }}
-                <span class="badge bg-secondary ms-1">{{ inscriptions.count }}</span>
+                <span class="badge bg-light text-dark border font-monospace ms-1">{{ inscriptions.count }}</span>
             </h6>
             {% if inscriptions %}
             <table class="table table-sm align-middle mb-0">
@@ -190,20 +190,20 @@
                     </td>
                     <td>
                         {% if insc.statut != 'EXCLU' %}
-                        <span class="badge bg-primary">{{ insc.grade_vise }}</span>
+                        <span class="badge bg-light text-dark border font-monospace">{{ insc.grade_vise }}</span>
                         {% else %}
-                        <span class="badge bg-secondary text-decoration-line-through">{{ insc.grade_vise }}</span>
+                        <span class="badge bg-light text-dark border font-monospace text-decoration-line-through">{{ insc.grade_vise }}</span>
                         {% endif %}
                     </td>
                     <td>
                         {% if insc.statut == 'EN_ATTENTE_PAIEMENT' %}
-                            <span class="badge bg-warning text-dark">Att. paiement</span>
+                            <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">Att. paiement</span>
                         {% elif insc.statut == 'PAIEMENT_VALIDE' %}
-                            <span class="badge bg-info text-white">Paiement validé</span>
+                            <span class="badge bg-info-subtle text-info-emphasis border border-info-subtle">Paiement validé</span>
                         {% elif insc.statut == 'AUTORISE' %}
-                            <span class="badge bg-success">Autorisé</span>
+                            <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle">Autorisé</span>
                         {% elif insc.statut == 'EXCLU' %}
-                            <span class="badge bg-danger">
+                            <span class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle">
                                 <i class="bi bi-person-x me-1"></i>Exclu par GL
                             </span>
                         {% endif %}

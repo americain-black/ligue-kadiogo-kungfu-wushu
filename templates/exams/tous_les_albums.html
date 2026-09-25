@@ -8,16 +8,18 @@
 
     <!-- EN-TÊTE DE PAGE -->
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
-        <div>
-            <a href="{% url 'exams:liste_albums' %}" class="btn btn-sm btn-outline-secondary rounded-3 mb-2">
-                <i class="bi bi-arrow-left me-1"></i>Retour aux 3 récents
-            </a>
-            <h2 class="fw-bold text-dark mb-0">
-                <i class="bi bi-list-task text-warning me-2"></i>Tous les Albums Photos ({{ total_albums }})
-            </h2>
+        <div class="d-flex align-items-center gap-3">
+            <button onclick="history.back()" class="btn-retour">
+                <i class="bi bi-arrow-left me-1"></i>Retour
+            </button>
+            <div>
+                <h2 class="fw-bold text-dark mb-0">
+                    <i class="bi bi-list-task text-danger me-2"></i>Tous les Albums Photos ({{ total_albums }})
+                </h2>
+            </div>
         </div>
         <div class="d-flex align-items-center gap-2">
-            <a href="{% url 'exams:creer_album' %}" class="btn btn-success fw-bold rounded-3 px-3 py-2 shadow-sm">
+            <a href="{% url 'exams:creer_album' %}" class="btn btn-danger fw-bold rounded-3 px-3 py-2 shadow-sm">
                 <i class="bi bi-plus-lg me-1"></i>Nouvel Album
             </a>
         </div>
@@ -33,11 +35,11 @@
                     <div class="col-md-5">
                         <div class="input-group">
                             <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
-                            <input type="text" name="q" value="{{ search_q }}" class="form-control border-start-0" placeholder="Recherche automatique par titre ou mot-clé..." oninput="autoSearchAdmin(this)">
+                            <input type="text" name="q" value="{{ search_q }}" class="form-control rounded-3 border-start-0" placeholder="Recherche automatique par titre ou mot-clé..." oninput="autoSearchAdmin(this)">
                         </div>
                     </div>
                     <div class="col-md-3">
-                        <button type="submit" class="btn btn-ligue fw-bold rounded-3 px-3">Rechercher</button>
+                        <button type="submit" class="btn btn-danger fw-bold rounded-3 px-3">Rechercher</button>
                         {% if search_q %}
                         <a href="{% url 'exams:tous_les_albums' %}" class="btn btn-outline-secondary rounded-3 ms-1">Effacer</a>
                         {% endif %}
@@ -96,7 +98,7 @@
                             </td>
                             <td>
                                 {% if album.type_evenement %}
-                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-3 py-1 fs-8 fw-semibold">
+                                <span class="badge bg-light text-dark border font-monospace px-2 py-1">
                                     {{ album.type_evenement }}
                                 </span>
                                 {% else %}
@@ -105,7 +107,7 @@
                             </td>
                             <td>
                                 {% if album.annee_sportive %}
-                                <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle rounded-pill px-3 py-1 fs-8 fw-semibold">
+                                <span class="badge bg-light text-dark border font-monospace px-2 py-1">
                                     {{ album.annee_sportive.libelle }}
                                 </span>
                                 {% else %}
@@ -116,18 +118,18 @@
                                 <small class="fw-semibold text-dark">{{ album.date_evenement|date:"d/m/Y" }}</small>
                             </td>
                             <td>
-                                <span class="badge bg-dark bg-opacity-75 rounded-pill px-2.5 py-1 fs-8 fw-bold">
+                                <span class="badge bg-light text-dark border font-monospace px-2 py-1">
                                     {{ album.photos.count }} photo(s)
                                 </span>
                             </td>
                             <td class="text-end text-nowrap">
                                 <div class="d-inline-flex align-items-center justify-content-end gap-1">
-                                    <a href="{% url 'exams:gerer_photos_album' album.pk %}" class="btn btn-sm btn-ligue rounded-3 px-2 py-1 fw-semibold text-nowrap">
-                                        <i class="bi bi-images me-1"></i>Gérer les photos
+                                    <a href="{% url 'exams:gerer_photos_album' album.pk %}" class="btn-action btn-action-edit" title="Gérer les photos" data-bs-toggle="tooltip">
+                                        <i class="bi bi-images"></i>
                                     </a>
-                                    <a href="{% url 'exams:supprimer_album' album.pk %}" class="btn btn-sm btn-outline-danger rounded-3 px-2 py-1"
+                                    <a href="{% url 'exams:supprimer_album' album.pk %}" class="btn-action btn-action-delete"
                                        onclick="return confirm('Êtes-vous sûr de vouloir supprimer cet album et toutes ses photos ?');"
-                                       title="Supprimer l'album">
+                                       title="Supprimer l'album" data-bs-toggle="tooltip">
                                         <i class="bi bi-trash"></i>
                                     </a>
                                 </div>

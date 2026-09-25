@@ -78,7 +78,7 @@
                 </tr>
                 <tr>
                     <td class="text-muted small">Montant déclaré</td>
-                    <td class="fw-bold {% if paiement.montant_paye < demande.montant_frais %}text-danger{% else %}text-success{% endif %}">
+                    <td class="fw-bold text-dark">
                         {{ paiement.montant_paye|floatformat:"0" }} FCFA
                     </td>
                 </tr>
@@ -91,9 +91,9 @@
                 <h6 class="fw-bold text-dark mb-0"><i class="bi bi-file-earmark-text me-2 text-danger"></i>Récépissé Officiel d'Existence du Club</h6>
                 {% if demande.club.numero_recepisse and demande.club.date_delivrance_recepisse %}
                     {% if demande.club.recepisse_est_valide %}
-                    <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Récépissé Valide</span>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle"><i class="bi bi-check-circle me-1"></i>Récépissé Valide</span>
                     {% else %}
-                    <span class="badge bg-danger"><i class="bi bi-exclamation-triangle me-1"></i>Récépissé Expiré</span>
+                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle"><i class="bi bi-exclamation-triangle me-1"></i>Récépissé Expiré</span>
                     {% endif %}
                 {% endif %}
             </div>
@@ -139,11 +139,11 @@
             <form method="post">
                 {% csrf_token %}
                 <div class="d-flex gap-2">
-                    <button type="submit" class="btn btn-success px-4">
+                    <button type="submit" class="btn btn-danger px-4">
                         <i class="bi bi-check-lg me-1"></i>Valider le paiement
                     </button>
                     <a href="{% url 'payments:detail_paiement_affiliation' paiement.pk %}"
-                       class="btn btn-outline-secondary">Annuler</a>
+                       class="btn btn-outline-danger">Annuler</a>
                 </div>
             </form>
         </div>
@@ -156,15 +156,15 @@
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h6 class="modal-title fw-bold"><i class="bi bi-file-earmark-image me-2 text-primary"></i>Preuve de paiement — {{ demande.club.nom_club }}</h6>
+                <h6 class="modal-title fw-bold"><i class="bi bi-file-earmark-image me-2 text-danger"></i>Preuve de paiement — {{ demande.club.nom_club }}</h6>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
             </div>
             <div class="modal-body text-center p-3" style="min-height: 480px;">
                 <iframe src="{{ paiement.fichier_preuve.url }}" style="width:100%; height:520px; border:none;" class="rounded"></iframe>
             </div>
             <div class="modal-footer">
-                <a href="{{ paiement.fichier_preuve.url }}" download class="btn btn-primary btn-sm"><i class="bi bi-download me-1"></i>Télécharger le fichier</a>
-                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Fermer</button>
+                <a href="{{ paiement.fichier_preuve.url }}" download class="btn btn-danger btn-sm"><i class="bi bi-download me-1"></i>Télécharger le fichier</a>
+                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Fermer</button>
             </div>
         </div>
     </div>

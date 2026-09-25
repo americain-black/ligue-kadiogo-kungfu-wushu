@@ -9,16 +9,16 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
     <div class="d-flex align-items-center gap-3">
-        <a href="{% url 'clubs:demandes_affiliation' %}" class="btn-action btn-action-edit flex-shrink-0" title="Retour aux demandes">
-            <i class="bi bi-arrow-left"></i>
-        </a>
+        <button onclick="history.back()" class="btn-retour">
+            <i class="bi bi-arrow-left me-1"></i>Retour
+        </button>
         <div>
             <h4 class="fw-bold mb-0">Historique & Archives des Affiliations</h4>
             <small class="text-muted">Consultez l'historique permanent de tous les dossiers d'affiliation traités</small>
         </div>
     </div>
     <div class="d-flex gap-2">
-        <a href="{% url 'clubs:demandes_affiliation' %}" class="btn btn-danger btn-sm rounded-pill px-3">
+        <a href="{% url 'clubs:demandes_affiliation' %}" class="btn btn-danger btn-sm rounded-3 px-3">
             <i class="bi bi-clock-history me-1"></i>Traitement en cours
         </a>
     </div>
@@ -37,11 +37,11 @@
         </div>
     </div>
     <div class="col-md-3 col-6">
-        <div class="card p-3 border-0 shadow-sm rounded-3 bg-white border-start border-4 border-success h-100">
+        <div class="card p-3 border-0 shadow-sm rounded-3 bg-white border-start border-4 border-danger h-100">
             <small class="text-muted fw-semibold d-block mb-1" style="font-size: 0.8rem;">Clubs Affiliés (Approuvés)</small>
             <div class="d-flex justify-content-between align-items-center mb-1">
-                <span class="fs-2 fw-bold text-success">{{ nb_approuvees }}</span>
-                <i class="bi bi-patch-check-fill fs-4 text-success opacity-50"></i>
+                <span class="fs-2 fw-bold text-dark">{{ nb_approuvees }}</span>
+                <i class="bi bi-patch-check-fill fs-4 text-danger opacity-50"></i>
             </div>
             <small class="text-muted micro-text">affiliations approuvées</small>
         </div>
@@ -50,18 +50,18 @@
         <div class="card p-3 border-0 shadow-sm rounded-3 bg-white border-start border-4 border-danger h-100">
             <small class="text-muted fw-semibold d-block mb-1" style="font-size: 0.8rem;">Demandes Rejetées</small>
             <div class="d-flex justify-content-between align-items-center mb-1">
-                <span class="fs-2 fw-bold text-danger">{{ nb_rejetees }}</span>
+                <span class="fs-2 fw-bold text-dark">{{ nb_rejetees }}</span>
                 <i class="bi bi-x-circle-fill fs-4 text-danger opacity-50"></i>
             </div>
             <small class="text-muted micro-text">dossiers non validés</small>
         </div>
     </div>
     <div class="col-md-3 col-6">
-        <div class="card p-3 border-0 shadow-sm rounded-3 bg-white border-start border-4 border-warning h-100">
+        <div class="card p-3 border-0 shadow-sm rounded-3 bg-white border-start border-4 border-danger h-100">
             <small class="text-muted fw-semibold d-block mb-1" style="font-size: 0.8rem;">En Cours de Traitement</small>
             <div class="d-flex justify-content-between align-items-center mb-1">
-                <span class="fs-2 fw-bold text-warning">{{ nb_en_cours }}</span>
-                <i class="bi bi-hourglass-split fs-4 text-warning opacity-50"></i>
+                <span class="fs-2 fw-bold text-dark">{{ nb_en_cours }}</span>
+                <i class="bi bi-hourglass-split fs-4 text-danger opacity-50"></i>
             </div>
             <small class="text-muted micro-text">dossiers en cours d'étude</small>
         </div>
@@ -78,15 +78,15 @@
                 <input type="text" 
                        name="q" 
                        value="{{ q }}" 
-                       class="form-control rounded-pill ps-5 border-secondary-subtle" 
-                       placeholder="Recherche"
+                       class="form-control rounded-3 ps-5 border-secondary-subtle" 
+                       placeholder="Recherche par nom de club..."
                        oninput="filterTableRows(this)"
                        autocomplete="off">
             </div>
         </div>
         <div class="col-md-3">
             <label class="form-label small fw-semibold text-muted mb-1">Saison Sportive</label>
-            <select name="annee" class="form-select rounded-pill px-3" onchange="this.form.submit()">
+            <select name="annee" class="form-select rounded-3 px-3" onchange="this.form.submit()">
                 <option value="">-- Toutes les saisons --</option>
                 {% for annee in annees %}
                 <option value="{{ annee.id }}" {% if annee_id == annee.id|stringformat:"s" %}selected{% endif %}>
@@ -97,7 +97,7 @@
         </div>
         <div class="col-md-3">
             <label class="form-label small fw-semibold text-muted mb-1">Statut du Dossier</label>
-            <select name="statut" class="form-select rounded-pill px-3" onchange="this.form.submit()">
+            <select name="statut" class="form-select rounded-3 px-3" onchange="this.form.submit()">
                 <option value="">-- Tous les statuts --</option>
                 <option value="APPROUVEE" {% if statut_filtre == 'APPROUVEE' %}selected{% endif %}>Approuvée (Affilié)</option>
                 <option value="REJETEE" {% if statut_filtre == 'REJETEE' %}selected{% endif %}>Rejetée</option>
@@ -141,7 +141,7 @@ function filterTableRows(input) {
             <tbody>
             {% for demande in demandes %}
             <tr>
-                <td><span class="badge bg-dark font-monospace">DOS-AFF-{{ demande.id }}</span></td>
+                <td><span class="badge bg-light text-dark border font-monospace">DOS-AFF-{{ demande.id }}</span></td>
                 <td>
                     <div class="fw-bold text-dark">{{ demande.club.nom_club }}</div>
                     <small class="text-muted">{{ demande.club.localite }} — Code: {{ demande.club.code_club }}</small>
@@ -152,17 +152,17 @@ function filterTableRows(input) {
                 </td>
                 <td>
                     {% if demande.statut_affiliation == 'APPROUVEE' %}
-                        <span class="badge bg-success px-3 py-2"><i class="bi bi-patch-check-fill me-1"></i>APPROUVÉE</span>
+                        <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle px-3 py-1 rounded-pill"><i class="bi bi-patch-check-fill me-1"></i>APPROUVÉE</span>
                         {% if demande.date_approbation %}
                         <div class="micro-text text-muted mt-1">le {{ demande.date_approbation|date:"d/m/Y à H:i" }}</div>
                         {% endif %}
                     {% elif demande.statut_affiliation == 'REJETEE' %}
-                        <span class="badge bg-danger px-3 py-2"><i class="bi bi-x-circle-fill me-1"></i>REJETÉE</span>
+                        <span class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle px-3 py-1 rounded-pill"><i class="bi bi-x-circle-fill me-1"></i>REJETÉE</span>
                         {% if demande.motif_rejet %}
                         <div class="micro-text text-danger title-hover" title="{{ demande.motif_rejet }}">Motif spécifié</div>
                         {% endif %}
                     {% else %}
-                        <span class="badge bg-warning text-dark px-3 py-2"><i class="bi bi-hourglass-split me-1"></i>EN COURS</span>
+                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-3 py-1 rounded-pill"><i class="bi bi-hourglass-split me-1"></i>EN COURS</span>
                     {% endif %}
                 </td>
                 <td>
@@ -172,14 +172,14 @@ function filterTableRows(input) {
                         <span class="text-muted small">—</span>
                     {% endif %}
                 </td>
-                <td class="text-end">
-                    <div class="btn-group">
-                        <a href="{% url 'clubs:detail_demande_affiliation' demande.pk %}" class="btn btn-sm btn-outline-dark" title="Consulter la fiche complète du dossier">
-                            <i class="bi bi-folder2-open me-1"></i>Fiche
+                <td class="text-end pe-3">
+                    <div class="d-flex justify-content-end gap-1">
+                        <a href="{% url 'clubs:detail_demande_affiliation' demande.pk %}" class="btn-action btn-action-edit" title="Fiche complète" data-bs-toggle="tooltip">
+                            <i class="bi bi-folder2-open"></i>
                         </a>
                         {% if demande.statut_affiliation == 'APPROUVEE' %}
-                        <a href="{% url 'clubs:attestation_affiliation' demande.pk %}" target="_blank" class="btn btn-sm btn-success" title="Attestation Officielle d'Affiliation">
-                            <i class="bi bi-file-earmark-check me-1"></i>Attestation
+                        <a href="{% url 'clubs:attestation_affiliation' demande.pk %}" target="_blank" class="btn-action btn-action-edit" title="Attestation officielle" data-bs-toggle="tooltip">
+                            <i class="bi bi-file-earmark-check"></i>
                         </a>
                         {% endif %}
                     </div>

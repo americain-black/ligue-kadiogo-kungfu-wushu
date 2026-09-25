@@ -81,7 +81,7 @@
             <i class="bi bi-list-check me-2"></i>Grille de notation — {{ inscription.grade_vise }}
         </h6>
         {% if est_jury %}
-        <button id="btn-valider-tout" class="btn btn-success btn-sm" onclick="validerToutesNotes()">
+        <button id="btn-valider-tout" class="btn btn-danger btn-sm" onclick="validerToutesNotes()">
             <i class="bi bi-check2-all me-1"></i>Valider toutes les notes
         </button>
         {% endif %}
@@ -111,13 +111,13 @@
                     id="ligne-{{ rg.pk }}">
                     <td class="ps-3 fw-semibold">{{ rg.rubrique.nom }}</td>
                     <td class="text-center">
-                        <span class="badge bg-secondary">×{{ rg.coefficient }}</span>
+                        <span class="badge bg-light text-dark border font-monospace">×{{ rg.coefficient }}</span>
                     </td>
                     <td class="text-center text-muted small">{{ rg.note_minimale }}/5</td>
                     <td class="text-center">
                         {% if note_obj and note_obj.validee %}
                             <span class="badge badge-note
-                                {% if note_obj.note >= rg.note_minimale %}bg-success{% else %}bg-danger{% endif %}"
+                                {% if note_obj.note >= rg.note_minimale %}bg-success-subtle text-success border border-success-subtle{% else %}bg-danger-subtle text-danger border border-danger-subtle{% endif %}"
                                   id="note-affichee-{{ rg.pk }}">
                                 {{ note_obj.note }}/5
                             </span>
@@ -139,15 +139,15 @@
                     <td class="text-center" id="etat-{{ rg.pk }}">
                         {% if note_obj %}
                             {% if note_obj.validee %}
-                                <span class="badge bg-success">
+                                <span class="badge bg-success-subtle text-success border border-success-subtle">
                                     <i class="bi bi-lock-fill me-1"></i>Validée
                                 </span>
                             {% elif note_obj.correction_demandee %}
-                                <span class="badge bg-warning text-dark">
+                                <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle">
                                     <i class="bi bi-exclamation-triangle me-1"></i>Correction demandée
                                 </span>
                             {% else %}
-                                <span class="badge bg-secondary">En saisie</span>
+                                <span class="badge bg-light text-dark border">En saisie</span>
                             {% endif %}
                         {% else %}
                             <span class="badge bg-light text-dark border">Non saisie</span>
@@ -157,13 +157,13 @@
                     <td class="text-center">
                         <div class="d-flex gap-1 justify-content-center">
                             {% if not note_obj or not note_obj.validee %}
-                            <button class="btn btn-sm btn-outline-primary"
+                            <button class="btn btn-sm btn-outline-danger"
                                     onclick="sauvegarderNote({{ rg.pk }})"
                                     id="btn-sauv-{{ rg.pk }}"
                                     title="Sauvegarder">
                                 <i class="bi bi-floppy"></i>
                             </button>
-                            <button class="btn btn-sm btn-success"
+                            <button class="btn btn-sm btn-danger"
                                     onclick="validerNote({{ rg.pk }})"
                                     id="btn-val-{{ rg.pk }}"
                                     title="Valider définitivement">

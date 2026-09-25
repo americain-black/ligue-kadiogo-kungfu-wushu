@@ -8,13 +8,15 @@
 
     <!-- EN-TÊTE ET RETOUR -->
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
-        <div>
-            <a href="{% url 'exams:liste_albums' %}" class="btn btn-sm btn-outline-secondary rounded-3 mb-2">
+        <div class="d-flex align-items-center gap-3">
+            <button onclick="history.back()" class="btn-retour">
                 <i class="bi bi-arrow-left me-1"></i>Retour aux Albums
-            </a>
-            <h2 class="fw-bold text-dark mb-0">
-                <i class="bi bi-plus-circle-fill text-success me-2"></i>Créer un Nouvel Album Photo
-            </h2>
+            </button>
+            <div>
+                <h2 class="fw-bold text-dark mb-0">
+                    <i class="bi bi-plus-circle-fill text-danger me-2"></i>Créer un Nouvel Album Photo
+                </h2>
+            </div>
         </div>
     </div>
 
@@ -29,7 +31,7 @@
                     <div class="col-lg-7">
                         <div class="p-3 bg-light rounded-4 border">
                             <h5 class="fw-bold text-dark mb-3">
-                                <i class="bi bi-info-circle-fill text-warning me-2"></i>Informations de l'Album
+                                <i class="bi bi-info-circle-fill text-danger me-2"></i>Informations de l'Album
                             </h5>
 
                             <div class="mb-3">
@@ -68,22 +70,22 @@
                     <div class="col-lg-5">
                         <div class="p-3 bg-light rounded-4 border h-100 d-flex flex-column">
                             <h5 class="fw-bold text-dark mb-3">
-                                <i class="bi bi-cloud-upload-fill text-success me-2"></i>Charger des Photos
+                                <i class="bi bi-cloud-upload-fill text-danger me-2"></i>Charger des Photos
                             </h5>
 
                             <div class="mb-3">
                                 <label class="form-label fw-bold text-dark">Sélectionner des Photos</label>
-                                <input type="file" name="images" multiple class="form-control" accept="image/*">
+                                <input type="file" name="images" multiple class="form-control rounded-3" accept="image/*">
                             </div>
 
                             <div class="mb-3">
                                 <label class="form-label fw-bold text-dark">Légende par défaut</label>
-                                <input type="text" name="legende_commune" class="form-control">
+                                <input type="text" name="legende_commune" class="form-control rounded-3">
                             </div>
 
                             <div class="mt-auto pt-4 border-top text-end">
-                                <a href="{% url 'exams:liste_albums' %}" class="btn btn-secondary me-2 rounded-3">Annuler</a>
-                                <button type="submit" class="btn btn-success px-4 py-2 fw-bold rounded-3 shadow-sm">
+                                <a href="{% url 'exams:liste_albums' %}" class="btn btn-outline-danger me-2 rounded-3">Annuler</a>
+                                <button type="submit" class="btn btn-danger px-4 py-2 fw-bold rounded-3 shadow-sm">
                                     <i class="bi bi-check-circle-fill me-1"></i>Créer et Accéder à l'Album
                                 </button>
                             </div>

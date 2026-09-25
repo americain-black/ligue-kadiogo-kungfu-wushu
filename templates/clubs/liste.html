@@ -34,7 +34,7 @@
 <!-- Filtre et Recherche Automatique par Nom de Club -->
 <div class="card p-3 mb-4 border-0 shadow-sm rounded-4 bg-white">
     <div class="row g-3 align-items-center">
-        <div class="col-lg-4 col-md-5">
+        <div class="col-lg-5 col-md-6">
             <div class="position-relative">
                 <i class="bi bi-search text-danger position-absolute top-50 start-0 translate-middle-y ms-3 fs-6"></i>
                 <input type="text" 
@@ -45,21 +45,22 @@
                        autocomplete="off">
             </div>
         </div>
-        <div class="col-lg-8 col-md-7 text-md-end">
-            <div class="d-inline-flex align-items-center flex-wrap gap-2">
-                <span class="fw-bold small text-muted text-uppercase">Statut :</span>
-                <div class="d-inline-flex p-1 bg-light rounded-pill border gap-1">
-                    <a href="{% url 'clubs:liste' %}"
-                       class="btn btn-sm rounded-pill px-3 py-1 fw-bold transition-all {% if not statut_filtre %}btn-danger shadow-sm{% else %}text-secondary hover-bg-white text-decoration-none{% endif %}">
-                        Tous
-                    </a>
+        <div class="col-lg-7 col-md-6 text-md-end">
+            <div class="d-inline-flex align-items-center gap-2">
+                <label for="statutFilterSelect" class="fw-bold small text-muted text-uppercase mb-0 me-1">Statut :</label>
+                <select id="statutFilterSelect" 
+                        class="form-select form-select-sm rounded-pill border-secondary-subtle fw-semibold text-dark shadow-none px-3 py-2" 
+                        style="min-width: 180px; cursor: pointer;"
+                        onchange="location.href = this.value;">
+                    <option value="{% url 'clubs:liste' %}" {% if not statut_filtre %}selected{% endif %}>
+                        Tous les statuts
+                    </option>
                     {% for code, libelle in statuts %}
-                    <a href="?statut={{ code }}"
-                       class="btn btn-sm rounded-pill px-3 py-1 fw-bold transition-all {% if statut_filtre == code %}btn-danger shadow-sm{% else %}text-secondary hover-bg-white text-decoration-none{% endif %}">
+                    <option value="?statut={{ code }}" {% if statut_filtre == code %}selected{% endif %}>
                         {{ libelle }}
-                    </a>
+                    </option>
                     {% endfor %}
-                </div>
+                </select>
             </div>
         </div>
     </div>
@@ -89,8 +90,8 @@ function filterClubRows(input) {
             <thead class="bg-light text-secondary text-uppercase small fw-bold">
                 <tr>
                     <th class="ps-3 py-3">CLUB</th>
-                    <th class="py-3">CODE / SIGLE</th>
-                    <th class="py-3">MAÎTRE / FONDATEUR</th>
+                    <th class="py-3">CODE</th>
+                    <th class="py-3">MAÎTRE</th>
                     <th class="py-3">LOCALITÉ</th>
                     <th class="py-3">GESTIONNAIRE</th>
                     <th class="py-3 text-center">STATUT</th>
@@ -103,24 +104,12 @@ function filterClubRows(input) {
                 <!-- CLUB -->
                 <td class="ps-3 py-3">
                     <div class="fw-bold text-dark fs-6">{{ club.nom_club }}</div>
-                    {% if club.latitude and club.longitude %}
-                        <div class="mt-1">
-                            <span class="badge bg-light text-success border me-1" title="Position GPS : {{ club.latitude }}, {{ club.longitude }}">
-                                <i class="bi bi-geo-alt-fill me-1"></i>GPS
-                            </span>
-                        </div>
-                    {% endif %}
                 </td>
-                <!-- CODE / SIGLE -->
+                <!-- CODE -->
                 <td class="py-3">
-                    <div class="d-flex align-items-center gap-1 flex-wrap">
-                        <span class="badge bg-primary font-monospace px-2 py-1 fs-7" title="Code unique">{{ club.code_club }}</span>
-                        {% if club.sigle_club %}
-                            <span class="badge bg-secondary font-monospace px-2 py-1 fs-7">{{ club.sigle_club }}</span>
-                        {% endif %}
-                    </div>
+                    <span class="badge bg-primary font-monospace px-2 py-1 fs-7" title="Code unique">{{ club.code_club }}</span>
                 </td>
-                <!-- MAÎTRE / FONDATEUR -->
+                <!-- MAÎTRE -->
                 <td class="py-3 fw-semibold text-danger">
                     {{ club.nom_fondateur|default:"—" }}
                 </td>
@@ -251,4 +240,5 @@ function filterClubRows(input) {
     </div>
 </div>
 {% endblock %}
+
 

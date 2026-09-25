@@ -8,10 +8,10 @@
 
 {% block extra_css %}
 <style>
-    /* En-tête des onglets rectangulaire avec couleur Slate Navy (#0F172A) */
+    /* En-tête des onglets épuré */
     .lk-tabs-header {
-        background-color: #0F172A !important;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+        background-color: #f8f9fa !important;
+        border-bottom: 1px solid #e2e8f0;
         border-radius: 0 !important;
     }
 
@@ -26,14 +26,14 @@
         flex: 1 1 auto;
     }
     
-    /* Boutons rectangulaires en texte pur inspirés de la barre latérale */
+    /* Boutons rectangulaires épurés */
     .lk-tabs-header .nav-link {
-        color: #94a3b8 !important;
-        font-weight: 500;
+        color: #475569 !important;
+        font-weight: 600;
         font-size: 0.83rem;
         border: none !important;
-        border-radius: 4px !important; /* Forme rectangulaire */
-        padding: 0.45rem 0.7rem;
+        border-radius: 6px !important;
+        padding: 0.5rem 0.8rem;
         transition: all 0.2s ease-in-out;
         background: transparent;
         display: inline-flex;
@@ -46,15 +46,15 @@
     }
     
     .lk-tabs-header .nav-link:hover:not(.active) {
-        color: #ffffff !important;
-        background-color: rgba(255, 255, 255, 0.1) !important;
+        color: #dc2626 !important;
+        background-color: rgba(220, 38, 38, 0.08) !important;
     }
     
     .lk-tabs-header .nav-link.active {
         color: #ffffff !important;
         background-color: #dc2626 !important; /* Rouge Ligue */
         font-weight: 700;
-        box-shadow: 0 2px 6px rgba(220, 38, 38, 0.4);
+        box-shadow: 0 2px 6px rgba(220, 38, 38, 0.3);
     }
 
     .lk-tabs-header .nav-link i {

@@ -58,20 +58,20 @@
         {% for actu in actualites %}
         <tr class="lk-actu-row" data-recherche="{{ actu.titre|lower }} {{ actu.contenu|lower }}">
             <td>
-                <a href="{% url 'communication:detail_actualite' actu.pk %}" class="fw-semibold text-decoration-none">{{ actu.titre }}</a>
+                <a href="{% url 'communication:detail_actualite' actu.pk %}" class="fw-semibold text-decoration-none text-dark">{{ actu.titre }}</a>
             </td>
             <td>
                 {% if actu.source == 'CLUB' %}{{ actu.club.nom_club|default:"Club" }}{% else %}Ligue{% endif %}
             </td>
             <td>
-                {% if actu.statut == 'PUBLIEE' %}<span class="badge bg-success">Publiée</span>
-                {% elif actu.statut == 'EN_ATTENTE' %}<span class="badge bg-primary">En attente</span>
-                {% elif actu.statut == 'REJETEE' %}<span class="badge bg-danger">Rejetée</span>
+                {% if actu.statut == 'PUBLIEE' %}<span class="badge bg-danger">Publiée</span>
+                {% elif actu.statut == 'EN_ATTENTE' %}<span class="badge bg-warning text-dark">En attente</span>
+                {% elif actu.statut == 'REJETEE' %}<span class="badge bg-dark">Rejetée</span>
                 {% else %}<span class="badge bg-secondary">Brouillon</span>
                 {% endif %}
                 {% if actu.statut == 'PUBLIEE' %}
-                {% if actu.est_public %}<span class="badge bg-info text-dark">Publique</span>
-                {% else %}<span class="badge bg-secondary">Privée</span>
+                {% if actu.est_public %}<span class="badge bg-danger-subtle text-danger">Publique</span>
+                {% else %}<span class="badge bg-light text-muted border">Privée</span>
                 {% endif %}
                 {% endif %}
             </td>

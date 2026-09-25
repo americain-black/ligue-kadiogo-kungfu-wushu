@@ -739,17 +739,37 @@
         new bootstrap.Tooltip(el, { trigger: 'hover' });
     });
 
-    /* ── Sidebar mobile ── */
+    /* ── Sidebar mobile & Mémorisation du Scroll ── */
     const sidebarToggle  = document.getElementById('sidebarToggle');
     const mainSidebar    = document.getElementById('mainSidebar');
     const sidebarOverlay = document.getElementById('sidebarOverlay');
 
+    // Mémorisation et Restauration automatique de la position du Scroll de la Sidebar
+    if (mainSidebar) {
+        const savedScrollPos = sessionStorage.getItem('lk_sidebar_scroll');
+        if (savedScrollPos !== null) {
+            mainSidebar.scrollTop = parseInt(savedScrollPos, 10);
+        }
+
+        const enregistrerScroll = function() {
+            sessionStorage.setItem('lk_sidebar_scroll', mainSidebar.scrollTop);
+        };
+
+        mainSidebar.addEventListener('scroll', enregistrerScroll, { passive: true });
+
+        mainSidebar.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', enregistrerScroll);
+        });
+    }
+
     function openSidebar() {
+        if (!mainSidebar) return;
         mainSidebar.classList.remove('d-none');
         mainSidebar.classList.add('sidebar-open');
         sidebarOverlay.classList.add('show');
     }
     function closeSidebar() {
+        if (!mainSidebar) return;
         mainSidebar.classList.remove('sidebar-open');
         sidebarOverlay.classList.remove('show');
         setTimeout(() => {

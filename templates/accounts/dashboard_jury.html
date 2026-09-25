@@ -6,8 +6,11 @@
 <a href="{% url 'accounts:dashboard_jury' %}" class="nav-link active">
     <i class="bi bi-speedometer2 me-2"></i>Tableau de bord
 </a>
-<span class="sidebar-title mt-2">Mes sessions</span>
-<a href="{% url 'accounts:dashboard_jury' %}" class="nav-link">
+<span class="sidebar-title mt-2">Notation & Évaluation</span>
+<a href="#licencies-a-evaluer" class="nav-link">
+    <i class="bi bi-people-fill me-2"></i>Licenciés à évaluer
+</a>
+<a href="#sessions-affectees" class="nav-link">
     <i class="bi bi-journal-check me-2"></i>Sessions affectées
 </a>
 {% endblock %}
@@ -80,7 +83,7 @@
 {% endif %}
 
 <!-- 2. Liste des Licenciés à Évaluer (Filtrable) -->
-<div class="card p-3 shadow-sm border-0 mb-4 rounded-4">
+<div class="card p-3 shadow-sm border-0 mb-4 rounded-4" id="licencies-a-evaluer">
     <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
         <h6 class="fw-bold mb-0 text-dark">
             <i class="bi bi-people me-2 text-danger"></i>Liste des Licenciés à Évaluer
@@ -204,7 +207,7 @@
 </div>
 
 <!-- 3. Mes sessions d'examen d'affectation -->
-<div class="card p-3 shadow-sm border-0 rounded-4">
+<div class="card p-3 shadow-sm border-0 rounded-4" id="sessions-affectees">
     <h6 class="fw-bold mb-3 text-dark">
         <i class="bi bi-journal-check me-2 text-danger"></i>
         Mes sessions d'examen d'affectation

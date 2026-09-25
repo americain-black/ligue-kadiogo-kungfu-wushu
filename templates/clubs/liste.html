@@ -6,11 +6,11 @@
 {% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <div class="d-flex align-items-center gap-3">
-        <a href="{% url 'accounts:dashboard_ligue' %}" class="btn-action btn-action-edit flex-shrink-0" title="Tableau de bord" data-bs-toggle="tooltip">
-            <i class="bi bi-arrow-left"></i>
-        </a>
+        <button onclick="history.back()" class="btn-retour">
+            <i class="bi bi-arrow-left me-1"></i>Retour
+        </button>
         <div>
             <h4 class="fw-bold mb-0">Clubs</h4>
             <small class="text-muted">Liste des clubs de la ligue</small>
@@ -18,43 +18,49 @@
     </div>
     <div class="d-flex gap-2 flex-wrap">
         <!-- Exportation des clubs -->
-        <a class="btn btn-outline-primary btn-sm" href="{% url 'clubs:exporter' %}" title="Exporter la liste des clubs au format CSV / Excel">
+        <a class="btn btn-outline-danger btn-sm fw-bold px-3" href="{% url 'clubs:exporter' %}" title="Exporter la liste des clubs">
             <i class="bi bi-download me-1"></i>Exporter les clubs
         </a>
         <!-- Importation des clubs -->
-        <button class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalImportClubs">
+        <button class="btn btn-outline-danger btn-sm fw-bold px-3" data-bs-toggle="modal" data-bs-target="#modalImportClubs">
             <i class="bi bi-upload me-1"></i>Importer des clubs
         </button>
-        <a href="{% url 'clubs:creer' %}" class="btn btn-ligue btn-sm">
-            <i class="bi bi-plus me-1"></i>Enregistrer un club
+        <a href="{% url 'clubs:creer' %}" class="btn btn-danger btn-sm fw-bold px-3">
+            <i class="bi bi-plus-lg me-1"></i>Enregistrer un club
         </a>
     </div>
 </div>
 
 <!-- Filtre et Recherche Automatique par Nom de Club -->
-<div class="card p-3 mb-4 border-0 shadow-sm rounded-4">
+<div class="card p-3 mb-4 border-0 shadow-sm rounded-4 bg-white">
     <div class="row g-3 align-items-center">
-        <div class="col-md-5">
+        <div class="col-lg-4 col-md-5">
             <div class="position-relative">
                 <i class="bi bi-search text-danger position-absolute top-50 start-0 translate-middle-y ms-3 fs-6"></i>
                 <input type="text" 
                        id="searchClubListInput" 
                        class="form-control rounded-pill ps-5 border-secondary-subtle" 
-                       placeholder="Recherche"
+                       placeholder="Recherche..."
                        oninput="filterClubRows(this)"
                        autocomplete="off">
             </div>
         </div>
-        <div class="col-md-7 text-md-end">
-            <span class="fw-semibold small me-2 text-muted">Statut :</span>
-            <a href="{% url 'clubs:liste' %}"
-               class="btn btn-sm rounded-pill px-3 {% if not statut_filtre %}btn-danger{% else %}btn-outline-secondary{% endif %}">Tous</a>
-            {% for code, libelle in statuts %}
-            <a href="?statut={{ code }}"
-               class="btn btn-sm rounded-pill px-3 {% if statut_filtre == code %}btn-danger{% else %}btn-outline-secondary{% endif %}">
-                {{ libelle }}
-            </a>
-            {% endfor %}
+        <div class="col-lg-8 col-md-7 text-md-end">
+            <div class="d-inline-flex align-items-center flex-wrap gap-2">
+                <span class="fw-bold small text-muted text-uppercase">Statut :</span>
+                <div class="d-inline-flex p-1 bg-light rounded-pill border gap-1">
+                    <a href="{% url 'clubs:liste' %}"
+                       class="btn btn-sm rounded-pill px-3 py-1 fw-bold transition-all {% if not statut_filtre %}btn-danger shadow-sm{% else %}text-secondary hover-bg-white text-decoration-none{% endif %}">
+                        Tous
+                    </a>
+                    {% for code, libelle in statuts %}
+                    <a href="?statut={{ code }}"
+                       class="btn btn-sm rounded-pill px-3 py-1 fw-bold transition-all {% if statut_filtre == code %}btn-danger shadow-sm{% else %}text-secondary hover-bg-white text-decoration-none{% endif %}">
+                        {{ libelle }}
+                    </a>
+                    {% endfor %}
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -74,90 +80,106 @@ function filterClubRows(input) {
 }
 </script>
 
-<!-- Tableau -->
-<div class="card">
+<!-- Tableau des clubs -->
+<div class="card shadow-sm border-0 rounded-4 overflow-hidden">
     <div class="card-body p-0">
     {% if clubs %}
-    <table class="table table-hover table-sm align-middle mb-0">
-        <thead class="table-light">
+    <div class="table-responsive">
+        <table class="table table-hover table-sm align-middle mb-0">
+            <thead class="bg-light text-secondary text-uppercase small fw-bold">
+                <tr>
+                    <th class="ps-3 py-3">CLUB</th>
+                    <th class="py-3">CODE / SIGLE</th>
+                    <th class="py-3">MAÎTRE / FONDATEUR</th>
+                    <th class="py-3">LOCALITÉ</th>
+                    <th class="py-3">GESTIONNAIRE</th>
+                    <th class="py-3 text-center">STATUT</th>
+                    <th class="py-3 text-end pe-3">ACTIONS</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for club in clubs %}
             <tr>
-                <th class="ps-3">Club</th>
-                <th>Code / Sigle</th>
-                <th>Maître / Fondateur</th>
-                <th>Localité</th>
-                <th>Gestionnaire</th>
-                <th>Statut</th>
-                <th class="text-end pe-3">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for club in clubs %}
-        <tr>
-            <td class="ps-3">
-                <strong>{{ club.nom_club }}</strong>
-                {% if club.latitude and club.longitude %}
-                    <span class="badge bg-light text-success border ms-1" title="Position GPS enregistrée : {{ club.latitude }}, {{ club.longitude }}">
-                        <i class="bi bi-geo-alt-fill me-1"></i>GPS
-                    </span>
-                {% endif %}
-            </td>
-            <td>
-                <span class="badge bg-primary font-monospace me-1" title="Code unique du club">{{ club.code_club }}</span>
-                {% if club.sigle_club %}<span class="badge bg-secondary font-monospace">{{ club.sigle_club }}</span>{% endif %}
-            </td>
-            <td class="small fw-semibold text-danger">
-                {{ club.nom_fondateur|default:"—" }}
-            </td>
-            <td class="small">{{ club.localite }}</td>
-            <td class="small">
-                {% if club.utilisateur %}
-                    {{ club.utilisateur.get_full_name|default:club.utilisateur.username }}
-                {% else %}
-                    <span class="text-muted">—</span>
-                {% endif %}
-            </td>
-            <td>
-                {% if club.statut_club == 'AFFILIE' %}
-                    <span class="badge bg-success">Affilié</span>
-                {% elif club.statut_club == 'EN_ATTENTE' %}
-                    <span class="badge bg-warning text-dark">En attente</span>
-                {% elif club.statut_club == 'SUSPENDU' %}
-                    <span class="badge bg-danger">Suspendu</span>
-                {% else %}
-                    <span class="badge bg-secondary">{{ club.get_statut_club_display }}</span>
-                {% endif %}
-            </td>
-            <td class="text-end pe-3">
-                <div class="d-flex justify-content-end gap-1">
-                    <a href="{% url 'practitioners:exporter' %}?club_id={{ club.pk }}&format=excel"
-                       class="btn-action btn-action-edit text-success" title="Exporter les licenciés de ce club"
-                       data-bs-toggle="tooltip" data-bs-placement="top">
-                        <i class="bi bi-download"></i>
-                    </a>
-                    <a href="{% url 'clubs:detail' club.pk %}"
-                       class="btn-action btn-action-edit" title="Voir la fiche"
-                       data-bs-toggle="tooltip" data-bs-placement="top">
-                        <i class="bi bi-eye"></i>
-                    </a>
-                    <a href="{% url 'clubs:organigramme' club.pk %}"
-                       class="btn-action btn-action-edit" title="Organigramme"
-                       data-bs-toggle="tooltip" data-bs-placement="top">
-                        <i class="bi bi-diagram-3"></i>
-                    </a>
-                    <a href="{% url 'clubs:modifier' club.pk %}"
-                       class="btn-action btn-action-edit" title="Modifier"
-                       data-bs-toggle="tooltip" data-bs-placement="top">
-                        <i class="bi bi-pencil"></i>
-                    </a>
-                    {% if club.statut_club in 'AFFILIE,SUSPENDU' %}
-                    <form method="post" action="{% url 'clubs:toggle_statut' club.pk %}" class="d-inline">
-                        {% csrf_token %}
-                        <button type="submit"
-                                class="btn-action {% if club.statut_club == 'AFFILIE' %}btn-action-on{% else %}btn-action-off{% endif %}"
-                                data-confirm="{% if club.statut_club == 'AFFILIE' %}Suspendre{% else %}Réactiver{% endif %} le club {{ club.nom_club }} ?"
-                                onclick="return confirm(this.dataset.confirm)"
-                                title="{% if club.statut_club == 'AFFILIE' %}Suspendre{% else %}Réactiver{% endif %}"
-                                data-bs-toggle="tooltip" data-bs-placement="top">
+                <!-- CLUB -->
+                <td class="ps-3 py-3">
+                    <div class="fw-bold text-dark fs-6">{{ club.nom_club }}</div>
+                    {% if club.latitude and club.longitude %}
+                        <div class="mt-1">
+                            <span class="badge bg-light text-success border me-1" title="Position GPS : {{ club.latitude }}, {{ club.longitude }}">
+                                <i class="bi bi-geo-alt-fill me-1"></i>GPS
+                            </span>
+                        </div>
+                    {% endif %}
+                </td>
+                <!-- CODE / SIGLE -->
+                <td class="py-3">
+                    <div class="d-flex align-items-center gap-1 flex-wrap">
+                        <span class="badge bg-primary font-monospace px-2 py-1 fs-7" title="Code unique">{{ club.code_club }}</span>
+                        {% if club.sigle_club %}
+                            <span class="badge bg-secondary font-monospace px-2 py-1 fs-7">{{ club.sigle_club }}</span>
+                        {% endif %}
+                    </div>
+                </td>
+                <!-- MAÎTRE / FONDATEUR -->
+                <td class="py-3 fw-semibold text-danger">
+                    {{ club.nom_fondateur|default:"—" }}
+                </td>
+                <!-- LOCALITÉ -->
+                <td class="py-3 text-dark fw-medium">
+                    {{ club.localite|default:"—" }}
+                </td>
+                <!-- GESTIONNAIRE -->
+                <td class="py-3 text-dark">
+                    {% if club.utilisateur %}
+                        {{ club.utilisateur.get_full_name|default:club.utilisateur.username }}
+                    {% else %}
+                        <span class="text-muted">—</span>
+                    {% endif %}
+                </td>
+                <!-- STATUT -->
+                <td class="py-3 text-center">
+                    {% if club.statut_club == 'AFFILIE' %}
+                        <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle px-3 py-1 rounded-pill">Affilié</span>
+                    {% elif club.statut_club == 'EN_ATTENTE' %}
+                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-3 py-1 rounded-pill">En attente</span>
+                    {% elif club.statut_club == 'SUSPENDU' %}
+                        <span class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle px-3 py-1 rounded-pill">Suspendu</span>
+                    {% else %}
+                        <span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle px-3 py-1 rounded-pill">{{ club.get_statut_club_display }}</span>
+                    {% endif %}
+                </td>
+                <!-- ACTIONS -->
+                <td class="py-3 text-end pe-3">
+                    <div class="d-flex justify-content-end gap-1">
+                        <a href="{% url 'practitioners:exporter' %}?club_id={{ club.pk }}&format=excel"
+                           class="btn-action btn-action-edit text-success" title="Exporter les licenciés"
+                           data-bs-toggle="tooltip">
+                            <i class="bi bi-download"></i>
+                        </a>
+                        <a href="{% url 'clubs:detail' club.pk %}"
+                           class="btn-action btn-action-edit" title="Voir la fiche"
+                           data-bs-toggle="tooltip">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                        <a href="{% url 'clubs:organigramme' club.pk %}"
+                           class="btn-action btn-action-edit" title="Organigramme"
+                           data-bs-toggle="tooltip">
+                            <i class="bi bi-diagram-3"></i>
+                        </a>
+                        <a href="{% url 'clubs:modifier' club.pk %}"
+                           class="btn-action btn-action-edit" title="Modifier"
+                           data-bs-toggle="tooltip">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        {% if club.statut_club in 'AFFILIE,SUSPENDU' %}
+                        <form method="post" action="{% url 'clubs:toggle_statut' club.pk %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit"
+                                    class="btn-action {% if club.statut_club == 'AFFILIE' %}btn-action-on{% else %}btn-action-off{% endif %}"
+                                    data-confirm="{% if club.statut_club == 'AFFILIE' %}Suspendre{% else %}Réactiver{% endif %} le club {{ club.nom_club }} ?"
+                                    onclick="return confirm(this.dataset.confirm)"
+                                    title="{% if club.statut_club == 'AFFILIE' %}Suspendre{% else %}Réactiver{% endif %}"
+                                    data-bs-toggle="tooltip">
                             {% if club.statut_club == 'AFFILIE' %}
                                 <i class="bi bi-pause-circle"></i>
                             {% else %}
@@ -190,38 +212,38 @@ function filterClubRows(input) {
 <!-- Modal Importation des Clubs -->
 <div class="modal fade" id="modalImportClubs" tabindex="-1">
     <div class="modal-dialog">
-        <div class="modal-content">
+        <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
             <form method="post" action="{% url 'clubs:importer' %}" enctype="multipart/form-data">
                 {% csrf_token %}
-                <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title"><i class="bi bi-file-earmark-arrow-up me-2"></i>Importer la liste des clubs</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <div class="modal-header bg-white border-bottom py-3">
+                    <h5 class="modal-title fw-bold text-dark"><i class="bi bi-file-earmark-arrow-up text-danger me-2"></i>Importer des clubs</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
-                    <p class="small text-muted">
+                <div class="modal-body p-4">
+                    <p class="small text-muted mb-3">
                         Téléversez un fichier au format <strong>CSV ou Excel (.csv/.xlsx)</strong> contenant la liste des clubs avec leurs coordonnées et maître responsable.
                     </p>
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Fichier d'import de clubs</label>
-                        <input type="file" name="fichier" class="form-control" accept=".csv,.txt,.xlsx,.xls" required>
-                        <div class="form-text">Formats supportés : Excel (.xlsx), CSV (délimiteur point-virgule ou virgule)</div>
+                        <label class="form-label fw-semibold text-dark">Fichier d'import de clubs</label>
+                        <input type="file" name="fichier" class="form-control rounded-3" accept=".csv,.txt,.xlsx,.xls" required>
+                        <div class="form-text">Formats supportés : Excel (.xlsx), CSV</div>
                     </div>
-                    <div class="p-3 bg-light rounded border">
+                    <div class="p-3 bg-light rounded-3 border">
                         <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="fw-semibold small"><i class="bi bi-info-circle me-1"></i>Besoin d'un exemple ?</span>
-                            <a href="{% url 'clubs:telecharger_modele' %}" class="btn btn-sm btn-link p-0 text-decoration-none">
+                            <span class="fw-semibold small text-dark"><i class="bi bi-info-circle me-1 text-danger"></i>Besoin d'un exemple ?</span>
+                            <a href="{% url 'clubs:telecharger_modele' %}" class="btn btn-sm btn-link p-0 text-decoration-none text-danger fw-semibold">
                                 <i class="bi bi-download me-1"></i>Télécharger le modèle CSV
                             </a>
                         </div>
                         <small class="text-muted d-block">
-                            Colonnes acceptées : <code>Nom du Club</code>, <code>Sigle</code>, <code>Code Club</code>, <code>Maître / Fondateur</code>, <code>Localité</code>, <code>Adresse</code>, <code>Téléphone</code>, <code>Email</code>, <code>Latitude</code>, <code>Longitude</code>
+                            Colonnes acceptées : <code>Nom du Club</code>, <code>Sigle</code>, <code>Code Club</code>, <code>Maître / Fondateur</code>, <code>Localité</code>, <code>Téléphone</code>, <code>Email</code>
                         </small>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    <button type="submit" class="btn btn-success">
-                        <i class="bi bi-upload me-1"></i>Lancer l'importation des clubs
+                <div class="modal-footer bg-light border-top py-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm px-3 fw-semibold rounded-3" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-danger btn-sm px-3 fw-bold rounded-3">
+                        <i class="bi bi-upload me-1"></i>Lancer l'importation
                     </button>
                 </div>
             </form>
@@ -229,3 +251,4 @@ function filterClubRows(input) {
     </div>
 </div>
 {% endblock %}
+

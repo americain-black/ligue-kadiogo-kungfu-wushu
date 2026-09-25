@@ -29,7 +29,7 @@
     </div>
     <form method="post" class="d-flex gap-2">
         {% csrf_token %}
-        <button type="submit" class="btn btn-primary">
+        <button type="submit" class="btn btn-danger">
             <i class="bi bi-send me-1"></i>Confirmer la soumission
         </button>
         <a href="{% url 'communication:detail_actualite_club' actualite.pk %}" class="btn btn-outline-secondary">Annuler</a>

@@ -143,12 +143,12 @@
             <td class="text-center" id="action-{{ insc.pk }}">
                 {% if insc.deja_note %}
                 <a href="{% url 'evaluations:detail_candidat' session.pk insc.pk %}"
-                   class="btn btn-sm btn-outline-warning">
+                   class="btn btn-sm btn-outline-danger">
                     <i class="bi bi-arrow-repeat me-1"></i>Demander correction
                 </a>
                 {% else %}
                 <a href="{% url 'evaluations:detail_candidat' session.pk insc.pk %}"
-                   class="btn btn-sm btn-outline-primary">
+                   class="btn btn-sm btn-danger">
                     <i class="bi bi-pencil-square me-1"></i>Noter
                 </a>
                 {% endif %}
@@ -254,7 +254,7 @@ function afficherResultat(inscriptionId, decision, moyenne) {
     if (action) {
         const lien = action.querySelector('a');
         if (lien) {
-            lien.className = 'btn btn-sm btn-outline-warning';
+            lien.className = 'btn btn-sm btn-outline-danger';
             lien.innerHTML = '<i class="bi bi-arrow-repeat me-1"></i>Demander correction';
         }
     }

@@ -75,7 +75,7 @@
         <i class="bi bi-exclamation-triangle-fill me-2"></i>
         <strong>{{ nb_en_attente }} preuve(s)</strong> en attente de vérification.
     </div>
-    <a href="{% url 'payments:liste_paiements_examen' %}?statut=EN_ATTENTE" class="btn btn-warning btn-sm">
+    <a href="{% url 'payments:liste_paiements_examen' %}?statut=EN_ATTENTE" class="btn btn-danger btn-sm">
         Vérifier maintenant
     </a>
 </div>
@@ -183,7 +183,7 @@
         <i class="bi bi-exclamation-triangle-fill me-2"></i>
         <strong>{{ nb_en_attente_affiliation }} preuve(s)</strong> d'affiliation en attente de vérification.
     </div>
-    <a href="{% url 'payments:liste_paiements_affiliation' %}?statut=EN_ATTENTE" class="btn btn-warning btn-sm">
+    <a href="{% url 'payments:liste_paiements_affiliation' %}?statut=EN_ATTENTE" class="btn btn-danger btn-sm">
         Vérifier maintenant
     </a>
 </div>

@@ -177,11 +177,11 @@
                             {% endif %}
                         </td>
                         <td class="text-center">
-                            <span class="badge bg-primary">{{ session.nb_inscrits }}</span>
+                            <span class="badge bg-danger">{{ session.nb_inscrits }}</span>
                         </td>
                         <td class="text-end pe-3">
                             <a href="{% url 'exams:licencies_club' session.pk %}"
-                               class="btn btn-sm btn-outline-primary">
+                               class="btn btn-sm btn-outline-danger">
                                 <i class="bi bi-people me-1"></i>Voir mes licenciés
                             </a>
                         </td>

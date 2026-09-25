@@ -35,7 +35,7 @@
         </form>
 
         <a href="{% url 'ligues:export_rapport_pdf' %}{% if saison_active %}?saison={{ saison_active.pk }}{% endif %}" 
-           class="btn btn-primary btn-sm shadow-sm fw-bold" target="_blank">
+           class="btn btn-danger btn-sm shadow-sm fw-bold" target="_blank">
             <i class="bi bi-file-earmark-pdf-fill me-1"></i>Rapport Annuel (PDF)
         </a>
     </div>

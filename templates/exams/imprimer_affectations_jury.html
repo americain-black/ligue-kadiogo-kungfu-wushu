@@ -48,12 +48,12 @@
             <i class="bi bi-arrow-left me-1"></i>Retour au jury
         </a>
         {% if single_aff %}
-        <a href="{% url 'exams:imprimer_affectations_jury' session.pk %}" class="btn btn-outline-primary">
+        <a href="{% url 'exams:imprimer_affectations_jury' session.pk %}" class="btn btn-outline-danger">
             <i class="bi bi-people me-1"></i>Voir toute la liste groupée
         </a>
         {% endif %}
     </div>
-    <button onclick="window.print()" class="btn btn-primary px-4">
+    <button onclick="window.print()" class="btn btn-danger px-4">
         <i class="bi bi-printer me-2"></i>Imprimer ce document
     </button>
 </div>

@@ -93,7 +93,7 @@
         <div class="card p-3 mb-3">
             <h6 class="fw-bold mb-3"><i class="bi bi-file-earmark-image me-2 text-muted"></i>Preuve jointe</h6>
             {% if paiement.fichier_preuve %}
-            <a href="{{ paiement.fichier_preuve.url }}" target="_blank" class="btn btn-outline-primary btn-sm">
+            <a href="{{ paiement.fichier_preuve.url }}" target="_blank" class="btn btn-outline-danger btn-sm">
                 <i class="bi bi-eye me-1"></i>Voir le fichier
             </a>
             {% else %}

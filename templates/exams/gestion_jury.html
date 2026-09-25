@@ -22,7 +22,7 @@
             <small class="text-muted">{{ session.titre }} — {{ session.date_examen|date:"d/m/Y" }}</small>
         </div>
     </div>
-    <a href="{% url 'exams:liste_jury_affecte' session.pk %}" class="btn btn-outline-primary">
+    <a href="{% url 'exams:liste_jury_affecte' session.pk %}" class="btn btn-outline-danger">
         <i class="bi bi-people me-1"></i>Voir la liste des jurys affectés ({{ affectations.count }})
     </a>
 </div>
@@ -48,7 +48,7 @@
                 </div>
 
                 <div class="d-grid gap-2">
-                    <button type="submit" class="btn btn-primary py-2 fw-semibold">
+                    <button type="submit" class="btn btn-danger py-2 fw-semibold">
                         Continuer la configuration <i class="bi bi-arrow-right ms-1"></i>
                     </button>
                     <a href="{% url 'exams:liste_jury_affecte' session.pk %}" class="btn btn-outline-secondary">

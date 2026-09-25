@@ -60,7 +60,7 @@
         <a href="{% url 'communication:modifier_actualite_club' actualite.pk %}" class="btn btn-outline-secondary btn-sm">
             <i class="bi bi-pencil me-1"></i>Modifier
         </a>
-        <a href="{% url 'communication:soumettre_actualite_club' actualite.pk %}" class="btn btn-primary btn-sm">
+        <a href="{% url 'communication:soumettre_actualite_club' actualite.pk %}" class="btn btn-danger btn-sm">
             <i class="bi bi-send me-1"></i>Soumettre à la ligue
         </a>
         {% if actualite.statut == 'BROUILLON' %}

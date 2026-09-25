@@ -179,12 +179,24 @@
                                     <h6 class="modal-title fw-bold">{{ piece.get_type_piece_display }} — {{ piece.nom_fichier }}</h6>
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
                                 </div>
-                                <div class="modal-body text-center p-3" style="min-height: 450px;">
-                                    <iframe src="{{ piece.fichier.url }}" style="width:100%; height:500px; border:none;" class="rounded"></iframe>
+                                <div class="modal-body text-center p-3 d-flex flex-column justify-content-center align-items-center" style="min-height: 450px; background-color: #f8f9fa;">
+                                    {% if '.pdf' in piece.fichier.url.lower %}
+                                    <object data="{{ piece.fichier.url }}" type="application/pdf" width="100%" height="480px" class="rounded">
+                                        <embed src="{{ piece.fichier.url }}" type="application/pdf" width="100%" height="480px" />
+                                        <p class="text-muted mt-3">Visualisation directe non supportée par votre navigateur.</p>
+                                    </object>
+                                    {% else %}
+                                    <img src="{{ piece.fichier.url }}" alt="{{ piece.get_type_piece_display }}" class="img-fluid rounded shadow-sm" style="max-height: 480px; object-fit: contain;">
+                                    {% endif %}
                                 </div>
-                                <div class="modal-footer">
-                                    <a href="{{ piece.fichier.url }}" download class="btn btn-danger btn-sm"><i class="bi bi-download me-1"></i>Télécharger</a>
-                                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Fermer</button>
+                                <div class="modal-footer justify-content-between">
+                                    <a href="{{ piece.fichier.url }}" target="_blank" class="btn btn-outline-danger btn-sm">
+                                        <i class="bi bi-box-arrow-up-right me-1"></i>Ouvrir dans un nouvel onglet
+                                    </a>
+                                    <div>
+                                        <a href="{{ piece.fichier.url }}" download class="btn btn-danger btn-sm"><i class="bi bi-download me-1"></i>Télécharger</a>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Fermer</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -208,12 +220,24 @@
                 <h6 class="modal-title fw-bold"><i class="bi bi-file-earmark-image me-2 text-danger"></i>Preuve de paiement — {{ demande.club.nom_club }}</h6>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
             </div>
-            <div class="modal-body text-center p-3" style="min-height: 480px;">
-                <iframe src="{{ paiement.fichier_preuve.url }}" style="width:100%; height:520px; border:none;" class="rounded"></iframe>
+            <div class="modal-body text-center p-3 d-flex flex-column justify-content-center align-items-center" style="min-height: 480px; background-color: #f8f9fa;">
+                {% if '.pdf' in paiement.fichier_preuve.url.lower %}
+                <object data="{{ paiement.fichier_preuve.url }}" type="application/pdf" width="100%" height="520px" class="rounded">
+                    <embed src="{{ paiement.fichier_preuve.url }}" type="application/pdf" width="100%" height="520px" />
+                    <p class="text-muted mt-3">Visualisation directe non supportée par votre navigateur.</p>
+                </object>
+                {% else %}
+                <img src="{{ paiement.fichier_preuve.url }}" alt="Preuve de paiement" class="img-fluid rounded shadow-sm" style="max-height: 520px; object-fit: contain;">
+                {% endif %}
             </div>
-            <div class="modal-footer">
-                <a href="{{ paiement.fichier_preuve.url }}" download class="btn btn-danger btn-sm"><i class="bi bi-download me-1"></i>Télécharger le fichier</a>
-                <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Fermer</button>
+            <div class="modal-footer justify-content-between">
+                <a href="{{ paiement.fichier_preuve.url }}" target="_blank" class="btn btn-outline-danger btn-sm">
+                    <i class="bi bi-box-arrow-up-right me-1"></i>Ouvrir dans un nouvel onglet
+                </a>
+                <div>
+                    <a href="{{ paiement.fichier_preuve.url }}" download class="btn btn-danger btn-sm"><i class="bi bi-download me-1"></i>Télécharger le fichier</a>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" data-bs-dismiss="modal">Fermer</button>
+                </div>
             </div>
         </div>
     </div>

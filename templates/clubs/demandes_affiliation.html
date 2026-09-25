@@ -9,19 +9,19 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
     <div class="d-flex align-items-center gap-3">
-        <a href="{% url 'accounts:dashboard_ligue' %}" class="btn-action btn-action-edit flex-shrink-0" title="Tableau de bord" data-bs-toggle="tooltip">
-            <i class="bi bi-arrow-left"></i>
-        </a>
+        <button onclick="history.back()" class="btn-retour">
+            <i class="bi bi-arrow-left me-1"></i>Retour
+        </button>
         <div>
             <h4 class="fw-bold mb-0">Traitement des Dossiers d'Affiliation</h4>
             <small class="text-muted">Gestion, étude et validation des demandes des clubs par saison</small>
         </div>
     </div>
     <div class="d-flex gap-2">
-        <a href="{% url 'clubs:modele_attestation' %}" class="btn btn-outline-danger btn-sm rounded-pill px-3 shadow-sm fw-semibold">
+        <a href="{% url 'clubs:modele_attestation' %}" class="btn btn-outline-danger btn-sm fw-bold px-3">
             <i class="bi bi-file-earmark-pdf-fill me-1"></i>Modèle Attestation
         </a>
-        <a href="{% url 'clubs:parametres_affiliation' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 shadow-sm fw-semibold">
+        <a href="{% url 'clubs:parametres_affiliation' %}" class="btn btn-outline-danger btn-sm fw-bold px-3">
             <i class="bi bi-cash-coin me-1"></i>Frais d'affiliation
         </a>
     </div>
@@ -92,7 +92,7 @@
 </div>
 
 <!-- Filtres de Recherche par Sélections -->
-<div class="card border-0 shadow-sm p-3 mb-4 rounded-4">
+<div class="card border-0 shadow-sm p-3 mb-4 rounded-4 bg-white">
     <form method="get" id="filterFormAffiliation" class="row g-3 align-items-center">
         <div class="col-md-5">
             <div class="position-relative">
@@ -101,14 +101,14 @@
                        name="q" 
                        id="searchInputAffiliation" 
                        value="{{ q }}" 
-                       class="form-control rounded-pill ps-5 border-secondary-subtle" 
+                       class="form-control rounded-3 ps-5 border-secondary-subtle" 
                        placeholder="Recherche par club, sigle, code..."
                        oninput="filterTableRows(this)"
                        autocomplete="off">
             </div>
         </div>
         <div class="col-md-3">
-            <select name="statut" class="form-select rounded-pill px-3" onchange="this.form.submit()">
+            <select name="statut" class="form-select rounded-3 border-secondary-subtle fw-semibold text-dark shadow-none px-3 py-2" onchange="this.form.submit()">
                 <option value="">-- Tous les statuts --</option>
                 <option value="EN_ATTENTE_VALID_LIGUE" {% if statut_filtre == 'EN_ATTENTE_VALID_LIGUE' %}selected{% endif %}>À valider (Ligue)</option>
                 <option value="EN_ATTENTE_VALID_FINANCIER" {% if statut_filtre == 'EN_ATTENTE_VALID_FINANCIER' %}selected{% endif %}>Validation Financière</option>
@@ -118,7 +118,7 @@
             </select>
         </div>
         <div class="col-md-4">
-            <select name="annee" class="form-select rounded-pill px-3" onchange="this.form.submit()">
+            <select name="annee" class="form-select rounded-3 border-secondary-subtle fw-semibold text-dark shadow-none px-3 py-2" onchange="this.form.submit()">
                 <option value="">-- Toutes les saisons sportives --</option>
                 {% for annee in annees %}
                 <option value="{{ annee.id }}" {% if annee_id == annee.id|stringformat:"s" %}selected{% endif %}>
@@ -146,7 +146,7 @@ function filterTableRows(input) {
 </script>
 
 <!-- Table des Demandes d'Affiliation -->
-<div class="card border-0 shadow-sm rounded-3 overflow-hidden">
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden">
     <div class="card-header bg-white py-3 border-bottom d-flex justify-content-between align-items-center">
         <h6 class="fw-bold mb-0 text-dark">
             <i class="bi bi-folder-check me-2 text-danger"></i>Liste des Dossiers d'Affiliation
@@ -156,15 +156,15 @@ function filterTableRows(input) {
     
     {% if demandes %}
     <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
-            <thead class="table-light small text-muted text-uppercase">
+        <table class="table table-hover table-bordered border-light-subtle align-middle mb-0">
+            <thead class="bg-light text-secondary text-uppercase small fw-bold">
                 <tr>
-                    <th>Club</th>
-                    <th>Localité</th>
-                    <th>Saison</th>
-                    <th>Date Demande</th>
-                    <th>Statut</th>
-                    <th class="text-end">Actions</th>
+                    <th class="ps-3 py-3">CLUB</th>
+                    <th class="py-3 px-3">LOCALITÉ</th>
+                    <th class="py-3 px-3">SAISON</th>
+                    <th class="py-3 px-3">DATE DEMANDE</th>
+                    <th class="py-3 text-center">STATUT</th>
+                    <th class="py-3 text-end pe-3">ACTIONS</th>
                 </tr>
             </thead>
             <tbody>

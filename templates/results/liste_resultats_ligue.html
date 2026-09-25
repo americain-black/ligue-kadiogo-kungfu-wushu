@@ -9,15 +9,18 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-    <div>
-        <h3 class="fw-extrabold mb-1">
-            <i class="bi bi-award-fill text-warning me-2"></i>Gestion des Résultats & Bulletins de Note
-        </h3>
-        <p class="text-muted mb-0">Consultez, filtrez automatiquement par club ou par session et visualisez/imprimez les bulletins.</p>
+    <div class="d-flex align-items-center gap-3">
+        <button onclick="history.back()" class="btn-retour">
+            <i class="bi bi-arrow-left me-1"></i>Retour
+        </button>
+        <div>
+            <h4 class="fw-bold mb-0">Gestion des Résultats & Bulletins</h4>
+            <small class="text-muted">Consultez, filtrez par club ou session et visualisez les bulletins</small>
+        </div>
     </div>
     
     <div class="d-flex gap-2 flex-wrap">
-        <a href="{% url 'ligues:editer_infos' %}#tab-bulletin" class="btn btn-danger fw-bold">
+        <a href="{% url 'ligues:editer_infos' %}#tab-bulletin" class="btn btn-danger btn-sm fw-bold px-3">
             <i class="bi bi-gear-fill me-1"></i>Configuration Bulletin
         </a>
     </div>
@@ -32,7 +35,7 @@
                 <label class="form-label fw-bold text-dark small mb-1">
                     <i class="bi bi-calendar-event me-1 text-danger"></i>Session d'Examen
                 </label>
-                <select name="session" class="form-select" onchange="this.form.submit()">
+                <select name="session" class="form-select rounded-3 border-secondary-subtle fw-semibold text-dark shadow-none py-2" onchange="this.form.submit()">
                     <option value="">Toutes les sessions</option>
                     {% for s in sessions %}
                     <option value="{{ s.id }}" {% if session_id == s.id|stringformat:"s" %}selected{% endif %}>
@@ -46,7 +49,7 @@
                 <label class="form-label fw-bold text-dark small mb-1">
                     <i class="bi bi-building me-1 text-danger"></i>Club Affilié
                 </label>
-                <select name="club" class="form-select" onchange="this.form.submit()">
+                <select name="club" class="form-select rounded-3 border-secondary-subtle fw-semibold text-dark shadow-none py-2" onchange="this.form.submit()">
                     <option value="">Tous les clubs</option>
                     {% for c in clubs %}
                     <option value="{{ c.id }}" {% if club_id == c.id|stringformat:"s" %}selected{% endif %}>
@@ -60,7 +63,7 @@
                 <label class="form-label fw-bold text-dark small mb-1">
                     <i class="bi bi-search me-1 text-danger"></i>Recherche Candidat
                 </label>
-                <input type="search" name="q" value="{{ q }}" class="form-control" oninput="clearTimeout(this.timer); this.timer = setTimeout(() => this.form.submit(), 450)">
+                <input type="search" name="q" value="{{ q }}" class="form-control rounded-3 border-secondary-subtle py-2" placeholder="Recherche..." oninput="clearTimeout(this.timer); this.timer = setTimeout(() => this.form.submit(), 450)">
             </div>
 
         </form>
@@ -72,15 +75,15 @@
 
     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
         <div>
-            <span class="badge bg-secondary px-3 py-2 fs-6">
+            <span class="badge bg-light text-dark border font-monospace px-3 py-2 fs-6">
                 <strong>{{ total_count }}</strong> résultat(s) classé(s)
             </span>
         </div>
         <div class="d-flex gap-2">
-            <a href="{% url 'results:impression_groupee_bulletins' %}?session={{ session_id }}&club={{ club_id }}" class="btn btn-danger fw-bold" target="_blank">
-                <i class="bi bi-printer-fill me-1"></i>Imprimer TOUS les bulletins filtrés (PDF)
+            <a href="{% url 'results:impression_groupee_bulletins' %}?session={{ session_id }}&club={{ club_id }}" class="btn btn-danger btn-sm fw-bold px-3" target="_blank">
+                <i class="bi bi-printer-fill me-1"></i>Imprimer TOUS les bulletins (PDF)
             </a>
-            <button type="submit" class="btn btn-outline-danger fw-bold" id="btnImprimerSelection">
+            <button type="submit" class="btn btn-outline-danger btn-sm fw-bold px-3" id="btnImprimerSelection">
                 <i class="bi bi-file-earmark-pdf-fill me-1"></i>Imprimer la sélection
             </button>
         </div>
@@ -88,73 +91,66 @@
 
     <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
         <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="bg-dark text-white">
+            <table class="table table-hover table-sm align-middle mb-0">
+                <thead class="bg-light text-secondary text-uppercase small fw-bold">
                     <tr>
-                        <th class="ps-3" style="width: 40px;">
+                        <th class="ps-3 py-3" style="width: 40px;">
                             <input type="checkbox" id="selectAll" class="form-check-input">
                         </th>
-                        <th>Candidat</th>
-                        <th>Club</th>
-                        <th>Session / Grade Visé</th>
-                        <th class="text-center">Moyenne</th>
-                        <th class="text-center">Rang</th>
-                        <th class="text-center">Décision</th>
-                        <th class="text-end pe-3">Actions</th>
+                        <th class="py-3">CANDIDAT</th>
+                        <th class="py-3">CLUB</th>
+                        <th class="py-3">SESSION / GRADE VISÉ</th>
+                        <th class="py-3 text-center">MOYENNE</th>
+                        <th class="py-3 text-center">RANG</th>
+                        <th class="py-3 text-center">DÉCISION</th>
+                        <th class="py-3 text-end pe-3">ACTIONS</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for item in resultats_data %}
                     <tr>
-                        <td class="ps-3">
+                        <td class="ps-3 py-3">
                             <input type="checkbox" name="resultats_ids" value="{{ item.resultat.id }}" class="form-check-input item-check">
                         </td>
-                        <td>
+                        <td class="py-3">
                             <div class="d-flex align-items-center gap-2">
-                                {% if item.resultat.inscription.pratiquant.photo %}
-                                <img src="{{ item.resultat.inscription.pratiquant.photo.url }}" class="rounded-circle border" style="width: 38px; height: 38px; object-fit: cover;">
-                                {% else %}
-                                <div class="rounded-circle bg-danger bg-gradient text-white d-flex align-items-center justify-content-center fw-bold border" style="width: 38px; height: 38px;">
-                                    {{ item.resultat.inscription.pratiquant.nom|slice:":1" }}
-                                </div>
-                                {% endif %}
                                 <div>
-                                    <div class="fw-bold text-dark">{{ item.resultat.inscription.pratiquant.nom }} {{ item.resultat.inscription.pratiquant.prenom }}</div>
-                                    <small class="text-muted">Matricule : <code>{{ item.resultat.inscription.pratiquant.matricule|default:"—" }}</code></small>
+                                    <div class="fw-bold text-dark fs-6">{{ item.resultat.inscription.pratiquant.nom }} {{ item.resultat.inscription.pratiquant.prenom }}</div>
+                                    <small class="text-muted">Matricule : <code class="text-dark">{{ item.resultat.inscription.pratiquant.matricule|default:"—" }}</code></small>
                                 </div>
                             </div>
                         </td>
-                        <td>
-                            <span class="fw-semibold text-dark">{{ item.resultat.inscription.pratiquant.club.nom_club }}</span>
+                        <td class="py-3">
+                            <span class="fw-medium text-dark">{{ item.resultat.inscription.pratiquant.club.nom_club }}</span>
                         </td>
-                        <td>
-                            <div class="fw-semibold text-dark">{{ item.resultat.inscription.session.titre }}</div>
-                            <span class="badge bg-danger bg-gradient text-white border">{{ item.resultat.inscription.grade_vise }}</span>
+                        <td class="py-3">
+                            <div class="fw-medium text-dark">{{ item.resultat.inscription.session.titre }}</div>
+                            <span class="badge bg-light text-dark border font-monospace mt-1">{{ item.resultat.inscription.grade_vise }}</span>
                         </td>
-                        <td class="text-center">
-                            <span class="fw-extrabold fs-5 text-dark">{{ item.resultat.moyenne|floatformat:2 }}</span> <small class="text-muted">/20</small>
+                        <td class="py-3 text-center">
+                            <span class="fw-bold fs-6 text-dark">{{ item.resultat.moyenne|floatformat:2 }}</span> <small class="text-muted">/20</small>
                             <div><small class="text-muted">{{ item.resultat.mention }}</small></div>
                         </td>
-                        <td class="text-center">
+                        <td class="py-3 text-center">
                             {% if item.rang %}
-                            <span class="badge bg-dark text-white fw-bold">{{ item.rang }}<sup>e</sup> / {{ item.total }}</span>
+                            <span class="badge bg-light text-dark border font-monospace fw-bold">{{ item.rang }}<sup>e</sup> / {{ item.total }}</span>
                             {% else %}
                             <span class="text-muted">—</span>
                             {% endif %}
                         </td>
-                        <td class="text-center">
+                        <td class="py-3 text-center">
                             {% if item.resultat.decision == 'ADMIS' %}
-                            <span class="badge bg-success bg-gradient px-3 py-2 text-uppercase">Admis(e)</span>
+                            <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle px-3 py-1 rounded-pill">Admis(e)</span>
                             {% else %}
-                            <span class="badge bg-danger bg-gradient px-3 py-2 text-uppercase">Ajourné(e)</span>
+                            <span class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle px-3 py-1 rounded-pill">Ajourné(e)</span>
                             {% endif %}
                         </td>
-                        <td class="text-end pe-3">
+                        <td class="py-3 text-end pe-3">
                             <div class="d-inline-flex gap-1">
-                                <a href="{% url 'results:bulletin_pdf' item.resultat.id %}" class="btn btn-sm btn-outline-primary fw-bold" target="_blank" title="Visualiser le bulletin">
+                                <a href="{% url 'results:bulletin_pdf' item.resultat.id %}" class="btn btn-sm btn-outline-danger fw-bold" target="_blank" title="Visualiser le bulletin">
                                     <i class="bi bi-eye-fill me-1"></i>Visualiser
                                 </a>
-                                <a href="{% url 'results:bulletin_pdf' item.resultat.id %}" class="btn btn-sm btn-outline-danger fw-bold" target="_blank" title="Télécharger PDF">
+                                <a href="{% url 'results:bulletin_pdf' item.resultat.id %}" class="btn btn-sm btn-danger fw-bold" target="_blank" title="Télécharger PDF">
                                     <i class="bi bi-file-earmark-pdf-fill me-1"></i>PDF
                                 </a>
                             </div>

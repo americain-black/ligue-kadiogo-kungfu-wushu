@@ -6,90 +6,94 @@
 {% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <div class="d-flex align-items-center gap-3">
-    <a href="{% url 'accounts:dashboard_ligue' %}" class="btn-action btn-action-edit flex-shrink-0" title="Tableau de bord" data-bs-toggle="tooltip">
-        <i class="bi bi-arrow-left"></i>
-    </a>
+        <button onclick="history.back()" class="btn-retour">
+            <i class="bi bi-arrow-left me-1"></i>Retour
+        </button>
         <div>
-        <h4 class="fw-bold mb-0">Années sportives</h4>
-        <small class="text-muted">Gérer les années sportives avant de créer des sessions d'examen</small>
+            <h4 class="fw-bold mb-0">Années sportives</h4>
+            <small class="text-muted">Gérer les années sportives avant de créer des sessions d'examen</small>
         </div>
     </div>
-    <a href="{% url 'exams:creer_annee_sportive' %}" class="btn btn-ligue btn-sm">
-    <i class="bi bi-plus me-1"></i>Nouvelle année sportive
+    <a href="{% url 'exams:creer_annee_sportive' %}" class="btn btn-danger btn-sm fw-bold px-3">
+        <i class="bi bi-plus-lg me-1"></i>Nouvelle année sportive
     </a>
 </div>
 
-<div class="card p-3">
+<div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+    <div class="card-body p-0">
     {% if annees %}
-    <table class="table table-hover table-sm align-middle mb-0">
-        <thead class="table-light">
+    <div class="table-responsive">
+        <table class="table table-hover table-sm align-middle mb-0">
+            <thead class="bg-light text-secondary text-uppercase small fw-bold">
+                <tr>
+                    <th class="ps-3 py-3">LIBELLÉ</th>
+                    <th class="py-3">DÉBUT</th>
+                    <th class="py-3">FIN</th>
+                    <th class="py-3">SESSIONS</th>
+                    <th class="py-3 text-center">STATUT</th>
+                    <th class="py-3 text-end pe-3">ACTIONS</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for annee in annees %}
             <tr>
-                <th>Libellé</th>
-                <th>Début</th>
-                <th>Fin</th>
-                <th>Sessions</th>
-                <th>Statut</th>
-                <th class="text-end">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for annee in annees %}
-        <tr>
-            <td><strong>{{ annee.libelle }}</strong></td>
-            <td>{{ annee.date_debut|date:"d/m/Y" }}</td>
-            <td>{{ annee.date_fin|date:"d/m/Y" }}</td>
-            <td><span class="badge bg-secondary">{{ annee.sessions.count }}</span></td>
-            <td>
-                {% if annee.statut == 'ACTIVE' %}
-                    <span class="badge bg-success">Active</span>
-                {% else %}
-                    <span class="badge bg-secondary">Clôturée</span>
-                {% endif %}
-            </td>
-            <td class="text-end">
-                <div class="d-flex justify-content-end gap-1">
-                    <a href="{% url 'exams:tarifs' annee.pk %}"
-                       class="btn-action btn-action-edit" title="Tarifs"
-                       data-bs-toggle="tooltip" data-bs-placement="top">
-                        <i class="bi bi-cash-coin"></i>
-                    </a>
-                    <a href="{% url 'exams:modifier_annee_sportive' annee.pk %}"
-                       class="btn-action btn-action-edit" title="Modifier"
-                       data-bs-toggle="tooltip" data-bs-placement="top">
-                        <i class="bi bi-pencil"></i>
-                    </a>
+                <td class="ps-3 py-3"><strong class="text-dark fs-6">{{ annee.libelle }}</strong></td>
+                <td class="py-3 text-dark">{{ annee.date_debut|date:"d/m/Y" }}</td>
+                <td class="py-3 text-dark">{{ annee.date_fin|date:"d/m/Y" }}</td>
+                <td class="py-3"><span class="badge bg-light text-dark border font-monospace">{{ annee.sessions.count }}</span></td>
+                <td class="py-3 text-center">
                     {% if annee.statut == 'ACTIVE' %}
-                    <form method="post" action="{% url 'exams:cloturer_annee_sportive' annee.pk %}"
-                          class="d-inline"
-                          onsubmit="return confirm('Clôturer l\'année sportive {{ annee.libelle }} ?')">
-                        {% csrf_token %}
-                        <button type="submit" class="btn-action btn-action-on" title="Clôturer"
-                                data-bs-toggle="tooltip" data-bs-placement="top">
-                            <i class="bi bi-lock"></i>
-                        </button>
-                    </form>
+                        <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle px-3 py-1 rounded-pill">Active</span>
+                    {% else %}
+                        <span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle px-3 py-1 rounded-pill">Clôturée</span>
                     {% endif %}
-                    <a href="{% url 'exams:supprimer_annee_sportive' annee.pk %}"
-                       class="btn-action btn-action-delete" title="Supprimer"
-                       data-bs-toggle="tooltip" data-bs-placement="top">
-                        <i class="bi bi-trash"></i>
-                    </a>
-                </div>
-            </td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+                </td>
+                <td class="py-3 text-end pe-3">
+                    <div class="d-flex justify-content-end gap-1">
+                        <a href="{% url 'exams:tarifs' annee.pk %}"
+                           class="btn-action btn-action-edit" title="Tarifs"
+                           data-bs-toggle="tooltip" data-bs-placement="top">
+                            <i class="bi bi-cash-coin"></i>
+                        </a>
+                        <a href="{% url 'exams:modifier_annee_sportive' annee.pk %}"
+                           class="btn-action btn-action-edit" title="Modifier"
+                           data-bs-toggle="tooltip" data-bs-placement="top">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        {% if annee.statut == 'ACTIVE' %}
+                        <form method="post" action="{% url 'exams:cloturer_annee_sportive' annee.pk %}"
+                              class="d-inline"
+                              onsubmit="return confirm('Clôturer l\'année sportive {{ annee.libelle }} ?')">
+                            {% csrf_token %}
+                            <button type="submit" class="btn-action btn-action-on" title="Clôturer"
+                                    data-bs-toggle="tooltip" data-bs-placement="top">
+                                <i class="bi bi-lock"></i>
+                            </button>
+                        </form>
+                        {% endif %}
+                        <a href="{% url 'exams:supprimer_annee_sportive' annee.pk %}"
+                           class="btn-action btn-action-delete" title="Supprimer"
+                           data-bs-toggle="tooltip" data-bs-placement="top">
+                            <i class="bi bi-trash"></i>
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
     {% else %}
     <div class="text-center py-5 text-muted">
         <i class="bi bi-calendar-x fs-1 opacity-25 d-block mb-2"></i>
         Aucune année sportive créée.
-        <a href="{% url 'exams:creer_annee_sportive' %}" class="d-block mt-2">
+        <a href="{% url 'exams:creer_annee_sportive' %}" class="d-block mt-2 text-danger fw-bold text-decoration-none">
             Créer la première année sportive
         </a>
     </div>
     {% endif %}
+    </div>
 </div>
 {% endblock %}

@@ -21,105 +21,108 @@
 {% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <div class="d-flex align-items-center gap-3">
-    <a href="{% url 'accounts:dashboard_super_admin' %}" class="btn-action btn-action-edit flex-shrink-0" title="Tableau de bord" data-bs-toggle="tooltip">
-        <i class="bi bi-arrow-left"></i>
-    </a>
+        <button onclick="history.back()" class="btn-retour">
+            <i class="bi bi-arrow-left me-1"></i>Retour
+        </button>
         <div>
-        <h4 class="fw-bold mb-0">Gestion des utilisateurs</h4>
-        <small class="text-muted">{{ utilisateurs.count }} compte(s) au total</small>
+            <h4 class="fw-bold mb-0">Gestion des utilisateurs</h4>
+            <small class="text-muted">{{ utilisateurs.count }} compte(s) au total</small>
         </div>
     </div>
-    <a href="{% url 'accounts:creer_utilisateur' %}" class="btn btn-ligue">
-    <i class="bi bi-person-plus me-1"></i>Créer un compte
+    <a href="{% url 'accounts:creer_utilisateur' %}" class="btn btn-danger btn-sm fw-bold px-3">
+        <i class="bi bi-person-plus me-1"></i>Créer un compte
     </a>
 </div>
 
-<div class="card">
+<div class="card shadow-sm border-0 rounded-4 overflow-hidden">
     <div class="card-body p-0">
-        <table class="table table-hover mb-0">
-            <thead class="table-light">
+        <div class="table-responsive">
+            <table class="table table-hover table-sm align-middle mb-0">
+                <thead class="bg-light text-secondary text-uppercase small fw-bold">
+                    <tr>
+                        <th class="ps-3 py-3">NOM</th>
+                        <th class="py-3">IDENTIFIANT</th>
+                        <th class="py-3">LIGUE</th>
+                        <th class="py-3">RÔLES</th>
+                        <th class="py-3 text-center">STATUT</th>
+                        <th class="py-3 text-end pe-3">ACTIONS</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for u in utilisateurs %}
                 <tr>
-                    <th>Nom</th>
-                    <th>Identifiant</th>
-                    <th>Ligue</th>
-                    <th>Rôles</th>
-                    <th>Statut</th>
-                    <th class="text-end">Actions</th>
+                    <td class="ps-3 py-3">
+                        <strong class="text-dark fs-6">{{ u.get_full_name|default:"—" }}</strong>
+                        {% if u.email %}
+                            <div class="small text-muted">{{ u.email }}</div>
+                        {% endif %}
+                    </td>
+                    <td class="py-3 text-dark font-monospace">{{ u.username }}</td>
+                    <td class="py-3 text-dark fw-medium">{{ u.ligue.sigle|default:"—" }}</td>
+                    <td class="py-3">
+                        {% for role in u.roles.all %}
+                            <span class="badge bg-light text-dark border font-monospace me-1">
+                                {{ role.get_nom_role_display }}
+                            </span>
+                        {% empty %}
+                            <span class="text-muted small">Aucun rôle</span>
+                        {% endfor %}
+                    </td>
+                    <td class="py-3 text-center">
+                        {% if u.statut_compte %}
+                            <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle px-3 py-1 rounded-pill">Actif</span>
+                        {% else %}
+                            <span class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle px-3 py-1 rounded-pill">Désactivé</span>
+                        {% endif %}
+                    </td>
+                    <td class="py-3 text-end pe-3">
+                        <div class="d-flex justify-content-end gap-1">
+                            <a href="{% url 'accounts:gerer_roles' u.pk %}"
+                               class="btn-action btn-action-edit"
+                               title="Gérer les rôles"
+                               data-bs-toggle="tooltip" data-bs-placement="top">
+                                <i class="bi bi-shield"></i>
+                            </a>
+                            <a href="{% url 'accounts:modifier_utilisateur' u.pk %}"
+                               class="btn-action btn-action-edit"
+                               title="Modifier"
+                               data-bs-toggle="tooltip" data-bs-placement="top">
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            <a href="{% url 'accounts:toggle_statut_utilisateur' u.pk %}"
+                               class="btn-action {% if u.statut_compte %}btn-action-on{% else %}btn-action-off{% endif %}"
+                               onclick="return confirm('Confirmer le changement de statut ?')"
+                               title="{% if u.statut_compte %}Désactiver{% else %}Réactiver{% endif %}"
+                               data-bs-toggle="tooltip" data-bs-placement="top">
+                                {% if u.statut_compte %}
+                                    <i class="bi bi-person-dash"></i>
+                                {% else %}
+                                    <i class="bi bi-person-check"></i>
+                                {% endif %}
+                            </a>
+                            <a href="{% url 'accounts:supprimer_utilisateur' u.pk %}"
+                               class="btn-action btn-action-delete"
+                               title="Supprimer"
+                               data-bs-toggle="tooltip" data-bs-placement="top">
+                                <i class="bi bi-trash"></i>
+                            </a>
+                        </div>
+                    </td>
                 </tr>
-            </thead>
-            <tbody>
-            {% for u in utilisateurs %}
-            <tr>
-                <td>
-                    <strong>{{ u.get_full_name|default:"—" }}</strong>
-                    {% if u.email %}
-                        <div class="small text-muted">{{ u.email }}</div>
-                    {% endif %}
-                </td>
-                <td class="small">{{ u.username }}</td>
-                <td class="small">{{ u.ligue.sigle|default:"—" }}</td>
-                <td>
-                    {% for role in u.roles.all %}
-                        <span class="badge bg-dark badge-role me-1">
-                            {{ role.get_nom_role_display }}
-                        </span>
-                    {% empty %}
-                        <span class="text-muted small">Aucun rôle</span>
-                    {% endfor %}
-                </td>
-                <td>
-                    {% if u.statut_compte %}
-                        <span class="badge bg-success">Actif</span>
-                    {% else %}
-                        <span class="badge bg-danger">Désactivé</span>
-                    {% endif %}
-                </td>
-                <td class="text-end">
-                    <div class="d-flex justify-content-end gap-1">
-                        <a href="{% url 'accounts:gerer_roles' u.pk %}"
-                           class="btn-action btn-action-edit"
-                           title="Gérer les rôles"
-                           data-bs-toggle="tooltip" data-bs-placement="top">
-                            <i class="bi bi-shield"></i>
-                        </a>
-                        <a href="{% url 'accounts:modifier_utilisateur' u.pk %}"
-                           class="btn-action btn-action-edit"
-                           title="Modifier"
-                           data-bs-toggle="tooltip" data-bs-placement="top">
-                            <i class="bi bi-pencil"></i>
-                        </a>
-                        <a href="{% url 'accounts:toggle_statut_utilisateur' u.pk %}"
-                           class="btn-action {% if u.statut_compte %}btn-action-on{% else %}btn-action-off{% endif %}"
-                           onclick="return confirm('Confirmer le changement de statut ?')"
-                           title="{% if u.statut_compte %}Désactiver{% else %}Réactiver{% endif %}"
-                           data-bs-toggle="tooltip" data-bs-placement="top">
-                            {% if u.statut_compte %}
-                                <i class="bi bi-person-dash"></i>
-                            {% else %}
-                                <i class="bi bi-person-check"></i>
-                            {% endif %}
-                        </a>
-                        <a href="{% url 'accounts:supprimer_utilisateur' u.pk %}"
-                           class="btn-action btn-action-delete"
-                           title="Supprimer"
-                           data-bs-toggle="tooltip" data-bs-placement="top">
-                            <i class="bi bi-trash"></i>
-                        </a>
-                    </div>
-                </td>
-            </tr>
-            {% empty %}
-            <tr>
-                <td colspan="6" class="text-center text-muted py-4">
-                    Aucun utilisateur créé.
-                    <a href="{% url 'accounts:creer_utilisateur' %}">Créer le premier compte</a>
-                </td>
-            </tr>
-            {% endfor %}
-            </tbody>
-        </table>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-5">
+                        <i class="bi bi-people fs-1 opacity-25 d-block mb-2"></i>
+                        Aucun utilisateur créé.
+                        <a href="{% url 'accounts:creer_utilisateur' %}" class="d-block mt-2 text-danger fw-bold text-decoration-none">Créer le premier compte</a>
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
     </div>
 </div>
 {% endblock %}

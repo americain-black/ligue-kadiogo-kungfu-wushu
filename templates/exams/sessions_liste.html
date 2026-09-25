@@ -6,108 +6,117 @@
 {% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <div class="d-flex align-items-center gap-3">
-    <a href="{% url 'accounts:dashboard_ligue' %}" class="btn-action btn-action-edit flex-shrink-0" title="Tableau de bord" data-bs-toggle="tooltip">
-        <i class="bi bi-arrow-left"></i>
-    </a>
+        <button onclick="history.back()" class="btn-retour">
+            <i class="bi bi-arrow-left me-1"></i>Retour
+        </button>
         <div>
-        <h4 class="fw-bold mb-0">Sessions d'examen</h4>
-        <small class="text-muted">Gérer les sessions d'examen de la ligue</small>
+            <h4 class="fw-bold mb-0">Sessions d'examen</h4>
+            <small class="text-muted">Gérer les sessions d'examen de la ligue</small>
         </div>
     </div>
-    <a href="{% url 'exams:creer' %}" class="btn btn-ligue btn-sm">
-    <i class="bi bi-plus me-1"></i>Créer une session
+    <a href="{% url 'exams:creer' %}" class="btn btn-danger btn-sm fw-bold px-3">
+        <i class="bi bi-plus-lg me-1"></i>Créer une session
     </a>
 </div>
 
-<!-- Filtres -->
-<div class="card p-3 mb-4">
-    <div class="d-flex align-items-center gap-2 flex-wrap">
-        <span class="fw-semibold small">Filtrer :</span>
-        <a href="{% url 'exams:liste' %}"
-           class="btn btn-sm {% if not statut_filtre %}btn-danger{% else %}btn-outline-secondary{% endif %}">
-            Toutes
-        </a>
-        {% for code, libelle in statuts %}
-        <a href="?statut={{ code }}"
-           class="btn btn-sm {% if statut_filtre == code %}btn-danger{% else %}btn-outline-secondary{% endif %}">
-            {{ libelle }}
-        </a>
-        {% endfor %}
+<!-- Filtre -->
+<div class="card p-3 mb-4 border-0 shadow-sm rounded-4 bg-white">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+        <div class="d-inline-flex align-items-center gap-2 text-nowrap">
+            <label for="statutFilterSelect" class="fw-bold small text-muted text-uppercase mb-0 text-nowrap">Statut :</label>
+            <select id="statutFilterSelect" 
+                    class="form-select form-select-sm rounded-3 border-secondary-subtle fw-semibold text-dark shadow-none px-3 py-2" 
+                    style="width: auto; min-width: 200px; cursor: pointer;"
+                    onchange="location.href = this.value;">
+                <option value="{% url 'exams:liste' %}" {% if not statut_filtre %}selected{% endif %}>
+                    Toutes les sessions
+                </option>
+                {% for code, libelle in statuts %}
+                <option value="?statut={{ code }}" {% if statut_filtre == code %}selected{% endif %}>
+                    {{ libelle }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
     </div>
 </div>
 
-<div class="card p-3">
+<div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+    <div class="card-body p-0">
     {% if sessions %}
-    <table class="table table-hover table-sm align-middle mb-0">
-        <thead class="table-light">
+    <div class="table-responsive">
+        <table class="table table-hover table-sm align-middle mb-0">
+            <thead class="bg-light text-secondary text-uppercase small fw-bold">
+                <tr>
+                    <th class="ps-3 py-3">SESSION</th>
+                    <th class="py-3">DATE EXAMEN</th>
+                    <th class="py-3">LIEU</th>
+                    <th class="py-3">ANNÉE SPORTIVE</th>
+                    <th class="py-3">INSCRITS</th>
+                    <th class="py-3 text-center">STATUT</th>
+                    <th class="py-3 text-end pe-3">ACTIONS</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for session in sessions %}
             <tr>
-                <th>Session</th>
-                <th>Date examen</th>
-                <th>Lieu</th>
-                <th>Année sportive</th>
-                <th>Inscrits</th>
-                <th>Statut</th>
-                <th class="text-end">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-        {% for session in sessions %}
-        <tr>
-            <td><strong>{{ session.titre }}</strong></td>
-            <td>{{ session.date_examen|date:"d/m/Y" }}</td>
-            <td>{{ session.lieu }}</td>
-            <td>{{ session.annee_sportive.libelle }}</td>
-            <td>
-                <span class="badge bg-secondary">{{ session.inscriptions.count }}</span>
-            </td>
-            <td>
-                {% if session.statut == 'EN_PREPARATION' %}
-                    <span class="badge bg-secondary">En préparation</span>
-                {% elif session.statut == 'INSCRIPTIONS_OUVERTES' %}
-                    <span class="badge bg-success">Inscriptions ouvertes</span>
-                {% elif session.statut == 'INSCRIPTIONS_CLOSES' %}
-                    <span class="badge bg-warning text-dark">Inscriptions closes</span>
-                {% elif session.statut == 'EN_COURS' %}
-                    <span class="badge bg-primary">En cours</span>
-                {% elif session.statut == 'CLOTUREE' %}
-                    <span class="badge bg-dark">Clôturée</span>
-                {% elif session.statut == 'RESULTATS_PUBLIES' %}
-                    <span class="badge bg-info">Résultats publiés</span>
-                {% endif %}
-            </td>
-            <td class="text-end">
-                <div class="d-flex justify-content-end gap-1">
-                    <a href="{% url 'exams:detail' session.pk %}"
-                       class="btn-action btn-action-edit" title="Détail"
-                       data-bs-toggle="tooltip" data-bs-placement="top">
-                        <i class="bi bi-info-circle"></i>
-                    </a>
+                <td class="ps-3 py-3"><strong class="text-dark fs-6">{{ session.titre }}</strong></td>
+                <td class="py-3 text-dark">{{ session.date_examen|date:"d/m/Y" }}</td>
+                <td class="py-3 text-dark">{{ session.lieu }}</td>
+                <td class="py-3 text-dark fw-medium">{{ session.annee_sportive.libelle }}</td>
+                <td class="py-3">
+                    <span class="badge bg-light text-dark border font-monospace">{{ session.inscriptions.count }}</span>
+                </td>
+                <td class="py-3 text-center">
                     {% if session.statut == 'EN_PREPARATION' %}
-                    <a href="{% url 'exams:modifier' session.pk %}"
-                       class="btn-action btn-action-edit" title="Modifier"
-                       data-bs-toggle="tooltip" data-bs-placement="top">
-                        <i class="bi bi-pencil"></i>
-                    </a>
+                        <span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle px-3 py-1 rounded-pill">En préparation</span>
+                    {% elif session.statut == 'INSCRIPTIONS_OUVERTES' %}
+                        <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle px-3 py-1 rounded-pill">Inscriptions ouvertes</span>
+                    {% elif session.statut == 'INSCRIPTIONS_CLOSES' %}
+                        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle px-3 py-1 rounded-pill">Inscriptions closes</span>
+                    {% elif session.statut == 'EN_COURS' %}
+                        <span class="badge bg-danger-subtle text-danger-emphasis border border-danger-subtle px-3 py-1 rounded-pill">En cours</span>
+                    {% elif session.statut == 'CLOTUREE' %}
+                        <span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle px-3 py-1 rounded-pill">Clôturée</span>
+                    {% elif session.statut == 'RESULTATS_PUBLIES' %}
+                        <span class="badge bg-dark-subtle text-dark-emphasis border border-dark-subtle px-3 py-1 rounded-pill">Résultats publiés</span>
                     {% endif %}
-                    <a href="{% url 'exams:supprimer' session.pk %}"
-                       class="btn-action btn-action-delete" title="Supprimer"
-                       data-bs-toggle="tooltip" data-bs-placement="top">
-                        <i class="bi bi-trash"></i>
-                    </a>
-                </div>
-            </td>
-        </tr>
-        {% endfor %}
-        </tbody>
-    </table>
+                </td>
+                <td class="py-3 text-end pe-3">
+                    <div class="d-flex justify-content-end gap-1">
+                        <a href="{% url 'exams:detail' session.pk %}"
+                           class="btn-action btn-action-edit" title="Détail"
+                           data-bs-toggle="tooltip" data-bs-placement="top">
+                            <i class="bi bi-info-circle"></i>
+                        </a>
+                        {% if session.statut == 'EN_PREPARATION' %}
+                        <a href="{% url 'exams:modifier' session.pk %}"
+                           class="btn-action btn-action-edit" title="Modifier"
+                           data-bs-toggle="tooltip" data-bs-placement="top">
+                            <i class="bi bi-pencil"></i>
+                        </a>
+                        {% endif %}
+                        <a href="{% url 'exams:supprimer' session.pk %}"
+                           class="btn-action btn-action-delete" title="Supprimer"
+                           data-bs-toggle="tooltip" data-bs-placement="top">
+                            <i class="bi bi-trash"></i>
+                        </a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
     {% else %}
     <div class="text-center py-5 text-muted">
         <i class="bi bi-journal-x fs-1 opacity-25 d-block mb-2"></i>
         Aucune session d'examen{% if statut_filtre %} avec ce statut{% endif %}.
-        <a href="{% url 'exams:creer' %}" class="d-block mt-2">Créer la première session</a>
+        <a href="{% url 'exams:creer' %}" class="d-block mt-2 text-danger fw-bold text-decoration-none">Créer la première session</a>
     </div>
     {% endif %}
+    </div>
 </div>
 {% endblock %}

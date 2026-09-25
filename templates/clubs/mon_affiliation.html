@@ -17,8 +17,8 @@
 </div>
 
 {% elif not demande %}
-<!-- Formulaire unique de demande d'affiliation avec saisie du récépissé -->
-<form method="post" action="{% url 'clubs:demarrer_demande_affiliation' %}">
+<!-- Formulaire unique de demande d'affiliation avec saisie du récépissé et pièces justificatives -->
+<form method="post" action="{% url 'clubs:demarrer_demande_affiliation' %}" enctype="multipart/form-data">
     {% csrf_token %}
 
     <!-- 1. Détails du Récépissé Officiel d'Existence -->
@@ -73,7 +73,36 @@
         </div>
     </div>
 
-    <!-- 2. Validation & Soumission globale -->
+    <!-- 2. Pièces justificatives à joindre (PDF / Images) -->
+    <div class="card mb-4 shadow-sm border-0">
+        <div class="card-header bg-light py-3 border-bottom border-danger border-2">
+            <h6 class="mb-0 fw-bold text-dark">
+                <i class="bi bi-paperclip me-2 text-danger"></i>Pièces justificatives du club (PDF, PNG, JPG)
+            </h6>
+        </div>
+        <div class="card-body p-4">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label small fw-semibold text-dark"><i class="bi bi-file-earmark-pdf me-1 text-danger"></i>Statuts du club</label>
+                    <input type="file" name="fichier_statuts" class="form-control" accept=".pdf,.png,.jpg,.jpeg">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-semibold text-dark"><i class="bi bi-file-earmark-pdf me-1 text-danger"></i>Copie du Récépissé officiel</label>
+                    <input type="file" name="fichier_recepisse" class="form-control" accept=".pdf,.png,.jpg,.jpeg">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-semibold text-dark"><i class="bi bi-file-earmark-pdf me-1 text-danger"></i>Liste des membres du bureau / fondateurs</label>
+                    <input type="file" name="fichier_liste" class="form-control" accept=".pdf,.png,.jpg,.jpeg">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label small fw-semibold text-dark"><i class="bi bi-file-earmark-pdf me-1 text-danger"></i>Autre document / Pièce complémentaire</label>
+                    <input type="file" name="fichier_autre" class="form-control" accept=".pdf,.png,.jpg,.jpeg">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Validation & Soumission globale -->
     <div class="card p-4 mb-4 border-0 shadow-sm">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div>

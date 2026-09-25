@@ -12,8 +12,7 @@
         </a>
         <div>
             <h4 class="fw-bold mb-0">Historique des Affiliations du Club</h4>
-            <small class="text-muted">Archives de toutes vos demandes d'affiliation à la Ligue par saison
-                sportive</small>
+            <small class="text-muted">Archives de toutes vos demandes d'affiliation à la Ligue par saison sportive</small>
         </div>
     </div>
     <div>
@@ -29,20 +28,16 @@
         <div class="card border-0 shadow-sm rounded-4 h-100 overflow-hidden">
             <div class="card-header bg-white p-3 border-bottom d-flex justify-content-between align-items-center">
                 <div class="d-flex align-items-center gap-2">
-                    <span class="badge bg-danger fs-6 rounded-pill px-3">Saison {{ demande.annee_sportive.libelle
-                        }}</span>
+                    <span class="badge bg-danger fs-6 rounded-pill px-3">Saison {{ demande.annee_sportive.libelle }}</span>
                     <small class="text-muted font-monospace">Dossier N°{{ demande.id }}</small>
                 </div>
                 <div>
                     {% if demande.statut_affiliation == 'APPROUVEE' %}
-                    <span class="badge bg-success rounded-pill px-3 py-2"><i
-                            class="bi bi-check-circle-fill me-1"></i>AFFILIÉ</span>
+                    <span class="badge bg-success rounded-pill px-3 py-2"><i class="bi bi-check-circle-fill me-1"></i>AFFILIÉ</span>
                     {% elif demande.statut_affiliation == 'REJETEE' %}
-                    <span class="badge bg-danger rounded-pill px-3 py-2"><i
-                            class="bi bi-x-circle-fill me-1"></i>REJETÉE</span>
+                    <span class="badge bg-danger rounded-pill px-3 py-2"><i class="bi bi-x-circle-fill me-1"></i>REJETÉE</span>
                     {% else %}
-                    <span class="badge bg-warning text-dark rounded-pill px-3 py-2"><i
-                            class="bi bi-hourglass-split me-1"></i>EN COURS</span>
+                    <span class="badge bg-warning text-dark rounded-pill px-3 py-2"><i class="bi bi-hourglass-split me-1"></i>EN COURS</span>
                     {% endif %}
                 </div>
             </div>
@@ -58,23 +53,59 @@
                     </div>
                 </div>
 
-                <!-- Pièces transmises -->
+                <!-- Pièces & Documents transmis -->
                 <div class="bg-light p-3 rounded-3 mb-3 border">
-                    <small class="text-secondary fw-semibold d-block mb-2">
-                        <i class="bi bi-files me-1"></i>Documents transmis ({{ demande.pieces_justificatives.count }}) :
-                    </small>
-                    <ul class="list-unstyled mb-0 small">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <small class="text-secondary fw-semibold">
+                            <i class="bi bi-files me-1 text-danger"></i>Documents transmis :
+                        </small>
+                        <span class="badge bg-secondary rounded-pill">
+                            {% if demande.paiement and demande.paiement.fichier_preuve %}
+                                {{ demande.pieces_justificatives.all|length|add:1 }} document(s)
+                            {% else %}
+                                {{ demande.pieces_justificatives.all|length }} document(s)
+                            {% endif %}
+                        </span>
+                    </div>
+                    
+                    <ul class="list-group list-group-flush bg-transparent small mb-0">
                         {% for piece in demande.pieces_justificatives.all %}
-                        <li class="d-flex align-items-center justify-content-between mb-1">
-                            <span><i class="bi bi-file-earmark-pdf me-1 text-danger"></i>{{ piece.get_type_piece_display
-                                }}</span>
-                            <a href="{{ piece.fichier.url }}" target="_blank"
-                                class="text-decoration-none small text-primary">Voir <i
-                                    class="bi bi-box-arrow-up-right ms-1"></i></a>
+                        <li class="list-group-item bg-transparent px-0 py-2 d-flex align-items-center justify-content-between border-bottom border-light">
+                            <div class="d-flex align-items-center text-truncate me-2">
+                                <i class="bi bi-file-earmark-pdf fs-5 text-danger me-2"></i>
+                                <div>
+                                    <strong class="d-block text-dark">{{ piece.get_type_piece_display }}</strong>
+                                    {% if piece.nom_fichier %}
+                                    <small class="text-muted font-monospace text-truncate d-block" style="max-width: 220px;">{{ piece.nom_fichier }}</small>
+                                    {% endif %}
+                                </div>
+                            </div>
+                            <a href="{{ piece.fichier.url }}" target="_blank" class="btn btn-sm btn-outline-danger px-2 py-1 flex-shrink-0">
+                                <i class="bi bi-eye me-1"></i>Consulter
+                            </a>
                         </li>
-                        {% empty %}
-                        <li class="text-muted italic">Aucun document joint.</li>
                         {% endfor %}
+
+                        {% if demande.paiement and demande.paiement.fichier_preuve %}
+                        <li class="list-group-item bg-transparent px-0 py-2 d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center text-truncate me-2">
+                                <i class="bi bi-receipt fs-5 text-success me-2"></i>
+                                <div>
+                                    <strong class="d-block text-dark">Preuve de paiement</strong>
+                                    <small class="text-muted">{{ demande.paiement.get_mode_paiement_display }}</small>
+                                </div>
+                            </div>
+                            <a href="{{ demande.paiement.fichier_preuve.url }}" target="_blank" class="btn btn-sm btn-outline-success px-2 py-1 flex-shrink-0">
+                                <i class="bi bi-eye me-1"></i>Consulter
+                            </a>
+                        </li>
+                        {% endif %}
+
+                        {% if not demande.pieces_justificatives.all and not demande.paiement.fichier_preuve %}
+                        <li class="list-group-item bg-transparent px-0 py-2 text-muted italic">
+                            <i class="bi bi-info-circle me-1"></i>Aucun document joint pour le moment.
+                        </li>
+                        {% endif %}
                     </ul>
                 </div>
 
@@ -108,8 +139,9 @@
                     <i class="bi bi-pencil-square me-1"></i>Corriger et Re-soumettre
                 </a>
                 {% else %}
-                <span class="text-muted small w-100 text-center d-block"><i class="bi bi-clock me-1"></i>En cours
-                    d'étude par la Ligue</span>
+                <a href="{% url 'clubs:mon_affiliation' %}" class="btn btn-outline-danger btn-sm rounded-3 w-100 py-2 fw-semibold">
+                    <i class="bi bi-folder-check me-1"></i>Gérer les pièces et le paiement
+                </a>
                 {% endif %}
             </div>
         </div>

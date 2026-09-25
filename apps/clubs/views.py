@@ -482,7 +482,10 @@ def historique_affiliations_club(request):
         messages.warning(request, "Votre compte n'est rattaché à aucun club.")
         return redirect('accounts:tableau_de_bord')
     club = request.user.club
-    demandes = DemandeAffiliation.objects.filter(club=club).select_related('annee_sportive', 'approuve_par').order_by('-date_demande')
+    demandes = DemandeAffiliation.objects.filter(club=club)\
+        .select_related('annee_sportive', 'approuve_par', 'paiement')\
+        .prefetch_related('pieces_justificatives')\
+        .order_by('-date_demande')
     
     return render(request, 'clubs/mes_demandes_affiliation.html', {
         'club': club,
@@ -668,9 +671,24 @@ def demarrer_demande_affiliation(request):
         demande.save()
         try:
             demande.soumettre()
+
+            # Enregistrement immédiat des pièces éventuellement envoyées
+            for key, type_code in [
+                ('fichier_statuts', 'STATUTS'),
+                ('fichier_recepisse', 'RECEPISSE'),
+                ('fichier_liste', 'LISTE'),
+                ('fichier_autre', 'AUTRE'),
+            ]:
+                if request.FILES.get(key):
+                    PieceJustificativeAffiliation.objects.create(
+                        demande=demande,
+                        type_piece=type_code,
+                        fichier=request.FILES[key]
+                    )
+
             messages.success(
                 request,
-                "Demande d'affiliation enregistrée et démarrée avec succès. Vous pouvez à présent joindre vos pièces justificatives et procéder au paiement."
+                "Demande d'affiliation enregistrée avec succès. Vous pouvez consulter vos pièces et procéder au paiement."
             )
         except Exception as exc:
             messages.error(request, str(exc))

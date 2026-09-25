@@ -212,9 +212,6 @@ class DemandeAffiliation(models.Model):
         self.motif_rejet        = ''
         self.nombre_soumissions += 1
         self.save()
-        # Supprime les anciennes pièces justificatives
-        # pour repartir sur une base propre
-        self.pieces_justificatives.all().delete()
 
     def soumettre_preuve_paiement(self):
         """

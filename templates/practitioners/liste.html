@@ -65,69 +65,61 @@
 </div>
 
 <div class="no-print">
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
     <div class="d-flex align-items-center gap-3">
-    {% if user.est_gest_club %}
-    <a href="{% url 'accounts:dashboard_club' %}" class="btn-action btn-action-edit flex-shrink-0" title="Tableau de bord" data-bs-toggle="tooltip">
-        <i class="bi bi-arrow-left"></i>
-    </a>
-    {% else %}
-    <a href="{% url 'accounts:dashboard_ligue' %}" class="btn-action btn-action-edit flex-shrink-0" title="Tableau de bord" data-bs-toggle="tooltip">
-        <i class="bi bi-arrow-left"></i>
-    </a>
-    {% endif %}
+        <button onclick="history.back()" class="btn-retour">
+            <i class="bi bi-arrow-left me-1"></i>Retour
+        </button>
         <div>
-        <h4 class="fw-bold mb-0">Licenciés</h4>
-        <small class="text-muted">{% if club %}{{ club.nom_club }}{% else %}{{ ligue.nom_ligue }} (Tous les clubs){% endif %}</small>
+            <h4 class="fw-bold mb-0">Licenciés</h4>
+            <small class="text-muted">{% if club %}{{ club.nom_club }}{% else %}{{ ligue.nom_ligue }} (Tous les clubs){% endif %}</small>
         </div>
     </div>
     <div class="d-flex gap-2 flex-wrap">
-        <button onclick="window.print()" class="btn btn-outline-secondary btn-sm" title="Imprimer la liste affichée">
+        <button onclick="window.print()" class="btn btn-outline-danger btn-sm fw-bold px-3" title="Imprimer la liste affichée">
             <i class="bi bi-printer me-1"></i>Imprimer
         </button>
         <!-- Dropdown Exportation -->
         <div class="dropdown">
-            <button class="btn btn-outline-primary btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+            <button class="btn btn-outline-danger btn-sm dropdown-toggle fw-bold px-3" type="button" data-bs-toggle="dropdown">
                 <i class="bi bi-download me-1"></i>Exporter
             </button>
-            <ul class="dropdown-menu dropdown-menu-end">
-                <li><a class="dropdown-item" href="{% url 'practitioners:exporter' %}?format=csv{% if filtre_club %}&club={{ filtre_club }}{% endif %}{% if filtre %}&statut={{ filtre }}{% endif %}{% if filtre_grade %}&grade={{ filtre_grade }}{% endif %}{% if filtre_sexe %}&sexe={{ filtre_sexe }}{% endif %}{% if filtre_recherche %}&q={{ filtre_recherche }}{% endif %}"><i class="bi bi-filetype-csv me-2 text-primary"></i>Exporter en CSV</a></li>
-                <li><a class="dropdown-item" href="{% url 'practitioners:exporter' %}?format=excel{% if filtre_club %}&club={{ filtre_club }}{% endif %}{% if filtre %}&statut={{ filtre }}{% endif %}{% if filtre_grade %}&grade={{ filtre_grade }}{% endif %}{% if filtre_sexe %}&sexe={{ filtre_sexe }}{% endif %}{% if filtre_recherche %}&q={{ filtre_recherche }}{% endif %}"><i class="bi bi-file-earmark-excel me-2 text-success"></i>Exporter pour Excel (.csv)</a></li>
-                <li><a class="dropdown-item" href="{% url 'practitioners:exporter' %}?format=json{% if filtre_club %}&club={{ filtre_club }}{% endif %}{% if filtre %}&statut={{ filtre }}{% endif %}{% if filtre_grade %}&grade={{ filtre_grade }}{% endif %}{% if filtre_sexe %}&sexe={{ filtre_sexe }}{% endif %}{% if filtre_recherche %}&q={{ filtre_recherche }}{% endif %}"><i class="bi bi-filetype-json me-2 text-warning"></i>Exporter en JSON</a></li>
+            <ul class="dropdown-menu dropdown-menu-end border-0 shadow rounded-3">
+                <li><a class="dropdown-item" href="{% url 'practitioners:exporter' %}?format=csv{% if filtre_club %}&club={{ filtre_club }}{% endif %}{% if filtre %}&statut={{ filtre }}{% endif %}{% if filtre_grade %}&grade={{ filtre_grade }}{% endif %}{% if filtre_sexe %}&sexe={{ filtre_sexe }}{% endif %}{% if filtre_recherche %}&q={{ filtre_recherche }}{% endif %}"><i class="bi bi-filetype-csv me-2 text-danger"></i>Exporter en CSV</a></li>
+                <li><a class="dropdown-item" href="{% url 'practitioners:exporter' %}?format=excel{% if filtre_club %}&club={{ filtre_club }}{% endif %}{% if filtre %}&statut={{ filtre }}{% endif %}{% if filtre_grade %}&grade={{ filtre_grade }}{% endif %}{% if filtre_sexe %}&sexe={{ filtre_sexe }}{% endif %}{% if filtre_recherche %}&q={{ filtre_recherche }}{% endif %}"><i class="bi bi-file-earmark-excel me-2 text-danger"></i>Exporter pour Excel (.csv)</a></li>
+                <li><a class="dropdown-item" href="{% url 'practitioners:exporter' %}?format=json{% if filtre_club %}&club={{ filtre_club }}{% endif %}{% if filtre %}&statut={{ filtre }}{% endif %}{% if filtre_grade %}&grade={{ filtre_grade }}{% endif %}{% if filtre_sexe %}&sexe={{ filtre_sexe }}{% endif %}{% if filtre_recherche %}&q={{ filtre_recherche }}{% endif %}"><i class="bi bi-filetype-json me-2 text-danger"></i>Exporter en JSON</a></li>
             </ul>
         </div>
         <!-- Bouton Importation -->
-        <button class="btn btn-outline-success btn-sm" data-bs-toggle="modal" data-bs-target="#modalImportPratiquants">
+        <button class="btn btn-outline-danger btn-sm fw-bold px-3" data-bs-toggle="modal" data-bs-target="#modalImportPratiquants">
             <i class="bi bi-upload me-1"></i>Importer
         </button>
         {% if user.est_gest_club %}
-        <a href="{% url 'practitioners:ajouter' %}" class="btn btn-success btn-sm">
+        <a href="{% url 'practitioners:ajouter' %}" class="btn btn-danger btn-sm fw-bold px-3">
             <i class="bi bi-person-plus me-1"></i>Inscrire un licencié
         </a>
         {% endif %}
     </div>
 </div>
 
-
-
 <!-- Modal Importation -->
 <div class="modal fade" id="modalImportPratiquants" tabindex="-1">
     <div class="modal-dialog">
-        <div class="modal-content">
+        <div class="modal-content border-0 shadow rounded-4 overflow-hidden">
             <form method="post" action="{% url 'practitioners:importer' %}" enctype="multipart/form-data">
                 {% csrf_token %}
-                <div class="modal-header bg-success text-white">
-                    <h5 class="modal-title"><i class="bi bi-file-earmark-arrow-up me-2"></i>Importer des licenciés</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                <div class="modal-header bg-white border-bottom py-3">
+                    <h5 class="modal-title fw-bold text-dark"><i class="bi bi-file-earmark-arrow-up text-danger me-2"></i>Importer des licenciés</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body">
-                    <p class="small text-muted">
+                <div class="modal-body p-4">
+                    <p class="small text-muted mb-3">
                         Téléversez un fichier au format <strong>CSV, Excel (.csv/.xlsx) ou JSON</strong> contenant la liste des licenciés à inscrire ou mettre à jour.
                     </p>
                     {% if user.est_gest_ligue or user.is_superuser %}
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Club de destination (Optionnel)</label>
-                        <select name="club_id" class="form-select">
+                        <label class="form-label fw-semibold text-dark">Club de destination (Optionnel)</label>
+                        <select name="club_id" class="form-select rounded-3">
                             <option value="">-- Utiliser le club indiqué dans le fichier (ou le 1er club) --</option>
                             {% for c in clubs %}
                             <option value="{{ c.pk }}">{{ c.nom_club }} {% if c.sigle_club %}({{ c.sigle_club }}){% endif %}</option>
@@ -137,14 +129,14 @@
                     </div>
                     {% endif %}
                     <div class="mb-3">
-                        <label class="form-label fw-semibold">Fichier d'import</label>
-                        <input type="file" name="fichier" class="form-control" accept=".csv,.json,.txt,.xlsx,.xls" required>
+                        <label class="form-label fw-semibold text-dark">Fichier d'import</label>
+                        <input type="file" name="fichier" class="form-control rounded-3" accept=".csv,.json,.txt,.xlsx,.xls" required>
                         <div class="form-text">Formats supportés : Excel (.xlsx), CSV, TSV, JSON</div>
                     </div>
-                    <div class="p-3 bg-light rounded border">
+                    <div class="p-3 bg-light rounded-3 border">
                         <div class="d-flex justify-content-between align-items-center mb-1">
-                            <span class="fw-semibold small"><i class="bi bi-info-circle me-1"></i>Besoin d'un exemple ?</span>
-                            <a href="{% url 'practitioners:telecharger_modele' %}" class="btn btn-sm btn-link p-0 text-decoration-none">
+                            <span class="fw-semibold small text-dark"><i class="bi bi-info-circle me-1 text-danger"></i>Besoin d'un exemple ?</span>
+                            <a href="{% url 'practitioners:telecharger_modele' %}" class="btn btn-sm btn-link p-0 text-decoration-none text-danger fw-semibold">
                                 <i class="bi bi-download me-1"></i>Télécharger le modèle CSV
                             </a>
                         </div>
@@ -153,9 +145,9 @@
                         </small>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    <button type="submit" class="btn btn-success">
+                <div class="modal-footer bg-light border-top py-2">
+                    <button type="button" class="btn btn-outline-secondary btn-sm px-3 fw-semibold rounded-3" data-bs-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-danger btn-sm px-3 fw-bold rounded-3">
                         <i class="bi bi-upload me-1"></i>Lancer l'importation
                     </button>
                 </div>
@@ -165,18 +157,19 @@
 </div>
 
 <!-- Filtres -->
-<div class="card p-3 mb-3">
+<div class="card p-3 mb-4 border-0 shadow-sm rounded-4 bg-white">
     <form method="get" class="row g-2 align-items-center" id="form-filtres">
         <div class="col-12 col-md-4">
-            <div class="lk-search-group">
-                <i class="bi bi-search lk-search-icon"></i>
-                <input type="text" name="q" id="id_recherche_live" value="{{ filtre_recherche }}" class="form-control"
-                       placeholder="Recherche" autocomplete="off">
+            <div class="position-relative">
+                <i class="bi bi-search text-danger position-absolute top-50 start-0 translate-middle-y ms-3 fs-6"></i>
+                <input type="text" name="q" id="id_recherche_live" value="{{ filtre_recherche }}" 
+                       class="form-control rounded-3 ps-5 border-secondary-subtle" 
+                       placeholder="Recherche..." autocomplete="off">
             </div>
         </div>
         {% if not club %}
         <div class="col-6 col-md-4">
-            <select name="club" class="form-select form-select-sm" onchange="document.getElementById('form-filtres').submit()">
+            <select name="club" class="form-select form-select-sm rounded-3 border-secondary-subtle fw-semibold text-dark shadow-none py-2" onchange="document.getElementById('form-filtres').submit()">
                 <option value="" {% if not filtre_club %}selected{% endif %}>Tous les clubs</option>
                 {% for c in clubs %}
                 <option value="{{ c.pk }}" {% if filtre_club == c.pk|stringformat:'s' %}selected{% endif %}>{{ c.nom_club }}</option>
@@ -184,7 +177,7 @@
             </select>
         </div>
         <div class="col-6 col-md-3">
-            <select name="grade" class="form-select form-select-sm" onchange="document.getElementById('form-filtres').submit()">
+            <select name="grade" class="form-select form-select-sm rounded-3 border-secondary-subtle fw-semibold text-dark shadow-none py-2" onchange="document.getElementById('form-filtres').submit()">
                 <option value="" {% if not filtre_grade %}selected{% endif %}>Tous les grades</option>
                 {% for g in grades %}
                 <option value="{{ g.pk }}" {% if filtre_grade == g.pk|stringformat:'s' %}selected{% endif %}>{{ g.nom }}</option>
@@ -194,20 +187,20 @@
         </div>
         {% else %}
         <div class="col-6 col-md-2">
-            <select name="statut" class="form-select form-select-sm" onchange="document.getElementById('form-filtres').submit()">
+            <select name="statut" class="form-select form-select-sm rounded-3 border-secondary-subtle fw-semibold text-dark shadow-none py-2" onchange="document.getElementById('form-filtres').submit()">
                 <option value="actif" {% if filtre != 'inactif' %}selected{% endif %}>Actifs</option>
                 <option value="inactif" {% if filtre == 'inactif' %}selected{% endif %}>Inactifs</option>
             </select>
         </div>
         <div class="col-6 col-md-2">
-            <select name="sexe" class="form-select form-select-sm" onchange="document.getElementById('form-filtres').submit()">
+            <select name="sexe" class="form-select form-select-sm rounded-3 border-secondary-subtle fw-semibold text-dark shadow-none py-2" onchange="document.getElementById('form-filtres').submit()">
                 <option value="" {% if not filtre_sexe %}selected{% endif %}>Tous les sexes</option>
                 <option value="M" {% if filtre_sexe == 'M' %}selected{% endif %}>Masculin</option>
                 <option value="F" {% if filtre_sexe == 'F' %}selected{% endif %}>Féminin</option>
             </select>
         </div>
         <div class="col-8 col-md-3">
-            <select name="grade" class="form-select form-select-sm" onchange="document.getElementById('form-filtres').submit()">
+            <select name="grade" class="form-select form-select-sm rounded-3 border-secondary-subtle fw-semibold text-dark shadow-none py-2" onchange="document.getElementById('form-filtres').submit()">
                 <option value="" {% if not filtre_grade %}selected{% endif %}>Tous les grades</option>
                 {% for g in grades %}
                 <option value="{{ g.pk }}" {% if filtre_grade == g.pk|stringformat:'s' %}selected{% endif %}>{{ g.nom }}</option>
@@ -217,71 +210,72 @@
         </div>
         {% endif %}
         <div class="col-4 col-md-1 text-end">
-            <button type="submit" class="btn btn-sm btn-outline-secondary" title="Filtrer">
+            <button type="submit" class="btn btn-sm btn-danger rounded-3 px-3 py-2 fw-bold" title="Filtrer">
                 <i class="bi bi-search"></i>
             </button>
         </div>
     </form>
     {% if filtre_recherche or filtre_grade or filtre_club or filtre_sexe or filtre == 'inactif' %}
     <div class="mt-2">
-        <a href="{% url 'practitioners:liste' %}" class="small text-muted text-decoration-none">
+        <a href="{% url 'practitioners:liste' %}" class="small text-danger text-decoration-none fw-semibold">
             <i class="bi bi-x-circle me-1"></i>Réinitialiser les filtres
         </a>
     </div>
     {% endif %}
 </div>
 
-<div class="card">
+<!-- Tableau des licenciés -->
+<div class="card shadow-sm border-0 rounded-4 overflow-hidden">
     <div class="card-body p-0">
         {% if pratiquants %}
         <div class="table-responsive">
-            <table class="table table-hover mb-0 align-middle">
-                <thead class="table-light">
+            <table class="table table-hover table-bordered border-light-subtle table-sm align-middle mb-0">
+                <thead class="bg-light text-secondary text-uppercase small fw-bold">
                     <tr>
-                        <th class="ps-3">Licencié</th>
-                        {% if not club %}<th>Club</th>{% endif %}
-                        <th>Sexe</th>
-                        <th>Grade</th>
-                        <th>Matricule</th>
-                        <th>Téléphone</th>
-                        <th>Statut</th>
-                        <th class="text-end pe-3">Actions</th>
+                        <th class="ps-3 py-3">LICENCIÉ</th>
+                        {% if not club %}<th class="py-3 px-3">CLUB</th>{% endif %}
+                        <th class="py-3 px-3">SEXE</th>
+                        <th class="py-3 px-3">GRADE</th>
+                        <th class="py-3 px-3">MATRICULE</th>
+                        <th class="py-3 px-3">TÉLÉPHONE</th>
+                        <th class="py-3 text-center">STATUT</th>
+                        <th class="py-3 text-end pe-3">ACTIONS</th>
                     </tr>
                 </thead>
                 <tbody id="corps-pratiquants">
                     {% for p in pratiquants %}
                     <tr data-recherche="{{ p.nom|lower }} {{ p.prenom|lower }}">
-                        <td class="ps-3">
-                            <div class="fw-semibold">{{ p.nom }} {{ p.prenom }}</div>
+                        <td class="ps-3 py-3">
+                            <div class="fw-bold text-dark fs-6">{{ p.nom }} {{ p.prenom }}</div>
                             <div class="text-muted small">{{ p.date_naissance|date:"d/m/Y" }}</div>
                         </td>
                         {% if not club %}
-                        <td class="small fw-semibold text-primary">{{ p.club.nom_club }}</td>
+                        <td class="py-3 px-3 small fw-semibold text-primary">{{ p.club.nom_club }}</td>
                         {% endif %}
-                        <td class="small">{{ p.get_sexe_display }}</td>
-                        <td>
+                        <td class="py-3 px-3 text-dark fw-medium">{{ p.get_sexe_display }}</td>
+                        <td class="py-3 px-3">
                             {% if p.grade_actuel %}
-                            <span class="badge bg-warning text-dark">{{ p.grade_actuel }}</span>
+                            <span class="badge bg-warning text-dark font-monospace">{{ p.grade_actuel }}</span>
                             {% else %}
                             <span class="text-muted small">Sans grade</span>
                             {% endif %}
                         </td>
-                        <td>
+                        <td class="py-3 px-3">
                             {% if p.matricule %}
-                            <code class="small">{{ p.matricule }}</code>
+                            <code class="small text-danger fw-bold">{{ p.matricule }}</code>
                             {% else %}
                             <span class="text-muted small">—</span>
                             {% endif %}
                         </td>
-                        <td class="small text-muted">{{ p.telephone|default:"—" }}</td>
-                        <td>
+                        <td class="py-3 px-3 text-dark">{{ p.telephone|default:"—" }}</td>
+                        <td class="py-3 text-center">
                             {% if p.actif %}
-                            <span class="badge bg-success">Actif</span>
+                            <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle px-3 py-1 rounded-pill">Actif</span>
                             {% else %}
-                            <span class="badge bg-secondary">Inactif</span>
+                            <span class="badge bg-secondary-subtle text-secondary-emphasis border border-secondary-subtle px-3 py-1 rounded-pill">Inactif</span>
                             {% endif %}
                         </td>
-                        <td class="text-end pe-3">
+                        <td class="py-3 text-end pe-3">
                             <div class="d-flex justify-content-end gap-1">
                                 <a href="{% url 'practitioners:detail' p.pk %}"
                                    class="btn-action btn-action-edit" title="Voir la fiche"

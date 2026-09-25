@@ -86,14 +86,14 @@ function filterClubRows(input) {
     <div class="card-body p-0">
     {% if clubs %}
     <div class="table-responsive">
-        <table class="table table-hover table-bordered border-light-subtle table-sm align-middle mb-0">
+        <table class="table table-hover table-sm align-middle mb-0">
             <thead class="bg-light text-secondary text-uppercase small fw-bold">
                 <tr>
                     <th class="ps-3 py-3">CLUB</th>
-                    <th class="py-3 px-3">CODE</th>
-                    <th class="py-3 px-3">MAÎTRE</th>
-                    <th class="py-3 px-3">LOCALITÉ</th>
-                    <th class="py-3 px-3">GESTIONNAIRE</th>
+                    <th class="py-3">CODE</th>
+                    <th class="py-3">MAÎTRE</th>
+                    <th class="py-3">LOCALITÉ</th>
+                    <th class="py-3">GESTIONNAIRE</th>
                     <th class="py-3 text-center">STATUT</th>
                     <th class="py-3 text-end pe-3">ACTIONS</th>
                 </tr>
@@ -106,11 +106,11 @@ function filterClubRows(input) {
                     <div class="fw-bold text-dark fs-6">{{ club.nom_club }}</div>
                 </td>
                 <!-- CODE -->
-                <td class="py-3 px-3">
-                    <span class="badge bg-primary font-monospace px-2 py-1 fs-7" title="Code unique">{{ club.code_club }}</span>
+                <td class="py-3">
+                    <span class="badge bg-light text-dark border font-monospace px-2 py-1 fs-7" title="Code unique">{{ club.code_club }}</span>
                 </td>
                 <!-- MAÎTRE -->
-                <td class="py-3 px-3 fw-semibold text-danger">
+                <td class="py-3 text-dark fw-medium">
                     {{ club.nom_fondateur|default:"—" }}
                 </td>
                 <!-- LOCALITÉ -->

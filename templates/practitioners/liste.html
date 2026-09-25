@@ -229,15 +229,15 @@
     <div class="card-body p-0">
         {% if pratiquants %}
         <div class="table-responsive">
-            <table class="table table-hover table-bordered border-light-subtle table-sm align-middle mb-0">
+            <table class="table table-hover table-sm align-middle mb-0">
                 <thead class="bg-light text-secondary text-uppercase small fw-bold">
                     <tr>
                         <th class="ps-3 py-3">LICENCIÉ</th>
-                        {% if not club %}<th class="py-3 px-3">CLUB</th>{% endif %}
-                        <th class="py-3 px-3">SEXE</th>
-                        <th class="py-3 px-3">GRADE</th>
-                        <th class="py-3 px-3">MATRICULE</th>
-                        <th class="py-3 px-3">TÉLÉPHONE</th>
+                        {% if not club %}<th class="py-3">CLUB</th>{% endif %}
+                        <th class="py-3">SEXE</th>
+                        <th class="py-3">GRADE</th>
+                        <th class="py-3">MATRICULE</th>
+                        <th class="py-3">TÉLÉPHONE</th>
                         <th class="py-3 text-center">STATUT</th>
                         <th class="py-3 text-end pe-3">ACTIONS</th>
                     </tr>
@@ -247,27 +247,26 @@
                     <tr data-recherche="{{ p.nom|lower }} {{ p.prenom|lower }}">
                         <td class="ps-3 py-3">
                             <div class="fw-bold text-dark fs-6">{{ p.nom }} {{ p.prenom }}</div>
-                            <div class="text-muted small">{{ p.date_naissance|date:"d/m/Y" }}</div>
                         </td>
                         {% if not club %}
-                        <td class="py-3 px-3 small fw-semibold text-primary">{{ p.club.nom_club }}</td>
+                        <td class="py-3 text-dark fw-medium">{{ p.club.nom_club }}</td>
                         {% endif %}
-                        <td class="py-3 px-3 text-dark fw-medium">{{ p.get_sexe_display }}</td>
-                        <td class="py-3 px-3">
+                        <td class="py-3 text-dark">{{ p.get_sexe_display }}</td>
+                        <td class="py-3">
                             {% if p.grade_actuel %}
-                            <span class="badge bg-warning text-dark font-monospace">{{ p.grade_actuel }}</span>
+                            <span class="badge bg-light text-dark border font-monospace">{{ p.grade_actuel }}</span>
                             {% else %}
                             <span class="text-muted small">Sans grade</span>
                             {% endif %}
                         </td>
-                        <td class="py-3 px-3">
+                        <td class="py-3">
                             {% if p.matricule %}
-                            <code class="small text-danger fw-bold">{{ p.matricule }}</code>
+                            <span class="badge bg-light text-dark border font-monospace">{{ p.matricule }}</span>
                             {% else %}
                             <span class="text-muted small">—</span>
                             {% endif %}
                         </td>
-                        <td class="py-3 px-3 text-dark">{{ p.telephone|default:"—" }}</td>
+                        <td class="py-3 text-dark">{{ p.telephone|default:"—" }}</td>
                         <td class="py-3 text-center">
                             {% if p.actif %}
                             <span class="badge bg-success-subtle text-success-emphasis border border-success-subtle px-3 py-1 rounded-pill">Actif</span>

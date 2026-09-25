@@ -348,17 +348,22 @@ def gest_ligue_requis(view_func):
 class GradeForm(django_forms.ModelForm):
     class Meta:
         model  = Grade
-        fields = ['nom', 'est_grade_ligue', 'actif']
+        fields = ['nom', 'ordre', 'est_grade_ligue', 'actif']
         widgets = {
             'nom':             django_forms.TextInput(attrs={
                 'class': 'form-control text-uppercase',
-                'placeholder': 'Ex : BLANC, JAUNE, ROUGE, ROUGE I…',
+            }),
+            'ordre':           django_forms.NumberInput(attrs={
+                'class': 'form-control',
+                'min': '1',
+                'style': 'max-width: 140px;'
             }),
             'est_grade_ligue': django_forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'actif':           django_forms.CheckboxInput(attrs={'class': 'form-check-input'}),
         }
         labels = {
             'nom':             'Nom du grade',
+            'ordre':           'Ordre d\'affichage',
             'est_grade_ligue': 'Grade Ligue',
             'actif':           'Grade actif',
         }
@@ -367,7 +372,7 @@ class GradeForm(django_forms.ModelForm):
 @gest_ligue_requis
 def liste_grades(request):
     ligue  = request.user.ligue
-    grades = Grade.objects.filter(ligue=ligue).order_by('-est_grade_ligue', 'id_grade')
+    grades = Grade.objects.filter(ligue=ligue).order_by('ordre', 'id_grade')
     return render(request, 'practitioners/grades_liste.html', {
         'grades':      grades,
         'ligue':       ligue,
@@ -395,7 +400,7 @@ def creer_grade(request):
             messages.success(request, f"Grade « {grade.nom} » créé (ID {grade.id_grade}).")
             return redirect('practitioners:grades')
     else:
-        form = GradeForm(initial={'id_grade': prochain_id})
+        form = GradeForm(initial={'id_grade': prochain_id, 'ordre': prochain_id})
     return render(request, 'practitioners/grade_form.html', {
         'form':        form,
         'titre':       'Créer un grade',

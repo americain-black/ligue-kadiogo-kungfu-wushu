@@ -20,6 +20,11 @@ class Grade(models.Model):
         default=0,
         help_text="Identifiant séquentiel du grade (auto-incrémenté à la création)"
     )
+    ordre    = models.PositiveIntegerField(
+        default=0,
+        verbose_name="Ordre d'affichage",
+        help_text="Ordre de classement pour l'affichage des grades"
+    )
     actif    = models.BooleanField(default=True)
     est_grade_ligue = models.BooleanField(
         default=False,
@@ -30,7 +35,7 @@ class Grade(models.Model):
     class Meta:
         verbose_name        = 'Grade'
         verbose_name_plural = 'Grades'
-        ordering            = ['id_grade']
+        ordering            = ['ordre', 'id_grade']
 
     def __str__(self):
         return self.nom
@@ -43,6 +48,8 @@ class Grade(models.Model):
             from django.db.models import Max
             max_id = Grade.objects.filter(ligue=self.ligue).aggregate(m=Max('id_grade'))['m'] or 0
             self.id_grade = max_id + 1
+        if self.ordre == 0:
+            self.ordre = self.id_grade
         super().save(*args, **kwargs)
 
 

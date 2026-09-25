@@ -17,9 +17,9 @@
 
 <div class="card p-4" style="max-width: 480px;">
     <!-- Affichage ID Grade (non éditable, géré par le serveur) -->
-    <div class="mb-3">
+    <div class="mb-3" style="max-width: 140px;">
         <label class="form-label fw-semibold small text-muted">ID Grade (auto)</label>
-        <div class="form-control bg-light text-muted">
+        <div class="form-control bg-light text-muted fw-bold text-center">
             {% if grade %}{{ grade.id_grade }}{% else %}{{ prochain_id }}{% endif %}
         </div>
         <div class="form-text">Attribué automatiquement, non modifiable.</div>
@@ -43,7 +43,7 @@
         {% endfor %}
 
         <div class="d-flex gap-2 mt-4 pt-2 border-top">
-            <button type="submit" class="btn btn-ligue">
+            <button type="submit" class="btn btn-danger">
                 <i class="bi bi-check-lg me-1"></i>
                 {% if grade %}Enregistrer{% else %}Créer le grade{% endif %}
             </button>

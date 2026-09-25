@@ -22,8 +22,7 @@ class Grade(models.Model):
     )
     ordre    = models.PositiveIntegerField(
         default=0,
-        verbose_name="Ordre d'affichage",
-        help_text="Ordre de classement pour l'affichage des grades"
+        verbose_name="Ordre d'affichage"
     )
     actif    = models.BooleanField(default=True)
     est_grade_ligue = models.BooleanField(

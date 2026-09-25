@@ -356,7 +356,6 @@ class GradeForm(django_forms.ModelForm):
             'ordre':           django_forms.NumberInput(attrs={
                 'class': 'form-control',
                 'min': '1',
-                'style': 'max-width: 140px;'
             }),
             'est_grade_ligue': django_forms.CheckboxInput(attrs={'class': 'form-check-input'}),
             'actif':           django_forms.CheckboxInput(attrs={'class': 'form-check-input'}),

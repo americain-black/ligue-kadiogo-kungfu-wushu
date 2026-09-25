@@ -85,7 +85,7 @@
                 <tbody>
                 {% for grade in grades %}
                 <tr>
-                    <td class="ps-3 py-3"><span class="badge bg-light text-dark border fw-bold px-2 py-1">#{{ grade.ordre }}</span></td>
+                    <td class="ps-3 py-3"><span class="badge bg-light text-dark border fw-bold px-2 py-1">{{ grade.ordre }}</span></td>
                     <td class="py-3"><strong class="text-dark fs-6">{{ grade.nom }}</strong></td>
                     <td class="py-3">
                         {% if grade.est_grade_ligue %}

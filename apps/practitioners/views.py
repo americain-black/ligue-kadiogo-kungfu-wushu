@@ -367,6 +367,20 @@ class GradeForm(django_forms.ModelForm):
             'actif':           'Grade actif',
         }
 
+    def clean_ordre(self):
+        ordre = self.cleaned_data.get('ordre')
+        ligue = getattr(self.instance, 'ligue', None)
+        if ordre and ligue:
+            qs = Grade.objects.filter(ligue=ligue, ordre=ordre)
+            if self.instance and self.instance.pk:
+                qs = qs.exclude(pk=self.instance.pk)
+            if qs.exists():
+                existant = qs.first()
+                raise django_forms.ValidationError(
+                    f"L'ordre {ordre} est déjà utilisé par le grade « {existant.nom} ». Veuillez saisir un numéro unique."
+                )
+        return ordre
+
 
 @gest_ligue_requis
 def liste_grades(request):
@@ -391,6 +405,7 @@ def creer_grade(request):
     prochain_id = max_id + 1
     if request.method == 'POST':
         form = GradeForm(request.POST)
+        form.instance.ligue = ligue
         if form.is_valid():
             grade = form.save(commit=False)
             grade.ligue    = ligue

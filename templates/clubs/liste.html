@@ -45,12 +45,12 @@
                        autocomplete="off">
             </div>
         </div>
-        <div class="col-lg-7 col-md-6 text-md-end">
-            <div class="d-inline-flex align-items-center gap-2">
-                <label for="statutFilterSelect" class="fw-bold small text-muted text-uppercase mb-0 me-1">Statut :</label>
+        <div class="col-lg-7 col-md-7 text-md-end">
+            <div class="d-inline-flex align-items-center gap-2 text-nowrap ms-auto">
+                <label for="statutFilterSelect" class="fw-bold small text-muted text-uppercase mb-0 text-nowrap">Statut :</label>
                 <select id="statutFilterSelect" 
                         class="form-select form-select-sm rounded-3 border-secondary-subtle fw-semibold text-dark shadow-none px-3 py-2" 
-                        style="min-width: 180px; cursor: pointer;"
+                        style="width: auto; min-width: 170px; cursor: pointer;"
                         onchange="location.href = this.value;">
                     <option value="{% url 'clubs:liste' %}" {% if not statut_filtre %}selected{% endif %}>
                         Tous les statuts

@@ -17,8 +17,8 @@
     </div>
     
     <div class="d-flex gap-2 flex-wrap">
-        <a href="{% url 'ligues:editer_infos' %}#tab-bulletin" class="btn btn-outline-dark fw-bold">
-            <i class="bi bi-gear-fill me-1 text-warning"></i>Configuration Bulletin
+        <a href="{% url 'ligues:editer_infos' %}#tab-bulletin" class="btn btn-danger fw-bold">
+            <i class="bi bi-gear-fill me-1"></i>Configuration Bulletin
         </a>
     </div>
 </div>
@@ -30,7 +30,7 @@
             
             <div class="col-12 col-md-5">
                 <label class="form-label fw-bold text-dark small mb-1">
-                    <i class="bi bi-calendar-event me-1 text-primary"></i>Session d'Examen
+                    <i class="bi bi-calendar-event me-1 text-danger"></i>Session d'Examen
                 </label>
                 <select name="session" class="form-select" onchange="this.form.submit()">
                     <option value="">Toutes les sessions</option>
@@ -58,9 +58,9 @@
 
             <div class="col-12 col-md-3">
                 <label class="form-label fw-bold text-dark small mb-1">
-                    <i class="bi bi-search me-1 text-secondary"></i>Recherche Candidat
+                    <i class="bi bi-search me-1 text-danger"></i>Recherche Candidat
                 </label>
-                <input type="search" name="q" value="{{ q }}" class="form-control" placeholder="Recherche automatique..." oninput="clearTimeout(this.timer); this.timer = setTimeout(() => this.form.submit(), 450)">
+                <input type="search" name="q" value="{{ q }}" class="form-control" oninput="clearTimeout(this.timer); this.timer = setTimeout(() => this.form.submit(), 450)">
             </div>
 
         </form>
@@ -77,10 +77,10 @@
             </span>
         </div>
         <div class="d-flex gap-2">
-            <a href="{% url 'results:impression_groupee_bulletins' %}?session={{ session_id }}&club={{ club_id }}" class="btn btn-success fw-bold" target="_blank">
+            <a href="{% url 'results:impression_groupee_bulletins' %}?session={{ session_id }}&club={{ club_id }}" class="btn btn-danger fw-bold" target="_blank">
                 <i class="bi bi-printer-fill me-1"></i>Imprimer TOUS les bulletins filtrés (PDF)
             </a>
-            <button type="submit" class="btn btn-warning fw-bold text-dark" id="btnImprimerSelection">
+            <button type="submit" class="btn btn-outline-danger fw-bold" id="btnImprimerSelection">
                 <i class="bi bi-file-earmark-pdf-fill me-1"></i>Imprimer la sélection
             </button>
         </div>
@@ -137,7 +137,7 @@
                         </td>
                         <td class="text-center">
                             {% if item.rang %}
-                            <span class="badge bg-warning text-dark fw-bold">{{ item.rang }}<sup>e</sup> / {{ item.total }}</span>
+                            <span class="badge bg-dark text-white fw-bold">{{ item.rang }}<sup>e</sup> / {{ item.total }}</span>
                             {% else %}
                             <span class="text-muted">—</span>
                             {% endif %}

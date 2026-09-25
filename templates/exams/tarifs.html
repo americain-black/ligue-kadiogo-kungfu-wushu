@@ -7,9 +7,9 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-start mb-4">
-    <div class="d-flex align-items-start gap-3">
-        <button onclick="history.back()" class="btn-action btn-action-edit flex-shrink-0" title="Retour" data-bs-toggle="tooltip">
-            <i class="bi bi-arrow-left"></i>
+    <div class="d-flex align-items-center gap-3">
+        <button onclick="history.back()" class="btn-retour">
+            <i class="bi bi-arrow-left me-1"></i>Retour
         </button>
         <div>
             <small class="text-muted">
@@ -17,19 +17,11 @@
                 › {{ annee.libelle }} › Tarifs
             </small>
             <h4 class="fw-bold mb-0 mt-1">
-                <i class="bi bi-cash-coin me-2 text-success"></i>Tarifs d'examen — {{ annee.libelle }}
+                Tarifs d'examen — {{ annee.libelle }}
             </h4>
-            <small class="text-muted">
-                {{ annee.date_debut|date:"d/m/Y" }} → {{ annee.date_fin|date:"d/m/Y" }}
-                {% if annee.statut == 'ACTIVE' %}
-                <span class="badge bg-success ms-2">Active</span>
-                {% else %}
-                <span class="badge bg-secondary ms-2">Clôturée</span>
-                {% endif %}
-            </small>
         </div>
     </div>
-    <a href="{% url 'exams:parametres_examen' %}" class="btn btn-outline-primary btn-sm">
+    <a href="{% url 'exams:parametres_examen' %}" class="btn btn-danger btn-sm fw-bold">
         <i class="bi bi-percent me-1"></i>Répartition % Ligue/Club
     </a>
 </div>
@@ -37,9 +29,9 @@
 <div class="row g-4">
     <!-- Liste des tarifs -->
     <div class="col-md-7">
-        <div class="card">
-            <div class="card-header">
-                <h6 class="mb-0 fw-bold"><i class="bi bi-list-check me-2"></i>Tarifs définis</h6>
+        <div class="card shadow-sm border-0 rounded-3">
+            <div class="card-header bg-white border-bottom py-3">
+                <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-list-check me-2 text-danger"></i>Tarifs définis</h6>
             </div>
             <div class="card-body p-0">
                 {% if tarifs %}
@@ -55,7 +47,7 @@
                     {% for t in tarifs %}
                     <tr {% if tarif_en_edition and tarif_en_edition.pk == t.pk %}class="table-warning"{% endif %}>
                         <td class="ps-3"><strong>{{ t.grade }}</strong></td>
-                        <td class="fw-semibold text-success">{{ t.montant|floatformat:"0" }} FCFA</td>
+                        <td class="fw-semibold text-dark">{{ t.montant|floatformat:"0" }} FCFA</td>
                         <td class="text-end pe-3">
                             <div class="d-flex justify-content-end gap-1">
                                 <a href="{% url 'exams:modifier_tarif' t.pk %}"
@@ -90,10 +82,10 @@
 
     <!-- Formulaire ajout/modification -->
     <div class="col-md-5">
-        <div class="card">
-            <div class="card-header bg-{% if tarif_en_edition %}warning{% else %}success{% endif %} text-white">
-                <h6 class="mb-0 fw-bold">
-                    <i class="bi bi-{% if tarif_en_edition %}pencil{% else %}plus-circle{% endif %} me-2"></i>
+        <div class="card shadow-sm border-0 rounded-3">
+            <div class="card-header bg-white border-bottom py-3">
+                <h6 class="mb-0 fw-bold text-dark">
+                    <i class="bi bi-{% if tarif_en_edition %}pencil{% else %}plus-circle{% endif %} me-2 text-danger"></i>
                     {% if tarif_en_edition %}Modifier le tarif{% else %}Ajouter un tarif{% endif %}
                 </h6>
             </div>
@@ -111,9 +103,6 @@
                         {% if form.grade.errors %}
                         <div class="text-danger small">{{ form.grade.errors.as_text }}</div>
                         {% endif %}
-                        {% if not tarif_en_edition %}
-                        <div class="form-text">Seuls les grades officiels de la Ligue sont affichés.</div>
-                        {% endif %}
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Montant (FCFA)</label>
@@ -123,7 +112,7 @@
                         {% endif %}
                     </div>
                     <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-{% if tarif_en_edition %}warning{% else %}success{% endif %}">
+                        <button type="submit" class="btn btn-danger fw-bold px-4">
                             <i class="bi bi-check-circle me-1"></i>
                             {% if tarif_en_edition %}Enregistrer{% else %}Ajouter{% endif %}
                         </button>
@@ -133,16 +122,6 @@
                     </div>
                 </form>
             </div>
-        </div>
-
-        <div class="card mt-3 p-3 bg-light">
-            <h6 class="fw-semibold mb-2"><i class="bi bi-info-circle me-2 text-muted"></i>Comment ça marche ?</h6>
-            <p class="small text-muted mb-0">
-                Définissez ici le prix (en FCFA) que coûte la présentation de chaque grade.
-                Quand un club inscrit un pratiquant, le système calcule automatiquement
-                le montant à partir de ce tarif.
-                <strong>Un tarif par grade par année sportive.</strong>
-            </p>
         </div>
     </div>
 </div>

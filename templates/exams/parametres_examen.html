@@ -7,19 +7,23 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <div>
-        <h4 class="fw-bold mb-0">
-            <i class="bi bi-percent me-2 text-primary"></i>Paramètres de paiement des examens
-        </h4>
-        <small class="text-muted">Définissez le pourcentage des droits d'examen que le GC reverse à la ligue.</small>
+    <div class="d-flex align-items-center gap-3">
+        <button onclick="history.back()" class="btn-retour">
+            <i class="bi bi-arrow-left me-1"></i>Retour
+        </button>
+        <div>
+            <h4 class="fw-bold mb-0">
+                Paramètres de paiement des examens
+            </h4>
+        </div>
     </div>
 </div>
 
 <div class="row g-4">
     <div class="col-md-6">
-        <div class="card">
-            <div class="card-header bg-primary text-white">
-                <h6 class="mb-0 fw-bold"><i class="bi bi-sliders me-2"></i>Taux de reversement</h6>
+        <div class="card shadow-sm border-0 rounded-3">
+            <div class="card-header bg-white border-bottom py-3">
+                <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-sliders me-2 text-danger"></i>Taux de reversement</h6>
             </div>
             <div class="card-body">
                 <form method="post">
@@ -38,11 +42,8 @@
                         {% if form.pourcentage_ligue.errors %}
                         <div class="text-danger small">{{ form.pourcentage_ligue.errors.as_text }}</div>
                         {% endif %}
-                        <div class="form-text">
-                            Le GC collecte les droits auprès de ses pratiquants, puis reverse ce pourcentage à la ligue.
-                        </div>
                     </div>
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-danger fw-bold px-4">
                         <i class="bi bi-check-circle me-1"></i>Enregistrer
                     </button>
                 </form>
@@ -52,43 +53,36 @@
 
     <div class="col-md-6">
         {% if params %}
-        <div class="card">
-            <div class="card-header">
-                <h6 class="mb-0 fw-bold"><i class="bi bi-pie-chart me-2"></i>Répartition actuelle</h6>
+        <div class="card shadow-sm border-0 rounded-3">
+            <div class="card-header bg-white border-bottom py-3">
+                <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-pie-chart me-2 text-danger"></i>Répartition actuelle</h6>
             </div>
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <div class="text-center flex-fill">
-                        <div class="display-6 fw-bold text-primary">{{ params.pourcentage_ligue }} %</div>
+                        <div class="display-6 fw-bold text-danger">{{ params.pourcentage_ligue }} %</div>
                         <div class="small text-muted">Part de la ligue</div>
                     </div>
                     <div class="text-center px-3 text-muted">+</div>
                     <div class="text-center flex-fill">
-                        <div class="display-6 fw-bold text-success">{{ params.pourcentage_club }} %</div>
+                        <div class="display-6 fw-bold text-dark">{{ params.pourcentage_club }} %</div>
                         <div class="small text-muted">Part du club</div>
                     </div>
                 </div>
-                <div class="progress" style="height:20px;">
-                    <div class="progress-bar bg-primary" style="width:{{ params.pourcentage_ligue }}%;">
+                <div class="progress" style="height:16px;">
+                    <div class="progress-bar bg-danger" style="width:{{ params.pourcentage_ligue }}%;">
                         {{ params.pourcentage_ligue }}%
                     </div>
-                    <div class="progress-bar bg-success" style="width:{{ params.pourcentage_club }}%;">
+                    <div class="progress-bar bg-dark" style="width:{{ params.pourcentage_club }}%;">
                         {{ params.pourcentage_club }}%
                     </div>
                 </div>
-                <p class="small text-muted mt-3 mb-0">
-                    <i class="bi bi-info-circle me-1"></i>
-                    Exemple : pour un total de 10 000 FCFA de droits d'examen,
-                    le GC paie <strong>{{ params.pourcentage_ligue }}% = {% widthratio params.pourcentage_ligue 1 100 %} FCFA</strong> à la ligue
-                    et conserve le reste.
-                </p>
             </div>
         </div>
         {% else %}
-        <div class="card p-4 bg-light text-muted text-center">
+        <div class="card p-4 bg-light text-muted text-center border-0 rounded-3">
             <i class="bi bi-exclamation-circle fs-2 mb-2"></i>
             <p class="mb-0">Aucun paramètre défini. Configurez le taux ci-contre.</p>
-            <small>Sans paramètre, le GC devra payer 100 % des droits à la ligue.</small>
         </div>
         {% endif %}
     </div>

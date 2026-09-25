@@ -402,6 +402,33 @@
         .btn-ligue:hover { background-color: var(--rouge-fonce); color: #fff; }
         .btn-sm { font-size: 0.82rem; padding: 0.3rem 0.75rem; }
 
+        /* ── Bouton Retour Unifié à tout le site ── */
+        .btn-back, .btn-retour, .btn-action-edit {
+            display: inline-flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            gap: 0.4rem !important;
+            background-color: #ffffff !important;
+            border: 1.5px solid #cbd5e1 !important;
+            color: #0f172a !important;
+            border-radius: 8px !important;
+            padding: 0.4rem 0.85rem !important;
+            font-size: 0.88rem !important;
+            font-weight: 600 !important;
+            text-decoration: none !important;
+            transition: all 0.2s ease-in-out !important;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
+            width: auto !important;
+            height: auto !important;
+        }
+        .btn-back:hover, .btn-retour:hover, .btn-action-edit:hover {
+            background-color: #dc2626 !important;
+            border-color: #dc2626 !important;
+            color: #ffffff !important;
+            transform: translateX(-2px);
+            box-shadow: 0 4px 10px rgba(220, 38, 38, 0.25) !important;
+        }
+
         /* ── Badges ── */
         .badge { font-size: 0.78rem; font-weight: 600; padding: 0.35em 0.65em; }
         .badge-role { font-size: 0.78rem; padding: 4px 10px; border-radius: 20px; }

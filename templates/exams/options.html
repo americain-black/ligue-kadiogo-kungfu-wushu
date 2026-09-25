@@ -8,14 +8,13 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div class="d-flex align-items-center gap-3">
-    <a href="{% url 'accounts:dashboard_ligue' %}" class="btn-action btn-action-edit flex-shrink-0" title="Tableau de bord" data-bs-toggle="tooltip">
-        <i class="bi bi-arrow-left"></i>
-    </a>
+        <button onclick="history.back()" class="btn-retour">
+            <i class="bi bi-arrow-left me-1"></i>Retour
+        </button>
         <div>
-        <h4 class="fw-bold mb-0">
-        <i class="bi bi-tags me-2 text-primary"></i>Options / Styles d'examen
-        </h4>
-        <small class="text-muted">Styles de pratique proposés lors des sessions (ex : Shaolin, Sanda…)</small>
+            <h4 class="fw-bold mb-0">
+                Options / Styles d'examen
+            </h4>
         </div>
     </div>
 </div>
@@ -23,10 +22,10 @@
 <div class="row g-4">
     <!-- Liste -->
     <div class="col-md-7">
-        <div class="card">
-            <div class="card-header py-2">
-                <h6 class="mb-0 fw-bold">
-                    <i class="bi bi-list-check me-2"></i>Options définies
+        <div class="card shadow-sm border-0 rounded-3">
+            <div class="card-header bg-white border-bottom py-3">
+                <h6 class="mb-0 fw-bold text-dark">
+                    <i class="bi bi-list-check me-2 text-danger"></i>Options définies
                     <span class="badge bg-secondary ms-2">{{ options.count }}</span>
                 </h6>
             </div>
@@ -50,7 +49,7 @@
                         </td>
                         <td class="text-center">
                             {% if opt.actif %}
-                                <span class="badge bg-success">Active</span>
+                                <span class="badge bg-dark text-white">Active</span>
                             {% else %}
                                 <span class="badge bg-secondary">Inactive</span>
                             {% endif %}
@@ -97,10 +96,10 @@
 
     <!-- Formulaire -->
     <div class="col-md-5">
-        <div class="card">
-            <div class="card-header bg-{% if option_en_edition %}warning{% else %}primary{% endif %} text-white">
-                <h6 class="mb-0 fw-bold">
-                    <i class="bi bi-{% if option_en_edition %}pencil{% else %}plus-circle{% endif %} me-2"></i>
+        <div class="card shadow-sm border-0 rounded-3">
+            <div class="card-header bg-white border-bottom py-3">
+                <h6 class="mb-0 fw-bold text-dark">
+                    <i class="bi bi-{% if option_en_edition %}pencil{% else %}plus-circle{% endif %} me-2 text-danger"></i>
                     {% if option_en_edition %}Modifier — {{ option_en_edition.nom }}{% else %}Nouvelle option{% endif %}
                 </h6>
             </div>
@@ -116,7 +115,7 @@
                         {% if form.nom.errors %}<div class="text-danger small">{{ form.nom.errors.as_text }}</div>{% endif %}
                     </div>
                     <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-{% if option_en_edition %}warning{% else %}primary{% endif %}">
+                        <button type="submit" class="btn btn-danger fw-bold px-4">
                             <i class="bi bi-check-circle me-1"></i>
                             {% if option_en_edition %}Enregistrer{% else %}Ajouter{% endif %}
                         </button>
@@ -126,14 +125,6 @@
                     </div>
                 </form>
             </div>
-        </div>
-        <div class="card mt-3 p-3 bg-light">
-            <p class="small text-muted mb-0">
-                <i class="bi bi-info-circle me-1"></i>
-                Les options définissent les styles de pratique disponibles lors des examens.
-                Le gestionnaire du club choisit l'option pour chaque inscription.
-                Une option utilisée dans des inscriptions ne peut pas être supprimée.
-            </p>
         </div>
     </div>
 </div>

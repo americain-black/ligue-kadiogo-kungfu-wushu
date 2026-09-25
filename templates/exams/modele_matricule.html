@@ -6,26 +6,24 @@
 {% endblock %}
 
 {% block content %}
-<div class="d-flex align-items-start gap-3 mb-4">
-    <a href="{% url 'accounts:dashboard_ligue' %}" class="btn-action btn-action-edit flex-shrink-0"
-        title="Tableau de bord" data-bs-toggle="tooltip">
-        <i class="bi bi-arrow-left"></i>
-    </a>
+<div class="d-flex align-items-center gap-3 mb-4">
+    <button onclick="history.back()" class="btn-retour">
+        <i class="bi bi-arrow-left me-1"></i>Retour
+    </button>
     <div>
         <h4 class="fw-bold mb-0">
-            <i class="bi bi-123 me-2 text-primary"></i>Modèle de matricule
+            Modèle de matricule
         </h4>
-        <small class="text-muted">Définissez le format des matricules attribués automatiquement aux licenciés</small>
     </div>
 </div>
 
 <div class="row g-4">
     <!-- Formulaire -->
     <div class="col-md-6">
-        <div class="card">
-            <div class="card-header py-2 bg-primary text-white">
-                <h6 class="mb-0 fw-bold">
-                    <i class="bi bi-{% if modele %}pencil{% else %}plus-circle{% endif %} me-2"></i>
+        <div class="card shadow-sm border-0 rounded-3">
+            <div class="card-header bg-white border-bottom py-3">
+                <h6 class="mb-0 fw-bold text-dark">
+                    <i class="bi bi-{% if modele %}pencil{% else %}plus-circle{% endif %} me-2 text-danger"></i>
                     {% if modele %}Modifier le modèle{% else %}Créer le modèle de matricule{% endif %}
                 </h6>
             </div>
@@ -41,7 +39,6 @@
                         {% if form.prefixe.errors %}
                         <div class="text-danger small">{{ form.prefixe.errors.as_text }}</div>
                         {% endif %}
-                        <div class="form-text">Généralement le sigle de votre ligue (ex : LK, LB…)</div>
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-semibold">{{ form.derniere_sequence.label }}</label>
@@ -49,10 +46,8 @@
                         {% if form.derniere_sequence.errors %}
                         <div class="text-danger small">{{ form.derniere_sequence.errors.as_text }}</div>
                         {% endif %}
-                        <div class="form-text">Dernier numéro de séquence attribué (ex : 26 pour LK260026). Vous pouvez
-                            ajuster ce chiffre ici.</div>
                     </div>
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-danger fw-bold px-4">
                         <i class="bi bi-check-circle me-1"></i>
                         {% if modele %}Enregistrer{% else %}Créer le modèle{% endif %}
                     </button>
@@ -61,14 +56,13 @@
         </div>
 
         {% if modele %}
-        <div class="card mt-3 border-danger">
+        <div class="card mt-3 border-danger shadow-sm rounded-3">
             <div class="card-body p-3">
                 <h6 class="text-danger fw-bold mb-2">
                     <i class="bi bi-exclamation-triangle me-1"></i>Zone de danger
                 </h6>
                 <p class="small text-muted mb-3">
-                    Supprimer le modèle <strong>n'efface pas</strong> les matricules déjà attribués.
-                    Seulement la génération automatique sera désactivée.
+                    Supprimer le modèle n'efface pas les matricules déjà attribués.
                 </p>
                 <form method="post" action="{% url 'exams:supprimer_modele_matricule' %}"
                     onsubmit="return confirm('Supprimer le modèle de matricule ? Les matricules attribués sont conservés.')">
@@ -85,14 +79,14 @@
     <!-- Info et aperçu -->
     <div class="col-md-6">
         {% if modele %}
-        <div class="card border-success mb-3">
-            <div class="card-header py-2 bg-success text-white">
-                <h6 class="mb-0 fw-bold"><i class="bi bi-card-checklist me-2"></i>Modèle actuel</h6>
+        <div class="card shadow-sm border-0 rounded-3 mb-3">
+            <div class="card-header bg-white border-bottom py-3">
+                <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-card-checklist me-2 text-danger"></i>Modèle actuel</h6>
             </div>
             <div class="card-body">
                 <div class="d-flex align-items-center gap-3 mb-3">
-                    <div class="text-center p-3 bg-light rounded border">
-                        <div class="fs-2 fw-bold text-primary font-monospace">{{ prochain }}</div>
+                    <div class="text-center p-3 bg-light rounded border flex-fill">
+                        <div class="fs-2 fw-bold text-danger font-monospace">{{ prochain }}</div>
                         <div class="small text-muted">Prochain matricule généré</div>
                     </div>
                 </div>
@@ -104,8 +98,7 @@
                         </tr>
                         <tr>
                             <td class="text-muted">Format</td>
-                            <td><span class="font-monospace">{{ modele.prefixe }}<span
-                                        class="text-primary">AA</span><span class="text-success">NNNN</span></span></td>
+                            <td><span class="font-monospace">{{ modele.prefixe }}AANNNN</span></td>
                         </tr>
                         <tr>
                             <td class="text-muted">Dernière séquence</td>
@@ -116,39 +109,6 @@
             </div>
         </div>
         {% endif %}
-
-        <div class="card p-3 bg-light">
-            <h6 class="fw-semibold mb-2"><i class="bi bi-info-circle me-2 text-muted"></i>Comment fonctionne le
-                matricule ?</h6>
-            <p class="small text-muted mb-2">
-                Le matricule est généré automatiquement quand GEST_LIGUE autorise la liste d'un club.
-                Le format est : <strong class="font-monospace">{Préfixe}{2 chiffres année}{4 chiffres séquence}</strong>
-            </p>
-            <div class="d-flex gap-2 flex-wrap mb-2">
-                <div class="border rounded p-2 text-center small">
-                    <div class="fw-bold font-monospace text-danger">LK</div>
-                    <div class="text-muted">Préfixe</div>
-                </div>
-                <div class="border rounded p-2 text-center small">
-                    <div class="fw-bold font-monospace text-primary">26</div>
-                    <div class="text-muted">Année</div>
-                </div>
-                <div class="border rounded p-2 text-center small">
-                    <div class="fw-bold font-monospace text-success">0026</div>
-                    <div class="text-muted">Séquence</div>
-                </div>
-                <div class="d-flex align-items-center">
-                    <span class="text-muted">→</span>
-                    <div class="border rounded p-2 ms-2 text-center small bg-white">
-                        <div class="fw-bold font-monospace fs-5">LK260026</div>
-                    </div>
-                </div>
-            </div>
-            <p class="small text-muted mb-0">
-                Le matricule est <strong>permanent</strong> et attribué une seule fois au licencié.
-                La séquence ne se réinitialise pas.
-            </p>
-        </div>
     </div>
 </div>
 {% endblock %}

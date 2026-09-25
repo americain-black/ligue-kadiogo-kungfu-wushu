@@ -14,7 +14,7 @@ class AnneeSportiveForm(forms.ModelForm):
         model  = AnneeSportive
         fields = ['libelle', 'date_debut', 'date_fin', 'statut']
         widgets = {
-            'libelle':    forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex : 2025-2026'}),
+            'libelle':    forms.TextInput(attrs={'class': 'form-control'}),
             'date_debut': forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'date_fin':   forms.DateInput(attrs={'type': 'date', 'class': 'form-control'}),
             'statut':     forms.Select(attrs={'class': 'form-select'}),
@@ -47,11 +47,11 @@ class SessionExamenForm(forms.ModelForm):
         labels = {
             'annee_sportive':              "Année sportive",
             'titre':                       "Titre de la session",
-            'lieu':                        "Lieu",
+            'lieu':                        "Lieu (Optionnel)",
             'date_examen':                 "Date de l'examen",
-            'date_ouverture_inscriptions': "Ouverture des inscriptions",
-            'date_cloture_inscriptions':   "Clôture des inscriptions",
-            'date_limite_paiement':        "Date limite de paiement des droits d'examen",
+            'date_ouverture_inscriptions': "Ouverture des inscriptions (Optionnel)",
+            'date_cloture_inscriptions':   "Clôture des inscriptions (Optionnel)",
+            'date_limite_paiement':        "Date limite de paiement des droits d'examen (Optionnel)",
         }
 
     def __init__(self, *args, ligue=None, **kwargs):
@@ -117,7 +117,6 @@ class MultiInscriptionForm(forms.Form):
             raise forms.ValidationError("Veuillez choisir une option.")
         if not pratiquants:
             raise forms.ValidationError("Cochez au moins un pratiquant à inscrire.")
-        # Validation : chaque pratiquant doit avoir exactement le grade précédent
         id_requis = grade_vise.id_grade - 1
         invalides = []
         for p in pratiquants:
@@ -138,7 +137,7 @@ class TarifExamenForm(forms.ModelForm):
         fields = ['grade', 'montant']
         widgets = {
             'grade':   forms.Select(attrs={'class': 'form-select'}),
-            'montant': forms.NumberInput(attrs={'class': 'form-control', 'placeholder': 'Ex : 5000', 'min': '0', 'step': '100'}),
+            'montant': forms.NumberInput(attrs={'class': 'form-control', 'min': '0', 'step': '100'}),
         }
         labels = {
             'grade':   'Grade visé',
@@ -172,7 +171,7 @@ class OptionExamenForm(forms.ModelForm):
         model  = OptionExamen
         fields = ['nom']
         widgets = {
-            'nom': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex : Shaolin, Wu Dang…'}),
+            'nom': forms.TextInput(attrs={'class': 'form-control'}),
         }
         labels = {'nom': "Nom de l'option"}
 
@@ -185,7 +184,6 @@ class ParametresExamenForm(forms.ModelForm):
             'pourcentage_ligue': forms.NumberInput(attrs={
                 'class': 'form-control',
                 'min': '0', 'max': '100', 'step': '0.5',
-                'placeholder': 'Ex : 25',
             }),
         }
         labels = {'pourcentage_ligue': 'Pourcentage reversé à la ligue (%)'}
@@ -204,14 +202,12 @@ class ModeleMatriculeForm(forms.ModelForm):
         widgets = {
             'prefixe': forms.TextInput(attrs={
                 'class': 'form-control text-uppercase',
-                'placeholder': 'Ex : LK',
                 'maxlength': '10',
                 'style': 'letter-spacing:2px; font-weight:bold;',
             }),
             'derniere_sequence': forms.NumberInput(attrs={
                 'class': 'form-control',
                 'min': '0',
-                'placeholder': 'Ex : 0 (pour commencer à 1)',
             }),
         }
         labels = {
@@ -228,12 +224,12 @@ class RubriqueForm(forms.ModelForm):
         model  = Rubrique
         fields = ['nom', 'description']
         widgets = {
-            'nom':         forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex : Kata, Combat Sanda…'}),
-            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': 'Description facultative'}),
+            'nom':         forms.TextInput(attrs={'class': 'form-control'}),
+            'description': forms.Textarea(attrs={'class': 'form-control', 'rows': 3, 'placeholder': '(Optionnel)'}),
         }
         labels = {
             'nom':         'Nom de la rubrique',
-            'description': 'Description',
+            'description': 'Description (Optionnel)',
         }
 
 

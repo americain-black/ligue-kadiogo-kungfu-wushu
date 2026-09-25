@@ -31,10 +31,10 @@ class PratiquantForm(forms.ModelForm):
             'prenom':         'Prénom',
             'date_naissance': 'Date de naissance',
             'sexe':           'Sexe',
-            'lieu_naissance': 'Lieu de naissance',
-            'telephone':      'Téléphone',
-            'photo':          'Photo',
-            'bulletin_grade': 'Bulletin / attestation de grade',
+            'lieu_naissance': 'Lieu de naissance (Optionnel)',
+            'telephone':      'Téléphone (Optionnel)',
+            'photo':          'Photo (Optionnel)',
+            'bulletin_grade': 'Bulletin / attestation de grade (Optionnel)',
             'actif':          'Licencié actif',
         }
 
@@ -54,8 +54,6 @@ class PratiquantForm(forms.ModelForm):
         cleaned_data  = super().clean()
         grade_choisi  = cleaned_data.get('grade_actuel_nom')
         bulletin      = cleaned_data.get('bulletin_grade')
-        # Bulletin requis uniquement si le grade est un Grade Ligue (est_grade_ligue = True, >= ROUGE)
-        # Optionnel pour tous les grades Club (Jaune, etc.)
         if grade_choisi and grade_choisi.est_grade_ligue:
             bulletin_existant = (
                 self.instance and self.instance.pk and self.instance.bulletin_grade
@@ -82,9 +80,9 @@ class HistoriquePassageGradeForm(forms.ModelForm):
         fields = ['date_passage', 'grade_libelle', 'moyenne', 'rang', 'mention']
         widgets = {
             'date_passage': forms.DateInput(attrs={'class': 'form-control', 'type': 'date'}),
-            'grade_libelle': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: JAUNE, BLEUE, ROUGE...'}),
-            'moyenne': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0', 'max': '20', 'placeholder': 'Ex: 14.50'}),
-            'rang': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: 1er, 3 Ex, 5è...'}),
-            'mention': forms.TextInput(attrs={'class': 'form-control', 'placeholder': 'Ex: Bien, Passable...'}),
+            'grade_libelle': forms.TextInput(attrs={'class': 'form-control'}),
+            'moyenne': forms.NumberInput(attrs={'class': 'form-control', 'step': '0.01', 'min': '0', 'max': '20'}),
+            'rang': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '(Optionnel)'}),
+            'mention': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '(Optionnel)'}),
         }
 

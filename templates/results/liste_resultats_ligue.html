@@ -81,10 +81,10 @@
         </div>
         <div class="d-flex gap-2">
             <a href="{% url 'results:impression_groupee_bulletins' %}?session={{ session_id }}&club={{ club_id }}" class="btn btn-danger btn-sm fw-bold px-3" target="_blank">
-                <i class="bi bi-printer-fill me-1"></i>Imprimer TOUS les bulletins (PDF)
+                <i class="bi bi-printer me-1"></i>Imprimer tout (PDF)
             </a>
             <button type="submit" class="btn btn-outline-danger btn-sm fw-bold px-3" id="btnImprimerSelection">
-                <i class="bi bi-file-earmark-pdf-fill me-1"></i>Imprimer la sélection
+                <i class="bi bi-file-earmark-pdf me-1"></i>Imprimer sélection
             </button>
         </div>
     </div>
@@ -146,12 +146,12 @@
                             {% endif %}
                         </td>
                         <td class="py-3 text-end pe-3">
-                            <div class="d-inline-flex gap-1">
-                                <a href="{% url 'results:bulletin_pdf' item.resultat.id %}" class="btn btn-sm btn-outline-danger fw-bold" target="_blank" title="Visualiser le bulletin">
-                                    <i class="bi bi-eye-fill me-1"></i>Visualiser
+                            <div class="d-flex justify-content-end gap-1">
+                                <a href="{% url 'results:bulletin_pdf' item.resultat.id %}" class="btn-action btn-action-edit" target="_blank" title="Visualiser le bulletin" data-bs-toggle="tooltip">
+                                    <i class="bi bi-eye"></i>
                                 </a>
-                                <a href="{% url 'results:bulletin_pdf' item.resultat.id %}" class="btn btn-sm btn-danger fw-bold" target="_blank" title="Télécharger PDF">
-                                    <i class="bi bi-file-earmark-pdf-fill me-1"></i>PDF
+                                <a href="{% url 'results:bulletin_pdf' item.resultat.id %}" class="btn-action btn-action-edit text-danger" target="_blank" title="Télécharger le bulletin PDF" data-bs-toggle="tooltip">
+                                    <i class="bi bi-file-earmark-pdf"></i>
                                 </a>
                             </div>
                         </td>

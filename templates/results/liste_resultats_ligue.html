@@ -99,7 +99,7 @@
                         </th>
                         <th class="py-3">CANDIDAT</th>
                         <th class="py-3">CLUB</th>
-                        <th class="py-3">SESSION / GRADE VISÉ</th>
+                        <th class="py-3">GRADE VISÉ</th>
                         <th class="py-3 text-center">MOYENNE</th>
                         <th class="py-3 text-center">RANG</th>
                         <th class="py-3 text-center">DÉCISION</th>
@@ -124,8 +124,7 @@
                             <span class="fw-medium text-dark">{{ item.resultat.inscription.pratiquant.club.nom_club }}</span>
                         </td>
                         <td class="py-3">
-                            <div class="fw-medium text-dark">{{ item.resultat.inscription.session.titre }}</div>
-                            <span class="badge bg-light text-dark border font-monospace mt-1">{{ item.resultat.inscription.grade_vise }}</span>
+                            <span class="badge bg-light text-dark border font-monospace px-2 py-1">{{ item.resultat.inscription.grade_vise }}</span>
                         </td>
                         <td class="py-3 text-center">
                             <span class="fw-bold fs-6 text-dark">{{ item.resultat.moyenne|floatformat:2 }}</span> <small class="text-muted">/20</small>

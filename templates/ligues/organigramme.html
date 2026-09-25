@@ -18,10 +18,10 @@
         </div>
     </div>
     <div class="d-flex gap-2">
-        <a href="{% url 'ligues:organigramme_visuel' %}" class="btn btn-outline-primary">
+        <a href="{% url 'ligues:organigramme_visuel' %}" class="btn btn-outline-danger">
             <i class="bi bi-diagram-2 me-1"></i>Vue graphique
         </a>
-        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalAjouterVolet">
+        <button class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#modalAjouterVolet">
             <i class="bi bi-plus-circle me-1"></i>Ajouter un volet
         </button>
     </div>
@@ -36,10 +36,10 @@
 
 {% for volet in volets %}
 <div class="card mb-4 shadow-sm">
-    <div class="card-header d-flex justify-content-between align-items-center bg-primary text-white">
+    <div class="card-header d-flex justify-content-between align-items-center bg-white text-dark border-bottom">
         <h6 class="mb-0 fw-bold">
-            <i class="bi bi-folder2-open me-2"></i>{{ volet.nom_volet }}
-            <span class="badge bg-light text-primary ms-2">{{ volet.membres_du_volet|length }} membre(s)</span>
+            <i class="bi bi-folder2-open me-2 text-danger"></i>{{ volet.nom_volet }}
+            <span class="badge bg-danger-subtle text-danger ms-2">{{ volet.membres_du_volet|length }} membre(s)</span>
         </h6>
         <div class="d-flex gap-2">
             <button class="btn btn-sm btn-light"
@@ -152,7 +152,7 @@
         <div class="modal-content">
             <form method="post" action="{% url 'ligues:ajouter_membre' volet.pk %}">
                 {% csrf_token %}
-                <div class="modal-header bg-primary text-white">
+                <div class="modal-header bg-danger text-white">
                     <h5 class="modal-title">
                         <i class="bi bi-person-plus me-2"></i>Ajouter un membre — {{ volet.nom_volet }}
                     </h5>
@@ -207,7 +207,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-danger">
                         <i class="bi bi-check-circle me-1"></i>Ajouter
                     </button>
                 </div>
@@ -330,7 +330,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-danger">
                         <i class="bi bi-check-circle me-1"></i>Enregistrer
                     </button>
                 </div>
@@ -348,7 +348,7 @@
         <div class="modal-content">
             <form method="post" action="{% url 'ligues:creer_volet' %}">
                 {% csrf_token %}
-                <div class="modal-header bg-primary text-white">
+                <div class="modal-header bg-danger text-white">
                     <h5 class="modal-title">
                         <i class="bi bi-folder-plus me-2"></i>Nouveau volet
                     </h5>
@@ -362,7 +362,7 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
-                    <button type="submit" class="btn btn-primary">
+                    <button type="submit" class="btn btn-danger">
                         <i class="bi bi-check-circle me-1"></i>Créer
                     </button>
                 </div>

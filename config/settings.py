@@ -106,7 +106,7 @@ from decouple import config
 SECRET_KEY = config('SECRET_KEY')
 DEBUG = config('DEBUG', default=False, cast=bool)
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='*', cast=lambda v: [s.strip() for s in v.split(',') if s.strip()]) if not DEBUG else ['*']
-CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='http://167.86.109.31,https://167.86.109.31,http://kadiogokungfu.bf,https://kadiogokungfu.bf,http://www.kadiogokungfu.bf,https://www.kadiogokungfu.bf,http://kadiogokungfu.teeritech.bf,https://kadiogokungfu.teeritech.bf,http://www.kadiogokungfu.teeritech.bf,https://www.kadiogokungfu.teeritech.bf,http://kadiogofungfu.bf,https://kadiogofungfu.bf,http://www.kadiogofungfu.bf,https://www.kadiogofungfu.bf,http://localhost,http://127.0.0.1', cast=lambda v: [s.strip() for s in v.split(',') if s.strip()])
+CSRF_TRUSTED_ORIGINS = config('CSRF_TRUSTED_ORIGINS', default='http://167.86.109.31,https://167.86.109.31,http://salma.kadiogokungfu.bf,https://salma.kadiogokungfu.bf,http://www.salma.kadiogokungfu.bf,https://www.salma.kadiogokungfu.bf,http://kadiogokungfu.bf,https://kadiogokungfu.bf,http://www.kadiogokungfu.bf,https://www.kadiogokungfu.bf,http://kadiogokungfu.teeritech.bf,https://kadiogokungfu.teeritech.bf,http://www.kadiogokungfu.teeritech.bf,https://www.kadiogokungfu.teeritech.bf,http://kadiogofungfu.bf,https://kadiogofungfu.bf,http://www.kadiogofungfu.bf,https://www.kadiogofungfu.bf,http://localhost,http://127.0.0.1', cast=lambda v: [s.strip() for s in v.split(',') if s.strip()])
 
 # Reverse Proxy SSL Configuration for HTTPS (fixes CSRF 403 issue behind Nginx)
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')

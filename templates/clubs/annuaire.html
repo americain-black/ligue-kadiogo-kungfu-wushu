@@ -162,30 +162,19 @@
                  data-recherche="{{ club.nom_club|lower }} {{ club.sigle_club|lower }} {{ club.localite|lower }} {{ club.adresse|lower }}">
                 <div class="lk-card-club-item">
                     <div class="head">
-                        <div class="d-flex align-items-center gap-3">
-                            {% if club.logo %}
-                            <img src="{{ club.logo.url }}" alt="{{ club.nom_club }}" class="rounded-circle shadow-sm border border-2 border-white" style="width: 54px; height: 54px; object-fit: cover;">
-                            {% else %}
-                            <div class="rounded-circle bg-dark text-white d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 54px; height: 54px; font-size: 1rem;">
-                                {{ club.sigle_club|default:club.nom_club|slice:":2"|upper }}
-                            </div>
-                            {% endif %}
-                            <div>
-                                {% if club.sigle_club %}
-                                <span class="sigle-badge mb-1 d-inline-block">{{ club.sigle_club }}</span>
-                                {% endif %}
-                            </div>
-                        </div>
-                        <div>
-                            {% if club.statut_club == 'AFFILIE' %}
-                            <span class="badge bg-success"><i class="bi bi-shield-check me-1"></i>Affilié</span>
-                            {% elif club.statut_club == 'EN_ATTENTE' %}
-                            <span class="badge bg-warning text-dark"><i class="bi bi-clock me-1"></i>En attente</span>
-                            {% else %}
-                            <span class="badge bg-secondary">{{ club.get_statut_club_display }}</span>
-                            {% endif %}
-                        </div>
-                    </div>
+    <div class="d-flex align-items-center gap-3">
+        {% if club.logo %}
+        <img src="{{ club.logo.url }}" alt="{{ club.nom_club }}" class="rounded-circle shadow-sm border border-2 border-white" style="width: 54px; height: 54px; object-fit: cover;">
+        {% else %}
+        <div class="rounded-circle bg-dark text-white d-flex align-items-center justify-content-center fw-bold shadow-sm" style="width: 54px; height: 54px; font-size: 1rem;">
+            {{ club.sigle_club|default:club.nom_club|slice:":2"|upper }}
+        </div>
+        {% endif %}
+    </div>
+    {% if club.sigle_club %}
+    <span class="sigle-badge mb-1 d-inline-block">{{ club.sigle_club }}</span>
+    {% endif %}
+</div>
 
                     <div class="body">
                         <h5 class="fw-bold mb-3 text-dark">{{ club.nom_club }}</h5>

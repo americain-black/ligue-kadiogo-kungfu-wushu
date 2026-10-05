@@ -602,16 +602,7 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
     display: inline-block;
 }
 
-.lk-footer-titre::after {
-    content: '';
-    position: absolute;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 3px;
-    background-color: var(--lk-or, #F59E0B);
-    border-radius: 2px;
-}
+
 
 /* ── List Wrapper ────────────────────────────────────────────────── */
 .lk-footer-list-wrapper {
@@ -629,7 +620,7 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
 
 .lk-footer-liens li {
     margin-bottom: 0.65rem;
-    font-size: 0.89rem;
+    font-size: 0.88rem;
 }
 
 .lk-footer-liens a {

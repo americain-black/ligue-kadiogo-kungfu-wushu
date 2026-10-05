@@ -72,17 +72,17 @@
                 <div class="lk-footer-list-wrapper">
                     <ul class="lk-footer-liens">
                         {% if ligue_site.adresse_siege %}
-                        <li><i class="bi bi-geo-alt-fill me-2 text-warning"></i>{{ ligue_site.adresse_siege }}</li>
+                        <li><i class="bi bi-geo-alt-fill me-2 text-white"></i>{{ ligue_site.adresse_siege }}</li>
                         {% else %}
-                        <li><i class="bi bi-geo-alt-fill me-2 text-warning"></i>Ouagadougou, Burkina Faso</li>
+                        <li><i class="bi bi-geo-alt-fill me-2 text-white"></i>Ouagadougou, Burkina Faso</li>
                         {% endif %}
 
                         {% if ligue_site.telephone %}
-                        <li><i class="bi bi-telephone-fill me-2 text-warning"></i><a href="tel:{{ ligue_site.telephone }}">{{ ligue_site.telephone }}</a></li>
+                        <li><i class="bi bi-telephone-fill me-2 text-white"></i><a href="tel:{{ ligue_site.telephone }}" class="text-white">{{ ligue_site.telephone }}</a></li>
                         {% endif %}
 
                         {% if ligue_site.email_contact %}
-                        <li><i class="bi bi-envelope-fill me-2 text-warning"></i><a href="mailto:{{ ligue_site.email_contact }}">{{ ligue_site.email_contact }}</a></li>
+                        <li><i class="bi bi-envelope-fill me-2 text-white"></i><a href="mailto:{{ ligue_site.email_contact }}" class="text-white">{{ ligue_site.email_contact }}</a></li>
                         {% else %}
                         <li><i class="bi bi-envelope-fill me-2 text-warning"></i>contact@kadiogo-wushu.bf</li>
                         {% endif %}

@@ -621,6 +621,8 @@ html::-webkit-scrollbar, body::-webkit-scrollbar {
 .lk-footer-liens li {
     margin-bottom: 0.65rem;
     font-size: 0.88rem;
+    color: #94A3B8;
+    line-height: 1.65;
 }
 
 .lk-footer-liens a {

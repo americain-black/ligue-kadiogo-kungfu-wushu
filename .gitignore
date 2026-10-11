@@ -9,3 +9,6 @@ staticfiles/
 *.log
 mes diagrammes(ligue de kadiogo)/
 infos_rapport/
+
+# Fichiers temporaires Office (Word, Excel...)
+~$*

@@ -27,3 +27,8 @@
 - Prise en main de Claude Code.
 - Création de `CLAUDE.md` (fiche du projet pour Claude) et de ce fichier `SUIVI.md`.
 - Sécurité : retrait du token GitHub écrit en clair dans la configuration git.
+
+### 11/10/2026
+- Token GitHub supprimé sur github.com par l'utilisateur.
+- Retrait du fichier temporaire Word `~$ssier_Recrutement...doc` du dépôt + règle `~$*` dans `.gitignore`.
+- Dépôt GitHub laissé en **public** (choix de l'utilisateur).

@@ -16,7 +16,9 @@ résultats, paiements, actualités.
 - Base de données : SQLite en local (`db.sqlite3`), PostgreSQL en production.
 - PDF générés avec **WeasyPrint** (attestations, impressions).
 - Langue `fr-fr`, fuseau `Africa/Ouagadougou`.
-- Production : domaine `kadiogokungfu.teeritech.bf`.
+- Production : site sur `salma.kadiogokungfu.bf` (VPS 167.86.109.31), PostgreSQL `ligue_kadiogo_db`.
+- Emails envoyés depuis `contact@kadiogokungfu.bf` via `mail.teeritech.bf` (port 465 SSL, cPanel Ecodev).
+  DNS du domaine gérés chez Ecoweb (PowerDNS) : utiliser `@` pour le domaine lui-même.
 
 ## Organisation
 - `config/` : réglages (`settings.py`), URLs principales, emails.
@@ -39,3 +41,18 @@ pip install -r requirements.txt
 python manage.py migrate
 python manage.py runserver
 ```
+
+## Mise en ligne (VPS)
+L'utilisateur colle les commandes lui-même (Claude n'a pas accès au serveur). Donner les commandes **une par une**
+(les longues chaînes se coupent au collage). Méthode habituelle :
+```
+cd /var/www/ligue-kadiogo-kungfu-wushu && source venv/bin/activate
+git pull origin main
+python manage.py migrate          # vérifier avant avec : python manage.py migrate --plan
+python manage.py collectstatic --noinput
+sudo systemctl restart daphne
+```
+- Sauvegarde avant migration : `sudo -u postgres pg_dump ligue_kadiogo_db > /root/sauvegarde_ligue_$(date +%F_%H%M).sql`
+- **Ne jamais lancer `makemigrations` sur le serveur** : les migrations se créent en local puis arrivent par git.
+- Le `.env` du serveur n'est pas dans git ; dans le terminal VS Code, Ctrl+O de nano est intercepté → modifier avec `sed`/`printf`.
+

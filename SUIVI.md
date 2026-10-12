@@ -14,12 +14,13 @@
 - Footer : icônes blanches, style de texte uniforme.
 
 ### En cours
-- **Mise en production** de la transmission des identifiants (voir séance du 12/10/2026) :
-  sur le serveur → `git pull`, `python manage.py migrate`, mettre à jour les lignes EMAIL_* du `.env`, redémarrer le site.
-- À tester en vrai : créer un compte avec une vraie adresse email, puis se connecter avec.
+- À tester en vrai sur le site en ligne : créer un compte avec une vraie adresse email, puis se connecter avec.
 
 ### Prochaines étapes / idées
-- (à compléter)
+- 🔒 Changer la `SECRET_KEY` et le mot de passe PostgreSQL du serveur (ils ont été affichés dans une conversation le 12/10/2026).
+- Supprimer le fichier parasite `FETCH_HEAD` à la racine du projet sur le serveur.
+- Vérifier `CSRF_TRUSTED_ORIGINS` du `.env` serveur : il ne liste pas `https://salma.kadiogokungfu.bf`.
+- Environnement local : le venv a Django 4.2 alors que `requirements.txt` et le serveur utilisent Django 6.0.6 → réinstaller le venv local.
 
 ---
 
@@ -49,4 +50,8 @@
   - changement de mot de passe obligatoire à la 1re connexion (middleware `apps/accounts/middleware.py`) ;
   - bouton 🔑 « Réinitialiser le mot de passe » dans les listes d'utilisateurs (Ligue et Super Admin) ;
   - les échecs d'envoi d'email sont maintenant journalisés au lieu d'être cachés.
+- **Mise en production réussie** sur le VPS :
+  - migrations du serveur `0005_alter_role_nom_role` et `0006_merge_20260921_1055` (créées sur le serveur, absentes de git) ajoutées à git ; nouvelle migration renumérotée `0007` ;
+  - sauvegarde : `/root/sauvegarde_ligue_2026-10-12_0413.sql` ; anciens fichiers de migration rangés dans `/root/migrations_serveur/` ;
+  - `.env` serveur : les lignes EMAIL_* n'existaient pas (les emails du site n'avaient jamais fonctionné) → ajoutées ; test d'envoi depuis le serveur OK.
 

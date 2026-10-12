@@ -14,7 +14,10 @@
 - Footer : icônes blanches, style de texte uniforme.
 
 ### En cours
-- (rien pour le moment)
+- **Transmission des identifiants aux nouveaux utilisateurs** (problème : aujourd'hui rien n'est prévu).
+  Plan validé : mot de passe provisoire généré automatiquement, email au nouvel utilisateur,
+  page récapitulative Copier/Imprimer (si pas d'email), changement de mot de passe obligatoire à la 1re connexion.
+- **Reste à faire sur le serveur de production** : mettre à jour le `.env` du serveur (lignes EMAIL_*) puis redémarrer le site.
 
 ### Prochaines étapes / idées
 - (à compléter)
@@ -32,3 +35,13 @@
 - Token GitHub supprimé sur github.com par l'utilisateur.
 - Retrait du fichier temporaire Word `~$ssier_Recrutement...doc` du dépôt + règle `~$*` dans `.gitignore`.
 - Dépôt GitHub laissé en **public** (choix de l'utilisateur).
+
+### 12/10/2026
+- Configuration de l'adresse d'envoi **contact@kadiogokungfu.bf** :
+  - boîte créée dans le cPanel Ecodev (teeritech.bf), domaine kadiogokungfu.bf ajouté au cPanel ;
+  - DNS chez Ecoweb (PowerDNS) : MX `@ → mail.teeritech.bf.`, SPF, DKIM (`default._domainkey`), DMARC (`_dmarc`).
+  - Piège Ecoweb : utiliser `@` pour le domaine lui-même (un nom `kadiogokungfu.bf` sans point final est mal interprété).
+  - Envoi réel des emails par Ecodev depuis 209.42.18.113 (s940.lon1.mysecurecloudhost.com).
+- `.env` local mis à jour (EMAIL_HOST=mail.teeritech.bf, port 465 SSL) : test d'envoi réussi.
+- Constat : l'ancienne config (info@kadiogokungfu.teeritech.bf) ne fonctionnait pas, et le code masque les échecs d'envoi (`fail_silently=True`).
+

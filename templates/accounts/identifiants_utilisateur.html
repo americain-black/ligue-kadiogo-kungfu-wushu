@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% block title %}Identifiants à transmettre — Ligue{% endblock %}
+
+{% block content %}
+<style>
+    @media print {
+        body * { visibility: hidden; }
+        #fiche-identifiants, #fiche-identifiants * { visibility: visible; }
+        #fiche-identifiants { position: absolute; left: 0; top: 0; width: 100%; box-shadow: none !important; }
+        .no-print { display: none !important; }
+    }
+    .identifiant-valeur { font-family: Consolas, 'Courier New', monospace; font-size: 1.1rem; font-weight: 700; letter-spacing: .5px; }
+</style>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+
+        <div class="d-flex align-items-center gap-3 mb-4 no-print">
+            <a href="{% url retour %}" class="btn btn-outline-secondary btn-sm rounded-circle p-2">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <div>
+                <h4 class="fw-bold mb-0">
+                    {% if infos.nouveau_compte %}Compte créé avec succès{% else %}Mot de passe réinitialisé{% endif %}
+                </h4>
+                <small class="text-muted">Identifiants de {{ infos.nom_complet }}</small>
+            </div>
+        </div>
+
+        <!-- Statut de l'envoi par email -->
+        <div class="no-print">
+        {% if infos.statut_email == EMAIL_ENVOYE %}
+            <div class="alert alert-success rounded-3 border-0">
+                <i class="bi bi-envelope-check me-2"></i>Les identifiants ont été envoyés par email à <strong>{{ infos.email }}</strong>.
+                Vous pouvez aussi les transmettre autrement ci-dessous si nécessaire.
+            </div>
+        {% elif infos.statut_email == EMAIL_ECHEC %}
+            <div class="alert alert-warning rounded-3 border-0">
+                <i class="bi bi-exclamation-triangle me-2"></i>L'envoi de l'email à <strong>{{ infos.email }}</strong> a échoué.
+                Transmettez les identifiants ci-dessous par WhatsApp, SMS ou sur papier.
+            </div>
+        {% else %}
+            <div class="alert alert-info rounded-3 border-0">
+                <i class="bi bi-info-circle me-2"></i>Aucune adresse email n'est renseignée pour ce compte.
+                Transmettez les identifiants ci-dessous par WhatsApp, SMS ou sur papier.
+            </div>
+        {% endif %}
+        </div>
+
+        <!-- Fiche imprimable -->
+        <div id="fiche-identifiants" class="card border-0 shadow-sm rounded-4 p-4 mb-3">
+            <h5 class="fw-bold text-danger mb-1"><i class="bi bi-key me-2"></i>Identifiants de connexion</h5>
+            <p class="text-muted small mb-4">Ligue du Kadiogo de Kung-Fu Wushu</p>
+
+            <div class="row g-3">
+                <div class="col-12">
+                    <div class="small text-muted">Titulaire du compte</div>
+                    <div class="fw-semibold">{{ infos.nom_complet }}{% if infos.roles %} — {{ infos.roles }}{% endif %}</div>
+                </div>
+                <div class="col-12">
+                    <div class="small text-muted">Adresse de connexion</div>
+                    <div class="identifiant-valeur">{{ infos.url_connexion }}</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="small text-muted">Nom d'utilisateur</div>
+                    <div class="identifiant-valeur">{{ infos.username }}</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="small text-muted">Mot de passe provisoire</div>
+                    <div class="identifiant-valeur text-danger">{{ infos.mot_de_passe }}</div>
+                </div>
+            </div>
+
+            <div class="alert alert-light border small mt-4 mb-0">
+                <i class="bi bi-shield-lock me-1"></i>À la première connexion, l'utilisateur devra choisir son propre mot de passe.
+                Le mot de passe provisoire ne fonctionnera plus ensuite.
+            </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="d-flex flex-wrap gap-2 no-print">
+            <button type="button" class="btn btn-outline-danger rounded-pill px-4" id="btn-copier">
+                <i class="bi bi-clipboard me-1"></i><span>Copier les identifiants</span>
+            </button>
+            <a href="{{ lien_whatsapp }}" target="_blank" rel="noopener" class="btn btn-outline-danger rounded-pill px-4">
+                <i class="bi bi-whatsapp me-1"></i>Envoyer par WhatsApp
+            </a>
+            <button type="button" class="btn btn-outline-danger rounded-pill px-4" onclick="window.print()">
+                <i class="bi bi-printer me-1"></i>Imprimer
+            </button>
+            <a href="{% url retour %}" class="btn btn-danger rounded-pill px-4 ms-auto">
+                <i class="bi bi-check-circle me-1"></i>Terminé
+            </a>
+        </div>
+
+        <div class="alert alert-warning border-0 rounded-3 small mt-4 no-print">
+            <i class="bi bi-eye-slash me-1"></i>Pour des raisons de sécurité, cette page ne s'affiche <strong>qu'une seule fois</strong>.
+            Si vous la quittez sans avoir transmis les identifiants, utilisez le bouton
+            <i class="bi bi-key"></i> « Réinitialiser le mot de passe » dans la liste des utilisateurs.
+        </div>
+    </div>
+</div>
+
+{{ message_whatsapp|json_script:"message-identifiants" }}
+<script>
+    document.getElementById('btn-copier').addEventListener('click', function () {
+        const bouton = this;
+        const texte = JSON.parse(document.getElementById('message-identifiants').textContent);
+        const confirmer = function () {
+            bouton.querySelector('span').textContent = 'Copié !';
+            setTimeout(function () { bouton.querySelector('span').textContent = 'Copier les identifiants'; }, 2000);
+        };
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(texte).then(confirmer);
+        } else {
+            const zone = document.createElement('textarea');
+            zone.value = texte;
+            document.body.appendChild(zone);
+            zone.select();
+            document.execCommand('copy');
+            document.body.removeChild(zone);
+            confirmer();
+        }
+    });
+</script>
+{% endblock %}

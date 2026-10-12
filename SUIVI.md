@@ -14,10 +14,9 @@
 - Footer : icônes blanches, style de texte uniforme.
 
 ### En cours
-- **Transmission des identifiants aux nouveaux utilisateurs** (problème : aujourd'hui rien n'est prévu).
-  Plan validé : mot de passe provisoire généré automatiquement, email au nouvel utilisateur,
-  page récapitulative Copier/Imprimer (si pas d'email), changement de mot de passe obligatoire à la 1re connexion.
-- **Reste à faire sur le serveur de production** : mettre à jour le `.env` du serveur (lignes EMAIL_*) puis redémarrer le site.
+- **Mise en production** de la transmission des identifiants (voir séance du 12/10/2026) :
+  sur le serveur → `git pull`, `python manage.py migrate`, mettre à jour les lignes EMAIL_* du `.env`, redémarrer le site.
+- À tester en vrai : créer un compte avec une vraie adresse email, puis se connecter avec.
 
 ### Prochaines étapes / idées
 - (à compléter)
@@ -44,4 +43,10 @@
   - Envoi réel des emails par Ecodev depuis 209.42.18.113 (s940.lon1.mysecurecloudhost.com).
 - `.env` local mis à jour (EMAIL_HOST=mail.teeritech.bf, port 465 SSL) : test d'envoi réussi.
 - Constat : l'ancienne config (info@kadiogokungfu.teeritech.bf) ne fonctionnait pas, et le code masque les échecs d'envoi (`fail_silently=True`).
+- **Transmission des identifiants** (développé et testé, 6 tests automatiques OK) :
+  - le gestionnaire ne choisit plus le mot de passe : un mot de passe provisoire est généré (ex. `Kf-4827-hmtq`) ;
+  - envoi automatique par email ; page récapitulative affichée une seule fois (Copier / WhatsApp / Imprimer) ;
+  - changement de mot de passe obligatoire à la 1re connexion (middleware `apps/accounts/middleware.py`) ;
+  - bouton 🔑 « Réinitialiser le mot de passe » dans les listes d'utilisateurs (Ligue et Super Admin) ;
+  - les échecs d'envoi d'email sont maintenant journalisés au lieu d'être cachés.
 

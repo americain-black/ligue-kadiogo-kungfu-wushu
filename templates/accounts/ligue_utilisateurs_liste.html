@@ -125,6 +125,15 @@
                                data-bs-toggle="tooltip" data-bs-placement="top">
                                 <i class="bi bi-pencil"></i>
                             </a>
+                            <form action="{% url 'accounts:reinitialiser_mot_de_passe' u.pk %}" method="post" class="d-inline"
+                                  onsubmit="return confirm('Générer un nouveau mot de passe provisoire pour {{ u.get_full_name|default:u.username|escapejs }} ? L’ancien ne fonctionnera plus.');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-action btn-action-edit border-0"
+                                        title="Réinitialiser le mot de passe"
+                                        data-bs-toggle="tooltip" data-bs-placement="top">
+                                    <i class="bi bi-key"></i>
+                                </button>
+                            </form>
                             <a href="{% url 'accounts:toggle_statut_utilisateur_ligue' u.pk %}" 
                                class="btn-action {% if u.statut_compte %}btn-action-off{% else %}btn-action-on{% endif %}"
                                title="{% if u.statut_compte %}Désactiver le compte{% else %}Activer le compte{% endif %}"

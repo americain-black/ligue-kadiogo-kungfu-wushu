@@ -4,14 +4,7 @@ from .models import Utilisateur, Role
 
 
 class UtilisateurCreationForm(forms.ModelForm):
-    password1 = forms.CharField(
-        label='Mot de passe',
-        widget=forms.PasswordInput(attrs={'class': 'form-control'}),
-    )
-    password2 = forms.CharField(
-        label='Confirmer le mot de passe',
-        widget=forms.PasswordInput(attrs={'class': 'form-control'}),
-    )
+    """Le mot de passe est généré automatiquement (voir apps/accounts/identifiants.py)."""
 
     class Meta:
         model  = Utilisateur
@@ -29,19 +22,9 @@ class UtilisateurCreationForm(forms.ModelForm):
             'photo':      forms.FileInput(attrs={'class': 'form-control'}),
         }
 
-    def clean(self):
-        cleaned_data = super().clean()
-        p1 = cleaned_data.get('password1')
-        p2 = cleaned_data.get('password2')
-        if p1 and p2 and p1 != p2:
-            raise forms.ValidationError("Les mots de passe ne correspondent pas.")
-        if p1:
-            validate_password(p1)
-        return cleaned_data
-
     def save(self, commit=True):
         user = super().save(commit=False)
-        user.set_password(self.cleaned_data['password1'])
+        user.set_unusable_password()
         if commit:
             user.save()
             role, _ = Role.objects.get_or_create(
@@ -83,14 +66,6 @@ class UtilisateurLigueCreationForm(forms.ModelForm):
         empty_label="-- Sélectionner le rôle --",
         required=True
     )
-    password1 = forms.CharField(
-        label='Mot de passe',
-        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Mot de passe sécurisé'}),
-    )
-    password2 = forms.CharField(
-        label='Confirmer le mot de passe',
-        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Confirmer le mot de passe'}),
-    )
 
     class Meta:
         model  = Utilisateur
@@ -112,19 +87,10 @@ class UtilisateurLigueCreationForm(forms.ModelForm):
         tel = self.cleaned_data.get('telephone')
         return normaliser_telephone(tel)
 
-    def clean(self):
-        cleaned_data = super().clean()
-        p1 = cleaned_data.get('password1')
-        p2 = cleaned_data.get('password2')
-        if p1 and p2 and p1 != p2:
-            raise forms.ValidationError("Les mots de passe ne correspondent pas.")
-        if p1:
-            validate_password(p1)
-        return cleaned_data
-
     def save(self, ligue=None, commit=True):
         user = super().save(commit=False)
-        user.set_password(self.cleaned_data['password1'])
+        # Le mot de passe provisoire est attribué juste après (voir apps/accounts/identifiants.py)
+        user.set_unusable_password()
         if ligue:
             user.ligue = ligue
         if commit:
@@ -143,16 +109,6 @@ class UtilisateurLigueEditionForm(forms.ModelForm):
         label="Rôle / Fonction principal(e)",
         empty_label="-- Sélectionner le rôle --",
         required=True
-    )
-    nouveau_mot_de_passe = forms.CharField(
-        label="Nouveau mot de passe",
-        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Nouveau mot de passe (optionnel)', 'autocomplete': 'new-password'}),
-        required=False
-    )
-    confirmer_mot_de_passe = forms.CharField(
-        label="Confirmer le mot de passe",
-        widget=forms.PasswordInput(attrs={'class': 'form-control', 'placeholder': 'Confirmer le mot de passe', 'autocomplete': 'new-password'}),
-        required=False
     )
 
     class Meta:
@@ -183,25 +139,8 @@ class UtilisateurLigueEditionForm(forms.ModelForm):
         tel = self.cleaned_data.get('telephone')
         return normaliser_telephone(tel)
 
-    def clean(self):
-        cleaned_data = super().clean()
-        p1 = cleaned_data.get('nouveau_mot_de_passe')
-        p2 = cleaned_data.get('confirmer_mot_de_passe')
-        if p1 or p2:
-            if p1 and not p2:
-                raise forms.ValidationError("Veuillez confirmer le nouveau mot de passe dans le champ dédié.")
-            if p2 and not p1:
-                raise forms.ValidationError("Veuillez saisir le nouveau mot de passe.")
-            if p1 != p2:
-                raise forms.ValidationError("Les nouveaux mots de passe ne correspondent pas.")
-            validate_password(p1)
-        return cleaned_data
-
     def save(self, commit=True):
         user = super().save(commit=False)
-        p1 = self.cleaned_data.get('nouveau_mot_de_passe')
-        if p1:
-            user.set_password(p1)
         if commit:
             user.save()
             role = self.cleaned_data.get('role')

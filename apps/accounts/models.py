@@ -111,6 +111,8 @@ class Utilisateur(AbstractUser):
     tentatives_connexion     = models.PositiveSmallIntegerField(default=0)
     token_reinitialisation   = models.UUIDField(default=uuid.uuid4, null=True, blank=True)
     token_expiration         = models.DateTimeField(null=True, blank=True)
+    # Vrai tant que l'utilisateur n'a pas remplacé le mot de passe provisoire qui lui a été attribué
+    doit_changer_mot_de_passe = models.BooleanField(default=False)
 
     # On utilise 'ligues.Ligue' en string pour éviter l'import circulaire entre apps.
     ligue = models.ForeignKey(

@@ -51,6 +51,13 @@ urlpatterns = [
     path('jury/licencies/',  views.licencies_a_evaluer_jury, name='licencies_a_evaluer_jury'),
     path('jury/affectation/<int:pk>/', views.detail_affectation_jury, name='detail_affectation_jury'),
 
+    # Mot de passe provisoire : changement obligatoire à la première connexion
+    path('premiere-connexion/mot-de-passe/',       views.changer_mot_de_passe_obligatoire, name='changer_mot_de_passe_obligatoire'),
+
+    # Transmission des identifiants (récapitulatif affiché une seule fois) et réinitialisation
+    path('utilisateurs/identifiants/',             views.identifiants_utilisateur,  name='identifiants_utilisateur'),
+    path('utilisateurs/<int:pk>/reinitialiser-mot-de-passe/', views.reinitialiser_mot_de_passe, name='reinitialiser_mot_de_passe'),
+
     # Profil utilisateur
     path('mon-profil/',                            views.mon_profil,               name='mon_profil'),
 

@@ -7,14 +7,15 @@ logger = logging.getLogger(__name__)
 
 def _envoyer_email_async(msg):
     try:
-        msg.send(fail_silently=True)
+        msg.send(fail_silently=False)
     except Exception as e:
-        logger.error(f"Erreur envoi email d'arrière-plan : {e}")
+        logger.error(f"Erreur envoi email d'arrière-plan '{msg.subject}' vers {msg.to} : {e}")
 
-def envoyer_email_notification(destinataires, sujet, titre_entete, contenu_html_ou_texte, motif_ou_details=None, reply_to=None):
+def envoyer_email_notification(destinataires, sujet, titre_entete, contenu_html_ou_texte, motif_ou_details=None, reply_to=None, synchrone=False):
     """
     Envoie un email de notification au format HTML propre aux couleurs de la Ligue.
-    Fonctionne de manière asynchrone en arrière-plan sans bloquer la requête HTTP.
+    Par défaut, l'envoi se fait en arrière-plan sans bloquer la requête HTTP.
+    Avec synchrone=True, l'envoi est immédiat et le retour indique s'il a réellement réussi.
     """
     if not destinataires:
         return False
@@ -86,10 +87,13 @@ def envoyer_email_notification(destinataires, sujet, titre_entete, contenu_html_
             reply_to=reply_to_list
         )
         msg.attach_alternative(html_body, "text/html")
+        if synchrone:
+            msg.send(fail_silently=False)
+            return True
         # Envoie dans un thread d'arrière-plan sans bloquer la vue web
         thread = threading.Thread(target=_envoyer_email_async, args=(msg,), daemon=True)
         thread.start()
         return True
     except Exception as e:
-        logger.error(f"Erreur préparation email '{sujet}' : {e}")
+        logger.error(f"Erreur envoi email '{sujet}' : {e}")
         return False

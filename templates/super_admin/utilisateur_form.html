@@ -72,14 +72,10 @@
                     <label class="form-label fw-semibold small">Photo</label>
                     {{ form.photo }}
                 </div>
-                {% if form.password1 %}
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold small">Mot de passe *</label>
-                    {{ form.password1 }}
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold small">Confirmer *</label>
-                    {{ form.password2 }}
+                {% if not utilisateur %}
+                <div class="col-12">
+                    <small class="text-muted"><i class="bi bi-info-circle me-1"></i>Un <strong>mot de passe provisoire</strong> sera généré automatiquement,
+                    envoyé par email si une adresse est renseignée, et affiché sur l'écran suivant. Il devra être changé à la première connexion.</small>
                 </div>
                 {% endif %}
             </div>

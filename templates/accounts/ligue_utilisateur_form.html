@@ -99,18 +99,10 @@
                         <i class="bi bi-lock me-2 text-muted"></i>Sécurité & Mot de passe
                     </h6>
                     {% if edition %}
-                    <div class="col-md-6 d-flex flex-column justify-content-end">
-                        <label class="form-label small fw-semibold mb-1">{{ form.nouveau_mot_de_passe.label }}</label>
-                        {{ form.nouveau_mot_de_passe }}
-                        {% if form.nouveau_mot_de_passe.errors %}<div class="text-danger small mt-1">{{ form.nouveau_mot_de_passe.errors|striptags }}</div>{% endif %}
-                    </div>
-                    <div class="col-md-6 d-flex flex-column justify-content-end">
-                        <label class="form-label small fw-semibold mb-1">{{ form.confirmer_mot_de_passe.label }}</label>
-                        {{ form.confirmer_mot_de_passe }}
-                        {% if form.confirmer_mot_de_passe.errors %}<div class="text-danger small mt-1">{{ form.confirmer_mot_de_passe.errors|striptags }}</div>{% endif %}
-                    </div>
-                    <div class="col-12 mt-2">
-                        <small class="text-muted"><i class="bi bi-info-circle me-1"></i>Laisser ces deux champs vides si vous ne souhaitez pas modifier le mot de passe actuel.</small>
+                    <div class="col-12">
+                        <small class="text-muted"><i class="bi bi-info-circle me-1"></i>Le mot de passe n'est plus saisi par le gestionnaire.
+                        Si l'utilisateur l'a oublié, utilisez le bouton <i class="bi bi-key"></i> « Réinitialiser le mot de passe » dans la liste des utilisateurs :
+                        un nouveau mot de passe provisoire lui sera transmis.</small>
                     </div>
                     <div class="col-12 mt-3">
                         <div class="form-check form-switch">
@@ -121,15 +113,10 @@
                         </div>
                     </div>
                     {% else %}
-                    <div class="col-md-6">
-                        <label class="form-label small fw-semibold">Mot de passe *</label>
-                        {{ form.password1 }}
-                        {% if form.password1.errors %}<div class="text-danger small mt-1">{{ form.password1.errors|striptags }}</div>{% endif %}
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label small fw-semibold">Confirmer le mot de passe *</label>
-                        {{ form.password2 }}
-                        {% if form.password2.errors %}<div class="text-danger small mt-1">{{ form.password2.errors|striptags }}</div>{% endif %}
+                    <div class="col-12">
+                        <small class="text-muted"><i class="bi bi-info-circle me-1"></i>Un <strong>mot de passe provisoire</strong> sera généré automatiquement.
+                        Il sera envoyé par email si une adresse est renseignée, et affiché sur l'écran suivant pour être transmis (copie, WhatsApp, impression).
+                        L'utilisateur devra choisir son propre mot de passe à sa première connexion.</small>
                     </div>
                     {% endif %}
                 </div>

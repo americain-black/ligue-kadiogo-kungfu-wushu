@@ -9,6 +9,10 @@ from .forms import (
     UtilisateurModificationForm, RolesForm, MonProfilForm
 )
 from django.db.models import Q
+from django.contrib.auth.forms import SetPasswordForm
+from django.views.decorators.http import require_POST
+
+from .identifiants import transmettre_identifiants, CLE_SESSION as CLE_IDENTIFIANTS, EMAIL_ENVOYE, EMAIL_ECHEC, EMAIL_ABSENT
 
 
 def super_admin_requis(view_func):
@@ -573,9 +577,9 @@ def creer_utilisateur(request):
     if request.method == 'POST':
         form = UtilisateurCreationForm(request.POST, request.FILES)
         if form.is_valid():
-            form.save()
-            messages.success(request, "Compte utilisateur créé avec succès.")
-            return redirect('accounts:liste_utilisateurs')
+            nouvel_utilisateur = form.save()
+            transmettre_identifiants(request, nouvel_utilisateur, nouveau_compte=True)
+            return redirect('accounts:identifiants_utilisateur')
     else:
         form = UtilisateurCreationForm()
     return render(request, 'super_admin/utilisateur_form.html', {
@@ -944,8 +948,8 @@ def creer_utilisateur_ligue(request):
         form = UtilisateurLigueCreationForm(request.POST, request.FILES)
         if form.is_valid():
             nouvel_utilisateur = form.save(ligue=user.ligue)
-            messages.success(request, f"Compte de {nouvel_utilisateur.get_full_name() or nouvel_utilisateur.username} créé avec succès pour votre Ligue.")
-            return redirect('accounts:liste_utilisateurs_ligue')
+            transmettre_identifiants(request, nouvel_utilisateur, nouveau_compte=True)
+            return redirect('accounts:identifiants_utilisateur')
     else:
         form = UtilisateurLigueCreationForm()
 
@@ -1038,6 +1042,95 @@ def supprimer_utilisateur_ligue(request, pk):
 
 
 @login_required
+def identifiants_utilisateur(request):
+    """
+    Récapitulatif des identifiants à transmettre, affiché UNE SEULE FOIS au gestionnaire
+    juste après la création du compte ou la réinitialisation du mot de passe.
+    """
+    infos = request.session.pop(CLE_IDENTIFIANTS, None)
+    retour = 'accounts:liste_utilisateurs' if request.user.is_superuser or request.user.est_super_admin() else 'accounts:liste_utilisateurs_ligue'
+    if not infos:
+        messages.info(request, "Les identifiants ne sont affichés qu'une seule fois. Utilisez « Réinitialiser le mot de passe » pour en générer de nouveaux.")
+        return redirect(retour)
+
+    # Lien WhatsApp pré-rempli (numéros +226 enregistrés au format « +226 70 00 00 00 »)
+    import re
+    from urllib.parse import quote
+    message_whatsapp = (
+        f"Bonjour {infos['nom_complet']},\n"
+        f"Voici vos identifiants pour la plateforme de la Ligue du Kadiogo de Kung-Fu Wushu :\n"
+        f"Adresse : {infos['url_connexion']}\n"
+        f"Nom d'utilisateur : {infos['username']}\n"
+        f"Mot de passe provisoire : {infos['mot_de_passe']}\n"
+        f"Vous devrez choisir votre propre mot de passe à la première connexion."
+    )
+    numero = re.sub(r'\D', '', infos.get('telephone') or '')
+    lien_whatsapp = f"https://wa.me/{numero}?text={quote(message_whatsapp)}" if numero else f"https://wa.me/?text={quote(message_whatsapp)}"
+
+    return render(request, 'accounts/identifiants_utilisateur.html', {
+        'infos': infos,
+        'retour': retour,
+        'message_whatsapp': message_whatsapp,
+        'lien_whatsapp': lien_whatsapp,
+        'EMAIL_ENVOYE': EMAIL_ENVOYE,
+        'EMAIL_ECHEC': EMAIL_ECHEC,
+        'EMAIL_ABSENT': EMAIL_ABSENT,
+    })
+
+
+@login_required
+@require_POST
+def reinitialiser_mot_de_passe(request, pk):
+    """
+    Attribue un nouveau mot de passe provisoire à un utilisateur (mot de passe oublié, sans email…).
+    Super Admin : tous les comptes sauf les super-utilisateurs.
+    Gestionnaire Principal de Ligue : les comptes de sa Ligue.
+    """
+    user = request.user
+    if user.is_superuser or user.est_super_admin():
+        cible = get_object_or_404(Utilisateur, pk=pk, is_superuser=False)
+        retour = 'accounts:liste_utilisateurs'
+    elif user.est_gest_ligue_principal():
+        cible = get_object_or_404(Utilisateur, pk=pk, ligue=user.ligue, is_superuser=False)
+        retour = 'accounts:liste_utilisateurs_ligue'
+    else:
+        messages.error(request, "Accès réservé aux gestionnaires des comptes.")
+        return redirect('accounts:tableau_de_bord')
+
+    if cible == user:
+        messages.error(request, "Pour changer votre propre mot de passe, passez par « Mon profil ».")
+        return redirect(retour)
+
+    transmettre_identifiants(request, cible, nouveau_compte=False)
+    return redirect('accounts:identifiants_utilisateur')
+
+
+@login_required
+def changer_mot_de_passe_obligatoire(request):
+    """Première connexion avec un mot de passe provisoire : l'utilisateur choisit le sien."""
+    user = request.user
+    if not user.doit_changer_mot_de_passe:
+        return redirect('accounts:tableau_de_bord')
+
+    if request.method == 'POST':
+        form = SetPasswordForm(user, request.POST)
+        if form.is_valid():
+            if user.check_password(form.cleaned_data['new_password1']):
+                form.add_error('new_password1', "Choisissez un mot de passe différent du mot de passe provisoire.")
+            else:
+                form.save()
+                user.doit_changer_mot_de_passe = False
+                user.save(update_fields=['doit_changer_mot_de_passe'])
+                update_session_auth_hash(request, user)
+                messages.success(request, "Votre mot de passe a été enregistré. Bienvenue sur la plateforme !")
+                return redirect('accounts:tableau_de_bord')
+    else:
+        form = SetPasswordForm(user)
+
+    return render(request, 'accounts/changer_mot_de_passe_obligatoire.html', {'form': form})
+
+
+@login_required
 def mon_profil(request):
     user = request.user
     from apps.clubs.forms import ClubProfilForm
@@ -1064,6 +1157,7 @@ def mon_profil(request):
                 new_pwd = form.cleaned_data.get('nouveau_mot_de_passe')
                 if new_pwd:
                     saved_user.set_password(new_pwd)
+                    saved_user.doit_changer_mot_de_passe = False
                 saved_user.save()
                 if new_pwd:
                     update_session_auth_hash(request, saved_user)

@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('accounts', '0005_utilisateur_permissions_accordees_and_more'),
+        ('accounts', '0006_merge_20260921_1055'),
     ]
 
     operations = [
